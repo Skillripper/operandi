@@ -123,6 +123,11 @@ pub fn answer_editor(e: &Editor, line: &str) -> Option<Result<String, String>> {
     };
     let name = words.first()?;
     let entry = command_registry::find(name)?;
+    // Only a command with a headless form can answer here. Any other
+    // (tools, selection, forms, `command.list`) is not a query: the app runs
+    // it as a typed line. Reading its arguments here refused it ("can't run
+    // from a script") before the app ever saw it.
+    command_exec::spec(entry.name)?;
     let args = match command_line::json_args(entry.name, &words[1..]) {
         Ok(a) => a,
         Err(e) => return Some(Err(e)),
@@ -458,3 +463,28 @@ pub fn run_blocking(host: &mut dyn Host, source: Source) -> Outcome {
 
 #[cfg(all(test, feature = "python"))]
 mod tests;
+
+#[cfg(test)]
+mod answer_tests {
+    use super::*;
+
+    /// Regression: a command with no headless form (a tool, a selection
+    /// command, a form edit) used to come back as a failed query ("can't
+    /// run from a script"), so a script in the app couldn't run it at all.
+    #[test]
+    fn a_command_without_a_headless_form_is_not_a_query() {
+        let e = Editor::default();
+        for line in [
+            "tool.set prim.cube on",
+            "tool.drop",
+            "select.all",
+            "operandi.form.add {mesh.new} form:menu.system",
+            "command.list",
+        ] {
+            assert!(answer_editor(&e, line).is_none(), "{line}");
+        }
+        // Queries still answer, and a line that acts is still refused.
+        assert!(answer_editor(&e, "operandi.anim.query").is_some_and(|a| a.is_ok()));
+        assert!(query_editor(&e, "tool.set prim.cube on").is_err());
+    }
+}

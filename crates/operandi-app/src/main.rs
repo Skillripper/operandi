@@ -121,6 +121,8 @@ mod groups_ui;
 #[cfg(test)]
 mod guide_menus_tests;
 #[cfg(test)]
+mod guide_python_tests;
+#[cfg(test)]
 mod guide_shortcuts_tests;
 mod handle_preferences;
 mod handle_tips;
