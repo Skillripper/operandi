@@ -1,6 +1,6 @@
 //! Topology Pen v2 (BEHAVIOR-TOPOLOGY-PEN, TP-xx, 2026-11-20): the pen's
 //! modes and options, and the one-step edits behind them. The viewport
-//! side (gestures, pre-highlight) is `operandi-app/src/topology_pen_ui.rs`.
+//! side (gestures, pre-highlight) is `operandi-app/src/topology_tools/topology_pen_ui.rs`.
 //!
 //! Every edit here is one undo step; a refusal changes nothing. Points
 //! are in the mesh's own coordinates unless a name says world.

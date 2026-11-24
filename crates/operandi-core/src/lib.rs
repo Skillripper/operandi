@@ -25,27 +25,40 @@ pub mod uv_charts;
 pub use action_center::*;
 pub mod align_tools;
 pub mod angle_snap;
+#[path = "curve_tools/pen.rs"]
 pub mod pen;
 pub use align_tools::{
     GroundAlign, GroundMode, QuickAlign, QuickAlignKind, SelectionAxisMode, Tack, TackOptions,
 };
 #[path = "commands/clipboard.rs"]
 pub mod clipboard;
+#[path = "curve_tools/curve_boolean.rs"]
 pub mod curve_boolean;
+#[path = "curve_tools/curve_commands.rs"]
 pub mod curve_commands;
+#[path = "curve_tools/curve_convert.rs"]
 pub mod curve_convert;
+#[path = "curve_tools/curve_edit.rs"]
 pub mod curve_edit;
+#[path = "curve_tools/curve_fit.rs"]
 pub mod curve_fit;
+#[path = "curve_tools/curve_ops.rs"]
 pub mod curve_ops;
+#[path = "curve_tools/curves.rs"]
 pub mod curves;
 pub mod dicer;
 pub mod generator_ops;
 pub mod item_merge;
+#[path = "curve_tools/patch.rs"]
 pub mod patch;
+#[path = "curve_tools/patch_live.rs"]
 pub mod patch_live;
+#[path = "curve_tools/path_tools.rs"]
 pub mod path_tools;
+#[path = "curve_tools/sketch.rs"]
 pub mod sketch;
 pub use clipboard::{Clipboard, PastePlacement};
+#[path = "curve_tools/text.rs"]
 pub mod text;
 pub use curve_edit::{AddGeometry, CurveEdit};
 pub use curves::CurveKind;
@@ -140,6 +153,7 @@ pub mod polygon_part;
 pub mod polygon_tags;
 pub use polygon_tags::*;
 pub mod colour_math;
+#[path = "curve_tools/contour.rs"]
 pub mod contour;
 pub mod diagonal_redirect;
 pub mod edge_zip;
@@ -388,6 +402,7 @@ pub mod falloff;
 pub mod mesh_stack_deform;
 pub mod select_tools;
 pub mod topology_cleanup;
+#[path = "curve_tools/topology_pen.rs"]
 pub mod topology_pen;
 pub use bend::BendOptions;
 pub use deform::{DeformPreset, PushNormals, SmoothOptions};
@@ -518,6 +533,7 @@ pub mod bridge;
 pub use bridge::*;
 mod bridge_editor;
 
+#[path = "curve_tools/pen_interactive.rs"]
 pub mod pen_interactive;
 pub use pen_interactive::*;
 pub mod guides;
@@ -540,11 +556,15 @@ pub use poly_haul::*;
 pub mod poly_haul_modes;
 pub use poly_haul_modes::{HaulAmount, HaulTarget, PolyHaulMode, poly_haul_mode_geometry};
 
+#[path = "curve_tools/sketch_extrude.rs"]
 pub mod sketch_extrude;
 pub mod solid_sketch;
+#[path = "curve_tools/solid_sketch_editor.rs"]
 pub mod solid_sketch_editor;
 pub use solid_sketch_editor::{SketchEdit, SketchSession};
+#[path = "curve_tools/solid_sketch_store.rs"]
 pub mod solid_sketch_store;
+#[path = "curve_tools/solid_sketch_symmetry.rs"]
 pub mod solid_sketch_symmetry;
 pub mod statistics;
 pub mod statistics_edit;
