@@ -79,6 +79,7 @@ mod background_ui;
 mod bevel_panel;
 #[path = "rigging/bind_dialog_ui.rs"]
 mod bind_dialog_ui;
+#[path = "slicing/boolean_dialog.rs"]
 mod boolean_dialog;
 #[path = "controls/branding.rs"]
 mod branding;
@@ -138,6 +139,7 @@ mod ctrl_constrain_tests;
 mod curve_hands_on;
 #[path = "create_tools/curve_tab.rs"]
 mod curve_tab;
+#[path = "slicing/cut_dialogs.rs"]
 mod cut_dialogs;
 #[path = "settings/defaults_preferences.rs"]
 mod defaults_preferences;
@@ -153,6 +155,7 @@ mod display_shading;
 mod drag_undo_guard_tests;
 #[path = "create_tools/draw_tools.rs"]
 mod draw_tools;
+#[path = "slicing/drill_dialog.rs"]
 mod drill_dialog;
 mod drop_action_ui;
 #[path = "input_devices/drop_keys.rs"]
@@ -351,8 +354,10 @@ mod panels;
 #[cfg(test)]
 #[path = "create_tools/patch_safety_tests.rs"]
 mod patch_safety_tests;
+#[path = "slicing/path_slice_panel.rs"]
 mod path_slice_panel;
 mod path_slice_view;
+#[path = "slicing/path_tool_panel.rs"]
 mod path_tool_panel;
 mod path_tool_view;
 #[path = "create_tools/pen_interactive_ui.rs"]
@@ -4356,6 +4361,7 @@ mod numeric_tab_tests;
 #[path = "presets/online_library_tests.rs"]
 mod online_library_tests;
 #[cfg(test)]
+#[path = "slicing/path_slice_tools_tests.rs"]
 mod path_slice_tools_tests;
 #[cfg(test)]
 #[path = "create_tools/pen_ui_tests.rs"]
@@ -4411,6 +4417,7 @@ mod shader_layer_menu_tests;
 #[path = "materials/shading_panel_tests.rs"]
 mod shading_panel_tests;
 #[cfg(test)]
+#[path = "slicing/slice_tools_tests.rs"]
 mod slice_tools_tests;
 #[cfg(test)]
 mod snaps_panel_tests;
@@ -4629,6 +4636,7 @@ mod flatten_ngons_ui_tests;
 mod vertex_panel_tests;
 
 #[cfg(test)]
+#[path = "slicing/add_loop_slide_options_tests.rs"]
 mod add_loop_slide_options_tests;
 #[cfg(test)]
 #[path = "items/group_eye_tests.rs"]
