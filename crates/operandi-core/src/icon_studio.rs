@@ -983,10 +983,88 @@ pub enum Sample {
     CurveColor,
     /// Align Winding: two loops turning the same way.
     CurveWinding,
+    /// Cut: a selected cube lifted out of its dashed outline.
+    EditCut,
+    /// Paste: a cyan cube on a clipboard.
+    EditPaste,
+    /// Paste Tool: a cyan cube dropped onto a surface.
+    PasteTool,
+    /// Draw Patch: a cyan patch inside four selected curves.
+    DrawPatch,
+    /// Solid Sketch: a stroke swelling into a solid.
+    SolidSketchTool,
+    /// Push: a cube pushed out along its normals.
+    DeformPush,
+    /// Smooth: a rough ball turning smooth.
+    DeformSmooth,
+    /// Element Move: one point with move arrows.
+    ElementMove,
+    /// Element Push: a soft dent pushed in.
+    ElementPush,
+    /// Flex: a column flexed at a selected point.
+    DeformFlex,
+    /// Jitter: cubes shaken out of line.
+    DeformJitter,
+    /// Linear Align: points pulled onto a line.
+    LinearAlign,
+    /// Radial Align: points on a circle.
+    RadialAlign,
+    /// Quantize: a surface stepped into levels.
+    DeformQuantize,
+    /// Sculpt: a bump with a brush ring.
+    DeformSculpt,
+    /// Soft Drag: a soft bump dragged sideways.
+    SoftDrag,
+    /// Soft Move: a soft bump moved up.
+    SoftMove,
+    /// Soft selection move: a soft bump with move axes.
+    SoftSelectionMove,
+    /// Soft selection rotate: a soft bump with rotate rings.
+    SoftSelectionRotate,
+    /// Soft selection scale: a soft bump with scale handles.
+    SoftSelectionScale,
+    /// Soft selection transform: a soft bump with every handle.
+    SoftSelectionTransform,
+    /// Swirl: a spiral on a surface.
+    DeformSwirl,
+    /// Vortex: a widening helix.
+    DeformVortex,
+    /// Radial Sweep: a profile swept round an axis.
+    RadialSweepTool,
+    /// Edge Slice: a cut across a cube's edge.
+    EdgeSliceTool,
+    /// Polygon Slice: a polygon cut by a line.
+    PolygonSliceTool,
+    /// Curve Slice: a cube cut along a curve.
+    CurveSliceTool,
+    /// Pen Slice: a cube cut along a pen path.
+    PenSliceTool,
+    /// Axis Slice: a cube cut by an axis plane.
+    AxisSliceTool,
+    /// Primitive Slice: a circle cut into a cube.
+    PrimitiveSliceTool,
+    /// Freeze: a smooth ball frozen into facets.
+    FreezeSubdivision,
+    /// Subdivision surface: a smooth ball in its cage.
+    SdsSubdivide,
+    /// Subdivide smooth: a rounded ball with new loops.
+    SubdivideSmooth,
+    /// Subdivide faceted: a cube with each face split.
+    SubdivideFaceted,
+    /// Subdivide options: a split cube with sliders.
+    SubdivideOptions,
+    /// Unsubdivide: a split cube losing its loops.
+    Unsubdivide,
+    /// Flatten N-gons: a polygon pressed flat.
+    FlattenNgons,
+    /// Poly Reduct: a dense ball becoming a low one.
+    PolyReduct,
+    /// Create vertex: a new point on a surface.
+    VertexCreate,
 }
 
 impl Sample {
-    pub const ALL: [Sample; 347] = [
+    pub const ALL: [Sample; 386] = [
         Sample::Cube,
         Sample::SelectedFace,
         Sample::Sphere,
@@ -1334,6 +1412,45 @@ impl Sample {
         Sample::BezierTangent,
         Sample::CurveColor,
         Sample::CurveWinding,
+        Sample::EditCut,
+        Sample::EditPaste,
+        Sample::PasteTool,
+        Sample::DrawPatch,
+        Sample::SolidSketchTool,
+        Sample::DeformPush,
+        Sample::DeformSmooth,
+        Sample::ElementMove,
+        Sample::ElementPush,
+        Sample::DeformFlex,
+        Sample::DeformJitter,
+        Sample::LinearAlign,
+        Sample::RadialAlign,
+        Sample::DeformQuantize,
+        Sample::DeformSculpt,
+        Sample::SoftDrag,
+        Sample::SoftMove,
+        Sample::SoftSelectionMove,
+        Sample::SoftSelectionRotate,
+        Sample::SoftSelectionScale,
+        Sample::SoftSelectionTransform,
+        Sample::DeformSwirl,
+        Sample::DeformVortex,
+        Sample::RadialSweepTool,
+        Sample::EdgeSliceTool,
+        Sample::PolygonSliceTool,
+        Sample::CurveSliceTool,
+        Sample::PenSliceTool,
+        Sample::AxisSliceTool,
+        Sample::PrimitiveSliceTool,
+        Sample::FreezeSubdivision,
+        Sample::SdsSubdivide,
+        Sample::SubdivideSmooth,
+        Sample::SubdivideFaceted,
+        Sample::SubdivideOptions,
+        Sample::Unsubdivide,
+        Sample::FlattenNgons,
+        Sample::PolyReduct,
+        Sample::VertexCreate,
     ];
 
     /// File stem and icon slug.
@@ -1686,6 +1803,45 @@ impl Sample {
             Sample::BezierTangent => "bezier-tangent",
             Sample::CurveColor => "curve-color",
             Sample::CurveWinding => "curve-winding",
+            Sample::EditCut => "cut",
+            Sample::EditPaste => "paste",
+            Sample::PasteTool => "paste-tool",
+            Sample::DrawPatch => "draw-patch",
+            Sample::SolidSketchTool => "solid-sketch",
+            Sample::DeformPush => "push",
+            Sample::DeformSmooth => "smooth",
+            Sample::ElementMove => "element-move",
+            Sample::ElementPush => "element-push",
+            Sample::DeformFlex => "flex",
+            Sample::DeformJitter => "jitter",
+            Sample::LinearAlign => "linear-align",
+            Sample::RadialAlign => "radial-align",
+            Sample::DeformQuantize => "quantize",
+            Sample::DeformSculpt => "sculpt",
+            Sample::SoftDrag => "soft-drag",
+            Sample::SoftMove => "soft-move",
+            Sample::SoftSelectionMove => "soft-selection-move",
+            Sample::SoftSelectionRotate => "soft-selection-rotate",
+            Sample::SoftSelectionScale => "soft-selection-scale",
+            Sample::SoftSelectionTransform => "soft-selection-transform",
+            Sample::DeformSwirl => "swirl",
+            Sample::DeformVortex => "vortex",
+            Sample::RadialSweepTool => "radial-sweep",
+            Sample::EdgeSliceTool => "edge-slice",
+            Sample::PolygonSliceTool => "polygon-slice",
+            Sample::CurveSliceTool => "curve-slice",
+            Sample::PenSliceTool => "pen-slice",
+            Sample::AxisSliceTool => "axis-slice",
+            Sample::PrimitiveSliceTool => "primitive-slice",
+            Sample::FreezeSubdivision => "freeze",
+            Sample::SdsSubdivide => "sds-subdivide",
+            Sample::SubdivideSmooth => "subdivide-smooth",
+            Sample::SubdivideFaceted => "subdivide-faceted",
+            Sample::SubdivideOptions => "subdivide-options",
+            Sample::Unsubdivide => "unsubdivide",
+            Sample::FlattenNgons => "flatten-ngons",
+            Sample::PolyReduct => "poly-reduct",
+            Sample::VertexCreate => "vertex-create",
         }
     }
 
@@ -3242,6 +3398,52 @@ fn padlock(c: DVec3, size: f64) -> Result<Vec<Mesh>> {
         )?,
         tube(&arc, size * 0.09, 10, "Ink")?,
     ])
+}
+
+/// A soft-selection patch: a bump whose centre is selected, for the soft
+/// and element tools.
+fn soft_patch(height: f64) -> Result<Mesh> {
+    heightfield(
+        32,
+        0.55,
+        move |x, z| height * 1.4 * bell((x * x + z * z).sqrt(), 0.3),
+        |x, z| {
+            if (x * x + z * z).sqrt() < 0.14 {
+                "Selected"
+            } else {
+                CLAY
+            }
+        },
+    )
+}
+
+/// The cyan cut lines that split a cube's three visible faces in two.
+fn cube_cross_lines(c: DVec3, size: f64, tag: &str) -> Result<Vec<Mesh>> {
+    let h = size * 0.5 + 0.005;
+    let p = |x: f64, y: f64, z: f64| c + DVec3::new(x, y, z) * h;
+    [
+        (p(-1., 1., 0.), p(1., 1., 0.)),
+        (p(0., 1., -1.), p(0., 1., 1.)),
+        (p(1., -1., 0.), p(1., 1., 0.)),
+        (p(1., 0., -1.), p(1., 0., 1.)),
+        (p(-1., 0., 1.), p(1., 0., 1.)),
+        (p(0., -1., 1.), p(0., 1., 1.)),
+    ]
+    .into_iter()
+    .map(|(a, b)| tube(&[a, b], 0.03, 8, tag))
+    .collect()
+}
+
+/// A low, faceted ball: `sides` round and `bands` from pole to pole.
+fn faceted_ball(c: DVec3, r: f64, sides: u32, bands: u32, tag: &str) -> Result<Mesh> {
+    let profile: Vec<(f64, f64)> = (0..=bands)
+        .map(|k| {
+            let a = -std::f64::consts::FRAC_PI_2
+                + std::f64::consts::PI * f64::from(k) / f64::from(bands);
+            (r * a.cos(), r * a.sin())
+        })
+        .collect();
+    Ok(deformed(revolve(&profile, sides, false, tag)?, |v| c + v))
 }
 
 /// The geometry of a sample, inside the icon box.
@@ -7903,6 +8105,504 @@ fn sample_mesh(sample: Sample) -> Result<Mesh> {
                 parts.push(tube(&pts[..30], 0.045, 8, "New")?);
                 parts.push(arrow(pts[28], pts[31] + (pts[31] - pts[29]), 0.05, "New")?);
             }
+            merge(parts)?
+        }
+        Sample::EditCut => {
+            let mut parts = Vec::new();
+            for (a, b) in visible_cube_edges(DVec3::new(0., -0.18, 0.), 0.46) {
+                parts.extend(dashed(a, b, 2)?);
+            }
+            parts.push(cube_at(
+                DVec3::new(0., -0.18, 0.) + flat(0.3, 0.42),
+                0.4,
+                "Selected",
+            )?);
+            merge(parts)?
+        }
+        Sample::EditPaste => {
+            let board = block_by(
+                DVec3::new(-0.38, -0.5, -0.06),
+                DVec3::new(0.38, 0.45, 0.0),
+                CLAY,
+            )?;
+            let q = glam::DQuat::from_rotation_y(std::f64::consts::FRAC_PI_4);
+            merge(vec![
+                deformed(board, move |v| q * v),
+                deformed(
+                    block_by(
+                        DVec3::new(-0.16, 0.38, -0.08),
+                        DVec3::new(0.16, 0.52, 0.04),
+                        "Ink",
+                    )?,
+                    move |v| q * v,
+                ),
+                block(DVec3::new(0.0, -0.08, 0.0) + toward(0.25), 0.36, "New")?,
+            ])?
+        }
+        Sample::PasteTool => merge(vec![
+            heightfield(8, 0.55, |_, _| 0., |_, _| CLAY)?,
+            block(DVec3::new(0., 0.18, 0.), 0.34, "New")?,
+            arrow(
+                DVec3::new(0., 0.75, 0.),
+                DVec3::new(0., 0.38, 0.),
+                0.05,
+                "New",
+            )?,
+        ])?,
+        Sample::DrawPatch => {
+            let h = |x: f64, z: f64| 0.12 * (1. - (x * x + z * z) / 0.5);
+            let mut parts = vec![heightfield(16, 0.4, h, |_, _| "New")?];
+            for (a, b) in [
+                ((-0.4, -0.4), (0.4, -0.4)),
+                ((0.4, -0.4), (0.4, 0.4)),
+                ((0.4, 0.4), (-0.4, 0.4)),
+                ((-0.4, 0.4), (-0.4, -0.4)),
+            ] {
+                let pts: Vec<DVec3> = (0..=8)
+                    .map(|k| {
+                        let t = f64::from(k) / 8.;
+                        let (x, z) = (a.0 + (b.0 - a.0) * t, a.1 + (b.1 - a.1) * t);
+                        DVec3::new(x, h(x, z) + 0.02, z)
+                    })
+                    .collect();
+                parts.push(tube(&pts, 0.04, 8, "Selected")?);
+            }
+            merge(parts)?
+        }
+        Sample::SolidSketchTool => {
+            let path = through(
+                &[
+                    flat(-0.55, -0.35),
+                    flat(-0.15, 0.2),
+                    flat(0.25, -0.1),
+                    flat(0.55, 0.35),
+                ],
+                12,
+            );
+            let n = path.len();
+            merge(vec![
+                tube_with(&path[..n * 2 / 3], |t| 0.06 + 0.1 * t, 16, CLAY)?,
+                tube(&path[n * 2 / 3 - 1..], 0.04, 8, "Selected")?,
+            ])?
+        }
+        Sample::DeformPush => {
+            let mut parts = vec![cube_at(DVec3::ZERO, 0.6, CLAY)?];
+            for a in [DVec3::X, DVec3::Y, DVec3::Z] {
+                parts.push(arrow(a * 0.3, a * 0.62, 0.05, "New")?);
+            }
+            merge(parts)?
+        }
+        Sample::DeformSmooth => {
+            let ball_mesh = ball(DVec3::ZERO, 0.45, CLAY)?;
+            deformed(ball_mesh, |v| {
+                let rough = 1. - smooth_step(-0.2, 0.2, v.x - v.z);
+                v * (1. + rough * 0.12 * (v.x * 30.).sin() * (v.y * 30.).cos())
+            })
+        }
+        Sample::ElementMove => merge(vec![
+            soft_patch(0.0)?,
+            ball(DVec3::new(0., 0.05, 0.), 0.07, "Selected")?,
+            two_way(
+                DVec3::new(-0.34, 0.06, 0.),
+                DVec3::new(0.34, 0.06, 0.),
+                0.04,
+                "New",
+            )?,
+            two_way(
+                DVec3::new(0., 0.06, -0.34),
+                DVec3::new(0., 0.06, 0.34),
+                0.04,
+                "New",
+            )?,
+        ])?,
+        Sample::ElementPush => merge(vec![
+            soft_patch(-0.2)?,
+            arrow(
+                DVec3::new(0., 0.5, 0.),
+                DVec3::new(0., -0.12, 0.),
+                0.05,
+                "New",
+            )?,
+        ])?,
+        Sample::DeformFlex => {
+            let path = through(
+                &[
+                    DVec3::new(0., -0.55, 0.),
+                    DVec3::new(0.0, -0.2, 0.),
+                    flat(0.28, 0.1),
+                    DVec3::new(0., 0.4, 0.),
+                    DVec3::new(0., 0.6, 0.),
+                ],
+                8,
+            );
+            merge(vec![
+                tube(&path, 0.15, 20, CLAY)?,
+                ball(flat(0.28, 0.1), 0.12, "Selected")?,
+                arrow(
+                    flat(0.42, 0.1) + toward(0.1),
+                    flat(0.68, 0.1) + toward(0.1),
+                    0.05,
+                    "New",
+                )?,
+            ])?
+        }
+        Sample::DeformJitter => {
+            let mut parts = Vec::new();
+            for i in 0..3 {
+                for j in 0..3 {
+                    let (x, z) = (-0.36 + 0.36 * f64::from(i), -0.36 + 0.36 * f64::from(j));
+                    let wob = ((i * 7 + j * 3) % 5) as f64 / 5. - 0.4;
+                    let q = glam::DQuat::from_rotation_y(wob * 1.2)
+                        * glam::DQuat::from_rotation_x(wob * 0.6);
+                    let c = DVec3::new(x + wob * 0.08, wob * 0.12, z - wob * 0.06);
+                    parts.push(deformed(
+                        cube_at(
+                            DVec3::ZERO,
+                            0.22,
+                            if i == 1 && j == 1 { "Selected" } else { CLAY },
+                        )?,
+                        move |v| c + q * v,
+                    ));
+                }
+            }
+            merge(parts)?
+        }
+        Sample::LinearAlign => {
+            let mut parts = vec![tube(&[flat(-0.6, -0.3), flat(0.6, 0.3)], 0.03, 8, "New")?];
+            for (t, off) in [(-0.5, 0.0), (-0.2, 0.25), (0.1, 0.0), (0.4, -0.25)] {
+                let on = flat(t, t * 0.5);
+                if off == 0. {
+                    parts.push(ball(on, 0.09, "Selected")?);
+                } else {
+                    let from = on + flat(0., off);
+                    parts.push(ball(from, 0.08, CLAY)?);
+                    parts.push(arrow(
+                        from + flat(0., -off.signum() * 0.09),
+                        on + flat(0., off.signum() * 0.1),
+                        0.035,
+                        "New",
+                    )?);
+                }
+            }
+            merge(parts)?
+        }
+        Sample::RadialAlign => {
+            let mut parts = vec![tube(&circle_points(DVec3::ZERO, 0.42, 48), 0.03, 8, "New")?];
+            for k in 0..6 {
+                let a = std::f64::consts::TAU * f64::from(k) / 6. + 0.3;
+                parts.push(ball(
+                    flat(0.42 * a.cos(), 0.42 * a.sin()),
+                    0.09,
+                    "Selected",
+                )?);
+            }
+            merge(parts)?
+        }
+        Sample::DeformQuantize => heightfield(
+            32,
+            0.55,
+            |x, z| 0.13 * ((x + z) * 2.2 + 2.).floor().clamp(0., 4.),
+            |_, _| CLAY,
+        )?,
+        Sample::DeformSculpt => merge(vec![
+            heightfield(
+                40,
+                0.55,
+                |x, z| 0.24 * bell(((x - 0.1).powi(2) + (z + 0.1).powi(2)).sqrt(), 0.22),
+                |_, _| CLAY,
+            )?,
+            brush_ring(0.1, -0.1, 0.27, 0.22)?,
+        ])?,
+        Sample::SoftDrag => merge(vec![
+            soft_patch(0.28)?,
+            arrow(
+                DVec3::new(0., 0.32, 0.),
+                DVec3::new(0.0, 0.32, 0.) + flat(0.45, 0.2),
+                0.05,
+                "New",
+            )?,
+        ])?,
+        Sample::SoftMove => merge(vec![
+            soft_patch(0.28)?,
+            arrow(
+                DVec3::new(0., 0.32, 0.),
+                DVec3::new(0., 0.75, 0.),
+                0.055,
+                "New",
+            )?,
+        ])?,
+        Sample::SoftSelectionMove | Sample::SoftSelectionTransform => {
+            let c = DVec3::new(0., 0.3, 0.);
+            let mut parts = vec![soft_patch(0.28)?];
+            for (a, tag) in [
+                (DVec3::X, "Axis X"),
+                (DVec3::Y, "Axis Y"),
+                (DVec3::Z, "Axis Z"),
+            ] {
+                parts.push(arrow(c, c + a * 0.42, 0.04, tag)?);
+                if sample == Sample::SoftSelectionTransform {
+                    parts.push(block(c + a * 0.26, 0.08, tag)?);
+                }
+            }
+            if sample == Sample::SoftSelectionTransform {
+                let ring: Vec<DVec3> = (0..=40)
+                    .map(|k| {
+                        let t = std::f64::consts::TAU * f64::from(k) / 40.;
+                        c + DVec3::new(0.3 * t.cos(), 0., 0.3 * t.sin())
+                    })
+                    .collect();
+                parts.push(tube(&ring, 0.025, 8, "Axis Y")?);
+            }
+            merge(parts)?
+        }
+        Sample::SoftSelectionRotate => {
+            let c = DVec3::new(0., 0.3, 0.);
+            let ring = |axis: DVec3, tag: &str| -> Result<Mesh> {
+                let side = axis.any_orthonormal_vector();
+                let up = axis.cross(side);
+                let pts: Vec<DVec3> = (0..=40)
+                    .map(|k| {
+                        let t = std::f64::consts::TAU * f64::from(k) / 40.;
+                        c + (side * t.cos() + up * t.sin()) * 0.3
+                    })
+                    .collect();
+                tube(&pts, 0.025, 8, tag)
+            };
+            merge(vec![
+                soft_patch(0.28)?,
+                ring(DVec3::X, "Axis X")?,
+                ring(DVec3::Y, "Axis Y")?,
+                ring(DVec3::Z, "Axis Z")?,
+            ])?
+        }
+        Sample::SoftSelectionScale => {
+            let c = DVec3::new(0., 0.3, 0.);
+            let mut parts = vec![soft_patch(0.28)?];
+            for (a, tag) in [
+                (DVec3::X, "Axis X"),
+                (DVec3::Y, "Axis Y"),
+                (DVec3::Z, "Axis Z"),
+            ] {
+                parts.push(tube(&[c, c + a * 0.36], 0.025, 8, tag)?);
+                parts.push(block(c + a * 0.38, 0.1, tag)?);
+            }
+            merge(parts)?
+        }
+        Sample::DeformSwirl => {
+            let spiral: Vec<DVec3> = (0..=60)
+                .map(|k| {
+                    let t = f64::from(k) / 60.;
+                    let a = t * std::f64::consts::TAU * 1.6;
+                    let r = 0.05 + 0.4 * t;
+                    DVec3::new(r * a.cos(), 0.03, r * a.sin())
+                })
+                .collect();
+            merge(vec![
+                heightfield(8, 0.55, |_, _| 0., |_, _| CLAY)?,
+                tube(&spiral, 0.045, 8, "New")?,
+            ])?
+        }
+        Sample::DeformVortex => {
+            let helix: Vec<DVec3> = (0..=80)
+                .map(|k| {
+                    let t = f64::from(k) / 80.;
+                    let a = t * std::f64::consts::TAU * 3.;
+                    let r = 0.08 + 0.4 * t;
+                    DVec3::new(r * a.cos(), -0.5 + t, r * a.sin())
+                })
+                .collect();
+            tube(&helix, 0.05, 8, "New")?
+        }
+        Sample::RadialSweepTool => {
+            let arc: Vec<DVec3> = (0..=30)
+                .map(|k| {
+                    let a = 1.5 * std::f64::consts::PI * f64::from(k) / 30.;
+                    DVec3::new(0.38 * a.cos(), -0.1, 0.38 * a.sin())
+                })
+                .collect();
+            merge(vec![
+                tube(&arc, 0.14, 16, CLAY)?,
+                block_by(
+                    DVec3::new(0.24, -0.26, -0.01),
+                    DVec3::new(0.52, 0.06, 0.03),
+                    "Selected",
+                )?,
+                tube(
+                    &[DVec3::new(0., -0.5, 0.), DVec3::new(0., 0.5, 0.)],
+                    0.03,
+                    8,
+                    "Axis Y",
+                )?,
+            ])?
+        }
+        Sample::EdgeSliceTool => {
+            let h = 0.3;
+            merge(vec![
+                cube_at(DVec3::ZERO, 2. * h, CLAY)?,
+                tube(
+                    &[
+                        DVec3::new(-h, h + 0.01, -0.1),
+                        DVec3::new(h + 0.01, h + 0.01, 0.15),
+                        DVec3::new(h + 0.01, -h, 0.0),
+                    ],
+                    0.035,
+                    8,
+                    "New",
+                )?,
+            ])?
+        }
+        Sample::PolygonSliceTool => symbol(vec![
+            slab(
+                &[(-0.5, -0.38), (0.45, -0.45), (0.5, 0.4), (-0.42, 0.45)],
+                0.08,
+                CLAY,
+            )?,
+            bar(-0.6, 0.3, 0.6, -0.3, 0.06, 0.14, "New")?,
+        ])?,
+        Sample::CurveSliceTool => {
+            let h = 0.3;
+            let pts: Vec<DVec3> = (0..=16)
+                .map(|k| {
+                    let t = f64::from(k) / 16.;
+                    DVec3::new(-h + 2. * h * t, h + 0.01, 0.12 * (t * 6.).sin())
+                })
+                .collect();
+            merge(vec![
+                cube_at(DVec3::ZERO, 2. * h, CLAY)?,
+                tube(&pts, 0.035, 8, "New")?,
+            ])?
+        }
+        Sample::PenSliceTool => {
+            let h = 0.3;
+            let pts = [
+                DVec3::new(-h, h + 0.01, 0.1),
+                DVec3::new(-0.05, h + 0.01, -0.15),
+                DVec3::new(0.12, h + 0.01, 0.12),
+                DVec3::new(h, h + 0.01, -0.05),
+            ];
+            let mut parts = vec![
+                cube_at(DVec3::ZERO, 2. * h, CLAY)?,
+                tube(&pts, 0.035, 8, "New")?,
+            ];
+            for p in pts {
+                parts.push(ball(p, 0.055, "Selected")?);
+            }
+            merge(parts)?
+        }
+        Sample::AxisSliceTool => merge(vec![
+            cube_at(DVec3::ZERO, 0.6, CLAY)?,
+            block_by(
+                DVec3::new(-0.01, -0.45, -0.45),
+                DVec3::new(0.01, 0.45, 0.45),
+                "New",
+            )?,
+            arrow(
+                DVec3::new(0.0, 0., 0.0),
+                DVec3::new(0.65, 0., 0.0),
+                0.05,
+                "Axis X",
+            )?,
+        ])?,
+        Sample::PrimitiveSliceTool => {
+            let h = 0.3;
+            let ring: Vec<DVec3> = (0..=40)
+                .map(|k| {
+                    let t = std::f64::consts::TAU * f64::from(k) / 40.;
+                    DVec3::new(0.18 * t.cos(), h + 0.01, 0.18 * t.sin())
+                })
+                .collect();
+            merge(vec![
+                cube_at(DVec3::ZERO, 2. * h, CLAY)?,
+                tube(&ring, 0.035, 8, "New")?,
+            ])?
+        }
+        Sample::FreezeSubdivision => merge(vec![
+            ball(flat(-0.32, 0.22), 0.24, CLAY)?,
+            arrow(flat(-0.08, 0.0), flat(0.12, -0.18), 0.05, "New")?,
+            faceted_ball(flat(0.32, -0.25), 0.26, 6, 4, "Selected")?,
+        ])?,
+        Sample::SdsSubdivide => {
+            let mut parts = vec![ball(DVec3::ZERO, 0.36, CLAY)?];
+            for (a, b) in visible_cube_edges(DVec3::ZERO, 0.8) {
+                parts.push(tube(&[a, b], 0.025, 6, "Ink")?);
+            }
+            merge(parts)?
+        }
+        Sample::SubdivideSmooth => {
+            let mut parts = vec![faceted_ball(DVec3::ZERO, 0.45, 12, 8, CLAY)?];
+            for k in 1..4 {
+                let a = -std::f64::consts::FRAC_PI_2 + std::f64::consts::PI * f64::from(k) / 4.;
+                let pts: Vec<DVec3> = (0..=24)
+                    .map(|j| {
+                        let t = std::f64::consts::TAU * f64::from(j) / 24.;
+                        DVec3::new(
+                            0.46 * a.cos() * t.cos(),
+                            0.46 * a.sin(),
+                            0.46 * a.cos() * t.sin(),
+                        )
+                    })
+                    .collect();
+                parts.push(tube(&pts, 0.025, 6, "New")?);
+            }
+            merge(parts)?
+        }
+        Sample::SubdivideFaceted => {
+            let mut parts = vec![cube_at(DVec3::ZERO, 0.7, CLAY)?];
+            parts.extend(cube_cross_lines(DVec3::ZERO, 0.7, "New")?);
+            merge(parts)?
+        }
+        Sample::SubdivideOptions => {
+            let mut parts = vec![cube_at(flat(-0.15, 0.1), 0.5, CLAY)?];
+            parts.extend(cube_cross_lines(flat(-0.15, 0.1), 0.5, "New")?);
+            for (y, k) in [(-0.3, 0.35), (-0.48, 0.5)] {
+                parts.push(tube(
+                    &[flat(0.0, y) + toward(0.3), flat(0.6, y) + toward(0.3)],
+                    0.03,
+                    8,
+                    CLAY,
+                )?);
+                parts.push(ball(flat(k, y) + toward(0.3), 0.07, "Selected")?);
+            }
+            merge(parts)?
+        }
+        Sample::Unsubdivide => {
+            let mut parts = vec![cube_at(DVec3::ZERO, 0.7, CLAY)?];
+            parts.extend(cube_cross_lines(DVec3::ZERO, 0.7, "Ink")?);
+            parts.push(minus(flat(0.38, 0.42), 0.3, "Ink")?);
+            merge(parts)?
+        }
+        Sample::FlattenNgons => {
+            let hex: Vec<(f64, f64)> = (0..6)
+                .map(|k| {
+                    let a = std::f64::consts::TAU * f64::from(k) / 6.;
+                    (0.42 * a.cos(), 0.3 * a.sin())
+                })
+                .collect();
+            symbol(vec![
+                slab(&hex, 0.08, "Selected")?,
+                arrow(
+                    DVec3::new(0., 0.58, 0.05),
+                    DVec3::new(0., 0.33, 0.05),
+                    0.045,
+                    "New",
+                )?,
+                arrow(
+                    DVec3::new(0., -0.58, 0.05),
+                    DVec3::new(0., -0.33, 0.05),
+                    0.045,
+                    "New",
+                )?,
+            ])?
+        }
+        Sample::PolyReduct => merge(vec![
+            faceted_ball(flat(-0.32, 0.22), 0.25, 24, 16, CLAY)?,
+            arrow(flat(-0.08, 0.0), flat(0.12, -0.18), 0.05, "New")?,
+            faceted_ball(flat(0.32, -0.25), 0.25, 5, 3, CLAY)?,
+        ])?,
+        Sample::VertexCreate => {
+            let mut parts = vec![heightfield(4, 0.5, |_, _| 0., |_, _| CLAY)?];
+            parts.push(ball(DVec3::new(0., 0.14, 0.), 0.1, "New")?);
+            parts.extend(plus(DVec3::new(0.3, 0.3, -0.3), 0.3, "New")?);
             merge(parts)?
         }
         Sample::LoopSlice => {
