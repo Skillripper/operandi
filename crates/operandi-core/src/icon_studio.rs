@@ -1183,10 +1183,82 @@ pub enum Sample {
     UvTileUp,
     /// Tile down.
     UvTileDown,
+    /// Move: a cube with its three move arrows.
+    MoveTool,
+    /// Rotate: a cube with its three rotate rings.
+    RotateTool,
+    /// Scale: a cube with its three scale handles.
+    ScaleTool,
+    /// Transform: a cube with move, rotate and scale handles.
+    TransformTool,
+    /// Action Center: a pivot dot on a cube.
+    ActionCenterIcon,
+    /// Falloff: bars falling off along a curve.
+    FalloffIcon,
+    /// Symmetry: two selected cubes either side of a plane.
+    SymmetryIcon,
+    /// Work Plane: a grid with its normal.
+    WorkplaneIcon,
+    /// Script: a page of code with a play arrow.
+    ScriptActionIcon,
+    /// Drag snap: a magnet pulling a cube.
+    DragSnapIcon,
+    /// Rigid drag snap: a magnet pulling two linked cubes.
+    DragSnapRigid,
+    /// Planar rotate snap: a ring of snap stops.
+    PlanarRotateSnap,
+    /// Planar rotate snap about an axis.
+    PlanarRotateSnapAxis,
+    /// Absolute scale: a cube scaled to a measured size.
+    ScaleAbsolute,
+    /// Absolute size: a selected cube with its dimensions.
+    SizeAbsolute,
+    /// Absolute Scaling: a cube over a ruler.
+    AbsoluteScaling,
+    /// Advanced handles: move arrows with plane handles.
+    AdvancedHandles,
+    /// Bug report: a red beetle.
+    BugIcon,
+    /// Render: a ball lit on a stage.
+    RenderIcon,
+    /// Material tag: a tag and a red material ball.
+    TagMaterial,
+    /// Part tag: a tag and a selected block.
+    TagPart,
+    /// Smoothing group tag: a tag and a smooth ball.
+    TagSmoothingGroup,
+    /// Selection set tag: a tag and selected dots.
+    TagSelectionSet,
+    /// Shader tree output: an image tile with an arrow out.
+    TreeOutputItem,
+    /// Shader: a shaded ball.
+    TreeShaderItem,
+    /// Material: a red ball.
+    TreeMaterialItem,
+    /// Group: stacked layers.
+    TreeGroupItem,
+    /// Texture: a checker tile.
+    TreeTextureItem,
+    /// Folder: a yellow folder.
+    TreeFolderItem,
+    /// Reference: a tile with chain links.
+    TreeReferenceItem,
+    /// Node material: linked nodes.
+    TreeNodeMaterialItem,
+    /// Environment: a sky dome over ground.
+    TreeEnvironmentItem,
+    /// UV map: an island on the UV square.
+    TreeUvMapItem,
+    /// Effect: a glowing star.
+    TreeEffectItem,
+    /// PSD layers: three stacked image layers.
+    PsdLayers,
+    /// Paint layout: a palette.
+    LayoutPaint,
 }
 
 impl Sample {
-    pub const ALL: [Sample; 447] = [
+    pub const ALL: [Sample; 483] = [
         Sample::Cube,
         Sample::SelectedFace,
         Sample::Sphere,
@@ -1634,6 +1706,42 @@ impl Sample {
         Sample::UvTileRight,
         Sample::UvTileUp,
         Sample::UvTileDown,
+        Sample::MoveTool,
+        Sample::RotateTool,
+        Sample::ScaleTool,
+        Sample::TransformTool,
+        Sample::ActionCenterIcon,
+        Sample::FalloffIcon,
+        Sample::SymmetryIcon,
+        Sample::WorkplaneIcon,
+        Sample::ScriptActionIcon,
+        Sample::DragSnapIcon,
+        Sample::DragSnapRigid,
+        Sample::PlanarRotateSnap,
+        Sample::PlanarRotateSnapAxis,
+        Sample::ScaleAbsolute,
+        Sample::SizeAbsolute,
+        Sample::AbsoluteScaling,
+        Sample::AdvancedHandles,
+        Sample::BugIcon,
+        Sample::RenderIcon,
+        Sample::TagMaterial,
+        Sample::TagPart,
+        Sample::TagSmoothingGroup,
+        Sample::TagSelectionSet,
+        Sample::TreeOutputItem,
+        Sample::TreeShaderItem,
+        Sample::TreeMaterialItem,
+        Sample::TreeGroupItem,
+        Sample::TreeTextureItem,
+        Sample::TreeFolderItem,
+        Sample::TreeReferenceItem,
+        Sample::TreeNodeMaterialItem,
+        Sample::TreeEnvironmentItem,
+        Sample::TreeUvMapItem,
+        Sample::TreeEffectItem,
+        Sample::PsdLayers,
+        Sample::LayoutPaint,
     ];
 
     /// File stem and icon slug.
@@ -2025,7 +2133,7 @@ impl Sample {
             Sample::FlattenNgons => "flatten-ngons",
             Sample::PolyReduct => "poly-reduct",
             Sample::VertexCreate => "vertex-create",
-            Sample::TransformGizmo => "transform",
+            Sample::TransformGizmo => "uv-box-transform",
             Sample::UvProject => "uv-project",
             Sample::UvProjectView => "uv-project-view",
             Sample::UvUnwrap => "uv-unwrap",
@@ -2086,6 +2194,42 @@ impl Sample {
             Sample::UvTileRight => "uv-tile-right",
             Sample::UvTileUp => "uv-tile-up",
             Sample::UvTileDown => "uv-tile-down",
+            Sample::MoveTool => "move-tool",
+            Sample::RotateTool => "rotate-tool",
+            Sample::ScaleTool => "scale-tool",
+            Sample::TransformTool => "transform-tool",
+            Sample::ActionCenterIcon => "action-center",
+            Sample::FalloffIcon => "falloff",
+            Sample::SymmetryIcon => "symmetry",
+            Sample::WorkplaneIcon => "workplane",
+            Sample::ScriptActionIcon => "script-action",
+            Sample::DragSnapIcon => "drag-snap",
+            Sample::DragSnapRigid => "drag-snap-rigid",
+            Sample::PlanarRotateSnap => "planar-rotate-snap",
+            Sample::PlanarRotateSnapAxis => "planar-rotate-snap-axis",
+            Sample::ScaleAbsolute => "scale-absolute",
+            Sample::SizeAbsolute => "size-absolute",
+            Sample::AbsoluteScaling => "absolute-scaling",
+            Sample::AdvancedHandles => "advanced-handles",
+            Sample::BugIcon => "bug",
+            Sample::RenderIcon => "render",
+            Sample::TagMaterial => "tag-material",
+            Sample::TagPart => "tag-part",
+            Sample::TagSmoothingGroup => "tag-smoothing-group",
+            Sample::TagSelectionSet => "tag-selection-set",
+            Sample::TreeOutputItem => "tree-output",
+            Sample::TreeShaderItem => "tree-shader",
+            Sample::TreeMaterialItem => "tree-material",
+            Sample::TreeGroupItem => "tree-group",
+            Sample::TreeTextureItem => "tree-texture",
+            Sample::TreeFolderItem => "tree-folder",
+            Sample::TreeReferenceItem => "tree-reference",
+            Sample::TreeNodeMaterialItem => "tree-node-material",
+            Sample::TreeEnvironmentItem => "tree-environment",
+            Sample::TreeUvMapItem => "tree-uv-map",
+            Sample::TreeEffectItem => "tree-effect",
+            Sample::PsdLayers => "psd-layers",
+            Sample::LayoutPaint => "layout-paint",
         }
     }
 
@@ -3781,6 +3925,66 @@ fn on_uv(parts: Vec<Mesh>) -> Result<Mesh> {
     let mut all = uv_square()?;
     all.extend(parts);
     symbol(all)
+}
+
+/// A luggage tag in the symbol plane: a Clay pentagon with an Ink hole,
+/// pointing left, `s` across, at (cx, cy).
+fn tag_label(cx: f64, cy: f64, s: f64) -> Result<Vec<Mesh>> {
+    let pts: Vec<(f64, f64)> = [
+        (-0.5, 0.0),
+        (-0.2, -0.3),
+        (0.5, -0.3),
+        (0.5, 0.3),
+        (-0.2, 0.3),
+    ]
+    .iter()
+    .map(|&(x, y)| (cx + x * s, cy + y * s))
+    .collect();
+    let hole: Vec<(f64, f64)> = (0..16)
+        .map(|k| {
+            let a = std::f64::consts::TAU * f64::from(k) / 16.;
+            (cx - 0.22 * s + 0.07 * s * a.cos(), cy + 0.07 * s * a.sin())
+        })
+        .collect();
+    Ok(vec![
+        slab(&pts, 0.08, CLAY)?,
+        deformed(slab(&hole, 0.06, "Ink")?, |v| v + DVec3::Z * 0.03),
+    ])
+}
+
+/// A small cube with its three axis handles: arrows (`move`), rings
+/// (`rotate`) or cube-ended bars (`scale`), the set the transform row
+/// shares.
+fn gizmo(arrows: bool, rings: bool, boxes: bool) -> Result<Vec<Mesh>> {
+    let mut parts = vec![cube_at(DVec3::ZERO, 0.26, CLAY)?];
+    for (a, tag) in [
+        (DVec3::X, "Axis X"),
+        (DVec3::Y, "Axis Y"),
+        (DVec3::Z, "Axis Z"),
+    ] {
+        if arrows {
+            parts.push(arrow(a * 0.14, a * 0.66, 0.05, tag)?);
+        }
+        if boxes {
+            if !arrows {
+                parts.push(tube(&[a * 0.14, a * 0.5], 0.035, 8, tag)?);
+            }
+            parts.push(block(a * if arrows { 0.38 } else { 0.56 }, 0.13, tag)?);
+        }
+        if rings {
+            let side = a.any_orthonormal_vector();
+            let up = a.cross(side);
+            let r = if arrows { 0.34 } else { 0.5 };
+            let pts: Vec<DVec3> = (0..=48)
+                .map(|k| {
+                    let t = std::f64::consts::TAU * f64::from(k) / 48.;
+                    (side * t.cos() + up * t.sin()) * r
+                })
+                .collect();
+            parts.push(tube(&pts, if arrows { 0.025 } else { 0.04 }, 8, tag)?);
+        }
+    }
+    Ok(parts)
 }
 
 /// The geometry of a sample, inside the icon box.
@@ -9566,6 +9770,460 @@ fn sample_mesh(sample: Sample) -> Result<Mesh> {
                     "New",
                 )?,
             ])?
+        }
+        Sample::MoveTool => merge(gizmo(true, false, false)?)?,
+        Sample::RotateTool => merge(gizmo(false, true, false)?)?,
+        Sample::ScaleTool => merge(gizmo(false, false, true)?)?,
+        Sample::TransformTool => merge(gizmo(true, true, true)?)?,
+        Sample::ActionCenterIcon => {
+            let mut parts = vec![cube_at(DVec3::ZERO, 0.6, CLAY)?];
+            let c = DVec3::new(0., 0.3, 0.) + DVec3::Y * 0.01;
+            parts.push(tube(
+                &[c - DVec3::X * 0.42, c + DVec3::X * 0.42],
+                0.025,
+                8,
+                "Ink",
+            )?);
+            parts.push(tube(
+                &[c - DVec3::Z * 0.42, c + DVec3::Z * 0.42],
+                0.025,
+                8,
+                "Ink",
+            )?);
+            parts.push(ball(c, 0.1, "Selected")?);
+            merge(parts)?
+        }
+        Sample::FalloffIcon => {
+            let mut parts = Vec::new();
+            for k in 0..6 {
+                let x = -0.5 + 0.2 * f64::from(k);
+                let h = 0.85 * bell(f64::from(k) * 0.2, 0.55) + 0.05;
+                parts.push(slab(
+                    &[
+                        (x, -0.45),
+                        (x + 0.16, -0.45),
+                        (x + 0.16, -0.45 + h),
+                        (x, -0.45 + h),
+                    ],
+                    0.16,
+                    if k == 0 { "Selected" } else { CLAY },
+                )?);
+            }
+            parts.push(graph_curve(
+                -0.5,
+                0.65,
+                |x| -0.45 + 0.85 * bell(x + 0.42, 0.55) + 0.12,
+                0.035,
+                "New",
+            )?);
+            symbol(parts)?
+        }
+        Sample::SymmetryIcon => {
+            let mut parts = vec![block_by(
+                DVec3::new(-0.01, -0.5, -0.5),
+                DVec3::new(0.01, 0.5, 0.5),
+                "New",
+            )?];
+            parts.push(cube_at(DVec3::new(-0.3, 0., 0.), 0.32, "Selected")?);
+            parts.push(cube_at(DVec3::new(0.3, 0., 0.), 0.32, "Selected")?);
+            merge(parts)?
+        }
+        Sample::WorkplaneIcon => {
+            let mut parts = vec![box_by_normal(
+                DVec3::new(-0.5, -0.05, -0.5),
+                DVec3::new(0.5, 0.0, 0.5),
+                |_| CLAY,
+            )?];
+            for k in 1..5 {
+                let t = -0.5 + 0.2 * f64::from(k);
+                parts.push(tube(
+                    &[DVec3::new(t, 0.01, -0.5), DVec3::new(t, 0.01, 0.5)],
+                    0.015,
+                    6,
+                    "Ink",
+                )?);
+                parts.push(tube(
+                    &[DVec3::new(-0.5, 0.01, t), DVec3::new(0.5, 0.01, t)],
+                    0.015,
+                    6,
+                    "Ink",
+                )?);
+            }
+            parts.push(arrow(DVec3::ZERO, DVec3::Y * 0.55, 0.05, "Axis Y")?);
+            merge(parts)?
+        }
+        Sample::ScriptActionIcon => {
+            let mut parts = vec![slab(
+                &[(-0.42, -0.55), (0.42, -0.55), (0.42, 0.55), (-0.42, 0.55)],
+                0.08,
+                CLAY,
+            )?];
+            for (k, w) in [0.5, 0.35, 0.55, 0.3].into_iter().enumerate() {
+                let y = 0.38 - 0.18 * k as f64;
+                parts.push(bar(-0.3, y, -0.3 + w, y, 0.05, 0.12, "Ink")?);
+            }
+            parts.push(pointer(0.15, -0.3, 0.32, 1., "New")?);
+            symbol(parts)?
+        }
+        Sample::DragSnapIcon | Sample::DragSnapRigid => {
+            let mut parts = magnet(flat(-0.3, 0.12), 0.24)?;
+            if sample == Sample::DragSnapRigid {
+                parts.push(cube_at(flat(0.25, 0.25), 0.22, "Selected")?);
+                parts.push(cube_at(flat(0.45, -0.1), 0.22, "Selected")?);
+                parts.push(tube(
+                    &[flat(0.25, 0.25), flat(0.45, -0.1)],
+                    0.035,
+                    8,
+                    "Ink",
+                )?);
+            } else {
+                parts.push(cube_at(flat(0.35, 0.05), 0.28, "Selected")?);
+            }
+            parts.push(arrow(flat(0.3, -0.42), flat(-0.1, -0.42), 0.05, "New")?);
+            merge(parts)?
+        }
+        Sample::PlanarRotateSnap | Sample::PlanarRotateSnapAxis => {
+            let ring: Vec<DVec3> = (0..=40)
+                .map(|k| {
+                    let t = 0.3 + 5.4 * f64::from(k) / 40.;
+                    DVec3::new(0.42 * t.cos(), -0.1, 0.42 * t.sin())
+                })
+                .collect();
+            let n = ring.len();
+            let mut parts = vec![
+                box_by_normal(
+                    DVec3::new(-0.5, -0.2, -0.5),
+                    DVec3::new(0.5, -0.15, 0.5),
+                    |_| CLAY,
+                )?,
+                tube(&ring[..n - 2], 0.04, 8, "New")?,
+                arrow(
+                    ring[n - 3],
+                    ring[n - 1] + (ring[n - 1] - ring[n - 3]),
+                    0.045,
+                    "New",
+                )?,
+            ];
+            for k in 0..8 {
+                let t = std::f64::consts::TAU * f64::from(k) / 8.;
+                parts.push(ball(
+                    DVec3::new(0.42 * t.cos(), -0.1, 0.42 * t.sin()),
+                    0.05,
+                    "Selected",
+                )?);
+            }
+            if sample == Sample::PlanarRotateSnapAxis {
+                parts.push(arrow(
+                    DVec3::new(0., -0.15, 0.),
+                    DVec3::new(0., 0.55, 0.),
+                    0.05,
+                    "Axis Y",
+                )?);
+            }
+            merge(parts)?
+        }
+        Sample::ScaleAbsolute => merge(vec![
+            cube_at(flat(-0.1, 0.1), 0.5, CLAY)?,
+            arrow(
+                flat(0.15, 0.35) + toward(0.25),
+                flat(0.45, 0.6) + toward(0.25),
+                0.05,
+                "New",
+            )?,
+            two_way(
+                flat(-0.4, -0.38) + toward(0.3),
+                flat(0.25, -0.38) + toward(0.3),
+                0.04,
+                "Ink",
+            )?,
+        ])?,
+        Sample::SizeAbsolute => {
+            let h = 0.3;
+            merge(vec![
+                cube_at(DVec3::ZERO, 2. * h, "Selected")?,
+                two_way(
+                    DVec3::new(-h, -h, h + 0.12),
+                    DVec3::new(h, -h, h + 0.12),
+                    0.04,
+                    "New",
+                )?,
+                two_way(
+                    DVec3::new(h + 0.12, -h, h),
+                    DVec3::new(h + 0.12, -h, -h),
+                    0.04,
+                    "New",
+                )?,
+                two_way(
+                    DVec3::new(h + 0.12, -h, -h),
+                    DVec3::new(h + 0.12, h, -h),
+                    0.04,
+                    "New",
+                )?,
+            ])?
+        }
+        Sample::AbsoluteScaling => {
+            let mut parts = vec![cube_at(flat(0.0, 0.25), 0.4, CLAY)?];
+            parts.push(tube(
+                &[flat(-0.6, -0.35), flat(0.6, -0.35)],
+                0.09,
+                4,
+                "Selected",
+            )?);
+            for k in 0..9 {
+                let x = -0.48 + 0.12 * f64::from(k);
+                let l = if k % 2 == 0 { 0.13 } else { 0.07 };
+                parts.push(tube(
+                    &[
+                        flat(x, -0.35) + toward(0.09),
+                        flat(x, -0.35 + l) + toward(0.09),
+                    ],
+                    0.022,
+                    6,
+                    "Ink",
+                )?);
+            }
+            merge(parts)?
+        }
+        Sample::AdvancedHandles => {
+            let mut parts = gizmo(true, false, false)?;
+            for (a, b, tag) in [
+                (DVec3::X, DVec3::Y, "Axis Z"),
+                (DVec3::Y, DVec3::Z, "Axis X"),
+                (DVec3::Z, DVec3::X, "Axis Y"),
+            ] {
+                let c = (a + b) * 0.25;
+                let n = a.cross(b);
+                parts.push(block_by(
+                    c - (a + b) * 0.07 - n * 0.01,
+                    c + (a + b) * 0.07 + n * 0.01,
+                    tag,
+                )?);
+            }
+            merge(parts)?
+        }
+        Sample::BugIcon => {
+            let mut parts = vec![
+                deformed(ball(DVec3::ZERO, 0.3, "Axis X")?, |v| {
+                    v * DVec3::new(1., 0.7, 1.3)
+                }),
+                ball(DVec3::new(0., 0.02, 0.42), 0.15, "Ink")?,
+                tube(
+                    &[DVec3::new(0., 0.22, -0.38), DVec3::new(0., 0.22, 0.3)],
+                    0.02,
+                    6,
+                    "Ink",
+                )?,
+            ];
+            for z in [-0.18, 0.05, 0.25] {
+                for s in [-1., 1.] {
+                    parts.push(tube(
+                        &[
+                            DVec3::new(s * 0.25, -0.05, z),
+                            DVec3::new(s * 0.5, -0.2, z + 0.05),
+                        ],
+                        0.025,
+                        6,
+                        "Ink",
+                    )?);
+                }
+            }
+            merge(parts)?
+        }
+        Sample::RenderIcon => merge(vec![
+            box_by_normal(
+                DVec3::new(-0.55, -0.4, -0.55),
+                DVec3::new(0.55, -0.32, 0.55),
+                |_| CLAY,
+            )?,
+            ball(DVec3::new(0.0, -0.06, 0.0), 0.26, CLAY)?,
+            ball(DVec3::new(-0.3, 0.5, -0.3), 0.13, "Glow")?,
+        ])?,
+        Sample::TagMaterial
+        | Sample::TagPart
+        | Sample::TagSmoothingGroup
+        | Sample::TagSelectionSet => {
+            let mut parts = tag_label(-0.12, 0.12, 0.9)?;
+            let at = DVec3::new(0.32, -0.3, 0.12);
+            match sample {
+                Sample::TagMaterial => parts.push(ball(at, 0.2, "Axis X")?),
+                Sample::TagPart => parts.push(slab(
+                    &[(0.14, -0.48), (0.5, -0.48), (0.5, -0.12), (0.14, -0.12)],
+                    0.3,
+                    "Selected",
+                )?),
+                Sample::TagSmoothingGroup => parts.push(ball(at, 0.2, "New")?),
+                _ => {
+                    for (dx, dy) in [(-0.12, 0.0), (0.0, 0.12), (0.12, 0.0), (0.0, -0.12)] {
+                        parts.push(ball(at + DVec3::new(dx, dy, 0.), 0.07, "Selected")?);
+                    }
+                }
+            }
+            symbol(parts)?
+        }
+        Sample::TreeOutputItem => symbol(vec![
+            image_tile(-0.15, 0.05, 0.4, CLAY)?,
+            arrow(
+                DVec3::new(0.0, 0.05, 0.1),
+                DVec3::new(0.6, 0.05, 0.1),
+                0.06,
+                "New",
+            )?,
+        ])?,
+        Sample::TreeShaderItem => merge(vec![
+            ball(DVec3::ZERO, 0.42, CLAY)?,
+            ball(flat(-0.16, 0.18) + toward(0.38), 0.07, "Glow")?,
+        ])?,
+        Sample::TreeMaterialItem => merge(vec![
+            ball(DVec3::ZERO, 0.42, "Axis X")?,
+            ball(flat(-0.16, 0.18) + toward(0.38), 0.07, "Glow")?,
+        ])?,
+        Sample::TreeGroupItem => {
+            let mut parts = Vec::new();
+            for (k, tag) in [CLAY, "Selected", CLAY].into_iter().enumerate() {
+                let y = 0.25 - 0.22 * k as f64;
+                parts.push(block_by(
+                    DVec3::new(-0.42, y - 0.04, -0.42),
+                    DVec3::new(0.42, y + 0.04, 0.42),
+                    tag,
+                )?);
+            }
+            merge(parts)?
+        }
+        Sample::TreeTextureItem => {
+            let mut parts = vec![image_tile(0., 0., 0.5, CLAY)?];
+            for i in 0..4 {
+                for j in 0..4 {
+                    if (i + j) % 2 == 0 {
+                        let (x, y) = (-0.5 + 0.25 * f64::from(i), -0.5 + 0.25 * f64::from(j));
+                        parts.push(slab(
+                            &[(x, y), (x + 0.25, y), (x + 0.25, y + 0.25), (x, y + 0.25)],
+                            0.06,
+                            "Ink",
+                        )?);
+                    }
+                }
+            }
+            symbol(parts)?
+        }
+        Sample::TreeFolderItem => symbol(vec![
+            slab(
+                &[(-0.55, -0.4), (0.55, -0.4), (0.55, 0.3), (-0.55, 0.3)],
+                0.14,
+                "Selected",
+            )?,
+            slab(
+                &[(-0.55, 0.28), (-0.1, 0.28), (-0.02, 0.42), (-0.55, 0.42)],
+                0.12,
+                "Selected",
+            )?,
+        ])?,
+        Sample::TreeReferenceItem => {
+            let mut parts = vec![deformed(image_tile(0., 0., 0.4, CLAY)?, |v| {
+                v + DVec3::new(-0.1, 0.1, 0.)
+            })];
+            for (cx, cy) in [(0.12, -0.25), (0.38, -0.25)] {
+                let pts: Vec<DVec3> = (0..=24)
+                    .map(|k| {
+                        let a = std::f64::consts::TAU * f64::from(k) / 24.;
+                        DVec3::new(cx + 0.16 * a.cos(), cy + 0.1 * a.sin(), 0.12)
+                    })
+                    .collect();
+                parts.push(tube(&pts, 0.04, 8, "New")?);
+            }
+            symbol(parts)?
+        }
+        Sample::TreeNodeMaterialItem => {
+            let node = |x: f64, y: f64, tag: &str| {
+                slab(
+                    &[
+                        (x - 0.16, y - 0.12),
+                        (x + 0.16, y - 0.12),
+                        (x + 0.16, y + 0.12),
+                        (x - 0.16, y + 0.12),
+                    ],
+                    0.12,
+                    tag,
+                )
+            };
+            symbol(vec![
+                node(-0.38, 0.28, CLAY)?,
+                node(-0.38, -0.28, CLAY)?,
+                node(0.36, 0.0, "Axis X")?,
+                bar(-0.22, 0.28, 0.2, 0.04, 0.04, 0.06, "Ink")?,
+                bar(-0.22, -0.28, 0.2, -0.04, 0.04, 0.06, "Ink")?,
+            ])?
+        }
+        Sample::TreeEnvironmentItem => {
+            let mut profile: Vec<(f64, f64)> = (0..=12)
+                .map(|k| {
+                    let a = std::f64::consts::FRAC_PI_2 * f64::from(k) / 12.;
+                    (0.55 * a.sin(), -0.12 + 0.55 * a.cos())
+                })
+                .collect();
+            profile.push((0., -0.12));
+            merge(vec![
+                revolve(&profile, 40, false, "New")?,
+                revolve(
+                    &[(0., -0.1), (0.66, -0.1), (0.66, -0.2), (0., -0.2)],
+                    40,
+                    false,
+                    "Axis Y",
+                )?,
+            ])?
+        }
+        Sample::TreeUvMapItem => on_uv(vec![island(0., 0., 0.75, "New")?])?,
+        Sample::TreeEffectItem => {
+            let mut parts = Vec::new();
+            for k in 0..4 {
+                let a = std::f64::consts::PI * f64::from(k) / 4.;
+                let l = if k % 2 == 0 { 0.55 } else { 0.32 };
+                parts.push(bar(
+                    -l * a.cos(),
+                    -l * a.sin(),
+                    l * a.cos(),
+                    l * a.sin(),
+                    0.12,
+                    0.12,
+                    "Glow",
+                )?);
+            }
+            parts.push(ball(DVec3::ZERO, 0.14, "Selected")?);
+            symbol(parts)?
+        }
+        Sample::PsdLayers => {
+            let mut parts = Vec::new();
+            for (k, tag) in ["Axis Z", "Axis Y", "Axis X"].into_iter().enumerate() {
+                let o = 0.16 * k as f64;
+                parts.push(deformed(
+                    image_tile(-0.16 + o, 0.16 - o, 0.36, tag)?,
+                    move |v| v + DVec3::Z * (0.1 * k as f64),
+                ));
+            }
+            symbol(parts)?
+        }
+        Sample::LayoutPaint => {
+            let pal: Vec<(f64, f64)> = (0..20)
+                .map(|k| {
+                    let a = std::f64::consts::TAU * f64::from(k) / 20.;
+                    (0.52 * a.cos(), 0.4 * a.sin())
+                })
+                .collect();
+            let mut parts = vec![slab(&pal, 0.1, CLAY)?];
+            for (x, y, tag) in [
+                (-0.3, 0.15, "Axis X"),
+                (-0.05, 0.25, "Selected"),
+                (0.22, 0.18, "Axis Z"),
+                (-0.25, -0.15, "Axis Y"),
+            ] {
+                parts.push(deformed(ball(DVec3::new(x, y, 0.), 0.08, tag)?, |v| {
+                    v + DVec3::Z * 0.05
+                }));
+            }
+            parts.push(deformed(
+                ball(DVec3::new(0.25, -0.15, 0.), 0.1, "Ink")?,
+                |v| v + DVec3::Z * 0.02,
+            ));
+            symbol(parts)?
         }
         Sample::LoopSlice => {
             let mut parts = vec![sample_mesh(Sample::Cube)?];
