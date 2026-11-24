@@ -57,6 +57,7 @@ use snaps_panel::SnapPreset;
 mod action_center_click;
 #[path = "controls/app_environment.rs"]
 mod app_environment;
+#[path = "menus/app_menu.rs"]
 mod app_menu;
 #[path = "graphics/backdrop_gpu.rs"]
 mod backdrop_gpu;
@@ -200,6 +201,7 @@ mod guide_shortcuts_tests;
 mod handle_preferences;
 mod handle_tips;
 mod haul_view;
+#[path = "menus/help_menu.rs"]
 mod help_menu;
 mod help_mode;
 #[cfg(test)]
@@ -256,11 +258,13 @@ mod material_gpu_tests;
 mod material_layout;
 #[path = "commands/mcp.rs"]
 mod mcp;
+#[path = "menus/menu_forms.rs"]
 mod menu_forms;
 mod mesh_cleanup_dialog;
 mod mesh_items_preferences;
 mod mesh_paint_ui;
 mod mini_properties;
+#[path = "menus/modeling_menu.rs"]
 mod modeling_menu;
 #[cfg(test)]
 #[path = "commands/monkey_tests.rs"]
@@ -275,6 +279,7 @@ mod multires_ui;
 mod multires_ui_tests;
 #[path = "controls/native.rs"]
 mod native;
+#[path = "menus/native_menu.rs"]
 mod native_menu;
 mod navigation_preferences;
 mod numeric_draft;
@@ -310,6 +315,7 @@ mod path_tool_view;
 #[path = "create_tools/pen_interactive_ui.rs"]
 mod pen_interactive_ui;
 mod picking;
+#[path = "menus/pie_menu.rs"]
 mod pie_menu;
 mod planar_texture_ui;
 #[cfg(test)]
@@ -3927,6 +3933,7 @@ mod materialx_ui;
 #[cfg(test)]
 mod materialx_ui_tests;
 #[cfg(test)]
+#[path = "menus/menu_forms_tests.rs"]
 mod menu_forms_tests;
 mod palettes;
 #[cfg(test)]
@@ -4170,6 +4177,7 @@ mod file_chooser_tests;
 #[path = "files/file_error_tests.rs"]
 mod file_error_tests;
 #[cfg(test)]
+#[path = "menus/handle_style_menu_tests.rs"]
 mod handle_style_menu_tests;
 #[cfg(test)]
 mod handle_tips_tests;
@@ -4357,6 +4365,7 @@ mod performance_tests;
 mod perf_snapshot_tests;
 
 #[cfg(test)]
+#[path = "menus/pie_menu_tests.rs"]
 mod pie_menu_tests;
 
 #[cfg(test)]

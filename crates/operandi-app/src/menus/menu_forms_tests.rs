@@ -368,7 +368,7 @@ fn check_snapshot(id: &str, golden: &str) {
     let now = now.replace(" (greyed: The MCP bridge needs macOS or Linux)", "");
     if std::env::var_os("OPERANDI_BLESS_MENUS").is_some() {
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("src/menu_snapshots")
+            .join("src/menus/menu_snapshots")
             .join(format!("{id}.txt"));
         std::fs::create_dir_all(path.parent().unwrap()).unwrap();
         std::fs::write(path, &now).unwrap();

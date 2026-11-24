@@ -422,9 +422,10 @@ mod tests {
     }
     fn history_app() -> Operandi {
         let mut app = Operandi::empty();
-        app.editor.scene =
-            serde_json::from_str(include_str!("../../../docs/i2/expectations/graphs/G0.json"))
-                .unwrap();
+        app.editor.scene = serde_json::from_str(include_str!(
+            "../../../../docs/i2/expectations/graphs/G0.json"
+        ))
+        .unwrap();
         app.editor.synchronize_identities().unwrap();
         app
     }
@@ -565,9 +566,10 @@ mod tests {
     fn mode_availability_native_model_characterization() {
         for tool in ["cone", "ellipsoid", "spike", "smooth shift", "thicken"] {
             let mut a = Operandi::empty();
-            a.editor.scene =
-                serde_json::from_str(include_str!("../../../docs/i2/expectations/graphs/G0.json"))
-                    .unwrap();
+            a.editor.scene = serde_json::from_str(include_str!(
+                "../../../../docs/i2/expectations/graphs/G0.json"
+            ))
+            .unwrap();
             a.execute(tool);
             let ctx = Context::default();
             let entry = find(&a, &ctx, mode_line(Mode::Edge));
@@ -579,9 +581,10 @@ mod tests {
     #[test]
     fn mode_availability_run_confirmation_still_precedes_refused_mode() {
         let mut a = Operandi::empty();
-        a.editor.scene =
-            serde_json::from_str(include_str!("../../../docs/i2/expectations/graphs/G0.json"))
-                .unwrap();
+        a.editor.scene = serde_json::from_str(include_str!(
+            "../../../../docs/i2/expectations/graphs/G0.json"
+        ))
+        .unwrap();
         a.activate(Tool::Move);
         a.fields.insert("delta0".into(), "abc".into());
         let before = a.editor.clone();
@@ -599,9 +602,10 @@ mod tests {
     #[test]
     fn mode_availability_native_readiness_checks_and_remapping() {
         let mut a = Operandi::empty();
-        a.editor.scene =
-            serde_json::from_str(include_str!("../../../docs/i2/expectations/graphs/G0.json"))
-                .unwrap();
+        a.editor.scene = serde_json::from_str(include_str!(
+            "../../../../docs/i2/expectations/graphs/G0.json"
+        ))
+        .unwrap();
         a.bindings.insert("Edges".into(), "Ctrl+2".into());
         let ctx = Context::default();
         for mode in [Mode::Vertex, Mode::Edge, Mode::Polygon, Mode::Item] {
