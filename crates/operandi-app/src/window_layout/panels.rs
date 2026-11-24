@@ -1067,9 +1067,10 @@ mod history_widget_tests {
     use super::*;
     fn app() -> Operandi {
         let mut a = Operandi::empty();
-        a.editor.scene =
-            serde_json::from_str(include_str!("../../../docs/i2/expectations/graphs/G0.json"))
-                .unwrap();
+        a.editor.scene = serde_json::from_str(include_str!(
+            "../../../../docs/i2/expectations/graphs/G0.json"
+        ))
+        .unwrap();
         a.editor.synchronize_identities().unwrap();
         a.editor
             .dispatch(Command::Rename("renamed".into()))
@@ -1432,9 +1433,10 @@ mod mode_availability_tests {
     fn mode_availability_actual_fallback_select_entry_characterization() {
         for tool in ["cone", "ellipsoid", "spike", "smooth shift", "thicken"] {
             let mut a = Operandi::empty();
-            a.editor.scene =
-                serde_json::from_str(include_str!("../../../docs/i2/expectations/graphs/G0.json"))
-                    .unwrap();
+            a.editor.scene = serde_json::from_str(include_str!(
+                "../../../../docs/i2/expectations/graphs/G0.json"
+            ))
+            .unwrap();
             a.execute(tool);
             a.status = "before click".into();
             a.bindings.insert("Edges".into(), "Ctrl+2".into());

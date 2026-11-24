@@ -69,21 +69,21 @@ pub(super) const PAINT_UTILITIES_FORM: &str = "toolbox.paintutil";
 pub(super) const PAINTING_FORMS: &[(&str, &str)] = &[
     (
         "toolbox.paint.json",
-        include_str!("../assets/forms-painting/toolbox.paint.json"),
+        include_str!("../../assets/forms-painting/toolbox.paint.json"),
     ),
     // PNT-151: the Sculpt tab's tip, preset and nozzle buttons, in its
     // tail slot (sculpting with them comes later, PNT-Q38).
     (
         "toolbox.sculpt.painting.json",
-        include_str!("../assets/forms-painting/toolbox.sculpt.painting.json"),
+        include_str!("../../assets/forms-painting/toolbox.sculpt.painting.json"),
     ),
     (
         "toolbox.vertexmaps.json",
-        include_str!("../assets/forms-painting/toolbox.vertexmaps.json"),
+        include_str!("../../assets/forms-painting/toolbox.vertexmaps.json"),
     ),
     (
         "toolbox.paintutil.json",
-        include_str!("../assets/forms-painting/toolbox.paintutil.json"),
+        include_str!("../../assets/forms-painting/toolbox.paintutil.json"),
     ),
 ];
 /// The Topology tab's form.

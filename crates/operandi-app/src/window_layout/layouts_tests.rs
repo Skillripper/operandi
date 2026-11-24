@@ -810,10 +810,10 @@ fn dock_tree_migrates_each_legacy_shipped_layout_losslessly() {
 
     let files = [
         ("model.json", LEGACY_MODEL),
-        ("uv.json", include_str!("../assets/layouts/uv.json")),
+        ("uv.json", include_str!("../../assets/layouts/uv.json")),
         (
             "paint.json",
-            include_str!("../assets/layouts-painting/paint.json"),
+            include_str!("../../assets/layouts-painting/paint.json"),
         ),
     ];
     for (file, source) in files {

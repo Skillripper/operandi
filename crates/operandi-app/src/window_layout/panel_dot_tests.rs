@@ -2003,7 +2003,7 @@ fn docking_tool_tabs_legacy_layouts_keep_the_vertical_strip_and_tool_positions()
     let stock = layouts::Layouts::read(
         &[
             ("model.json", layouts::LEGACY_MODEL),
-            ("uv.json", include_str!("../assets/layouts/uv.json")),
+            ("uv.json", include_str!("../../assets/layouts/uv.json")),
         ],
         None,
     );

@@ -156,6 +156,7 @@ mod deform_panel;
 mod detents;
 #[path = "polygons/detriangulate_dialog.rs"]
 mod detriangulate_dialog;
+#[path = "window_layout/dialog_place.rs"]
 mod dialog_place;
 #[path = "materials/display_shading.rs"]
 mod display_shading;
@@ -208,7 +209,9 @@ mod file_commands;
 mod file_io_preferences;
 #[path = "polygons/flip_it_dialog.rs"]
 mod flip_it_dialog;
+#[path = "window_layout/form/mod.rs"]
 mod form;
+#[path = "window_layout/form_app.rs"]
 mod form_app;
 #[path = "graphics/frame_stats.rs"]
 mod frame_stats;
@@ -286,9 +289,12 @@ mod items_tree;
 mod key_toggles;
 #[path = "selections/lasso.rs"]
 mod lasso;
+#[path = "window_layout/layout.rs"]
 mod layout;
+#[path = "window_layout/layout_keys.rs"]
 mod layout_keys;
 mod layouts;
+#[path = "window_layout/layouts_edit.rs"]
 mod layouts_edit;
 #[path = "render/light_tier2_ui.rs"]
 mod light_tier2_ui;
@@ -365,14 +371,21 @@ mod original_compatible;
 mod os_color;
 #[path = "controls/outline.rs"]
 mod outline;
+#[path = "window_layout/panel_close.rs"]
 mod panel_close;
+#[path = "window_layout/panel_dot.rs"]
 mod panel_dot;
 #[cfg(test)]
+#[path = "window_layout/panel_dot_tests.rs"]
 mod panel_dot_tests;
+#[path = "window_layout/panel_maximize.rs"]
 mod panel_maximize;
 #[cfg(test)]
+#[path = "window_layout/panel_maximize_tests.rs"]
 mod panel_maximize_tests;
+#[path = "window_layout/panel_registry.rs"]
 mod panel_registry;
+#[path = "window_layout/panels.rs"]
 mod panels;
 #[cfg(test)]
 #[path = "create_tools/patch_safety_tests.rs"]
@@ -514,6 +527,7 @@ mod shape_panel;
 #[cfg(test)]
 #[path = "input_devices/shifted_key_tests.rs"]
 mod shifted_key_tests;
+#[path = "window_layout/side_tabs.rs"]
 mod side_tabs;
 #[cfg(test)]
 #[path = "rigging/skeleton_tool_tests.rs"]
@@ -646,10 +660,13 @@ mod tag_mode_ui;
 mod theme;
 #[path = "tools/tool_exit_hint.rs"]
 mod tool_exit_hint;
+#[path = "window_layout/tool_form.rs"]
 mod tool_form;
 #[path = "tools/tool_framing.rs"]
 mod tool_framing;
+#[path = "window_layout/tool_split.rs"]
 mod tool_split;
+#[path = "window_layout/toolbox.rs"]
 mod toolbox;
 #[path = "controls/tree_list.rs"]
 mod tree_list;
@@ -695,7 +712,9 @@ mod vertex_panel;
 mod viewport_preferences;
 #[path = "tools/weld_drag.rs"]
 mod weld_drag;
+#[path = "window_layout/window_state.rs"]
 mod window_state;
+#[path = "window_layout/workspace.rs"]
 mod workspace;
 use camera::{Camera, View};
 use eframe::egui::{self, *};
@@ -4084,9 +4103,12 @@ pub(crate) fn same_document(a: &Scene, b: &Scene) -> bool {
 }
 #[path = "tools/drag_readout.rs"]
 mod drag_readout;
+#[path = "window_layout/floating.rs"]
 mod floating;
+#[path = "window_layout/form_editor.rs"]
 mod form_editor;
 #[cfg(test)]
+#[path = "window_layout/form_editor_tests.rs"]
 mod form_editor_tests;
 #[path = "nodes/graph_editor.rs"]
 mod graph_editor;
@@ -4102,8 +4124,10 @@ mod materialx_ui_tests;
 #[cfg(test)]
 #[path = "menus/menu_forms_tests.rs"]
 mod menu_forms_tests;
+#[path = "window_layout/palettes.rs"]
 mod palettes;
 #[cfg(test)]
+#[path = "window_layout/palettes_tests.rs"]
 mod palettes_tests;
 #[path = "presets/preset_browser.rs"]
 mod preset_browser;
@@ -4133,12 +4157,14 @@ mod view_display_ui;
 mod view_fov;
 #[path = "view/view_nav.rs"]
 mod view_nav;
+#[path = "window_layout/view_tab_presets.rs"]
 mod view_tab_presets;
 mod viewport;
 #[path = "view/viewport_buttons.rs"]
 mod viewport_buttons;
 #[path = "view/viewport_properties.rs"]
 mod viewport_properties;
+#[path = "window_layout/views.rs"]
 mod views;
 /// One "does this scene need saving?" rule for the open scene and the
 /// parked ones alike (Astra P8-002: a parked tab's numeric preview was
@@ -4404,12 +4430,16 @@ mod key_toggles_tests;
 #[path = "selections/lasso_ui_tests.rs"]
 mod lasso_ui_tests;
 #[cfg(test)]
+#[path = "window_layout/layout_keys_tests.rs"]
 mod layout_keys_tests;
 #[cfg(test)]
+#[path = "window_layout/layout_tests.rs"]
 mod layout_tests;
 #[cfg(test)]
+#[path = "window_layout/layouts_edit_tests.rs"]
 mod layouts_edit_tests;
 #[cfg(test)]
+#[path = "window_layout/layouts_tests.rs"]
 mod layouts_tests;
 #[cfg(test)]
 #[path = "render/light_properties_tests.rs"]
@@ -4517,10 +4547,13 @@ mod tool_properties_header_tests;
 #[cfg(test)]
 #[path = "tools/tool_speed_guard_tests.rs"]
 mod tool_speed_guard_tests;
+#[path = "window_layout/toolbox_form.rs"]
 mod toolbox_form;
 #[cfg(test)]
+#[path = "window_layout/toolbox_form_tests.rs"]
 mod toolbox_form_tests;
 #[cfg(test)]
+#[path = "window_layout/toolbox_sets_tests.rs"]
 mod toolbox_sets_tests;
 #[cfg(test)]
 #[path = "deformers/tweak_tests.rs"]
@@ -4540,8 +4573,10 @@ mod viewport_transparency_capture_tests;
 #[cfg(test)]
 #[path = "deformers/weights_distortion_tests.rs"]
 mod weights_distortion_tests;
+#[path = "window_layout/workbench.rs"]
 mod workbench;
 #[cfg(test)]
+#[path = "window_layout/workbench_tests.rs"]
 mod workbench_tests;
 
 #[cfg(test)]
