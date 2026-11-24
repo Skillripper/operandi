@@ -1,0 +1,146 @@
+# Publishes the User Guide (docs/guide) to operandi3d.org/guide/.
+#
+#   push to main (guide or its scripts changed)  -> guide/test/
+#   release tag vX.Y.Z                           -> guide/X.Y.Z/, and
+#                                                   guide/latest/ when it is
+#                                                   the newest release
+#   started by hand (Actions tab)                -> as for the ref picked
+#
+# The site is the operandi3d/website repo: Cloudflare serves its public/
+# folder and goes live a minute after each push there. This workflow builds
+# the guide with mdBook (scripts/guide-build.sh: name check, mdBook, the
+# go/<help-id>/ redirects Help links use), copies it into
+# public/guide/<folder>/ of a checkout of that repo and pushes.
+#
+# It needs one secret, WEBSITE_DEPLOY_TOKEN: a fine-grained personal access
+# token with "Contents: Read and write" on operandi3d/website only (see
+# docs/GUIDE_PUBLISHING.md for the clicks). Without it the job fails at
+# "Check out the website" and nothing is published.
+#
+# Runs on GitHub's Linux machine: about a minute, no Cycles, nothing of
+# Jason's machines. Only for pushes and runs by the maintainer (manfriday).
+name: Publish guide
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths:
+      - "docs/guide/**"
+      - "scripts/guide-build.sh"
+      - "scripts/guide-name-check.sh"
+      - "tools/guide_redirects.py"
+      - ".github/workflows/guide.yml"
+  workflow_dispatch:
+
+# One publish at a time, in order: each pushes to the same website repo.
+concurrency:
+  group: guide-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  MDBOOK_VERSION: v0.5.4
+
+jobs:
+  publish:
+    if: github.actor == 'manfriday'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pick the folder
+        id: where
+        shell: bash
+        run: |
+          # A tag vX.Y.Z goes to its own folder; anything else is the test
+          # guide. Pre-release tags (v0.2.0-beta.1) get their own folder
+          # but never become latest.
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            version="${GITHUB_REF#refs/tags/v}"
+            echo "folder=$version" >> "$GITHUB_OUTPUT"
+            if [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "release=$version" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "folder=test" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install mdBook
+        shell: bash
+        run: |
+          curl -sSfL "https://github.com/rust-lang/mdBook/releases/download/${MDBOOK_VERSION}/mdbook-${MDBOOK_VERSION}-x86_64-unknown-linux-gnu.tar.gz" \
+            | tar -xz -C /usr/local/bin mdbook
+          mdbook --version
+
+      - name: Build the guide
+        shell: bash
+        env:
+          # Where it is served, so the 404 page (and go/ ids no page
+          # claims) finds its styles.
+          MDBOOK_OUTPUT__HTML__SITE_URL: /guide/${{ steps.where.outputs.folder }}/
+        run: |
+          scripts/guide-build.sh
+          mv docs/guide/book "$RUNNER_TEMP/guide"
+
+      - name: Check out the website
+        uses: actions/checkout@v4
+        with:
+          repository: operandi3d/website
+          token: ${{ secrets.WEBSITE_DEPLOY_TOKEN }}
+          path: website
+
+      - name: Copy the guide into the website
+        shell: bash
+        env:
+          FOLDER: ${{ steps.where.outputs.folder }}
+          RELEASE: ${{ steps.where.outputs.release }}
+        run: |
+          set -eu
+          guide=website/public/guide
+          mkdir -p "$guide"
+          rm -rf "${guide:?}/$FOLDER"
+          cp -R "$RUNNER_TEMP/guide" "$guide/$FOLDER"
+
+          # latest/: a copy of the newest release's guide (served from its
+          # own folder, so built again with that site URL).
+          if [ -n "$RELEASE" ]; then
+            newest=$(ls "$guide" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+            if [ "$newest" = "$RELEASE" ]; then
+              MDBOOK_OUTPUT__HTML__SITE_URL=/guide/latest/ scripts/guide-build.sh
+              rm -rf "$guide/latest"
+              cp -R docs/guide/book "$guide/latest"
+            fi
+          fi
+
+          # /guide/ itself goes to latest/, or to test/ before the first
+          # release has a guide.
+          target=test/
+          [ -d "$guide/latest" ] && target=latest/
+          cat > "$guide/index.html" <<EOF
+          <!DOCTYPE html>
+          <html lang="en"><head><meta charset="utf-8"><title>Operandi User Guide</title>
+          <meta http-equiv="refresh" content="0; url=$target">
+          <link rel="canonical" href="$target"></head>
+          <body><p><a href="$target">Operandi User Guide</a></p></body></html>
+          EOF
+
+      - name: Push to the website
+        shell: bash
+        env:
+          FOLDER: ${{ steps.where.outputs.folder }}
+        run: |
+          set -eu
+          cd website
+          git add -A public/guide
+          if git diff --cached --quiet; then
+            echo "The guide on the website is already up to date."
+            exit 0
+          fi
+          git -c user.name="Operandi guide bot" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "guide/$FOLDER: from operandi ${GITHUB_SHA::8}"
+          git push

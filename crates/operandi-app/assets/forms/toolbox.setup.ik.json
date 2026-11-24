@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "id": "toolbox.setup.ik",
+  "label": "Inverse Kinematics",
+  "exported": true,
+  "controls": [
+    {
+      "divider": "Solvers",
+      "id": "ik-solvers"
+    },
+    {
+      "command": "operandi.ik.applyTwoBone",
+      "label": "Two-Bone IK",
+      "icon": "ik-two-bone"
+    },
+    {
+      "command": "operandi.ik.applyChain",
+      "label": "Chain IK",
+      "icon": "ik-chain"
+    },
+    {
+      "command": "operandi.ik.assign",
+      "label": "Full Body IK",
+      "icon": "ik-full-body"
+    },
+    {
+      "divider": "Goals",
+      "id": "ik-goals"
+    },
+    {
+      "command": "operandi.ik.addGoal",
+      "label": "Add Goal",
+      "icon": "ik-goal"
+    },
+    {
+      "command": "operandi.ik.addTask mode:position",
+      "label": "Add Position Task",
+      "icon": "add-position-task"
+    },
+    {
+      "command": "operandi.ik.addTask mode:orientation",
+      "label": "Add Orientation Task",
+      "icon": "add-orientation-task"
+    },
+    {
+      "command": "operandi.ik.pole mode:create",
+      "label": "Up Vector",
+      "icon": "ik-up-vector"
+    },
+    {
+      "divider": "IK/FK",
+      "id": "ik-fk"
+    },
+    {
+      "command": "operandi.ik.switch",
+      "label": "Switch IK/FK",
+      "icon": "ik-fk-switch"
+    },
+    {
+      "command": "operandi.ik.setKeys",
+      "label": "IK/FK: Set Keys",
+      "icon": "ik-fk-set-keys"
+    },
+    {
+      "command": "operandi.ik.selectSwitch",
+      "label": "Select Switch Channels",
+      "icon": "select-switch-channels"
+    },
+    {
+      "command": "operandi.ik.selectSolvers",
+      "label": "Select IK Solvers",
+      "icon": "select-ik-solvers"
+    },
+    {
+      "command": "operandi.ik.match",
+      "label": "Match Goal",
+      "icon": "match-goal"
+    },
+    {
+      "divider": "",
+      "id": "ik-edit"
+    },
+    {
+      "command": "operandi.ik.updateRest all:true",
+      "label": "Update Rest Pose",
+      "icon": "update-rest-pose"
+    },
+    {
+      "command": "operandi.ik.disable",
+      "label": "Disable IK",
+      "icon": "disable-ik"
+    },
+    {
+      "command": "operandi.ik.remove",
+      "label": "Remove IK",
+      "icon": "remove-ik"
+    }
+  ]
+}

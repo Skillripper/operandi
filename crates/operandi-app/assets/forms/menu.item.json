@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "id": "menu.item",
+  "label": "Item",
+  "style": "menu",
+  "controls": [
+    {
+      "command": "item.create environment",
+      "label": "Create Environment"
+    },
+    {
+      "command": "Freeze Instancer",
+      "label": "Freeze Instancer",
+      "tooltip": "Freeze Instancer · turns the selected Instancer into a group of instance items, one per copy"
+    },
+    {
+      "form": "menu.item.transform"
+    },
+    {
+      "form": "menu.item.primitive"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "id": "toolbox.setup.weighting",
+  "label": "Weighting",
+  "exported": true,
+  "controls": [
+    {
+      "divider": "Bind",
+      "id": "weighting-bind"
+    },
+    {
+      "command": "operandi.skin.bindDialog",
+      "label": "Bind…",
+      "icon": "skin-mesh"
+    },
+    {
+      "command": "operandi.skin.rebind",
+      "label": "Add Joints to Bind",
+      "icon": "add-joints-to-bind"
+    },
+    {
+      "command": "operandi.skin.unbind",
+      "label": "Unbind",
+      "icon": "unbind"
+    },
+    {
+      "divider": "Paint Weights",
+      "id": "weighting-paint"
+    },
+    {
+      "command": "Vertex Map Paint",
+      "label": "Paint",
+      "icon": "vmap-paint"
+    },
+    {
+      "command": "Vertex Map Smooth",
+      "label": "Smooth",
+      "icon": "vmap-smooth"
+    },
+    {
+      "command": "Vertex Map Erase",
+      "label": "Erase",
+      "icon": "vmap-erase"
+    },
+    {
+      "command": "Vertex Map Set Value",
+      "label": "Set Value",
+      "icon": "vmap-set-value"
+    },
+    {
+      "widget": "sculpt.weightMap"
+    },
+    {
+      "widget": "sculpt.newWeightMap"
+    },
+    {
+      "divider": "Weights",
+      "id": "weighting-weights"
+    },
+    {
+      "command": "operandi.weight.smooth",
+      "label": "Smooth Selected",
+      "icon": "smooth-weights"
+    },
+    {
+      "command": "operandi.weight.normalize",
+      "label": "Normalize Weights",
+      "icon": "normalize-weights"
+    },
+    {
+      "command": "operandi.weight.mirror",
+      "label": "Mirror Weights",
+      "icon": "mirror-weights"
+    },
+    {
+      "command": "operandi.weight.isolate",
+      "label": "Isolate Weights",
+      "icon": "isolate-weights"
+    },
+    {
+      "command": "operandi.weight.split",
+      "label": "Split Left/Right",
+      "icon": "split-weights"
+    },
+    {
+      "command": "operandi.skin.bakeWeights",
+      "label": "Bake Weights",
+      "icon": "bake-weights"
+    }
+  ]
+}

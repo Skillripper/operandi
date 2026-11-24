@@ -1,0 +1,392 @@
+{
+  "version": 1,
+  "id": "toolbox.animation",
+  "label": "Animation",
+  "exported": true,
+  "controls": [
+    {
+      "divider": "Transform",
+      "id": "anim-transform"
+    },
+    {
+      "form": {
+        "style": "horizontal",
+        "controls": [
+          {
+            "command": "Action Center origin",
+            "label": "World",
+            "icon": "action-world",
+            "look": "centered",
+            "tooltip": "World · transform about the world origin (Action Center origin){andBinding}"
+          },
+          {
+            "command": "Action Center local",
+            "label": "Local",
+            "icon": "action-local",
+            "look": "centered",
+            "tooltip": "Local · transform each item about its own centre and axes (Action Center local){andBinding}"
+          }
+        ]
+      }
+    },
+    {
+      "divider": "Add Item",
+      "id": "anim-add"
+    },
+    {
+      "form": {
+        "style": "horizontal",
+        "controls": [
+          {
+            "command": "item.create camera",
+            "label": "Camera",
+            "icon": "camera",
+            "look": "centered"
+          },
+          {
+            "command": "item.create mesh",
+            "label": "Mesh",
+            "icon": "tree-mesh",
+            "look": "centered"
+          }
+        ]
+      }
+    },
+    {
+      "form": {
+        "style": "menu",
+        "controls": [
+          {
+            "command": "item.create light.point",
+            "label": "Point Light",
+            "icon": "tree-light"
+          },
+          {
+            "command": "item.create light.spot",
+            "label": "Spot Light",
+            "icon": "light-spot"
+          },
+          {
+            "command": "item.create light.area",
+            "label": "Area Light",
+            "icon": "light-area"
+          },
+          {
+            "command": "item.create light.directional",
+            "label": "Directional Light",
+            "icon": "light-directional"
+          },
+          {
+            "command": "item.create light.cylinder",
+            "label": "Cylinder Light",
+            "icon": "light-cylinder"
+          },
+          {
+            "command": "item.create light.dome",
+            "label": "Dome Light",
+            "icon": "light-dome"
+          },
+          {
+            "command": "item.create light.photometric",
+            "label": "Photometric Light",
+            "icon": "light-photometric"
+          },
+          {
+            "command": "item.create light.portal",
+            "label": "Portal Light",
+            "icon": "light-portal"
+          }
+        ]
+      },
+      "id": "anim-lights",
+      "label": "Light",
+      "icon": "tree-light",
+      "tooltip": "Light · add a light of the kind you pick"
+    },
+    {
+      "form": {
+        "style": "horizontal",
+        "controls": [
+          {
+            "command": "Duplicate Item",
+            "label": "Duplicate",
+            "icon": "duplicate-item",
+            "look": "centered"
+          },
+          {
+            "command": "Instance",
+            "label": "Instance",
+            "icon": "instance-clone",
+            "look": "centered"
+          }
+        ]
+      }
+    },
+    {
+      "divider": "Tools",
+      "id": "anim-tools"
+    },
+    {
+      "form": {
+        "style": "horizontal",
+        "controls": [
+          {
+            "command": "operandi.pose.tool",
+            "label": "Pose",
+            "icon": "pose-tool"
+          },
+          {
+            "command": "operandi.skel.tool",
+            "label": "Skeleton",
+            "icon": "skeleton-tool"
+          }
+        ]
+      }
+    },
+    {
+      "command": "operandi.anim.setup",
+      "label": "Setup Mode",
+      "icon": "setup-pose",
+      "look": "check"
+    },
+    {
+      "form": {
+        "style": "horizontal",
+        "controls": [
+          {
+            "command": "Key Selected Channels",
+            "label": "Key Channels",
+            "icon": "key-channels",
+            "look": "centered"
+          },
+          {
+            "command": "Key Selected Items",
+            "label": "Key Items",
+            "icon": "key-items",
+            "look": "centered"
+          }
+        ]
+      }
+    },
+    {
+      "form": {
+        "style": "horizontal",
+        "controls": [
+          {
+            "command": "Key Position",
+            "label": "Key Position",
+            "icon": "key-position",
+            "look": "centered"
+          },
+          {
+            "command": "Key Rotation",
+            "label": "Key Rotation",
+            "icon": "key-rotation",
+            "look": "centered"
+          }
+        ]
+      }
+    },
+    {
+      "form": {
+        "style": "horizontal",
+        "controls": [
+          {
+            "command": "Key Scale",
+            "label": "Key Scale",
+            "icon": "key-scale",
+            "look": "centered"
+          },
+          {
+            "command": "Key Transforms",
+            "label": "Key Transforms",
+            "icon": "key-transforms",
+            "look": "centered"
+          }
+        ]
+      }
+    },
+    {
+      "form": {
+        "style": "menu",
+        "controls": [
+          {
+            "command": "operandi.key.autoKey mode:off",
+            "label": "Off",
+            "icon": "auto-key-off"
+          },
+          {
+            "command": "operandi.key.autoKey mode:animated",
+            "label": "Animated",
+            "icon": "auto-key-animated"
+          },
+          {
+            "command": "operandi.key.autoKey mode:all",
+            "label": "All",
+            "icon": "auto-key-all"
+          }
+        ]
+      },
+      "id": "anim-auto-key",
+      "label": "Auto Key",
+      "tooltip": "Auto Key · key channels as you change them"
+    },
+    {
+      "form": {
+        "style": "horizontal",
+        "controls": [
+          {
+            "command": "operandi.key.apply",
+            "label": "Apply Edits",
+            "icon": "apply-keys",
+            "look": "centered"
+          },
+          {
+            "command": "operandi.key.discard",
+            "label": "Discard Edits",
+            "icon": "discard-keys",
+            "look": "centered"
+          }
+        ]
+      }
+    },
+    {
+      "form": {
+        "style": "horizontal",
+        "controls": [
+          {
+            "command": "operandi.ik.switch",
+            "label": "Switch IK/FK",
+            "icon": "ik-fk-switch",
+            "look": "centered"
+          },
+          {
+            "command": "operandi.ik.match",
+            "label": "Match Goal",
+            "icon": "match-goal",
+            "look": "centered"
+          }
+        ]
+      }
+    },
+    {
+      "command": "operandi.rig.bake",
+      "label": "Bake Selected",
+      "icon": "bake-keys"
+    },
+    {
+      "divider": "Commands",
+      "id": "anim-commands"
+    },
+    {
+      "form": {
+        "style": "horizontal",
+        "controls": [
+          {
+            "command": "First Frame",
+            "label": "First",
+            "icon": "first-frame",
+            "look": "centered"
+          },
+          {
+            "command": "Step Back",
+            "label": "Back",
+            "icon": "previous-frame",
+            "look": "centered"
+          },
+          {
+            "command": "Play/Stop",
+            "label": "Play",
+            "icon": "play",
+            "look": "centered"
+          },
+          {
+            "command": "Step Forward",
+            "label": "Forward",
+            "icon": "next-frame",
+            "look": "centered"
+          },
+          {
+            "command": "Last Frame",
+            "label": "Last",
+            "icon": "last-frame",
+            "look": "centered"
+          }
+        ]
+      }
+    },
+    {
+      "form": {
+        "style": "horizontal",
+        "controls": [
+          {
+            "command": "Previous Key",
+            "label": "Previous Key",
+            "icon": "previous-key",
+            "look": "centered"
+          },
+          {
+            "command": "Next Key",
+            "label": "Next Key",
+            "icon": "next-key",
+            "look": "centered"
+          }
+        ]
+      }
+    },
+    {
+      "command": "operandi.anim.dialog kind:playblast",
+      "label": "Playblast…",
+      "icon": "playblast"
+    },
+    {
+      "command": "operandi.anim.dialog kind:render",
+      "label": "Render Frame Range…",
+      "icon": "render-range"
+    },
+    {
+      "command": "operandi.anim.timeline",
+      "label": "Timeline",
+      "icon": "timeline-clock"
+    },
+    {
+      "command": "operandi.graph.open",
+      "label": "Graph Editor",
+      "icon": "graph-editor"
+    },
+    {
+      "command": "operandi.anim.dialog kind:ranges",
+      "label": "Time Ranges…",
+      "icon": "time-ranges"
+    },
+    {
+      "divider": "Snapping",
+      "id": "anim-snapping"
+    },
+    {
+      "command": "Snapping Toggle",
+      "label": "Snapping",
+      "icon": "snapping",
+      "look": "check"
+    },
+    {
+      "form": {
+        "style": "horizontal",
+        "controls": [
+          {
+            "command": "Snapping Options",
+            "label": "Snapping Options",
+            "icon": "snap-options",
+            "look": "centered"
+          },
+          {
+            "command": "Snaps and Precision",
+            "label": "Snaps and Precision",
+            "icon": "snaps-precision",
+            "look": "centered"
+          }
+        ]
+      }
+    }
+  ]
+}

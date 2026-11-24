@@ -1,0 +1,1727 @@
+{
+  "format": "Operandi",
+  "version": 1,
+  "scene": {
+    "items": [
+      {
+        "id": 1,
+        "name": "Column",
+        "visible": true,
+        "transform": {
+          "translation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "mesh": {
+          "vertices": [
+            [
+              -0.3,
+              0.0,
+              0.3
+            ],
+            [
+              0.0,
+              0.0,
+              0.3
+            ],
+            [
+              0.0,
+              0.166667,
+              0.3
+            ],
+            [
+              -0.3,
+              0.166667,
+              0.3
+            ],
+            [
+              0.0,
+              0.333333,
+              0.3
+            ],
+            [
+              -0.3,
+              0.333333,
+              0.3
+            ],
+            [
+              0.0,
+              0.5,
+              0.3
+            ],
+            [
+              -0.3,
+              0.5,
+              0.3
+            ],
+            [
+              0.0,
+              0.666667,
+              0.3
+            ],
+            [
+              -0.3,
+              0.666667,
+              0.3
+            ],
+            [
+              0.0,
+              0.833333,
+              0.3
+            ],
+            [
+              -0.3,
+              0.833333,
+              0.3
+            ],
+            [
+              0.0,
+              1.0,
+              0.3
+            ],
+            [
+              -0.3,
+              1.0,
+              0.3
+            ],
+            [
+              0.0,
+              1.166667,
+              0.3
+            ],
+            [
+              -0.3,
+              1.166667,
+              0.3
+            ],
+            [
+              0.0,
+              1.333333,
+              0.3
+            ],
+            [
+              -0.3,
+              1.333333,
+              0.3
+            ],
+            [
+              0.0,
+              1.5,
+              0.3
+            ],
+            [
+              -0.3,
+              1.5,
+              0.3
+            ],
+            [
+              0.0,
+              1.666667,
+              0.3
+            ],
+            [
+              -0.3,
+              1.666667,
+              0.3
+            ],
+            [
+              0.0,
+              1.833333,
+              0.3
+            ],
+            [
+              -0.3,
+              1.833333,
+              0.3
+            ],
+            [
+              0.0,
+              2.0,
+              0.3
+            ],
+            [
+              -0.3,
+              2.0,
+              0.3
+            ],
+            [
+              0.3,
+              0.0,
+              0.3
+            ],
+            [
+              0.3,
+              0.166667,
+              0.3
+            ],
+            [
+              0.3,
+              0.333333,
+              0.3
+            ],
+            [
+              0.3,
+              0.5,
+              0.3
+            ],
+            [
+              0.3,
+              0.666667,
+              0.3
+            ],
+            [
+              0.3,
+              0.833333,
+              0.3
+            ],
+            [
+              0.3,
+              1.0,
+              0.3
+            ],
+            [
+              0.3,
+              1.166667,
+              0.3
+            ],
+            [
+              0.3,
+              1.333333,
+              0.3
+            ],
+            [
+              0.3,
+              1.5,
+              0.3
+            ],
+            [
+              0.3,
+              1.666667,
+              0.3
+            ],
+            [
+              0.3,
+              1.833333,
+              0.3
+            ],
+            [
+              0.3,
+              2.0,
+              0.3
+            ],
+            [
+              0.3,
+              0.0,
+              -0.3
+            ],
+            [
+              0.0,
+              0.0,
+              -0.3
+            ],
+            [
+              0.0,
+              0.166667,
+              -0.3
+            ],
+            [
+              0.3,
+              0.166667,
+              -0.3
+            ],
+            [
+              0.0,
+              0.333333,
+              -0.3
+            ],
+            [
+              0.3,
+              0.333333,
+              -0.3
+            ],
+            [
+              0.0,
+              0.5,
+              -0.3
+            ],
+            [
+              0.3,
+              0.5,
+              -0.3
+            ],
+            [
+              0.0,
+              0.666667,
+              -0.3
+            ],
+            [
+              0.3,
+              0.666667,
+              -0.3
+            ],
+            [
+              0.0,
+              0.833333,
+              -0.3
+            ],
+            [
+              0.3,
+              0.833333,
+              -0.3
+            ],
+            [
+              0.0,
+              1.0,
+              -0.3
+            ],
+            [
+              0.3,
+              1.0,
+              -0.3
+            ],
+            [
+              0.0,
+              1.166667,
+              -0.3
+            ],
+            [
+              0.3,
+              1.166667,
+              -0.3
+            ],
+            [
+              0.0,
+              1.333333,
+              -0.3
+            ],
+            [
+              0.3,
+              1.333333,
+              -0.3
+            ],
+            [
+              0.0,
+              1.5,
+              -0.3
+            ],
+            [
+              0.3,
+              1.5,
+              -0.3
+            ],
+            [
+              0.0,
+              1.666667,
+              -0.3
+            ],
+            [
+              0.3,
+              1.666667,
+              -0.3
+            ],
+            [
+              0.0,
+              1.833333,
+              -0.3
+            ],
+            [
+              0.3,
+              1.833333,
+              -0.3
+            ],
+            [
+              0.0,
+              2.0,
+              -0.3
+            ],
+            [
+              0.3,
+              2.0,
+              -0.3
+            ],
+            [
+              -0.3,
+              0.0,
+              -0.3
+            ],
+            [
+              -0.3,
+              0.166667,
+              -0.3
+            ],
+            [
+              -0.3,
+              0.333333,
+              -0.3
+            ],
+            [
+              -0.3,
+              0.5,
+              -0.3
+            ],
+            [
+              -0.3,
+              0.666667,
+              -0.3
+            ],
+            [
+              -0.3,
+              0.833333,
+              -0.3
+            ],
+            [
+              -0.3,
+              1.0,
+              -0.3
+            ],
+            [
+              -0.3,
+              1.166667,
+              -0.3
+            ],
+            [
+              -0.3,
+              1.333333,
+              -0.3
+            ],
+            [
+              -0.3,
+              1.5,
+              -0.3
+            ],
+            [
+              -0.3,
+              1.666667,
+              -0.3
+            ],
+            [
+              -0.3,
+              1.833333,
+              -0.3
+            ],
+            [
+              -0.3,
+              2.0,
+              -0.3
+            ],
+            [
+              0.3,
+              0.0,
+              0.0
+            ],
+            [
+              0.3,
+              0.166667,
+              0.0
+            ],
+            [
+              0.3,
+              0.333333,
+              0.0
+            ],
+            [
+              0.3,
+              0.5,
+              0.0
+            ],
+            [
+              0.3,
+              0.666667,
+              0.0
+            ],
+            [
+              0.3,
+              0.833333,
+              0.0
+            ],
+            [
+              0.3,
+              1.0,
+              0.0
+            ],
+            [
+              0.3,
+              1.166667,
+              0.0
+            ],
+            [
+              0.3,
+              1.333333,
+              0.0
+            ],
+            [
+              0.3,
+              1.5,
+              0.0
+            ],
+            [
+              0.3,
+              1.666667,
+              0.0
+            ],
+            [
+              0.3,
+              1.833333,
+              0.0
+            ],
+            [
+              0.3,
+              2.0,
+              0.0
+            ],
+            [
+              -0.3,
+              0.0,
+              0.0
+            ],
+            [
+              -0.3,
+              0.166667,
+              0.0
+            ],
+            [
+              -0.3,
+              0.333333,
+              0.0
+            ],
+            [
+              -0.3,
+              0.5,
+              0.0
+            ],
+            [
+              -0.3,
+              0.666667,
+              0.0
+            ],
+            [
+              -0.3,
+              0.833333,
+              0.0
+            ],
+            [
+              -0.3,
+              1.0,
+              0.0
+            ],
+            [
+              -0.3,
+              1.166667,
+              0.0
+            ],
+            [
+              -0.3,
+              1.333333,
+              0.0
+            ],
+            [
+              -0.3,
+              1.5,
+              0.0
+            ],
+            [
+              -0.3,
+              1.666667,
+              0.0
+            ],
+            [
+              -0.3,
+              1.833333,
+              0.0
+            ],
+            [
+              -0.3,
+              2.0,
+              0.0
+            ],
+            [
+              0.0,
+              2.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "faces": [
+            {
+              "vertices": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                3,
+                2,
+                4,
+                5
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                5,
+                4,
+                6,
+                7
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                7,
+                6,
+                8,
+                9
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                9,
+                8,
+                10,
+                11
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                11,
+                10,
+                12,
+                13
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                13,
+                12,
+                14,
+                15
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                15,
+                14,
+                16,
+                17
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                17,
+                16,
+                18,
+                19
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                19,
+                18,
+                20,
+                21
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                21,
+                20,
+                22,
+                23
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                23,
+                22,
+                24,
+                25
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                1,
+                26,
+                27,
+                2
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                2,
+                27,
+                28,
+                4
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                4,
+                28,
+                29,
+                6
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                6,
+                29,
+                30,
+                8
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                8,
+                30,
+                31,
+                10
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                10,
+                31,
+                32,
+                12
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                12,
+                32,
+                33,
+                14
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                14,
+                33,
+                34,
+                16
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                16,
+                34,
+                35,
+                18
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                18,
+                35,
+                36,
+                20
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                20,
+                36,
+                37,
+                22
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                22,
+                37,
+                38,
+                24
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                39,
+                40,
+                41,
+                42
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                42,
+                41,
+                43,
+                44
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                44,
+                43,
+                45,
+                46
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                46,
+                45,
+                47,
+                48
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                48,
+                47,
+                49,
+                50
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                50,
+                49,
+                51,
+                52
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                52,
+                51,
+                53,
+                54
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                54,
+                53,
+                55,
+                56
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                56,
+                55,
+                57,
+                58
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                58,
+                57,
+                59,
+                60
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                60,
+                59,
+                61,
+                62
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                62,
+                61,
+                63,
+                64
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                40,
+                65,
+                66,
+                41
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                41,
+                66,
+                67,
+                43
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                43,
+                67,
+                68,
+                45
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                45,
+                68,
+                69,
+                47
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                47,
+                69,
+                70,
+                49
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                49,
+                70,
+                71,
+                51
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                51,
+                71,
+                72,
+                53
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                53,
+                72,
+                73,
+                55
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                55,
+                73,
+                74,
+                57
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                57,
+                74,
+                75,
+                59
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                59,
+                75,
+                76,
+                61
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                61,
+                76,
+                77,
+                63
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                26,
+                78,
+                79,
+                27
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                27,
+                79,
+                80,
+                28
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                28,
+                80,
+                81,
+                29
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                29,
+                81,
+                82,
+                30
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                30,
+                82,
+                83,
+                31
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                31,
+                83,
+                84,
+                32
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                32,
+                84,
+                85,
+                33
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                33,
+                85,
+                86,
+                34
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                34,
+                86,
+                87,
+                35
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                35,
+                87,
+                88,
+                36
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                36,
+                88,
+                89,
+                37
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                37,
+                89,
+                90,
+                38
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                78,
+                39,
+                42,
+                79
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                79,
+                42,
+                44,
+                80
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                80,
+                44,
+                46,
+                81
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                81,
+                46,
+                48,
+                82
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                82,
+                48,
+                50,
+                83
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                83,
+                50,
+                52,
+                84
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                84,
+                52,
+                54,
+                85
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                85,
+                54,
+                56,
+                86
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                86,
+                56,
+                58,
+                87
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                87,
+                58,
+                60,
+                88
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                88,
+                60,
+                62,
+                89
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                89,
+                62,
+                64,
+                90
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                65,
+                91,
+                92,
+                66
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                66,
+                92,
+                93,
+                67
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                67,
+                93,
+                94,
+                68
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                68,
+                94,
+                95,
+                69
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                69,
+                95,
+                96,
+                70
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                70,
+                96,
+                97,
+                71
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                71,
+                97,
+                98,
+                72
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                72,
+                98,
+                99,
+                73
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                73,
+                99,
+                100,
+                74
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                74,
+                100,
+                101,
+                75
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                75,
+                101,
+                102,
+                76
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                76,
+                102,
+                103,
+                77
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                91,
+                0,
+                3,
+                92
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                92,
+                3,
+                5,
+                93
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                93,
+                5,
+                7,
+                94
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                94,
+                7,
+                9,
+                95
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                95,
+                9,
+                11,
+                96
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                96,
+                11,
+                13,
+                97
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                97,
+                13,
+                15,
+                98
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                98,
+                15,
+                17,
+                99
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                99,
+                17,
+                19,
+                100
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                100,
+                19,
+                21,
+                101
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                101,
+                21,
+                23,
+                102
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                102,
+                23,
+                25,
+                103
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                25,
+                24,
+                104,
+                103
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                103,
+                104,
+                63,
+                77
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                24,
+                38,
+                90,
+                104
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                104,
+                90,
+                64,
+                63
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                65,
+                40,
+                105,
+                91
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                91,
+                105,
+                1,
+                0
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                40,
+                39,
+                78,
+                105
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            },
+            {
+              "vertices": [
+                105,
+                78,
+                26,
+                1
+              ],
+              "uv": null,
+              "material": "",
+              "smooth": false
+            }
+          ]
+        }
+      }
+    ],
+    "next_id": 2,
+    "selection": {
+      "item": 1,
+      "mode": "Polygon",
+      "vertices": [],
+      "edges": [],
+      "faces": []
+    },
+    "workplane": {
+      "fixed": true,
+      "plane": 0,
+      "center": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "id": "menu.help",
+  "label": "Help",
+  "style": "menu",
+  "controls": [
+    { "command": "operandi.help.documentation", "label": "User Guide" },
+    { "command": "operandi.help.reportBug", "label": "Report Bug or Idea…" },
+    { "command": "operandi.update.check", "label": "Check for Updates" }
+  ]
+}

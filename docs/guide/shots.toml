@@ -1,0 +1,1476 @@
+# The guide's pictures, one [[shot]] per image. tools/guide_shots.py renders
+# them with the offscreen QA harness (OPERANDI_QA_OFFSCREEN) from these
+# settings, so every picture can be remade for a release.
+#
+# Every shot: default Steel theme (a fresh, empty data folder), the window
+# size below in logical points, captured at 2x.
+#
+# Fields:
+#   output     file name in docs/guide/src/images/
+#   scene      scene to open, relative to docs/guide/ (original or CC0 only)
+#   size       window size in logical points [width, height]
+#   selection  "none": nothing selected, no click; "keep": the scene's own
+#              selection (its Mesh item active), no click; "click": the harness
+#              clicks the polygon under (0.3, 1.5, 0.3) like a user would
+#   tool       a tool the harness can start ("None" for no tool)
+#   env        extra OPERANDI_QA_* settings, passed as they are
+#   crop       optional [x, y, width, height] in logical points: keep only
+#              that part of the window (tool pages keep the toolbox, Tool
+#              Properties and the 3D view)
+#   markers    optional numbered callouts: margin (logical points of dark
+#              border added round the capture) and list of {n, name, at,
+#              target, span}, in logical points from the window's top-left;
+#              name is the part's name on the page (not drawn)
+
+[defaults]
+scale = 2
+size = [1920, 1080]
+
+[[shot]]
+output = "window.png"
+page = "interface/window.md"
+what = "The default window on a new, empty scene; no tool, nothing selected"
+scene = "scenes/empty.opscene"
+selection = "none"
+tool = "None"
+[shot.env]
+# The app's own start-up view; the harness defaults to Top.
+OPERANDI_QA_VIEW = "Perspective"
+# A fresh scene, as File > New makes it; the opened empty file is closed again
+# so the Items list shows only the new scene.
+OPERANDI_QA_COMMAND = "scene.new; operandi.scene.current index:0; scene.close"
+# Show Work Plane on (Work Plane Settings > Display; off in a fresh install),
+# so the picture shows the work plane apart from the ground grid.
+OPERANDI_QA_PLANE_DISPLAY = "On"
+# Work Plane Opacity up from 25% so the plane reads at guide size.
+OPERANDI_QA_WORKPLANE_OPACITY = "60"
+# Numbers match the list on interface/window.md. A 60-point margin round the
+# capture holds the markers at y -30 / 1110 and x -30 / 1950.
+[shot.markers]
+margin = 60
+list = [
+  { n = 1, name = "Logo", at = [19, -30],    target = [19, 12] },
+  { n = 2, name = "Tool set bar", at = [270, -30],   target = [270, 12],   span = [103, 432, 22] },
+  { n = 3, name = "Tool Tabs", at = [-30, 40],    target = [5, 40],     span = [5, 500, 50] },
+  { n = 4, name = "Panel-group tabs", at = [1720, -30],  target = [1720, 72],  span = [1526, 1915, 84] },
+  { n = 5, name = "Transform tools", at = [-30, 77],    target = [6, 77] },
+  { n = 6, name = "View dot", at = [334, 130],   target = [334, 69] },
+  { n = 7, name = "View header", at = [490, 130],   target = [490, 69],   span = [346, 638, 80] },
+  { n = 8, name = "Navigation buttons", at = [1465, 130],  target = [1465, 69],  span = [1416, 1512, 80] },
+  { n = 9, name = "Toolbox", at = [-30, 300],   target = [6, 300] },
+  { n = 10, name = "Items list", at = [1950, 288],  target = [1912, 288] },
+  { n = 11, name = "3D view", at = [922, 330] },
+  { n = 12, name = "Properties", at = [1950, 600],  target = [1912, 600] },
+  { n = 13, name = "Tool Properties", at = [-30, 669],   target = [6, 669] },
+  { n = 14, name = "Grid", at = [1200, 860],  target = [1130, 800] },
+  { n = 15, name = "Work Plane", at = [620, 215], target = [560, 165] },
+  { n = 16, name = "Axis marker", at = [-30, 1013],  target = [372, 1013] },
+  { n = 17, name = "Readout", at = [1400, 960],  target = [1469, 1020] },
+  { n = 18, name = "Command entry", at = [1950, 1039], target = [1912, 1039] },
+  { n = 19, name = "Message line", at = [20, 1110],   target = [20, 1067] },
+  { n = 20, name = "Mode bar", at = [345, 1110],  target = [330, 1067] },
+  { n = 21, name = "Selection modes", at = [520, 1110],  target = [520, 1067], span = [331, 720, 1078] },
+  { n = 22, name = "Modeling aids", at = [1090, 1110], target = [1090, 1067], span = [734, 1454, 1078] },
+  { n = 23, name = "Render and Preview", at = [1540, 1110], target = [1540, 1067], span = [1459, 1622, 1078] },
+]
+
+[[shot]]
+output = "bevel-active.png"
+page = "modeling/polygon-bevel.md"
+what = "Bevel on the top of a 2 m cube: Shift 0.2 m, Inset 0.1 m, handles showing"
+scene = "scenes/bevel-cube.opscene"
+selection = "click"
+tool = "Bevel"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_POLYGON_STAGE = "A"
+OPERANDI_QA_CATEGORY = "Polygon"
+
+[[shot]]
+output = "cube.png"
+page = "modeling/cube.md"
+what = "Cube: drawn with two drags, then typed to 1.5 m on every side"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "Cube"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+# A closer three-quarter view, centred on the shape.
+OPERANDI_QA_TARGET = "0,0.7,0"
+OPERANDI_QA_DISTANCE = "5"
+OPERANDI_QA_CUBE_STAGE = "solid"
+OPERANDI_QA_FIELDS = "position0=0; position1=0.75; position2=0; size0=1.5; size1=1.5; size2=1.5"
+
+[[shot]]
+output = "sphere.png"
+page = "modeling/sphere.md"
+what = "Sphere: drawn with a drag, then typed to radius 0.75 m, 24 sides, 12 segments"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_COMMAND = "Sphere"
+OPERANDI_QA_PRIMITIVE_DRAG = "Ordinary"
+OPERANDI_QA_VIEW = "Perspective"
+# A closer three-quarter view, centred on the shape.
+OPERANDI_QA_TARGET = "0,0.7,0"
+OPERANDI_QA_DISTANCE = "5"
+OPERANDI_QA_FIELDS = "position0=0; position1=0.75; position2=0; radius0=0.75; radius1=0.75; radius2=0.75; radial_sides=24; radial_segments=12"
+
+[[shot]]
+output = "ellipsoid.png"
+page = "modeling/ellipsoid.md"
+what = "Ellipsoid: drawn with two drags, then typed to 2 x 1.2 x 1.2 m"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+# A closer three-quarter view, centred on the shape.
+OPERANDI_QA_TARGET = "0,0.7,0"
+OPERANDI_QA_DISTANCE = "5"
+OPERANDI_QA_PRIMITIVE_DRAG = "Ordinary"
+OPERANDI_QA_PRIMITIVE_HEIGHT = "150"
+OPERANDI_QA_COMMAND = "Ellipsoid"
+OPERANDI_QA_FIELDS = "ell_position0=0; ell_position1=0.6; ell_position2=0; ell_radius0=1; ell_radius1=0.6; ell_radius2=0.6"
+
+[[shot]]
+output = "cone.png"
+page = "modeling/cone.md"
+what = "Cone: drawn with two drags, then typed to 1.2 m across and 1.8 m tall"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+# A closer three-quarter view, centred on the shape.
+OPERANDI_QA_TARGET = "0,0.7,0"
+OPERANDI_QA_DISTANCE = "5"
+OPERANDI_QA_PRIMITIVE_DRAG = "Ordinary"
+OPERANDI_QA_PRIMITIVE_HEIGHT = "150"
+OPERANDI_QA_COMMAND = "Cone"
+OPERANDI_QA_FIELDS = "cone_position0=0; cone_position1=0.9; cone_position2=0; cone_size0=0.6; cone_size1=0.9; cone_size2=0.6"
+
+[[shot]]
+output = "cylinder.png"
+page = "modeling/cylinder.md"
+what = "Cylinder: drawn with a drag, then typed to 1.2 m across and 1.5 m tall"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_COMMAND = "Cylinder"
+OPERANDI_QA_PRIMITIVE_DRAG = "Ordinary"
+OPERANDI_QA_VIEW = "Perspective"
+# A closer three-quarter view, centred on the shape.
+OPERANDI_QA_TARGET = "0,0.7,0"
+OPERANDI_QA_DISTANCE = "5"
+OPERANDI_QA_FIELDS = "position0=0; position1=0.75; position2=0; radius0=0.6; radius1=0.75; radius2=0.6; radial_sides=24; radial_segments=1"
+
+[[shot]]
+output = "torus.png"
+page = "modeling/torus.md"
+what = "Torus: drawn with two drags, then typed to Ring Radius 0.75 m, Cross Section 0.25 m"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+# A closer three-quarter view, centred on the shape.
+OPERANDI_QA_TARGET = "0,0.7,0"
+OPERANDI_QA_DISTANCE = "5"
+OPERANDI_QA_PRIMITIVE_DRAG = "Ordinary"
+OPERANDI_QA_PRIMITIVE_HEIGHT = "150"
+OPERANDI_QA_COMMAND = "Torus"
+OPERANDI_QA_FIELDS = "tor_position0=0; tor_position1=0.25; tor_position2=0; tor_ring=0.75; tor_xsec=0.25; tor_height=0.25"
+
+[[shot]]
+output = "capsule.png"
+page = "modeling/capsule.md"
+what = "Capsule: drawn with two drags, then typed to 0.7 m across and 1.8 m long"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+# A closer three-quarter view, centred on the shape.
+OPERANDI_QA_TARGET = "0,0.7,0"
+OPERANDI_QA_DISTANCE = "5"
+OPERANDI_QA_PRIMITIVE_DRAG = "Ordinary"
+OPERANDI_QA_PRIMITIVE_HEIGHT = "150"
+OPERANDI_QA_COMMAND = "Capsule"
+OPERANDI_QA_FIELDS = "cap_position0=0; cap_position1=0.9; cap_position2=0; cap_radius0=0.35; cap_radius1=0.9; cap_radius2=0.35; cap_end_size=0.35"
+
+[[shot]]
+output = "text.png"
+page = "modeling/text.md"
+what = "Text with Operandi typed into the Text field"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_COMMAND = "Text"
+OPERANDI_QA_FIELDS = "txt_text=Operandi; txt_size=1; txt_position0=-2"
+
+[[shot]]
+output = "arc.png"
+page = "modeling/arc.md"
+what = "Arc: one drag on the ground"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_PRIMITIVE_DRAG = "Ordinary"
+OPERANDI_QA_COMMAND = "Arc"
+
+[[shot]]
+output = "tube.png"
+page = "modeling/tube.md"
+what = "Tube: four clicks on the ground"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_COMMAND = "Tube"
+OPERANDI_QA_CLICKS = "-1.5,0,0.5; -0.5,0,-0.5; 0.5,0,0.5; 1.5,0,-0.5"
+
+[[shot]]
+output = "pen.png"
+page = "modeling/pen.md"
+what = "Pen: five clicks on the ground make one polygon"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.5,0"
+OPERANDI_QA_DISTANCE = "6"
+OPERANDI_QA_COMMAND = "Polygon Pen"
+OPERANDI_QA_CLICKS = "0,0,-1.2; 1.15,0,-0.35; 0.7,0,1; -0.7,0,1; -1.15,0,-0.35"
+
+[[shot]]
+output = "curve.png"
+page = "modeling/curve.md"
+what = "Curve: four clicks on the ground"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.5,0"
+OPERANDI_QA_DISTANCE = "6"
+OPERANDI_QA_COMMAND = "Curve"
+OPERANDI_QA_CLICKS = "-1.5,0,0.5; -0.5,0,-0.6; 0.5,0,0.6; 1.5,0,-0.5"
+
+[[shot]]
+output = "bezier.png"
+page = "modeling/bezier.md"
+what = "Bezier: four clicks on the ground"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.5,0"
+OPERANDI_QA_DISTANCE = "6"
+OPERANDI_QA_COMMAND = "Bezier Curve"
+OPERANDI_QA_CLICKS = "-1.5,0,0.5; -0.5,0,-0.6; 0.5,0,0.6; 1.5,0,-0.5"
+
+[[shot]]
+output = "b-spline.png"
+page = "modeling/b-spline.md"
+what = "B-Spline: four clicks on the ground"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.5,0"
+OPERANDI_QA_DISTANCE = "6"
+OPERANDI_QA_COMMAND = "B-Spline"
+OPERANDI_QA_CLICKS = "-1.5,0,0.5; -0.5,0,-0.6; 0.5,0,0.6; 1.5,0,-0.5"
+
+[[shot]]
+output = "sketch.png"
+page = "modeling/sketch.md"
+what = "Sketch: one freehand stroke on the ground"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.5,0"
+OPERANDI_QA_DISTANCE = "6"
+OPERANDI_QA_COMMAND = "Sketch"
+OPERANDI_QA_STROKE = "-1.8,0,0; -1.4,0,-0.6; -0.9,0,-0.8; -0.4,0,-0.5; 0,0,0; 0.4,0,0.5; 0.9,0,0.8; 1.4,0,0.6; 1.8,0,0"
+
+[[shot]]
+output = "solid-sketch.png"
+page = "modeling/solid-sketch.md"
+what = "Solid Sketch: four clicks on the ground"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.5,0"
+OPERANDI_QA_DISTANCE = "6"
+OPERANDI_QA_COMMAND = "Solid Sketch"
+OPERANDI_QA_CLICKS = "-1.5,0,0.5; -0.5,0,-0.6; 0.5,0,0.6; 1.5,0,-0.5"
+
+[[shot]]
+output = "topology-pen.png"
+page = "modeling/topology-pen.md"
+what = "Topology Pen started on a cube"
+scene = "scenes/bevel-cube.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.5,0"
+OPERANDI_QA_DISTANCE = "6"
+OPERANDI_QA_COMMAND = "Topology Pen"
+
+[[shot]]
+output = "patch.png"
+page = "modeling/patch.md"
+what = "Draw Patch started, waiting for curves to be picked"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.5,0"
+OPERANDI_QA_DISTANCE = "6"
+OPERANDI_QA_COMMAND = "Draw Patch"
+
+[[shot]]
+output = "ruler.png"
+page = "modeling/ruler.md"
+what = "Ruler along the top front edge of a 2 m cube"
+scene = "scenes/bevel-cube.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.5,0"
+OPERANDI_QA_DISTANCE = "6"
+OPERANDI_QA_LATE_COMMAND = "Ruler"
+OPERANDI_QA_FIELDS = "rul_start0=-1; rul_start1=1.5; rul_start2=1; rul_end0=1; rul_end1=1.5; rul_end2=1"
+
+[[shot]]
+output = "protractor.png"
+page = "modeling/protractor.md"
+what = "Protractor at a top corner of a 2 m cube"
+scene = "scenes/bevel-cube.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.5,0"
+OPERANDI_QA_DISTANCE = "6"
+OPERANDI_QA_LATE_COMMAND = "Protractor"
+OPERANDI_QA_FIELDS = "pro_center0=-1; pro_center1=1.5; pro_center2=1; pro_start0=1; pro_start1=1.5; pro_start2=1; pro_end0=-1; pro_end1=1.5; pro_end2=-1"
+
+[[shot]]
+output = "dimensions.png"
+page = "modeling/dimensions.md"
+what = "Dimensions of a 2 m cube with every polygon selected"
+scene = "scenes/bevel-cube.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.5,0"
+OPERANDI_QA_DISTANCE = "6"
+OPERANDI_QA_COMMAND = "polygons; select.all; Dimensions"
+
+[[shot]]
+output = "ground-align.png"
+page = "modeling/ground-align.md"
+what = "Ground Align: one click dropped the cube onto the ground"
+scene = "scenes/bevel-cube.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.5,0"
+OPERANDI_QA_DISTANCE = "6"
+OPERANDI_QA_LATE_COMMAND = "Ground Align"
+OPERANDI_QA_CLICKS = "0,0.5,1"
+
+[[shot]]
+output = "select-click.png"
+page = "selection/selection-modes.md"
+what = "One polygon of a 1 m sphere clicked"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "Sphere Unit; polygons; operandi.toolbox.tab select"
+OPERANDI_QA_CLICKS = "0.27,0.23,0.35"
+
+[[shot]]
+output = "select-grow.png"
+page = "selection/select-tab.md"
+what = "One polygon clicked, then Grow twice"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "Sphere Unit; polygons; operandi.toolbox.tab select"
+OPERANDI_QA_CLICKS = "0.27,0.23,0.35"
+OPERANDI_QA_AFTER_COMMAND = "Grow; Grow"
+
+[[shot]]
+output = "select-loop.png"
+page = "selection/loops.md"
+what = "One polygon clicked, then Loop"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "Sphere Unit; polygons; operandi.toolbox.tab select"
+OPERANDI_QA_CLICKS = "0.27,0.23,0.35"
+OPERANDI_QA_AFTER_COMMAND = "Loop"
+
+[[shot]]
+output = "select-between.png"
+page = "selection/between-and-paths.md"
+what = "Two polygons picked, then Between"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "Sphere Unit; polygons; operandi.toolbox.tab select"
+OPERANDI_QA_CLICKS = "0.27,0.23,0.35; shift 0.05,-0.2,0.45"
+OPERANDI_QA_AFTER_COMMAND = "Select Between"
+
+[[shot]]
+output = "select-path.png"
+page = "selection/between-and-paths.md"
+what = "Two polygons picked, then Shortest Path"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "Sphere Unit; polygons; operandi.toolbox.tab select"
+OPERANDI_QA_CLICKS = "0.38,0.3,0.15; shift 0.05,-0.2,0.45"
+OPERANDI_QA_AFTER_COMMAND = "Shortest Path"
+
+[[shot]]
+output = "coplanar-polygons.png"
+page = "selection/select-by-shape.md"
+what = "The top of a cube clicked, then the Coplanar Polygons Tool"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "Cube Unit; polygons; operandi.toolbox.tab select"
+OPERANDI_QA_CLICKS = "0.1,0.5,0.1"
+OPERANDI_QA_AFTER_COMMAND = "Coplanar Polygons Tool"
+
+[[shot]]
+output = "selection-sets.png"
+page = "selection/selection-sets.md"
+what = "A loop selected, then Assign Selection Set"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "Sphere Unit; polygons; operandi.toolbox.tab select"
+OPERANDI_QA_CLICKS = "0.27,0.23,0.35"
+OPERANDI_QA_AFTER_COMMAND = "Loop; select.editSet"
+
+[[shot]]
+output = "mesh-paint.png"
+page = "modeling/mesh-paint.md"
+what = "Mesh Paint: one Slide stroke on a slab put a copy of the small background cube on it"
+scene = "scenes/mesh-paint.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "7"
+OPERANDI_QA_LATE_COMMAND = "Mesh Paint"
+OPERANDI_QA_STROKE = "-1.2,0,0.8; -0.9,0,0.6; -0.6,0,0.4; -0.3,0,0.2; 0,0,0"
+
+[[shot]]
+output = "element-move.png"
+page = "deform/element-move.md"
+what = "Element Move: one polygon of a sphere dragged out"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "Sphere Unit; polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Element Move"
+OPERANDI_QA_STROKE = "0.27,0.23,0.35; 0.29,0.28,0.39; 0.31,0.33,0.43; 0.33,0.38,0.47; 0.35,0.43,0.51"
+
+[[shot]]
+output = "element-push.png"
+page = "deform/element-push.md"
+what = "Element Push: one drag on a sphere polygon"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "Sphere Unit; polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Element Push"
+OPERANDI_QA_STROKE = "0.27,0.23,0.35; 0.29,0.28,0.39; 0.31,0.33,0.43; 0.33,0.38,0.47; 0.35,0.43,0.51"
+
+[[shot]]
+output = "flex.png"
+page = "deform/flex.md"
+what = "Flex on a selected patch of a sphere: Position Z 0.25 m and Rotation X 30 degrees typed in"
+scene = "scenes/sphere-patch.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Flex"
+OPERANDI_QA_STROKE = "0.27,0.23,0.35; 0.29,0.28,0.39; 0.31,0.33,0.43; 0.33,0.38,0.47; 0.35,0.43,0.51"
+OPERANDI_QA_FIELDS = "delta2=0.25; rotation_delta0=30"
+
+[[shot]]
+output = "soft-drag.png"
+page = "deform/soft-drag.md"
+what = "Soft Drag: one drag on a sphere"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "Sphere Unit; polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Soft Drag"
+OPERANDI_QA_STROKE = "0.27,0.23,0.35; 0.29,0.28,0.39; 0.31,0.33,0.43; 0.33,0.38,0.47; 0.35,0.43,0.51"
+
+[[shot]]
+output = "soft-move.png"
+page = "deform/soft-move.md"
+what = "Soft Move started on a sphere: its Radial falloff and handles"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "Sphere Unit; polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Soft Move"
+OPERANDI_QA_STROKE = "0.27,0.23,0.35; 0.29,0.28,0.39; 0.31,0.33,0.43; 0.33,0.38,0.47; 0.35,0.43,0.51"
+
+[[shot]]
+output = "shear.png"
+page = "deform/shear.md"
+what = "Shear: a click on a sphere, then Position (offset) Y typed to 0.3 m"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "Sphere Unit; polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Shear"
+OPERANDI_QA_STROKE = "0.27,0.23,0.35; 0.29,0.28,0.39; 0.31,0.33,0.43; 0.33,0.38,0.47; 0.35,0.43,0.51"
+OPERANDI_QA_FIELDS = "delta0=0; delta1=0.3; delta2=0"
+
+[[shot]]
+output = "smooth.png"
+page = "deform/smooth.md"
+what = "Smooth on a sphere: Strength 1, Iterations 5"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "Sphere Unit; polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Smooth"
+OPERANDI_QA_FIELDS = "smooth_strength=1; smooth_iterations=5"
+
+[[shot]]
+output = "jitter.png"
+page = "deform/jitter.md"
+what = "Jitter on a sphere: Range 0.03 m on every axis"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "Sphere Unit; polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Jitter"
+OPERANDI_QA_FIELDS = "jitter_range0=0.03; jitter_range1=0.03; jitter_range2=0.03"
+
+[[shot]]
+output = "quantize.png"
+page = "deform/quantize.md"
+what = "Quantize on a selected patch of a sphere: Step 0.05 m on every axis"
+scene = "scenes/sphere-patch.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Quantize"
+OPERANDI_QA_FIELDS = "quantize_step0=0.05; quantize_step1=0.05; quantize_step2=0.05"
+
+[[shot]]
+output = "soft-selection-move.png"
+page = "deform/soft-selection.md"
+what = "Soft Selection Move on a selected patch: Position (offset) Z typed to 0.2 m"
+scene = "scenes/sphere-patch.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Soft Selection Move"
+OPERANDI_QA_STROKE = "0.27,0.23,0.35; 0.29,0.28,0.39; 0.31,0.33,0.43; 0.33,0.38,0.47; 0.35,0.43,0.51"
+OPERANDI_QA_FIELDS = "delta0=0; delta1=0; delta2=0.2"
+
+[[shot]]
+output = "twist.png"
+page = "deform/twist.md"
+what = "Twist on a 2 m column: Rotation Y typed to 90 degrees"
+scene = "scenes/column.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,1,0"
+OPERANDI_QA_DISTANCE = "4.5"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Twist"
+OPERANDI_QA_CLICKS = "0,1.5,0.3"
+OPERANDI_QA_FIELDS = "delta0=0; delta1=90; delta2=0"
+
+[[shot]]
+output = "bend.png"
+page = "deform/bend.md"
+what = "Bend started on a 2 m column: its ring and spine"
+scene = "scenes/column.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,1,0"
+OPERANDI_QA_DISTANCE = "4.5"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Bend"
+OPERANDI_QA_CLICKS = "0,1.5,0.3"
+
+[[shot]]
+output = "vortex.png"
+page = "deform/vortex.md"
+what = "Vortex on a 2 m grid: Rotation Y typed to 90 degrees"
+scene = "scenes/grid.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "3.5"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Vortex"
+OPERANDI_QA_CLICKS = "0,0,0"
+OPERANDI_QA_FIELDS = "delta0=0; delta1=90; delta2=0"
+
+[[shot]]
+output = "swirl.png"
+page = "deform/swirl.md"
+what = "Swirl on a 2 m grid: Rotation Y typed to 90 degrees"
+scene = "scenes/grid.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "3.5"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Swirl"
+OPERANDI_QA_CLICKS = "0,0,0"
+OPERANDI_QA_FIELDS = "delta0=0; delta1=90; delta2=0"
+
+[[shot]]
+output = "push.png"
+page = "deform/push.md"
+what = "Push on a 2 m column: Distance typed to 0.1 m"
+scene = "scenes/column.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,1,0"
+OPERANDI_QA_DISTANCE = "4.5"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Push"
+OPERANDI_QA_CLICKS = "0,1.5,0.3"
+OPERANDI_QA_FIELDS = "push_distance=0.1"
+
+[[shot]]
+output = "taper.png"
+page = "deform/taper.md"
+what = "Taper on a 2 m column: Scale Factor X and Z typed to 0.4"
+scene = "scenes/column.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,1,0"
+OPERANDI_QA_DISTANCE = "4.5"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Taper"
+OPERANDI_QA_CLICKS = "0,1.5,0.3"
+OPERANDI_QA_FIELDS = "delta0=0.4; delta1=1; delta2=0.4"
+
+[[shot]]
+output = "bulge.png"
+page = "deform/bulge.md"
+what = "Bulge on a 2 m grid: Scale Factor X and Z typed to 1.6"
+scene = "scenes/grid.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "3.5"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Bulge"
+OPERANDI_QA_CLICKS = "0,0,0"
+OPERANDI_QA_FIELDS = "delta0=1.6; delta1=1; delta2=1.6"
+
+[[shot]]
+output = "flare.png"
+page = "deform/flare.md"
+what = "Flare on a 2 m column: Distance typed to 0.3 m"
+scene = "scenes/column.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,1,0"
+OPERANDI_QA_DISTANCE = "4.5"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Flare"
+OPERANDI_QA_CLICKS = "0,1.5,0.3"
+OPERANDI_QA_FIELDS = "push_distance=0.3"
+
+[[shot]]
+output = "radial-align.png"
+page = "deform/align.md"
+what = "Radial Align started on a selected patch of a sphere"
+scene = "scenes/sphere-patch.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Radial Align"
+
+[[shot]]
+output = "linear-align.png"
+page = "deform/align.md"
+what = "Linear Align started on a selected patch of a sphere"
+scene = "scenes/sphere-patch.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Linear Align"
+
+[[shot]]
+output = "relax-mesh.png"
+page = "deform/relax-mesh.md"
+what = "The Relax Mesh dialog over a selected patch of a sphere"
+scene = "scenes/sphere-patch.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab deform"
+OPERANDI_QA_LATE_COMMAND = "Relax Mesh"
+
+[[shot]]
+output = "clone.png"
+page = "duplicate/clone.md"
+what = "Clone: a 1 m cube, Number of Clones 3 and Offset X 1.5 m typed in"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "1.5,0.5,0"
+OPERANDI_QA_DISTANCE = "9"
+OPERANDI_QA_COMMAND = "Cube Unit; polygons; select.all; operandi.toolbox.tab duplicate"
+OPERANDI_QA_LATE_COMMAND = "Clone"
+OPERANDI_QA_CLICKS = "2,0,0"
+OPERANDI_QA_FIELDS = "clone_count=3; clone_offset0=1.5"
+
+[[shot]]
+output = "array.png"
+page = "duplicate/array.md"
+what = "Array: a 1 m cube, Count 3 x 1 x 3 and Offset 1.5 m typed in"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "1.5,0.5,0"
+OPERANDI_QA_DISTANCE = "9"
+OPERANDI_QA_COMMAND = "Cube Unit; polygons; select.all; operandi.toolbox.tab duplicate"
+OPERANDI_QA_LATE_COMMAND = "Array"
+OPERANDI_QA_CLICKS = "2,0,0"
+OPERANDI_QA_FIELDS = "array_count0=3; array_count1=1; array_count2=3; array_offset0=1.5; array_offset1=0; array_offset2=1.5"
+
+[[shot]]
+output = "radial-array.png"
+page = "duplicate/radial-array.md"
+what = "Radial Array: 8 copies of a 1 m cube round a centre 1.5 m away"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "1.5,0.5,0"
+OPERANDI_QA_DISTANCE = "9"
+OPERANDI_QA_COMMAND = "Cube Unit; polygons; select.all; operandi.toolbox.tab duplicate"
+OPERANDI_QA_LATE_COMMAND = "Radial Array"
+OPERANDI_QA_CLICKS = "2,0,0"
+OPERANDI_QA_FIELDS = "circle_center0=1.5"
+
+[[shot]]
+output = "mirror.png"
+page = "duplicate/mirror.md"
+what = "Mirror: a 1 m cube mirrored across a plane at X 1.25 m"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "1.5,0.5,0"
+OPERANDI_QA_DISTANCE = "9"
+OPERANDI_QA_COMMAND = "Cube Unit; polygons; select.all; operandi.toolbox.tab duplicate"
+OPERANDI_QA_LATE_COMMAND = "Mirror"
+OPERANDI_QA_CLICKS = "2,0,0"
+OPERANDI_QA_FIELDS = "mirror_center0=1.25"
+
+[[shot]]
+output = "scatter-clone.png"
+page = "duplicate/scatter-clone.md"
+what = "Scatter Clone: 8 copies of a 1 m cube scattered in a 3 m box"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "1.5,0.5,0"
+OPERANDI_QA_DISTANCE = "9"
+OPERANDI_QA_COMMAND = "Cube Unit; polygons; select.all; operandi.toolbox.tab duplicate"
+OPERANDI_QA_LATE_COMMAND = "Scatter Clone"
+OPERANDI_QA_CLICKS = "2,0,0"
+OPERANDI_QA_FIELDS = "scatter_centre0=1.5; scatter_range0=3; scatter_range1=1; scatter_range2=3"
+
+[[shot]]
+output = "path-clone.png"
+page = "duplicate/path-tools.md"
+what = "Curve Clone: copies of a 1 m cube along a curve clicked out on the ground"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "1.5,0.5,0"
+OPERANDI_QA_DISTANCE = "9"
+OPERANDI_QA_COMMAND = "Cube Unit; polygons; select.all; operandi.toolbox.tab duplicate"
+OPERANDI_QA_LATE_COMMAND = "Curve Clone"
+OPERANDI_QA_CLICKS = "-1,0,2; 1,0,-1; 3,0,2; 5,0,-1"
+
+[[shot]]
+output = "sds-subdivide.png"
+page = "edit/subdivide.md"
+what = "A 1 m cube after SDS Subdivide twice"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "3"
+OPERANDI_QA_COMMAND = "Cube Unit; polygons; operandi.toolbox.tab edit"
+OPERANDI_QA_AFTER_COMMAND = "select.all; SDS Subdivide; SDS Subdivide"
+
+[[shot]]
+output = "subdivide-options.png"
+page = "edit/subdivide.md"
+what = "The Subdivide options dialog over a selected 1 m cube"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "3"
+OPERANDI_QA_COMMAND = "Cube Unit; polygons; operandi.toolbox.tab edit"
+OPERANDI_QA_AFTER_COMMAND = "select.all; Subdivide Options"
+
+[[shot]]
+output = "loop-slice.png"
+page = "edit/slice-tools.md"
+what = "Loop Slice on a 2 m column: one polygon clicked, one loop added through its ring"
+scene = "scenes/column.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,1,0"
+OPERANDI_QA_DISTANCE = "4.5"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab edit"
+OPERANDI_QA_AFTER_COMMAND = "Loop Slice"
+OPERANDI_QA_CLICKS = "0,1.04,0.3"
+
+[[shot]]
+output = "dicer.png"
+page = "edit/dicer.md"
+what = "The Dicer dialog over a 2 m column"
+scene = "scenes/column.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,1,0"
+OPERANDI_QA_DISTANCE = "4.5"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab edit"
+OPERANDI_QA_AFTER_COMMAND = "operandi.dicer"
+
+[[shot]]
+output = "boolean.png"
+page = "edit/booleans.md"
+what = "The Boolean dialog: a slab selected, a small cube as the driver"
+scene = "scenes/mesh-paint.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "7"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab edit"
+OPERANDI_QA_AFTER_COMMAND = "Boolean"
+
+[[shot]]
+output = "remesh.png"
+page = "edit/retopology.md"
+what = "The Remesh dialog over a 2 m column"
+scene = "scenes/column.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,1,0"
+OPERANDI_QA_DISTANCE = "4.5"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab edit"
+OPERANDI_QA_AFTER_COMMAND = "Remesh"
+
+[[shot]]
+output = "auto-retopology.png"
+page = "edit/retopology.md"
+what = "The Automatic Retopology dialog over a 2 m column"
+scene = "scenes/column.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,1,0"
+OPERANDI_QA_DISTANCE = "4.5"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab edit"
+OPERANDI_QA_AFTER_COMMAND = "Automatic Retopology"
+
+[[shot]]
+output = "freeze.png"
+page = "edit/freeze.md"
+what = "The Freeze dialog over a 2 m column"
+scene = "scenes/column.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,1,0"
+OPERANDI_QA_DISTANCE = "4.5"
+OPERANDI_QA_COMMAND = "polygons; operandi.toolbox.tab edit"
+OPERANDI_QA_AFTER_COMMAND = "poly.freeze"
+
+[[shot]]
+output = "vertex-bevel.png"
+page = "vertex/vertex-bevel.md"
+what = "Vertex Bevel on a corner of a 1 m cube: Inset 0.25 m"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "3"
+OPERANDI_QA_COMMAND = "Cube Unit; vertices; operandi.toolbox.tab vertex"
+OPERANDI_QA_CLICKS = "0.5,0.5,0.5"
+OPERANDI_QA_AFTER_COMMAND = "Vertex Bevel"
+OPERANDI_QA_FIELDS = "inset=0.25"
+
+[[shot]]
+output = "vertex-extrude.png"
+page = "vertex/vertex-extrude.md"
+what = "Vertex Extrude on a corner of a 1 m cube: Extrude 0.3 m, Width 0.1 m"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "3"
+OPERANDI_QA_COMMAND = "Cube Unit; vertices; operandi.toolbox.tab vertex"
+OPERANDI_QA_CLICKS = "0.5,0.5,0.5"
+OPERANDI_QA_AFTER_COMMAND = "Vertex Extrude"
+OPERANDI_QA_FIELDS = "shift=0.3; inset=0.1"
+
+[[shot]]
+output = "vertex-merge.png"
+page = "vertex/merge-join.md"
+what = "The Merge dialog, two cube corners selected"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "3"
+OPERANDI_QA_COMMAND = "Cube Unit; vertices; operandi.toolbox.tab vertex"
+OPERANDI_QA_CLICKS = "0.5,0.5,0.5; shift -0.5,0.5,0.5"
+OPERANDI_QA_AFTER_COMMAND = "Vertex Merge"
+
+[[shot]]
+output = "edge-bevel.png"
+page = "edge/edge-bevel.md"
+what = "Edge Bevel on the top front edge of a 1 m cube: Inset 0.15 m, Round Level 3"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "3"
+OPERANDI_QA_COMMAND = "Cube Unit; operandi.toolbox.tab edge"
+OPERANDI_QA_SELECT = '{"mode":"edge","edges":[[6,7]]}'
+OPERANDI_QA_LATE_COMMAND = "Edge Bevel"
+OPERANDI_QA_FIELDS = "chamfer_offset=0.15; edge_round_level=3"
+
+[[shot]]
+output = "edge-chamfer.png"
+page = "edge/edge-bevel.md"
+what = "Edge Chamfer on the top front edge of a 1 m cube: 0.15 m"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "3"
+OPERANDI_QA_COMMAND = "Cube Unit; operandi.toolbox.tab edge"
+OPERANDI_QA_SELECT = '{"mode":"edge","edges":[[6,7]]}'
+OPERANDI_QA_LATE_COMMAND = "Edge Chamfer"
+OPERANDI_QA_FIELDS = "chamfer_offset=0.15"
+
+[[shot]]
+output = "edge-extrude.png"
+page = "edge/edge-extrude.md"
+what = "Edge Extrude on the top front edge of a 1 m cube: Extrude 0.3 m"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "3"
+OPERANDI_QA_COMMAND = "Cube Unit; operandi.toolbox.tab edge"
+OPERANDI_QA_SELECT = '{"mode":"edge","edges":[[6,7]]}'
+OPERANDI_QA_LATE_COMMAND = "Edge Extrude"
+OPERANDI_QA_FIELDS = "shift=0.3"
+
+[[shot]]
+output = "edge-extend.png"
+page = "edge/extend.md"
+what = "Extend on the top front edge of a 1 m cube: offset 0.3 m along Z"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "3"
+OPERANDI_QA_COMMAND = "Cube Unit; operandi.toolbox.tab edge"
+OPERANDI_QA_SELECT = '{"mode":"edge","edges":[[6,7]]}'
+OPERANDI_QA_LATE_COMMAND = "Extend"
+OPERANDI_QA_AFTER_COMMAND = "tool.attr edge.extend offZ 0.3"
+
+[[shot]]
+output = "twist-bevel.png"
+page = "polygon/twist-bevel.md"
+what = "Twist Bevel on the top of a 1 m cube: Shift 0.8 m, 6 segments, turned 90 degrees"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.3,0"
+OPERANDI_QA_DISTANCE = "3.5"
+OPERANDI_QA_COMMAND = "Cube Unit; operandi.toolbox.tab polygon"
+OPERANDI_QA_SELECT = '{"mode":"polygon","faces":[5]}'
+OPERANDI_QA_LATE_COMMAND = "Twist Bevel"
+OPERANDI_QA_FIELDS = "shift=0.8; segments=6; rotation=90; inset=0.1"
+
+[[shot]]
+output = "extrude.png"
+page = "polygon/extrude.md"
+what = "Extrude on the top of a 1 m cube: Extent Y 0.5 m, then Apply"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.3,0"
+OPERANDI_QA_DISTANCE = "3.5"
+OPERANDI_QA_COMMAND = "Cube Unit; operandi.toolbox.tab polygon"
+OPERANDI_QA_SELECT = '{"mode":"polygon","faces":[5]}'
+OPERANDI_QA_LATE_COMMAND = "Extrude"
+OPERANDI_QA_FIELDS = "extent0=0; extent1=0.5; extent2=0"
+OPERANDI_QA_FINAL_COMMAND = "Apply"
+
+[[shot]]
+output = "smooth-shift.png"
+page = "polygon/smooth-shift.md"
+what = "Smooth Shift on the top of a 1 m cube: Offset 0.3 m, then Apply"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.3,0"
+OPERANDI_QA_DISTANCE = "3.5"
+OPERANDI_QA_COMMAND = "Cube Unit; operandi.toolbox.tab polygon"
+OPERANDI_QA_SELECT = '{"mode":"polygon","faces":[5]}'
+OPERANDI_QA_LATE_COMMAND = "Smooth Shift"
+OPERANDI_QA_FIELDS = "sst_offset=0.3"
+OPERANDI_QA_FINAL_COMMAND = "Apply"
+
+[[shot]]
+output = "thicken.png"
+page = "polygon/smooth-shift.md"
+what = "Thicken on the top of a 1 m cube: Offset 0.2 m, then Apply"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.3,0"
+OPERANDI_QA_DISTANCE = "3.5"
+OPERANDI_QA_COMMAND = "Cube Unit; operandi.toolbox.tab polygon"
+OPERANDI_QA_SELECT = '{"mode":"polygon","faces":[5]}'
+OPERANDI_QA_LATE_COMMAND = "Thicken"
+OPERANDI_QA_FIELDS = "sst_offset=0.2"
+OPERANDI_QA_FINAL_COMMAND = "Apply"
+
+[[shot]]
+output = "spike.png"
+page = "polygon/spike.md"
+what = "Spike on the top of a 1 m cube: Strength 0.5, then Apply"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.3,0"
+OPERANDI_QA_DISTANCE = "3.5"
+OPERANDI_QA_COMMAND = "Cube Unit; operandi.toolbox.tab polygon"
+OPERANDI_QA_SELECT = '{"mode":"polygon","faces":[5]}'
+OPERANDI_QA_LATE_COMMAND = "Spike"
+OPERANDI_QA_FIELDS = "spi_strength=0.5"
+OPERANDI_QA_FINAL_COMMAND = "Apply"
+
+[[shot]]
+output = "set-material.png"
+page = "polygon/part-material.md"
+what = "The Set Material dialog with the top of a 1 m cube selected"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.3,0"
+OPERANDI_QA_DISTANCE = "3.5"
+OPERANDI_QA_COMMAND = "Cube Unit; operandi.toolbox.tab polygon"
+OPERANDI_QA_SELECT = '{"mode":"polygon","faces":[5]}'
+OPERANDI_QA_LATE_COMMAND = "Set Material"
+
+[[shot]]
+output = "triple.png"
+page = "polygon/triangles.md"
+what = "Triple on two polygons of a 1 m cube"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.3,0"
+OPERANDI_QA_DISTANCE = "3.5"
+OPERANDI_QA_COMMAND = "Cube Unit; operandi.toolbox.tab polygon"
+OPERANDI_QA_SELECT = '{"mode":"polygon","faces":[5,3]}'
+OPERANDI_QA_AFTER_COMMAND = "Triple"
+
+[[shot]]
+output = "topology-pen-retopo.png"
+page = "topology/index.md"
+what = "Topology tab: Pen with Constrain to Background, four clicks on a background sphere make a polygon on its surface"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "2.6"
+OPERANDI_QA_COMMAND = "Sphere Unit; New Mesh; operandi.toolbox.tab topology; view.topologyMode"
+OPERANDI_QA_LATE_COMMAND = 'operandi.topology.tool "tool.set prim.pen on"'
+OPERANDI_QA_CLICKS = "0.1,0.2,0.48; 0.3,0.2,0.4; 0.3,0.0,0.42; 0.1,0.0,0.5"
+
+[[shot]]
+output = "split-polygon.png"
+page = "vertex/make-split.md"
+what = "Split Polygon: two opposite corners of a cube face selected, joined by a new edge"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "3"
+OPERANDI_QA_COMMAND = "Cube Unit; operandi.toolbox.tab vertex"
+OPERANDI_QA_SELECT = '{"mode":"vertex","vertices":[4,6]}'
+OPERANDI_QA_AFTER_COMMAND = "Split"
+
+[[shot]]
+output = "set-position.png"
+page = "vertex/place-points.md"
+what = "The Set Position dialog with two cube corners selected"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 0, 1520, 1080]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0,0"
+OPERANDI_QA_DISTANCE = "3"
+OPERANDI_QA_COMMAND = "Cube Unit; operandi.toolbox.tab vertex"
+OPERANDI_QA_SELECT = '{"mode":"vertex","vertices":[6,7]}'
+OPERANDI_QA_AFTER_COMMAND = "Vertex Set Position"
+
+[[shot]]
+output = "panel-items.png"
+page = "panels/items-list.md"
+what = "The Items list with a scene holding one mesh, Cube, selected"
+scene = "scenes/bevel-cube.opscene"
+selection = "keep"
+crop = [1520, 55, 400, 345]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.5,0"
+OPERANDI_QA_DISTANCE = "6"
+OPERANDI_QA_COMMAND = "items"
+
+[[shot]]
+output = "panel-properties.png"
+page = "panels/properties.md"
+what = "The Properties panel for a selected mesh item"
+scene = "scenes/bevel-cube.opscene"
+selection = "keep"
+crop = [1520, 550, 400, 500]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.5,0"
+OPERANDI_QA_DISTANCE = "6"
+OPERANDI_QA_COMMAND = "items"
+
+[[shot]]
+output = "panel-shader-tree.png"
+page = "panels/shader-tree.md"
+what = "The Shader Tree of a new scene"
+scene = "scenes/bevel-cube.opscene"
+selection = "keep"
+crop = [1520, 55, 400, 345]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.5,0"
+OPERANDI_QA_DISTANCE = "6"
+OPERANDI_QA_COMMAND = "items; operandi.panel.show kind:{Shader Tree}"
+
+[[shot]]
+output = "panel-tool-properties.png"
+page = "panels/tool-properties.md"
+what = "Tool Properties while Bevel is active on the top of a cube"
+scene = "scenes/new-mesh.opscene"
+selection = "keep"
+crop = [0, 600, 330, 480]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.5,0"
+OPERANDI_QA_DISTANCE = "6"
+OPERANDI_QA_COMMAND = "Cube Unit; operandi.toolbox.tab polygon"
+OPERANDI_QA_SELECT = '{"mode":"polygon","faces":[5]}'
+OPERANDI_QA_LATE_COMMAND = "Bevel"
+OPERANDI_QA_FIELDS = "shift=0.2; inset=0.1"
+
+[[shot]]
+output = "panel-preferences.png"
+page = "panels/preferences.md"
+what = "The Preferences window on its Input page"
+scene = "scenes/bevel-cube.opscene"
+selection = "keep"
+crop = [620, 220, 680, 640]
+tool = "None"
+[shot.env]
+OPERANDI_QA_VIEW = "Perspective"
+OPERANDI_QA_TARGET = "0,0.5,0"
+OPERANDI_QA_DISTANCE = "6"
+OPERANDI_QA_LATE_COMMAND = "Preferences"

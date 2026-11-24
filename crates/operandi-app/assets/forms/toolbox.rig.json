@@ -1,0 +1,478 @@
+{
+  "version": 1,
+  "id": "toolbox.rig",
+  "label": "Rig",
+  "exported": true,
+  "controls": [
+    {
+      "divider": "Setup",
+      "id": "rig-setup"
+    },
+    {
+      "command": "operandi.anim.setup",
+      "label": "Setup",
+      "icon": "setup-pose",
+      "tooltip": "Setup: show and edit the setup (rest) pose; keys are ignored (SK-01) · operandi.anim.setup"
+    },
+    {
+      "command": "operandi.skel.tool",
+      "label": "Skeleton",
+      "icon": "skeleton-tool",
+      "tooltip": "Skeleton: click to draw joints; Shift+click starts a new chain (SK-10) · operandi.skel.tool"
+    },
+    {
+      "command": "operandi.pose.tool",
+      "label": "Pose",
+      "icon": "pose-tool",
+      "tooltip": "Pose: drag the selected hierarchy's items; Ctrl world, Shift twist, middle FK, right-click pin (IK-50) · operandi.pose.tool"
+    },
+    {
+      "divider": "Constraints",
+      "id": "rig-constraints"
+    },
+    {
+      "form": {
+        "style": "flyout",
+        "controls": [
+          {
+            "command": "operandi.rig.constrain kind:position",
+            "label": "Position",
+            "icon": "constrain"
+          },
+          {
+            "command": "operandi.rig.constrain kind:rotation",
+            "label": "Rotation",
+            "icon": "constrain-rotation"
+          },
+          {
+            "command": "operandi.rig.constrain kind:scale",
+            "label": "Scale",
+            "icon": "constrain-scale"
+          },
+          {
+            "command": "operandi.rig.constrain kind:transform",
+            "label": "Transform",
+            "icon": "constrain-transform"
+          },
+          {
+            "command": "operandi.rig.constrain kind:direction",
+            "label": "Direction",
+            "icon": "constrain-direction"
+          },
+          {
+            "command": "operandi.rig.constrain kind:distance",
+            "label": "Distance",
+            "icon": "constrain-distance"
+          },
+          {
+            "command": "operandi.rig.constrain kind:path",
+            "label": "Path",
+            "icon": "constrain-path"
+          },
+          {
+            "command": "operandi.rig.constrain kind:pathPosition",
+            "label": "Path Position",
+            "icon": "constrain-path-position"
+          },
+          {
+            "command": "operandi.rig.constrain kind:pathNormal",
+            "label": "Path Normal",
+            "icon": "constrain-path-normal"
+          }
+        ]
+      },
+      "id": "rig-constrain"
+    },
+    {
+      "command": "operandi.rig.parent",
+      "label": "Parent",
+      "icon": "hierarchy",
+      "tooltip": "Parent: the last picked item becomes the parent of the others (RG-11) · operandi.rig.parent"
+    },
+    {
+      "command": "operandi.rig.unparent",
+      "label": "Unparent",
+      "icon": "unparent",
+      "tooltip": "Unparent: the items move to the scene root (RG-11) · operandi.rig.unparent"
+    },
+    {
+      "command": "operandi.rig.dynamicParentAdd",
+      "label": "Add Parent",
+      "icon": "add-parent",
+      "tooltip": "Add Parent: a dynamic parent (RG-20) · operandi.rig.dynamicParentAdd"
+    },
+    {
+      "command": "operandi.rig.compensation",
+      "label": "Compensation",
+      "icon": "compensation",
+      "tooltip": "Compensation: rig edits keep items where they are (RG-11) · operandi.rig.compensation"
+    },
+    {
+      "divider": "Links",
+      "id": "rig-links"
+    },
+    {
+      "command": "operandi.rig.links",
+      "label": "Channel Links",
+      "icon": "channel-links",
+      "tooltip": "Channel Links (RG-50) · operandi.rig.links"
+    },
+    {
+      "command": "operandi.rig.schematicView",
+      "label": "Schematic",
+      "icon": "schematic",
+      "tooltip": "Schematic (RG-70) · operandi.rig.schematicView"
+    },
+    {
+      "command": "operandi.rig.bake",
+      "label": "Bake Selected",
+      "icon": "bake-keys",
+      "tooltip": "Bake Selected: the evaluated motion as keys, rig pieces off (§8) · operandi.rig.bake"
+    },
+    {
+      "divider": "Skin",
+      "id": "rig-skin"
+    },
+    {
+      "command": "operandi.skin.bindDialog",
+      "label": "Bind",
+      "icon": "skin-mesh",
+      "tooltip": "Bind the selected meshes to the selected root joint (needs Setup) · Shift+click: Unbind · operandi.skin.bindDialog",
+      "variants": {
+        "shift": {
+          "line": "operandi.skin.unbind",
+          "label": "Unbind",
+          "tooltip": "Unbind: removes the skin, keeps the weight maps (SK-24) · operandi.skin.unbind"
+        }
+      }
+    },
+    {
+      "command": "operandi.skin.rebind",
+      "label": "Add Joints to Bind",
+      "icon": "add-joints-to-bind",
+      "tooltip": "Rebind: the selected joints join the skin with empty weight maps (SK-25) · operandi.skin.rebind"
+    },
+    {
+      "command": "operandi.weight.smooth",
+      "label": "Smooth Selected",
+      "icon": "smooth-weights",
+      "tooltip": "One blur pass of the selected weight map (SK-42) · operandi.weight.smooth"
+    },
+    {
+      "command": "operandi.weight.normalize",
+      "label": "Normalize Weights",
+      "icon": "normalize-weights",
+      "tooltip": "Each point's weights add up to 100% (SK-42) · operandi.weight.normalize"
+    },
+    {
+      "command": "operandi.weight.mirror",
+      "label": "Mirror Weights",
+      "icon": "mirror-weights",
+      "tooltip": "+X side to −X side, _L and _R swapped (SK-42) · operandi.weight.mirror"
+    },
+    {
+      "command": "operandi.weight.isolate",
+      "label": "Isolate Weights",
+      "icon": "isolate-weights",
+      "tooltip": "Clear the map outside the selected points (SK-42) · operandi.weight.isolate"
+    },
+    {
+      "command": "operandi.weight.split",
+      "label": "Split Left/Right",
+      "icon": "split-weights",
+      "tooltip": "One map into _L and _R maps (SK-42) · operandi.weight.split"
+    },
+    {
+      "command": "operandi.skin.bakeWeights",
+      "label": "Bake Weights",
+      "icon": "bake-weights",
+      "tooltip": "The skin's effective weights into its maps (SK-34) · operandi.skin.bakeWeights"
+    },
+    {
+      "divider": "IK",
+      "id": "rig-ik"
+    },
+    {
+      "command": "operandi.ik.applyTwoBone",
+      "label": "Two-Bone IK",
+      "icon": "ik-two-bone",
+      "tooltip": "Apply IK (Two-Bone): select root, middle, end joints in Setup (IK-01) · operandi.ik.applyTwoBone"
+    },
+    {
+      "command": "operandi.ik.applyChain",
+      "label": "Chain IK",
+      "icon": "ik-chain",
+      "tooltip": "Apply IK (Chain): select the root then the end joint in Setup (IK-15) · operandi.ik.applyChain"
+    },
+    {
+      "command": "operandi.ik.assign",
+      "label": "Full Body IK",
+      "icon": "ik-full-body",
+      "tooltip": "Assign IK: the root's hierarchy as one full-body chain, in Setup (IK-20) · operandi.ik.assign"
+    },
+    {
+      "command": "operandi.ik.addGoal",
+      "label": "Add Goal",
+      "icon": "ik-goal",
+      "tooltip": "Add Goal: a goal at the selected joint with position and orientation tasks (IK-22) · operandi.ik.addGoal"
+    },
+    {
+      "command": "operandi.ik.addTask mode:position",
+      "label": "Add Position Task",
+      "icon": "add-position-task",
+      "tooltip": "Pin the selected joint where it is (IK-22) · operandi.ik.addTask"
+    },
+    {
+      "command": "operandi.ik.addTask mode:orientation",
+      "label": "Add Orientation Task",
+      "icon": "add-orientation-task",
+      "tooltip": "Hold the selected joint's orientation (IK-22) · operandi.ik.addTask"
+    },
+    {
+      "command": "operandi.ik.pole mode:create",
+      "label": "Up Vector",
+      "icon": "ik-up-vector",
+      "tooltip": "Create IK Up Vector: a pole on the bend side (IK-06) · Shift+click: Remove Up Vector · operandi.ik.pole",
+      "variants": {
+        "shift": {
+          "line": "operandi.ik.pole mode:remove",
+          "label": "Remove Up Vector",
+          "tooltip": "Remove Up Vector: back to Orient (IK-06) · operandi.ik.pole mode:remove"
+        }
+      }
+    },
+    {
+      "command": "operandi.ik.switch",
+      "label": "Switch IK/FK",
+      "icon": "ik-fk-switch",
+      "tooltip": "Switch to FK / to IK by the chain's Blend, keyed, no pop (IK-31) · operandi.ik.switch"
+    },
+    {
+      "command": "operandi.ik.setKeys",
+      "label": "IK/FK: Set Keys",
+      "icon": "ik-fk-set-keys",
+      "tooltip": "Key every switch channel now (IK-32) · Shift+click: Delete Keys · operandi.ik.setKeys",
+      "variants": {
+        "shift": {
+          "line": "operandi.ik.setKeys delete:true",
+          "label": "IK/FK: Delete Keys",
+          "tooltip": "Delete the switch channels' keys at the current time (IK-32) · operandi.ik.setKeys delete:true"
+        }
+      }
+    },
+    {
+      "command": "operandi.ik.selectSwitch",
+      "label": "Select Switch Channels",
+      "icon": "select-switch-channels",
+      "tooltip": "Select the chain's joints, goal and pole (IK-32) · operandi.ik.selectSwitch"
+    },
+    {
+      "command": "operandi.ik.selectSolvers",
+      "label": "Select IK Solvers",
+      "icon": "select-ik-solvers",
+      "tooltip": "Select the joints the selection's IK solvers sit on (IK-33) · operandi.ik.selectSolvers"
+    },
+    {
+      "command": "operandi.ik.match",
+      "label": "Match Goal",
+      "icon": "match-goal",
+      "tooltip": "Move the goal onto its end joint (IK-33) · operandi.ik.match"
+    },
+    {
+      "command": "operandi.ik.updateRest all:true",
+      "label": "Update Rest Pose",
+      "icon": "update-rest-pose",
+      "tooltip": "Every solver re-reads its rest pose (IK-33) · operandi.ik.updateRest"
+    },
+    {
+      "command": "operandi.ik.disable",
+      "label": "Disable IK",
+      "icon": "disable-ik",
+      "tooltip": "No IK solver runs (Setup only, IK-33) · operandi.ik.disable"
+    },
+    {
+      "command": "operandi.ik.remove",
+      "label": "Remove IK",
+      "icon": "remove-ik",
+      "tooltip": "Remove the selected chain's IK solver, tasks and settings (IK-26) · operandi.ik.remove"
+    },
+    {
+      "divider": "Auto Rig",
+      "id": "rig-auto-rig"
+    },
+    {
+      "command": "operandi.acs.rigAdd",
+      "label": "New Biped Rig",
+      "icon": "biped-rig",
+      "tooltip": "A Biped rig with guides to fit to your character (ACS-10). Auto Rig, based on Auto Character System by Lukasz Pazera (MIT) · operandi.acs.rigAdd"
+    },
+    {
+      "command": "operandi.acs.guideFit",
+      "label": "Fit Guides to Mesh",
+      "icon": "guide-fit",
+      "tooltip": "Size the rig to the selected mesh and move each guide into it; a T pose facing +Z (ACS-34) · operandi.acs.guideFit"
+    },
+    {
+      "form": {
+        "style": "flyout",
+        "controls": [
+          {
+            "command": "operandi.acs.options symmetry:toggle",
+            "label": "Guide Symmetry",
+            "icon": "guide-symmetry",
+            "tooltip": "Moving a guide moves its twin on the other side, on or off (ACS-31) · operandi.acs.options symmetry:toggle"
+          },
+          {
+            "command": "operandi.acs.guideMirror from:left",
+            "label": "Mirror Left to Right",
+            "icon": "guide-mirror-lr",
+            "tooltip": "Copy the left guides onto the right, mirrored (ACS-21) · operandi.acs.guideMirror from:left"
+          },
+          {
+            "command": "operandi.acs.guideMirror from:right",
+            "label": "Mirror Right to Left",
+            "icon": "guide-mirror-rl",
+            "tooltip": "Copy the right guides onto the left, mirrored (ACS-21) · operandi.acs.guideMirror from:right"
+          },
+          {
+            "command": "operandi.acs.guideReset",
+            "label": "Reset Guides",
+            "icon": "guide-reset",
+            "tooltip": "Put the guides back at the Biped's proportions · operandi.acs.guideReset"
+          }
+        ]
+      },
+      "id": "rig-auto-rig-guides"
+    },
+    {
+      "form": {
+        "style": "flyout",
+        "controls": [
+          {
+            "command": "operandi.acs.context context:guide",
+            "label": "Guide Context",
+            "icon": "context-guide",
+            "tooltip": "Show only the rig's guides, to fit them to the character (ACS-01) · operandi.acs.context context:guide"
+          },
+          {
+            "command": "operandi.acs.context context:assembly",
+            "label": "Assemble Context",
+            "icon": "context-assemble",
+            "tooltip": "Show the bind skeleton in its setup pose (ACS-01) · operandi.acs.context context:assembly"
+          },
+          {
+            "command": "operandi.acs.context context:meshes",
+            "label": "Meshes Context",
+            "icon": "context-meshes",
+            "tooltip": "Show the bind skeleton in its setup pose (ACS-01) · operandi.acs.context context:meshes"
+          },
+          {
+            "command": "operandi.acs.context context:form",
+            "label": "Form Context",
+            "icon": "context-form",
+            "tooltip": "Bind and weights: the skeleton in its setup pose, Setup on (ACS-01) · operandi.acs.context context:form"
+          },
+          {
+            "command": "operandi.acs.context context:animate",
+            "label": "Animate Context",
+            "icon": "context-animate",
+            "tooltip": "The animated pose, Setup off (ACS-01) · operandi.acs.context context:animate"
+          }
+        ]
+      },
+      "id": "rig-auto-rig-context"
+    },
+    {
+      "command": "operandi.acs.build",
+      "label": "Build Skeleton",
+      "icon": "build-skeleton",
+      "tooltip": "Build the bind skeleton on the guides, or move it onto them; bound meshes keep their weights (ACS-32) · operandi.acs.build"
+    },
+    {
+      "command": "operandi.acs.bind",
+      "label": "Bind to Rig",
+      "icon": "skin-mesh",
+      "tooltip": "Bind the selected meshes to the rig's skeleton (Heat), in the Form context (ACS-41) · operandi.acs.bind"
+    },
+    {
+      "form": {
+        "style": "flyout",
+        "controls": [
+          {
+            "command": "operandi.acs.options spine:more",
+            "label": "More Vertebrae",
+            "icon": "more-joints",
+            "tooltip": "One more vertebrae joint; a built skeleton rebuilds (ACS-22) · operandi.acs.options spine:more"
+          },
+          {
+            "command": "operandi.acs.options spine:fewer",
+            "label": "Fewer Vertebrae",
+            "icon": "fewer-joints",
+            "tooltip": "One fewer vertebrae joint; a built skeleton rebuilds (ACS-22) · operandi.acs.options spine:fewer"
+          },
+          {
+            "command": "operandi.acs.options neck:more",
+            "label": "More Neck Joints",
+            "icon": "more-joints",
+            "tooltip": "One more neck joints joint; a built skeleton rebuilds (ACS-22) · operandi.acs.options neck:more"
+          },
+          {
+            "command": "operandi.acs.options neck:fewer",
+            "label": "Fewer Neck Joints",
+            "icon": "fewer-joints",
+            "tooltip": "One fewer neck joints joint; a built skeleton rebuilds (ACS-22) · operandi.acs.options neck:fewer"
+          },
+          {
+            "command": "operandi.acs.options upperArmTwist:more",
+            "label": "More Upper Arm Twist",
+            "icon": "more-joints",
+            "tooltip": "One more upper arm twist joint; a built skeleton rebuilds (ACS-22) · operandi.acs.options upperArmTwist:more"
+          },
+          {
+            "command": "operandi.acs.options upperArmTwist:fewer",
+            "label": "Fewer Upper Arm Twist",
+            "icon": "fewer-joints",
+            "tooltip": "One fewer upper arm twist joint; a built skeleton rebuilds (ACS-22) · operandi.acs.options upperArmTwist:fewer"
+          },
+          {
+            "command": "operandi.acs.options forearmTwist:more",
+            "label": "More Forearm Twist",
+            "icon": "more-joints",
+            "tooltip": "One more forearm twist joint; a built skeleton rebuilds (ACS-22) · operandi.acs.options forearmTwist:more"
+          },
+          {
+            "command": "operandi.acs.options forearmTwist:fewer",
+            "label": "Fewer Forearm Twist",
+            "icon": "fewer-joints",
+            "tooltip": "One fewer forearm twist joint; a built skeleton rebuilds (ACS-22) · operandi.acs.options forearmTwist:fewer"
+          },
+          {
+            "command": "operandi.acs.options thighTwist:more",
+            "label": "More Thigh Twist",
+            "icon": "more-joints",
+            "tooltip": "One more thigh twist joint; a built skeleton rebuilds (ACS-22) · operandi.acs.options thighTwist:more"
+          },
+          {
+            "command": "operandi.acs.options thighTwist:fewer",
+            "label": "Fewer Thigh Twist",
+            "icon": "fewer-joints",
+            "tooltip": "One fewer thigh twist joint; a built skeleton rebuilds (ACS-22) · operandi.acs.options thighTwist:fewer"
+          },
+          {
+            "command": "operandi.acs.options shinTwist:more",
+            "label": "More Shin Twist",
+            "icon": "more-joints",
+            "tooltip": "One more shin twist joint; a built skeleton rebuilds (ACS-22) · operandi.acs.options shinTwist:more"
+          },
+          {
+            "command": "operandi.acs.options shinTwist:fewer",
+            "label": "Fewer Shin Twist",
+            "icon": "fewer-joints",
+            "tooltip": "One fewer shin twist joint; a built skeleton rebuilds (ACS-22) · operandi.acs.options shinTwist:fewer"
+          }
+        ]
+      },
+      "id": "rig-auto-rig-options"
+    }
+  ]
+}
