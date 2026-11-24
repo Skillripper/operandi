@@ -107,6 +107,7 @@ mod channel_row;
 mod character_rig_ui;
 #[path = "anim/clip_picker.rs"]
 mod clip_picker;
+#[path = "settings/color_theme.rs"]
 mod color_theme;
 #[path = "controls/colour_field.rs"]
 mod colour_field;
@@ -138,6 +139,7 @@ mod curve_hands_on;
 #[path = "create_tools/curve_tab.rs"]
 mod curve_tab;
 mod cut_dialogs;
+#[path = "settings/defaults_preferences.rs"]
 mod defaults_preferences;
 #[path = "deformers/deform_panel.rs"]
 mod deform_panel;
@@ -186,6 +188,7 @@ mod field_handoff;
 mod file_chooser;
 #[path = "files/file_commands.rs"]
 mod file_commands;
+#[path = "settings/file_io_preferences.rs"]
 mod file_io_preferences;
 #[path = "polygons/flip_it_dialog.rs"]
 mod flip_it_dialog;
@@ -222,6 +225,7 @@ mod guide_python_tests;
 #[cfg(test)]
 #[path = "commands/guide_shortcuts_tests.rs"]
 mod guide_shortcuts_tests;
+#[path = "settings/handle_preferences.rs"]
 mod handle_preferences;
 mod handle_tips;
 mod haul_view;
@@ -246,6 +250,7 @@ mod import;
 mod import_into;
 #[path = "input_devices/input.rs"]
 mod input;
+#[path = "settings/input_map_editor.rs"]
 mod input_map_editor;
 #[path = "files/interchange_ui.rs"]
 mod interchange_ui;
@@ -290,6 +295,7 @@ mod mcp;
 mod menu_forms;
 #[path = "polygons/mesh_cleanup_dialog.rs"]
 mod mesh_cleanup_dialog;
+#[path = "settings/mesh_items_preferences.rs"]
 mod mesh_items_preferences;
 #[path = "painting_ui/mesh_paint_ui.rs"]
 mod mesh_paint_ui;
@@ -314,6 +320,7 @@ mod multires_ui_tests;
 mod native;
 #[path = "menus/native_menu.rs"]
 mod native_menu;
+#[path = "settings/navigation_preferences.rs"]
 mod navigation_preferences;
 mod numeric_draft;
 mod numeric_tab;
@@ -328,6 +335,7 @@ mod option_row;
 mod orbit_selected;
 #[path = "controls/original_compatible.rs"]
 mod original_compatible;
+#[path = "settings/os_color.rs"]
 mod os_color;
 #[path = "controls/outline.rs"]
 mod outline;
@@ -369,14 +377,20 @@ mod polygon_part_dialog;
 mod polygon_unify_dialog;
 #[path = "rigging/pose_tool_ui.rs"]
 mod pose_tool_ui;
+#[path = "settings/preferences.rs"]
 mod preferences;
 #[cfg(test)]
+#[path = "settings/preferences_tier1_tests.rs"]
 mod preferences_tier1_tests;
 #[cfg(test)]
+#[path = "settings/preferences_tier2_tests.rs"]
 mod preferences_tier2_tests;
 #[cfg(test)]
+#[path = "settings/prefs_checkbox_tests.rs"]
 mod prefs_checkbox_tests;
+#[path = "settings/prefs_commands.rs"]
 mod prefs_commands;
+#[path = "settings/prefs_file.rs"]
 mod prefs_file;
 #[path = "create_tools/primitive_input.rs"]
 mod primitive_input;
@@ -406,6 +420,7 @@ mod relax_mesh_dialog;
 mod remesh_dialog;
 #[path = "render/render_item_ui.rs"]
 mod render_item_ui;
+#[path = "settings/render_preferences.rs"]
 mod render_preferences;
 #[path = "controls/rendered_icons.rs"]
 mod rendered_icons;
@@ -445,6 +460,7 @@ mod select_panel;
 #[path = "selections/select_tools_ui.rs"]
 mod select_tools_ui;
 mod selection_normals;
+#[path = "settings/selection_preferences.rs"]
 mod selection_preferences;
 #[path = "selections/selection_set_dialog.rs"]
 mod selection_set_dialog;
@@ -593,12 +609,15 @@ mod typography;
 #[cfg(test)]
 #[path = "commands/ui_inventory.rs"]
 mod ui_inventory;
+#[path = "settings/ui_preferences.rs"]
 mod ui_preferences;
 #[path = "controls/ui_text.rs"]
 mod ui_text;
 #[path = "controls/unavailable.rs"]
 mod unavailable;
+#[path = "settings/undo_autosave.rs"]
 mod undo_autosave;
+#[path = "settings/units_preferences.rs"]
 mod units_preferences;
 #[path = "files/update_check.rs"]
 mod update_check;
@@ -617,6 +636,7 @@ mod value_display;
 mod value_presets;
 #[path = "edges/vertex_panel.rs"]
 mod vertex_panel;
+#[path = "settings/viewport_preferences.rs"]
 mod viewport_preferences;
 mod weld_drag;
 mod window_state;
@@ -4289,8 +4309,10 @@ mod haul_tests;
 #[path = "graphics/heavy_mesh_frames_tests.rs"]
 mod heavy_mesh_frames_tests;
 #[cfg(test)]
+#[path = "settings/history_limit_more_tests.rs"]
 mod history_limit_more_tests;
 #[cfg(test)]
+#[path = "settings/history_limit_tests.rs"]
 mod history_limit_tests;
 #[cfg(test)]
 #[path = "input_devices/input_focus_tests.rs"]
