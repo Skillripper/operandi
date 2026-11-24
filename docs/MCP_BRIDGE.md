@@ -751,6 +751,10 @@ used in the app; `primitive_add` always starts from the Reset values.
 - **`operandi.rig.userChannelRemove`** — Delete a user channel, its keys and every link using it, one undo step (the status line says how many links went).
   - `item` (integer): Item id (default the active item).
   - `name` (string, required): Channel name.
+- **`operandi.rig.userChannelSet`** — Set a user channel's value (name.X for one component of a vector channel), one undo step; Auto Key keys it like any channel edit.
+  - `item` (integer): Item id (default the active item).
+  - `name` (string, required): Channel name.
+  - `value` (number, required): The value: percents 0–1, angles radians, true/false for a boolean.
 - **`operandi.rig.bindUserChannel`** — Add a user channel of the same kind to target (named after the channel unless name is given) and link the channel to it, one undo step; the channel becomes driven.
   - `channel` (string, required): The channel to drive, item:name.
   - `target` (integer, required): Item that gets the user channel.
