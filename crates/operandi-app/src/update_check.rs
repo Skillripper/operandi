@@ -306,9 +306,7 @@ pub fn evaluate_releases(json: &str, me: &ThisBuild) -> Result<Verdict, String> 
         .filter_map(|tag| Version::parse(tag).map(|v| (v, tag)))
         .max_by(|a, b| a.0.cmp(&b.0));
     let Some((version, tag)) = newest else {
-        return Ok(Verdict::Unknown(
-            "No release has been published yet.".into(),
-        ));
+        return Ok(Verdict::Unknown(NO_RELEASE.into()));
     };
     let Some(mine) = Version::parse(&me.version) else {
         return Ok(Verdict::Unknown(format!(
@@ -360,8 +358,18 @@ fn built_from<'a>(body: &'a str, name: &str) -> Option<&'a str> {
     is_hex(hash).then_some(hash)
 }
 
+/// What the check says when a channel has nothing published at all, which
+/// is not an error: there is simply nothing newer to offer.
+const NO_RELEASE: &str = "No release has been published yet, so there's nothing newer.";
+const NO_TEST_BUILD: &str = "No test build has been published yet, so there's nothing newer.";
+
 /// The Test channel's verdict from the `test-build` release.
 pub fn evaluate_test(json: &str, me: &ThisBuild, platform: Platform) -> Result<Verdict, String> {
+    // fetch() hands back an empty answer when GitHub has no published
+    // `test-build` release (404: none yet, or only a draft).
+    if json.trim().is_empty() {
+        return Ok(Verdict::Unknown(NO_TEST_BUILD.into()));
+    }
     let release: serde_json::Value =
         serde_json::from_str(json).map_err(|e| format!("GitHub's answer wasn't readable ({e})"))?;
     let tag = release["tag_name"]
@@ -484,8 +492,11 @@ pub fn fetch(channel: Channel) -> Result<String, String> {
         return Err("Tests don't go online".into());
     }
     let mut command = std::process::Command::new("curl");
+    // No -f: the HTTP status comes back on the last line (-w) so a 404,
+    // "nothing published on this channel", can be told from a failure.
     command
-        .args(["-fsSL", "--max-time", "10"])
+        .args(["-sSL", "--max-time", "10"])
+        .args(["-w", "\n%{http_code}"])
         .args(["-H", "Accept: application/vnd.github+json"])
         .args(["-H", "User-Agent: Operandi"])
         .arg(feed_url(channel))
@@ -510,7 +521,22 @@ pub fn fetch(channel: Channel) -> Result<String, String> {
             format!("GitHub could not be reached ({why})")
         });
     }
-    String::from_utf8(out.stdout).map_err(|_| "GitHub's answer wasn't text".into())
+    let text = String::from_utf8(out.stdout).map_err(|_| "GitHub's answer wasn't text")?;
+    answer_by_status(&text)
+}
+
+/// Splits curl's output (`-w "\n%{http_code}"`) into the answer and its
+/// status. 200 is the answer; 404 is "nothing published on this channel"
+/// (the `test-build` release missing or only a draft), an empty answer the
+/// evaluators read as nothing to offer; anything else is an error.
+fn answer_by_status(text: &str) -> Result<String, String> {
+    let (body, code) = text.rsplit_once('\n').unwrap_or(("", text));
+    match code.trim() {
+        "200" => Ok(body.to_owned()),
+        "404" => Ok(String::new()),
+        "403" | "429" => Err("GitHub is limiting checks right now; try again later".into()),
+        code => Err(format!("GitHub answered with error {code}")),
+    }
 }
 
 // ------------------------------------------------------------ app state
@@ -920,6 +946,31 @@ mod tests {
                 ..
             }))
         ));
+    }
+
+    #[test]
+    fn nothing_published_is_not_an_error() {
+        let me = build("0.1.0", "1a2b3c4d", Some(1_700_000_000));
+        // Test channel: GitHub's 404 (no test-build, or only a draft).
+        assert_eq!(
+            answer_by_status("{\"message\":\"Not Found\"}\n404"),
+            Ok(String::new())
+        );
+        let v = evaluate_test("", &me, Platform::Mac).unwrap();
+        assert_eq!(v, Verdict::Unknown(NO_TEST_BUILD.into()));
+        // Release channel: only drafts, which anonymous callers don't see.
+        let v = evaluate_releases("[]", &me).unwrap();
+        assert_eq!(v, Verdict::Unknown(NO_RELEASE.into()));
+        // Neither shows anything at launch; the manual check reports it.
+        assert_eq!(decide(Ok(v.clone()), false, ""), None);
+        assert_eq!(
+            decide(Ok(v), true, ""),
+            Some(Show::Report(NO_RELEASE.into()))
+        );
+        // Other statuses stay errors; a 200 passes the answer through.
+        assert_eq!(answer_by_status("[]\n200"), Ok("[]".into()));
+        assert!(answer_by_status("x\n500").is_err());
+        assert!(answer_by_status("x\n403").is_err());
     }
 
     #[test]
