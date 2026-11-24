@@ -9,7 +9,7 @@ fn tool_phrases_stay_sorted() {
         .collect();
     if let Some(i) = ids.windows(2).position(|w| w[0] > w[1]) {
         panic!(
-            "command_registry.rs: TOOL_PHRASES must stay in sorted order \
+            "command_registry/tool_ids.rs: TOOL_PHRASES must stay in sorted order \
              (case-insensitive); `{}` belongs before `{}`",
             super::TOOL_PHRASES[i + 1].0,
             super::TOOL_PHRASES[i].0
