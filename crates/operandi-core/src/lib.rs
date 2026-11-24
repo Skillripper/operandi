@@ -47,6 +47,7 @@ pub mod curve_ops;
 #[path = "curve_tools/curves.rs"]
 pub mod curves;
 pub mod dicer;
+#[path = "meshops/generator_ops.rs"]
 pub mod generator_ops;
 pub mod item_merge;
 #[path = "curve_tools/patch.rs"]
@@ -139,6 +140,7 @@ pub mod node_view_settings;
 pub mod openpbr;
 pub mod per_light_outputs;
 pub mod planar_texture;
+#[path = "meshops/procedural.rs"]
 pub mod procedural;
 #[path = "materials/process_occlusion.rs"]
 pub mod process_occlusion;
@@ -301,9 +303,13 @@ pub mod boolean;
 pub mod channel_sets;
 pub mod click_select;
 pub mod drill;
+#[path = "meshops/eval_build.rs"]
 pub mod eval_build;
+#[path = "meshops/eval_graph.rs"]
 pub mod eval_graph;
+#[path = "meshops/eval_state.rs"]
 pub mod eval_state;
+#[path = "meshops/evaluate.rs"]
 pub mod evaluate;
 pub mod ik;
 pub mod ik_body;
@@ -311,14 +317,21 @@ pub mod ik_commands;
 pub mod ik_joint;
 pub mod ik_switch;
 pub mod kit_item;
+#[path = "meshops/mesh_stack.rs"]
 pub mod mesh_stack;
+#[path = "meshops/mesh_stack_builtin.rs"]
 mod mesh_stack_builtin;
+#[path = "meshops/mesh_stack_editor.rs"]
 pub mod mesh_stack_editor;
+#[path = "meshops/mesh_stack_items.rs"]
 pub mod mesh_stack_items;
+#[path = "meshops/mesh_stack_tools.rs"]
 pub mod mesh_stack_tools;
 pub mod meshblend;
 pub mod meshblend_spike;
+#[path = "meshops/meshop_selection.rs"]
 pub mod meshop_selection;
+#[path = "meshops/meshop_types.rs"]
 pub mod meshop_types;
 pub mod pose_tool;
 pub mod rig;
@@ -329,6 +342,7 @@ pub mod rig_list;
 pub mod rig_schematic;
 pub mod rig_user_set;
 pub mod scene_time;
+#[path = "meshops/script_mesh.rs"]
 pub mod script_mesh;
 pub mod skeleton;
 pub mod skin;
@@ -450,6 +464,7 @@ pub mod deform;
 pub mod deform_finish;
 #[path = "deformers/falloff.rs"]
 pub mod falloff;
+#[path = "meshops/mesh_stack_deform.rs"]
 pub mod mesh_stack_deform;
 pub mod select_tools;
 #[path = "geometry/topology_cleanup.rs"]
