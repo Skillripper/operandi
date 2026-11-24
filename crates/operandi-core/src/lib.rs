@@ -27,6 +27,7 @@ pub mod paint_stroke;
 #[cfg(feature = "painting")]
 #[path = "painting/paint_tips.rs"]
 pub mod paint_tips;
+#[path = "selections/selection_inference.rs"]
 pub mod selection_inference;
 pub mod uv_atlas;
 pub mod uv_box;
@@ -244,6 +245,7 @@ pub mod scaffold;
 #[path = "primitives/teapot.rs"]
 pub mod teapot;
 pub use editor_color::EditorColor;
+#[path = "selections/tag_selection.rs"]
 pub mod tag_selection;
 pub use tag_selection::{TagRegion, TagSelection};
 #[path = "polygons/polygon_quadruple.rs"]
@@ -367,6 +369,7 @@ pub mod animation;
 pub mod boolean;
 #[path = "anim/channel_sets.rs"]
 pub mod channel_sets;
+#[path = "selections/click_select.rs"]
 pub mod click_select;
 pub mod drill;
 #[path = "meshops/eval_build.rs"]
@@ -534,6 +537,7 @@ pub mod active_task;
 pub mod backdrop;
 #[path = "scene_items/last_mesh.rs"]
 pub mod last_mesh;
+#[path = "selections/multi_active.rs"]
 pub mod multi_active;
 pub mod multi_tools;
 pub mod multi_transform;
@@ -541,11 +545,16 @@ pub use multi_active::ComponentSelection;
 #[path = "scene_items/scene.rs"]
 pub mod scene;
 pub use active_task::ActiveTask;
+#[path = "selections/selection.rs"]
 pub mod selection;
+#[path = "selections/selection_sets.rs"]
 pub mod selection_sets;
 pub use selection_sets::{SetKind, SetRef, UseSetMode};
+#[path = "selections/selection_continuation.rs"]
 mod selection_continuation;
+#[path = "selections/selection_neighbour_loop.rs"]
 mod selection_neighbour_loop;
+#[path = "selections/selection_symmetry.rs"]
 mod selection_symmetry;
 pub use editor::*;
 pub use mesh::*;
@@ -562,6 +571,7 @@ pub mod deform_finish;
 pub mod falloff;
 #[path = "meshops/mesh_stack_deform.rs"]
 pub mod mesh_stack_deform;
+#[path = "selections/select_tools.rs"]
 pub mod select_tools;
 #[path = "geometry/topology_cleanup.rs"]
 pub mod topology_cleanup;
@@ -652,6 +662,7 @@ mod ellipsoid_editor;
 #[path = "primitives/shapes.rs"]
 pub mod shapes;
 pub use shapes::*;
+#[path = "selections/element_state.rs"]
 pub mod element_state;
 pub use element_state::{ElementKind, ElementMask, ElementOp, ElementState, Protection};
 #[path = "primitives/shape_editor.rs"]
@@ -723,6 +734,7 @@ mod session_ownership;
 mod history_completion;
 pub use history_completion::*;
 
+#[path = "selections/mode_eligibility.rs"]
 mod mode_eligibility;
 pub use mode_eligibility::*;
 
