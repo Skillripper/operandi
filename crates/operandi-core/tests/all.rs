@@ -241,6 +241,8 @@ mod group_locators;
 mod group_material_extras;
 #[path = "haul.rs"]
 mod haul;
+#[path = "heavy_mesh_bench.rs"]
+mod heavy_mesh_bench;
 #[path = "history_completion.rs"]
 mod history_completion;
 #[path = "i1_completion.rs"]
