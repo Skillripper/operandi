@@ -122,6 +122,7 @@ pub mod shader_library;
 pub mod shader_tree;
 pub mod shader_wgsl;
 pub mod texture_locator;
+#[path = "anim/transform_channel.rs"]
 pub mod transform_channel;
 pub mod vertex_map_texture;
 pub use material::{Material, MaterialKind};
@@ -156,6 +157,7 @@ pub mod polygon_unify;
 pub use polygon_part::*;
 pub use polygon_unify::*;
 mod bridge_commands;
+#[path = "anim/channels.rs"]
 pub mod channels;
 pub mod character_rig;
 pub mod character_rig_commands;
@@ -225,13 +227,20 @@ pub mod uv_seams;
 pub mod uv_symmetry;
 pub mod uv_tools;
 pub use detriangulate::DetriangulateOptions;
+#[path = "anim/anim_camera_channels.rs"]
 pub mod anim_camera_channels;
+#[path = "anim/anim_commands.rs"]
 pub mod anim_commands;
+#[path = "anim/anim_curve.rs"]
 pub mod anim_curve;
+#[path = "anim/anim_edit.rs"]
 pub mod anim_edit;
+#[path = "anim/anim_graph.rs"]
 pub mod anim_graph;
+#[path = "anim/animation.rs"]
 pub mod animation;
 pub mod boolean;
+#[path = "anim/channel_sets.rs"]
 pub mod channel_sets;
 pub mod click_select;
 pub mod drill;
@@ -269,6 +278,7 @@ pub mod skin;
 pub mod skin_bind;
 pub mod skin_commands;
 pub mod skin_weights;
+#[path = "anim/time_tick.rs"]
 pub mod time_tick;
 pub use boolean::{BooleanOp, BooleanOptions, BooleanProblem, DriveMesh};
 pub use drill::{DrillAxis, DrillKind, DrillOp, DrillOptions};
