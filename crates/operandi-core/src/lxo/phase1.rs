@@ -85,6 +85,8 @@ pub(super) struct Extras {
     pub(super) envelopes: BTreeMap<u32, super::envelope::Envelope>,
     pub(super) actions: super::actions::Actions,
     pub(super) clinks: Vec<ChannelLink>,
+    /// Text records that weren't UTF-8 (read as Windows-1252).
+    pub(super) not_utf8: usize,
 }
 
 #[derive(Default)]
@@ -114,7 +116,7 @@ pub(super) fn value(r: &mut Reader<'_>, kind: u16, c: &mut Control<'_>) -> Resul
     Ok(match kind & 0xf {
         1 => Some(Value::Number(r.u32()? as i32 as f64)),
         2 => Some(Value::Number(r.f32()?)),
-        3 => Some(Value::Text(r.string(c)?)),
+        3 => Some(Value::Text(r.text(c)?.0)),
         _ => None,
     })
 }
@@ -292,10 +294,11 @@ fn gather(chunks: &[Chunk<'_>], c: &mut Control<'_>) -> Result<Gathered> {
                             item.links.push((graph, target, ordinal));
                         }
                         b"CLNK" => {
-                            let graph = s.string(c)?;
-                            let from_channel = s.string(c)?;
+                            let (graph, a) = s.text(c)?;
+                            let (from_channel, b) = s.text(c)?;
                             let to = s.u32()?;
-                            let to_channel = s.string(c)?;
+                            let (to_channel, d) = s.text(c)?;
+                            extras.not_utf8 += usize::from(a || b || d);
                             extras.clinks.push(ChannelLink {
                                 graph,
                                 from: id,
@@ -316,8 +319,9 @@ fn gather(chunks: &[Chunk<'_>], c: &mut Control<'_>) -> Result<Gathered> {
                         // A string channel (an expression, a weight
                         // map's name): its name, then its text.
                         b"CHNS" => {
-                            let name = s.string(c)?;
-                            let text = s.string(c)?;
+                            let (name, a) = s.text(c)?;
+                            let (text, b) = s.text(c)?;
+                            extras.not_utf8 += usize::from(a || b);
                             item.channels.insert(name, Value::Text(text));
                         }
                         b"CHNV" => {
@@ -351,7 +355,9 @@ fn gather(chunks: &[Chunk<'_>], c: &mut Control<'_>) -> Result<Gathered> {
                 let env = super::envelope::read(ch, c)?;
                 extras.envelopes.insert(env.index, env);
             }
-            b"ACTN" => super::actions::read(ch, &names, &mut extras.actions, c)?,
+            b"ACTN" => {
+                extras.not_utf8 += super::actions::read(ch, &names, &mut extras.actions, c)?;
+            }
             other => {
                 *skipped_chunks
                     .entry(String::from_utf8_lossy(other).into_owned())
@@ -371,6 +377,12 @@ fn gather(chunks: &[Chunk<'_>], c: &mut Control<'_>) -> Result<Gathered> {
         report
             .omissions
             .insert(format!("{id} records not imported"), *n);
+    }
+    if extras.not_utf8 > 0 {
+        report.notes.push(format!(
+            "{} text records weren't UTF-8 and were read as Windows-1252",
+            extras.not_utf8
+        ));
     }
     if skipped_types > 0 {
         report.omissions.insert(

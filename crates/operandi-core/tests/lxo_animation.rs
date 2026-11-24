@@ -564,3 +564,30 @@ fn a_keyed_mesh_imports_with_its_curve_and_the_frame_rate() {
         c.report.summary()
     );
 }
+
+#[test]
+fn text_that_isnt_utf8_is_read_as_windows_1252_with_a_note() {
+    // A string channel (an image path) and an action's text value saved
+    // in a Latin encoding: "café" with é as the single byte 0xE9.
+    let mut f = File::new(&["Default"], &["type", "order", "visible"]);
+    f.layer(0, "Box", 1);
+    f.points(&QUAD);
+    f.polygons(b"FACE", &[&[0, 3, 2, 1]]);
+    let mut chns = Vec::new();
+    text(&mut chns, "filename");
+    chns.extend_from_slice(b"caf\xe9.png\0\0");
+    f.item("mesh", "Box", 1, &[(*b"CHNS", chns)]);
+    let mut value = Vec::new();
+    vx(&mut value, VISIBLE);
+    u16(&mut value, 3);
+    vx(&mut value, 0);
+    value.extend_from_slice(b"caf\xe9\0\0");
+    f.action("edit", 0, &[owner(1), (*b"CHAN", value)]);
+    let c = import(&f.bytes()).unwrap_or_else(|e| panic!("{e}"));
+    assert_eq!(c.scene.items.iter().filter(|i| i.is_mesh()).count(), 1);
+    assert!(
+        c.report.summary().contains("2 text records weren't UTF-8"),
+        "{}",
+        c.report.summary()
+    );
+}

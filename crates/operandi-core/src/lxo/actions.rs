@@ -34,16 +34,18 @@ pub struct Actions {
     pub other: usize,
 }
 
-/// Reads one `ACTN` chunk into `actions`.
+/// Reads one `ACTN` chunk into `actions`; returns how many of its text
+/// records weren't UTF-8.
 pub(super) fn read(
     ch: &Chunk<'_>,
     names: &[String],
     actions: &mut Actions,
     c: &mut Control<'_>,
-) -> Result<()> {
+) -> Result<usize> {
     let mut r = Reader::new(ch.data, ch.offset);
-    let _name = r.string(c)?;
-    let kind = r.string(c)?;
+    let (_name, a) = r.text(c)?;
+    let (kind, b) = r.text(c)?;
+    let mut not_utf8 = usize::from(a || b);
     let _id = r.u32()?;
     let layer = match kind.as_str() {
         "setup" => &mut actions.setup,
@@ -51,7 +53,7 @@ pub(super) fn read(
         "edit" => &mut actions.edit,
         _ => {
             actions.other += 1;
-            return Ok(());
+            return Ok(not_utf8);
         }
     };
     let mut owner: Option<u32> = None;
@@ -73,7 +75,11 @@ pub(super) fn read(
                     match ty & 0xf {
                         1 => Some(Value::Number(s.u32()? as i32 as f64)),
                         2 => Some(Value::Number(s.f32()?)),
-                        3 => Some(Value::Text(s.string(c)?)),
+                        3 => {
+                            let (text, bad) = s.text(c)?;
+                            not_utf8 += usize::from(bad);
+                            Some(Value::Text(text))
+                        }
                         _ => None,
                     }
                 };
@@ -94,5 +100,5 @@ pub(super) fn read(
             _ => {}
         }
     }
-    Ok(())
+    Ok(not_utf8)
 }
