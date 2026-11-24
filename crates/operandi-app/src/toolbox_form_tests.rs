@@ -409,9 +409,10 @@ fn uv_tab_buttons_run_their_lines() {
         a.status
     );
     a.uv_dialog = None;
-    // The transform cells start their tools; the started one is lit (its
-    // command's answer).
-    click_line(&mut a, &ctx, "Rotate", Modifiers::NONE);
+    // The shared top row's Rotate (the form no longer repeats it, Jason
+    // 2026-11-24) starts its tool; the started one is lit (its command's
+    // answer).
+    a.execute("Rotate");
     assert_eq!(a.editor.live.as_ref().map(|l| l.tool), Some(Tool::Rotate));
     assert!(a.line_state("Rotate").unwrap().on);
     assert!(!a.line_state("Move").unwrap().on);

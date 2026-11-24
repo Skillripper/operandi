@@ -879,6 +879,9 @@ pub(crate) enum Item {
     Menu {
         label: String,
         tooltip: String,
+        /// The menu button's own icon slug (`icon` on the control holding
+        /// the menu), drawn left of the label.
+        icon: Option<String>,
         controls: Vec<Control>,
     },
     /// A plain title (`key` names it for tests); `weak` draws it dim.
@@ -1067,6 +1070,7 @@ fn add_form(
                     out.push(Item::Menu {
                         label,
                         tooltip: c.tooltip.clone(),
+                        icon: c.icon.clone(),
                         controls,
                     });
                 } else {

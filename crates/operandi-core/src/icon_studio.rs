@@ -789,10 +789,404 @@ pub enum Sample {
     DeleteHigher,
     /// Apply Multiresolution: levels pressed into the mesh.
     ApplyMultires,
+    /// Sculpt Push: a dent pressed into a block, with the brush ring.
+    SculptPush,
+    /// Sculpt Move: a bump pulled up.
+    SculptMove,
+    /// Sculpt Inflate: a dome swelling outward.
+    SculptInflate,
+    /// Sculpt Fold: a sharp folded ridge.
+    SculptFold,
+    /// Sculpt Carve: a V groove cut across.
+    SculptCarve,
+    /// Sculpt Scar: a narrow cut with raised lips.
+    SculptScar,
+    /// Sculpt Clay: stacked layers built up.
+    SculptClay,
+    /// Sculpt Smooth: rough surface turning smooth.
+    SculptSmooth,
+    /// Sculpt Attenuate: ripples flattened under the brush.
+    SculptAttenuate,
+    /// Sculpt Smudge: a bump dragged into a tail.
+    SculptSmudge,
+    /// Sculpt Flatten: a hill with its top planed flat.
+    SculptFlatten,
+    /// Sculpt Emboss: a raised cross pattern.
+    SculptEmboss,
+    /// Sculpt Spin: a swirl with a turning arrow.
+    SculptSpin,
+    /// Sculpt Center Pinch: a sharp peak pinched to a point.
+    SculptCenterPinch,
+    /// Sculpt Tangent Pinch: a ridge pinched to a line.
+    SculptTangentPinch,
+    /// Vertex Map Paint: a red weight stroke.
+    VmapPaint,
+    /// Vertex Map Smooth: a red patch, ragged edge smoothed.
+    VmapSmooth,
+    /// Vertex Map Scale Down: a red patch with a down arrow.
+    VmapScaleDown,
+    /// Vertex Map Erase: a red patch with a stroke erased.
+    VmapErase,
+    /// Vertex Map Set Value: all red, with a slider.
+    VmapSetValue,
+    /// Smooth brush tip: a soft bell.
+    TipSmooth,
+    /// Hard brush tip: a flat-topped disc.
+    TipHard,
+    /// Sphere brush tip: a half ball.
+    TipSphere,
+    /// Procedural brush tip: rings round a bump.
+    TipProcedural,
+    /// Stamp brush tip: a raised cross.
+    TipStamp,
+    /// Text brush tip: a raised letter T.
+    TipText,
+    /// Texture brush tip: a raised checker.
+    TipTexture,
+    /// Mirror Operation: a cube, its cyan mirror twin and an operation stack.
+    MirrorOperation,
+    /// Transfer from Background: weights flowing up from a background mesh.
+    VmapTransfer,
+    /// Select Soft: a cube's rounded edge selected.
+    SelectSoftEdges,
+    /// Convert to Hard Edges: a cube outlined in crisp orange edges.
+    ConvertHardEdges,
+    /// Toggle Vertex Normal Maps: corner normals struck through.
+    ToggleVertexNormals,
+    /// Morph to Normals: a ball pushed out along its normals.
+    MorphToNormals,
+    /// Split Normals: two normals apart at each end of a ridge.
+    SplitNormals,
+    /// Bake Curvature: a bumpy patch, hollows dark, with an image tile.
+    BakeCurvature,
+    /// Bake Thickness: thin parts dark, thick light, with an image tile.
+    BakeThickness,
+    /// Pad Texture to UVs: an island bleeding outward on its tile.
+    PadTexture,
+    /// Add Fur Texture: short strands on a cyan tile.
+    AddFurTexture,
+    /// Geometry to Brush: a cube turning into a brush tip.
+    GeometryToBrush,
+    /// Relax Mesh: a crumpled grid easing flat.
+    RelaxMesh,
+    /// Convert to Vector Displacement: a grey tile turning into RGB.
+    VectorDisplacement,
+    /// Remesh: uneven triangles becoming an even grid.
+    Remesh,
+    /// Environment: a sky dome with a sun.
+    EnvironmentItem,
+    /// Sketch: a pencil drawing a stroke.
+    SketchTool,
+    /// Quick Align: a selected cube moved onto another.
+    QuickAlignTool,
+    /// Ruler: a ruler with ticks.
+    RulerTool,
+    /// Protractor: a half disc with a selected arm.
+    ProtractorTool,
+    /// Dimensions: a cube with its size arrows.
+    DimensionsTool,
+    /// Snapping: a magnet holding a point.
+    SnappingToggle,
+    /// Paint target: a red bullseye on an image tile.
+    PaintTarget,
+    /// Airbrush: a spray can with red spray.
+    PaintAirbrush,
+    /// Paintbrush: a brush with a red stroke.
+    PaintPaintbrush,
+    /// Eraser: an eraser over a broken stroke.
+    PaintEraser,
+    /// Clone: a stroke copied from a source mark.
+    PaintClone,
+    /// Line: a straight red line between two points.
+    PaintLine,
+    /// Fill: a tipped bucket over a red fill.
+    PaintFill,
+    /// Linear Gradient: warm bands with an arrow.
+    PaintLinearGradient,
+    /// Radial Gradient: warm rings.
+    PaintRadialGradient,
+    /// Smudge: a red blob smeared along an arrow.
+    PaintSmudge,
+    /// Blur: a water drop over a soft stroke.
+    PaintBlur,
+    /// Sharpen: a sharp point over a stroke.
+    PaintSharpen,
+    /// Lasso: a rope loop round a selected area.
+    PaintLasso,
+    /// Save Preset: a brush tip going into a drawer.
+    PaintSavePreset,
+    /// Image Ink nozzle: a nozzle scattering pieces.
+    PaintNozzle,
+    /// Image ink: an ink drop over a picture.
+    InkImage,
+    /// Parametric ink: an ink drop with sliders.
+    InkParametric,
+    /// Random ink: an ink drop and a die.
+    InkRandom,
+    /// Projection ink: a projector beam on an ink drop.
+    InkProjection,
+    /// Add Color Texture: RGB bands and a plus.
+    AddColorTexture,
+    /// Add Displacement Texture: a bumpy patch and a plus.
+    AddDisplacementTexture,
+    /// Add Mask Texture: black and white bands and a plus.
+    AddMaskTexture,
+    /// Invert: a tile and its inverse.
+    ImageInvert,
+    /// Clear: a painted tile crossed out.
+    ImageClear,
+    /// Expand Seams: an island pushed outward.
+    ImageExpandSeams,
+    /// Set Resolution: a pixel grid with size arrows.
+    ImageSetResolution,
+    /// Flatten: stacked layers pressed into one.
+    ImageFlatten,
+    /// Duplicate transform: a row of copies with a move handle.
+    DuplicateTransform,
+    /// Tack: a cube pinned onto a surface.
+    TackTool,
+    /// Solid Drill: a cyan shape drilled through a block.
+    SolidDrill,
+    /// Axis Drill: a drill shape through a block along an axis.
+    AxisDrill,
+    /// Curve Boolean: two loops and their union outline.
+    CurveBoolean,
+    /// Automatic Retopology: a ball with clean quad flow.
+    AutoRetopology,
+    /// Retopo Sketch: a stroke leaving a strip of quads.
+    RetopoSketch,
+    /// Retopo Edge Lock: a padlock on an edge.
+    RetopoEdgeLock,
+    /// Retopo Edge Flow: an edge loop with an arrow.
+    RetopoEdgeFlow,
+    /// Freeze curve: a curve turning into a polygon strip.
+    CurveFreeze,
+    /// Make Open Curve: a curve with free ends.
+    CurveMakeOpen,
+    /// Make Closed Curves: a closed loop.
+    CurveMakeClosed,
+    /// Make Curve Fill: a loop with a cyan face.
+    CurveMakeFill,
+    /// Edges to Curves: selected edges becoming a curve.
+    EdgesToCurves,
+    /// Open Curve Offset: a curve and its offset copy.
+    CurveOffsetOpen,
+    /// Curve Offset Trio: a curve and three offsets.
+    CurveOffsetTrio,
+    /// Closed Curve Offset: a loop and its offset.
+    CurveOffsetClosed,
+    /// Convert Curves: points changing style along a curve.
+    CurveConvert,
+    /// Bezier Tangent: a Bezier point with both handles.
+    BezierTangent,
+    /// Set Curves Color: a curve with colour swatches.
+    CurveColor,
+    /// Align Winding: two loops turning the same way.
+    CurveWinding,
+    /// Cut: a selected cube lifted out of its dashed outline.
+    EditCut,
+    /// Paste: a cyan cube on a clipboard.
+    EditPaste,
+    /// Paste Tool: a cyan cube dropped onto a surface.
+    PasteTool,
+    /// Draw Patch: a cyan patch inside four selected curves.
+    DrawPatch,
+    /// Solid Sketch: a stroke swelling into a solid.
+    SolidSketchTool,
+    /// Push: a cube pushed out along its normals.
+    DeformPush,
+    /// Smooth: a rough ball turning smooth.
+    DeformSmooth,
+    /// Element Move: one point with move arrows.
+    ElementMove,
+    /// Element Push: a soft dent pushed in.
+    ElementPush,
+    /// Flex: a column flexed at a selected point.
+    DeformFlex,
+    /// Jitter: cubes shaken out of line.
+    DeformJitter,
+    /// Linear Align: points pulled onto a line.
+    LinearAlign,
+    /// Radial Align: points on a circle.
+    RadialAlign,
+    /// Quantize: a surface stepped into levels.
+    DeformQuantize,
+    /// Sculpt: a bump with a brush ring.
+    DeformSculpt,
+    /// Soft Drag: a soft bump dragged sideways.
+    SoftDrag,
+    /// Soft Move: a soft bump moved up.
+    SoftMove,
+    /// Soft selection move: a soft bump with move axes.
+    SoftSelectionMove,
+    /// Soft selection rotate: a soft bump with rotate rings.
+    SoftSelectionRotate,
+    /// Soft selection scale: a soft bump with scale handles.
+    SoftSelectionScale,
+    /// Soft selection transform: a soft bump with every handle.
+    SoftSelectionTransform,
+    /// Swirl: a spiral on a surface.
+    DeformSwirl,
+    /// Vortex: a widening helix.
+    DeformVortex,
+    /// Radial Sweep: a profile swept round an axis.
+    RadialSweepTool,
+    /// Edge Slice: a cut across a cube's edge.
+    EdgeSliceTool,
+    /// Polygon Slice: a polygon cut by a line.
+    PolygonSliceTool,
+    /// Curve Slice: a cube cut along a curve.
+    CurveSliceTool,
+    /// Pen Slice: a cube cut along a pen path.
+    PenSliceTool,
+    /// Axis Slice: a cube cut by an axis plane.
+    AxisSliceTool,
+    /// Primitive Slice: a circle cut into a cube.
+    PrimitiveSliceTool,
+    /// Freeze: a smooth ball frozen into facets.
+    FreezeSubdivision,
+    /// Subdivision surface: a smooth ball in its cage.
+    SdsSubdivide,
+    /// Subdivide smooth: a rounded ball with new loops.
+    SubdivideSmooth,
+    /// Subdivide faceted: a cube with each face split.
+    SubdivideFaceted,
+    /// Subdivide options: a split cube with sliders.
+    SubdivideOptions,
+    /// Unsubdivide: a split cube losing its loops.
+    Unsubdivide,
+    /// Flatten N-gons: a polygon pressed flat.
+    FlattenNgons,
+    /// Poly Reduct: a dense ball becoming a low one.
+    PolyReduct,
+    /// Create vertex: a new point on a surface.
+    VertexCreate,
+    /// Transform: move, rotate and scale handles together.
+    TransformGizmo,
+    /// UV Project: a cube projected onto the UV square.
+    UvProject,
+    /// Project from View: lines from the eye onto the UV square.
+    UvProjectView,
+    /// Unwrap: a cube unfolded into a cross.
+    UvUnwrap,
+    /// Relax: an island with its grid evened out.
+    UvRelax,
+    /// Pelt: an island stretched to the corners.
+    UvPelt,
+    /// Island Align: islands against one edge.
+    UvIslandAlign,
+    /// Quick Align: an island laid straight.
+    UvQuickAlign,
+    /// Orient: an island turning to the axes.
+    UvOrient,
+    /// To Origin: an island moved to the corner.
+    UvToOrigin,
+    /// Texel Density: a checker on an island.
+    UvTexelDensity,
+    /// Split: an island cut in two.
+    UvSplit,
+    /// Sew: two islands stitched together.
+    UvSew,
+    /// Move and Sew: an island moved to its partner.
+    UvMoveSew,
+    /// Select Border: an island's outline selected.
+    UvSelectBorder,
+    /// Rectangle: an island squared off.
+    UvRectangle,
+    /// Atlas: many islands in the square.
+    UvAtlas,
+    /// Pack: islands packed tight.
+    UvPack,
+    /// Fit: an island filling the square.
+    UvFit,
+    /// Flip U: an island flipped across.
+    UvFlipU,
+    /// Flip V: an island flipped up and down.
+    UvFlipV,
+    /// Mirror U: an island mirrored across a line.
+    UvMirrorU,
+    /// Mirror V: an island mirrored up and down.
+    UvMirrorV,
+    /// Align Up: islands against the top.
+    UvAlignUp,
+    /// Align Down: islands against the bottom.
+    UvAlignDown,
+    /// Align Left: islands against the left.
+    UvAlignLeft,
+    /// Align Right: islands against the right.
+    UvAlignRight,
+    /// UV Seam: a cube with a dashed seam.
+    UvSeamDialog,
+    /// Add Seam: a seam and a plus.
+    UvSeamAdd,
+    /// Clear Seam: a seam and a cross.
+    UvSeamClear,
+    /// Select Seam: a seam and a pointer.
+    UvSeamSelect,
+    /// Seam Marker: a seam and a marker pen.
+    UvSeamMarker,
+    /// Delete Map: an island crossed out.
+    UvDeleteMap,
+    /// Unwrap Tool: a seamed cube and its unfolded cross.
+    UvUnwrapTool,
+    /// Unwrap and Relax: an unfolded cross with an even grid.
+    UvUnwrapRelax,
+    /// Quick U: an island laid along U.
+    UvQuickU,
+    /// Quick V: an island laid along V.
+    UvQuickV,
+    /// Island U Center: islands on the middle line.
+    UvIslandUCenter,
+    /// Island U Max: islands against the right.
+    UvIslandUMax,
+    /// Island V Min: islands against the bottom.
+    UvIslandVMin,
+    /// Island V Center: islands on the middle line.
+    UvIslandVCenter,
+    /// Island V Max: islands against the top.
+    UvIslandVMax,
+    /// UV symmetry off.
+    UvSymOff,
+    /// UV symmetry in U.
+    UvSymU,
+    /// UV symmetry in V.
+    UvSymV,
+    /// UV symmetry centre.
+    UvSymCenter,
+    /// UV Symmetrize: one half copied to the other.
+    UvSymmetrize,
+    /// UV brush: a brush ring over an island.
+    UvBrush,
+    /// Error UVs: an island with a warning sign.
+    UvErrors,
+    /// Unmapped: an empty dashed island outline.
+    UvUnmapped,
+    /// Copy UVs: an island and its copy.
+    UvCopy,
+    /// Cut UVs: an island lifted out of its outline.
+    UvCut,
+    /// Paste UVs: an island dropped in.
+    UvPaste,
+    /// Delete UVs: a selected island crossed out.
+    UvDelete,
+    /// Set Value: an island with a slider.
+    UvSetValue,
+    /// Rotate: an island with a turn arrow.
+    UvRotate,
+    /// Select Tile: one of four tiles selected.
+    UvSelectTile,
+    /// Tile left.
+    UvTileLeft,
+    /// Tile right.
+    UvTileRight,
+    /// Tile up.
+    UvTileUp,
+    /// Tile down.
+    UvTileDown,
 }
 
 impl Sample {
-    pub const ALL: [Sample; 250] = [
+    pub const ALL: [Sample; 447] = [
         Sample::Cube,
         Sample::SelectedFace,
         Sample::Sphere,
@@ -1043,6 +1437,203 @@ impl Sample {
         Sample::LevelDown,
         Sample::DeleteHigher,
         Sample::ApplyMultires,
+        Sample::SculptPush,
+        Sample::SculptMove,
+        Sample::SculptInflate,
+        Sample::SculptFold,
+        Sample::SculptCarve,
+        Sample::SculptScar,
+        Sample::SculptClay,
+        Sample::SculptSmooth,
+        Sample::SculptAttenuate,
+        Sample::SculptSmudge,
+        Sample::SculptFlatten,
+        Sample::SculptEmboss,
+        Sample::SculptSpin,
+        Sample::SculptCenterPinch,
+        Sample::SculptTangentPinch,
+        Sample::VmapPaint,
+        Sample::VmapSmooth,
+        Sample::VmapScaleDown,
+        Sample::VmapErase,
+        Sample::VmapSetValue,
+        Sample::TipSmooth,
+        Sample::TipHard,
+        Sample::TipSphere,
+        Sample::TipProcedural,
+        Sample::TipStamp,
+        Sample::TipText,
+        Sample::TipTexture,
+        Sample::MirrorOperation,
+        Sample::VmapTransfer,
+        Sample::SelectSoftEdges,
+        Sample::ConvertHardEdges,
+        Sample::ToggleVertexNormals,
+        Sample::MorphToNormals,
+        Sample::SplitNormals,
+        Sample::BakeCurvature,
+        Sample::BakeThickness,
+        Sample::PadTexture,
+        Sample::AddFurTexture,
+        Sample::GeometryToBrush,
+        Sample::RelaxMesh,
+        Sample::VectorDisplacement,
+        Sample::Remesh,
+        Sample::EnvironmentItem,
+        Sample::SketchTool,
+        Sample::QuickAlignTool,
+        Sample::RulerTool,
+        Sample::ProtractorTool,
+        Sample::DimensionsTool,
+        Sample::SnappingToggle,
+        Sample::PaintTarget,
+        Sample::PaintAirbrush,
+        Sample::PaintPaintbrush,
+        Sample::PaintEraser,
+        Sample::PaintClone,
+        Sample::PaintLine,
+        Sample::PaintFill,
+        Sample::PaintLinearGradient,
+        Sample::PaintRadialGradient,
+        Sample::PaintSmudge,
+        Sample::PaintBlur,
+        Sample::PaintSharpen,
+        Sample::PaintLasso,
+        Sample::PaintSavePreset,
+        Sample::PaintNozzle,
+        Sample::InkImage,
+        Sample::InkParametric,
+        Sample::InkRandom,
+        Sample::InkProjection,
+        Sample::AddColorTexture,
+        Sample::AddDisplacementTexture,
+        Sample::AddMaskTexture,
+        Sample::ImageInvert,
+        Sample::ImageClear,
+        Sample::ImageExpandSeams,
+        Sample::ImageSetResolution,
+        Sample::ImageFlatten,
+        Sample::DuplicateTransform,
+        Sample::TackTool,
+        Sample::SolidDrill,
+        Sample::AxisDrill,
+        Sample::CurveBoolean,
+        Sample::AutoRetopology,
+        Sample::RetopoSketch,
+        Sample::RetopoEdgeLock,
+        Sample::RetopoEdgeFlow,
+        Sample::CurveFreeze,
+        Sample::CurveMakeOpen,
+        Sample::CurveMakeClosed,
+        Sample::CurveMakeFill,
+        Sample::EdgesToCurves,
+        Sample::CurveOffsetOpen,
+        Sample::CurveOffsetTrio,
+        Sample::CurveOffsetClosed,
+        Sample::CurveConvert,
+        Sample::BezierTangent,
+        Sample::CurveColor,
+        Sample::CurveWinding,
+        Sample::EditCut,
+        Sample::EditPaste,
+        Sample::PasteTool,
+        Sample::DrawPatch,
+        Sample::SolidSketchTool,
+        Sample::DeformPush,
+        Sample::DeformSmooth,
+        Sample::ElementMove,
+        Sample::ElementPush,
+        Sample::DeformFlex,
+        Sample::DeformJitter,
+        Sample::LinearAlign,
+        Sample::RadialAlign,
+        Sample::DeformQuantize,
+        Sample::DeformSculpt,
+        Sample::SoftDrag,
+        Sample::SoftMove,
+        Sample::SoftSelectionMove,
+        Sample::SoftSelectionRotate,
+        Sample::SoftSelectionScale,
+        Sample::SoftSelectionTransform,
+        Sample::DeformSwirl,
+        Sample::DeformVortex,
+        Sample::RadialSweepTool,
+        Sample::EdgeSliceTool,
+        Sample::PolygonSliceTool,
+        Sample::CurveSliceTool,
+        Sample::PenSliceTool,
+        Sample::AxisSliceTool,
+        Sample::PrimitiveSliceTool,
+        Sample::FreezeSubdivision,
+        Sample::SdsSubdivide,
+        Sample::SubdivideSmooth,
+        Sample::SubdivideFaceted,
+        Sample::SubdivideOptions,
+        Sample::Unsubdivide,
+        Sample::FlattenNgons,
+        Sample::PolyReduct,
+        Sample::VertexCreate,
+        Sample::TransformGizmo,
+        Sample::UvProject,
+        Sample::UvProjectView,
+        Sample::UvUnwrap,
+        Sample::UvRelax,
+        Sample::UvPelt,
+        Sample::UvIslandAlign,
+        Sample::UvQuickAlign,
+        Sample::UvOrient,
+        Sample::UvToOrigin,
+        Sample::UvTexelDensity,
+        Sample::UvSplit,
+        Sample::UvSew,
+        Sample::UvMoveSew,
+        Sample::UvSelectBorder,
+        Sample::UvRectangle,
+        Sample::UvAtlas,
+        Sample::UvPack,
+        Sample::UvFit,
+        Sample::UvFlipU,
+        Sample::UvFlipV,
+        Sample::UvMirrorU,
+        Sample::UvMirrorV,
+        Sample::UvAlignUp,
+        Sample::UvAlignDown,
+        Sample::UvAlignLeft,
+        Sample::UvAlignRight,
+        Sample::UvSeamDialog,
+        Sample::UvSeamAdd,
+        Sample::UvSeamClear,
+        Sample::UvSeamSelect,
+        Sample::UvSeamMarker,
+        Sample::UvDeleteMap,
+        Sample::UvUnwrapTool,
+        Sample::UvUnwrapRelax,
+        Sample::UvQuickU,
+        Sample::UvQuickV,
+        Sample::UvIslandUCenter,
+        Sample::UvIslandUMax,
+        Sample::UvIslandVMin,
+        Sample::UvIslandVCenter,
+        Sample::UvIslandVMax,
+        Sample::UvSymOff,
+        Sample::UvSymU,
+        Sample::UvSymV,
+        Sample::UvSymCenter,
+        Sample::UvSymmetrize,
+        Sample::UvBrush,
+        Sample::UvErrors,
+        Sample::UvUnmapped,
+        Sample::UvCopy,
+        Sample::UvCut,
+        Sample::UvPaste,
+        Sample::UvDelete,
+        Sample::UvSetValue,
+        Sample::UvRotate,
+        Sample::UvSelectTile,
+        Sample::UvTileLeft,
+        Sample::UvTileRight,
+        Sample::UvTileUp,
+        Sample::UvTileDown,
     ];
 
     /// File stem and icon slug.
@@ -1298,6 +1889,203 @@ impl Sample {
             Sample::LevelDown => "multires-level-down",
             Sample::DeleteHigher => "multires-delete-higher",
             Sample::ApplyMultires => "multires-apply",
+            Sample::SculptPush => "sculpt-push",
+            Sample::SculptMove => "sculpt-move",
+            Sample::SculptInflate => "sculpt-inflate",
+            Sample::SculptFold => "sculpt-fold",
+            Sample::SculptCarve => "sculpt-carve",
+            Sample::SculptScar => "sculpt-scar",
+            Sample::SculptClay => "sculpt-clay",
+            Sample::SculptSmooth => "sculpt-smooth",
+            Sample::SculptAttenuate => "sculpt-attenuate",
+            Sample::SculptSmudge => "sculpt-smudge",
+            Sample::SculptFlatten => "sculpt-flatten",
+            Sample::SculptEmboss => "sculpt-emboss",
+            Sample::SculptSpin => "sculpt-spin",
+            Sample::SculptCenterPinch => "sculpt-center-pinch",
+            Sample::SculptTangentPinch => "sculpt-tangent-pinch",
+            Sample::VmapPaint => "vmap-paint",
+            Sample::VmapSmooth => "vmap-smooth",
+            Sample::VmapScaleDown => "vmap-scale-down",
+            Sample::VmapErase => "vmap-erase",
+            Sample::VmapSetValue => "vmap-set-value",
+            Sample::TipSmooth => "tip-smooth",
+            Sample::TipHard => "tip-hard",
+            Sample::TipSphere => "tip-sphere",
+            Sample::TipProcedural => "tip-procedural",
+            Sample::TipStamp => "tip-stamp",
+            Sample::TipText => "tip-text",
+            Sample::TipTexture => "tip-texture",
+            Sample::MirrorOperation => "mirror-operation",
+            Sample::VmapTransfer => "vmap-transfer",
+            Sample::SelectSoftEdges => "select-soft-edges",
+            Sample::ConvertHardEdges => "convert-hard-edges",
+            Sample::ToggleVertexNormals => "toggle-vertex-normals",
+            Sample::MorphToNormals => "morph-to-normals",
+            Sample::SplitNormals => "split-normals",
+            Sample::BakeCurvature => "bake-curvature",
+            Sample::BakeThickness => "bake-thickness",
+            Sample::PadTexture => "pad-texture",
+            Sample::AddFurTexture => "add-fur-texture",
+            Sample::GeometryToBrush => "geometry-to-brush",
+            Sample::RelaxMesh => "relax-mesh",
+            Sample::VectorDisplacement => "vector-displacement",
+            Sample::Remesh => "remesh",
+            Sample::EnvironmentItem => "environment",
+            Sample::SketchTool => "sketch",
+            Sample::QuickAlignTool => "quick-align",
+            Sample::RulerTool => "ruler",
+            Sample::ProtractorTool => "protractor",
+            Sample::DimensionsTool => "dimensions",
+            Sample::SnappingToggle => "snapping",
+            Sample::PaintTarget => "paint-target",
+            Sample::PaintAirbrush => "paint-airbrush",
+            Sample::PaintPaintbrush => "paint-paintbrush",
+            Sample::PaintEraser => "paint-eraser",
+            Sample::PaintClone => "paint-clone",
+            Sample::PaintLine => "paint-line",
+            Sample::PaintFill => "paint-fill",
+            Sample::PaintLinearGradient => "paint-linear-gradient",
+            Sample::PaintRadialGradient => "paint-radial-gradient",
+            Sample::PaintSmudge => "paint-smudge",
+            Sample::PaintBlur => "paint-blur",
+            Sample::PaintSharpen => "paint-sharpen",
+            Sample::PaintLasso => "paint-lasso",
+            Sample::PaintSavePreset => "paint-save-preset",
+            Sample::PaintNozzle => "paint-nozzle",
+            Sample::InkImage => "ink-image",
+            Sample::InkParametric => "ink-parametric",
+            Sample::InkRandom => "ink-random",
+            Sample::InkProjection => "ink-projection",
+            Sample::AddColorTexture => "add-color-texture",
+            Sample::AddDisplacementTexture => "add-displacement-texture",
+            Sample::AddMaskTexture => "add-mask-texture",
+            Sample::ImageInvert => "image-invert",
+            Sample::ImageClear => "image-clear",
+            Sample::ImageExpandSeams => "image-expand-seams",
+            Sample::ImageSetResolution => "image-set-resolution",
+            Sample::ImageFlatten => "image-flatten",
+            Sample::DuplicateTransform => "duplicate-transform",
+            Sample::TackTool => "tack-tool",
+            Sample::SolidDrill => "solid-drill",
+            Sample::AxisDrill => "axis-drill",
+            Sample::CurveBoolean => "curve-boolean",
+            Sample::AutoRetopology => "auto-retopology",
+            Sample::RetopoSketch => "retopo-sketch",
+            Sample::RetopoEdgeLock => "retopo-edge-lock",
+            Sample::RetopoEdgeFlow => "retopo-edge-flow",
+            Sample::CurveFreeze => "curve-freeze",
+            Sample::CurveMakeOpen => "curve-make-open",
+            Sample::CurveMakeClosed => "curve-make-closed",
+            Sample::CurveMakeFill => "curve-make-fill",
+            Sample::EdgesToCurves => "edges-to-curves",
+            Sample::CurveOffsetOpen => "curve-offset-open",
+            Sample::CurveOffsetTrio => "curve-offset-trio",
+            Sample::CurveOffsetClosed => "curve-offset-closed",
+            Sample::CurveConvert => "curve-convert",
+            Sample::BezierTangent => "bezier-tangent",
+            Sample::CurveColor => "curve-color",
+            Sample::CurveWinding => "curve-winding",
+            Sample::EditCut => "cut",
+            Sample::EditPaste => "paste",
+            Sample::PasteTool => "paste-tool",
+            Sample::DrawPatch => "draw-patch",
+            Sample::SolidSketchTool => "solid-sketch",
+            Sample::DeformPush => "push",
+            Sample::DeformSmooth => "smooth",
+            Sample::ElementMove => "element-move",
+            Sample::ElementPush => "element-push",
+            Sample::DeformFlex => "flex",
+            Sample::DeformJitter => "jitter",
+            Sample::LinearAlign => "linear-align",
+            Sample::RadialAlign => "radial-align",
+            Sample::DeformQuantize => "quantize",
+            Sample::DeformSculpt => "sculpt",
+            Sample::SoftDrag => "soft-drag",
+            Sample::SoftMove => "soft-move",
+            Sample::SoftSelectionMove => "soft-selection-move",
+            Sample::SoftSelectionRotate => "soft-selection-rotate",
+            Sample::SoftSelectionScale => "soft-selection-scale",
+            Sample::SoftSelectionTransform => "soft-selection-transform",
+            Sample::DeformSwirl => "swirl",
+            Sample::DeformVortex => "vortex",
+            Sample::RadialSweepTool => "radial-sweep",
+            Sample::EdgeSliceTool => "edge-slice",
+            Sample::PolygonSliceTool => "polygon-slice",
+            Sample::CurveSliceTool => "curve-slice",
+            Sample::PenSliceTool => "pen-slice",
+            Sample::AxisSliceTool => "axis-slice",
+            Sample::PrimitiveSliceTool => "primitive-slice",
+            Sample::FreezeSubdivision => "freeze",
+            Sample::SdsSubdivide => "sds-subdivide",
+            Sample::SubdivideSmooth => "subdivide-smooth",
+            Sample::SubdivideFaceted => "subdivide-faceted",
+            Sample::SubdivideOptions => "subdivide-options",
+            Sample::Unsubdivide => "unsubdivide",
+            Sample::FlattenNgons => "flatten-ngons",
+            Sample::PolyReduct => "poly-reduct",
+            Sample::VertexCreate => "vertex-create",
+            Sample::TransformGizmo => "transform",
+            Sample::UvProject => "uv-project",
+            Sample::UvProjectView => "uv-project-view",
+            Sample::UvUnwrap => "uv-unwrap",
+            Sample::UvRelax => "uv-relax",
+            Sample::UvPelt => "uv-pelt",
+            Sample::UvIslandAlign => "uv-island-align",
+            Sample::UvQuickAlign => "uv-quick-align",
+            Sample::UvOrient => "uv-orient",
+            Sample::UvToOrigin => "uv-to-origin",
+            Sample::UvTexelDensity => "uv-texel-density",
+            Sample::UvSplit => "uv-split",
+            Sample::UvSew => "uv-sew",
+            Sample::UvMoveSew => "uv-move-sew",
+            Sample::UvSelectBorder => "uv-select-border",
+            Sample::UvRectangle => "uv-rectangle",
+            Sample::UvAtlas => "uv-atlas",
+            Sample::UvPack => "uv-pack",
+            Sample::UvFit => "uv-fit",
+            Sample::UvFlipU => "uv-flip-u",
+            Sample::UvFlipV => "uv-flip-v",
+            Sample::UvMirrorU => "uv-mirror-u",
+            Sample::UvMirrorV => "uv-mirror-v",
+            Sample::UvAlignUp => "uv-align-up",
+            Sample::UvAlignDown => "uv-align-down",
+            Sample::UvAlignLeft => "uv-align-left",
+            Sample::UvAlignRight => "uv-align-right",
+            Sample::UvSeamDialog => "uv-seam",
+            Sample::UvSeamAdd => "uv-seam-add",
+            Sample::UvSeamClear => "uv-seam-clear",
+            Sample::UvSeamSelect => "uv-seam-select",
+            Sample::UvSeamMarker => "uv-seam-marker",
+            Sample::UvDeleteMap => "uv-delete-map",
+            Sample::UvUnwrapTool => "uv-unwrap-tool",
+            Sample::UvUnwrapRelax => "uv-unwrap-relax",
+            Sample::UvQuickU => "uv-quick-u",
+            Sample::UvQuickV => "uv-quick-v",
+            Sample::UvIslandUCenter => "uv-island-u-center",
+            Sample::UvIslandUMax => "uv-island-u-max",
+            Sample::UvIslandVMin => "uv-island-v-min",
+            Sample::UvIslandVCenter => "uv-island-v-center",
+            Sample::UvIslandVMax => "uv-island-v-max",
+            Sample::UvSymOff => "uv-sym-off",
+            Sample::UvSymU => "uv-sym-u",
+            Sample::UvSymV => "uv-sym-v",
+            Sample::UvSymCenter => "uv-sym-center",
+            Sample::UvSymmetrize => "uv-symmetrize",
+            Sample::UvBrush => "uv-brush",
+            Sample::UvErrors => "uv-errors",
+            Sample::UvUnmapped => "uv-unmapped",
+            Sample::UvCopy => "uv-copy",
+            Sample::UvCut => "uv-cut",
+            Sample::UvPaste => "uv-paste",
+            Sample::UvDelete => "uv-delete",
+            Sample::UvSetValue => "uv-set-value",
+            Sample::UvRotate => "uv-rotate",
+            Sample::UvSelectTile => "uv-select-tile",
+            Sample::UvTileLeft => "uv-tile-left",
+            Sample::UvTileRight => "uv-tile-right",
+            Sample::UvTileUp => "uv-tile-up",
+            Sample::UvTileDown => "uv-tile-down",
         }
     }
 
@@ -2608,6 +3396,391 @@ fn block_plate(y: f64) -> Result<Mesh> {
         "New",
         "New",
     )
+}
+
+/// A sculpt patch: a square block `2 * half` across whose top is the
+/// height field `h(x, z)` on an `n` by `n` grid, each top quad tagged by
+/// `tag_of` at its centre, standing on a flat base at least 0.18 deep.
+fn heightfield(
+    n: u32,
+    half: f64,
+    h: impl Fn(f64, f64) -> f64,
+    tag_of: impl Fn(f64, f64) -> &'static str,
+) -> Result<Mesh> {
+    let at = |i: u32| -half + 2. * half * f64::from(i) / f64::from(n);
+    let mut mesh = Mesh::default();
+    for i in 0..=n {
+        for j in 0..=n {
+            let (x, z) = (at(i), at(j));
+            mesh.vertices.push(DVec3::new(x, h(x, z), z));
+        }
+    }
+    let top = |i: u32, j: u32| i * (n + 1) + j;
+    for i in 0..n {
+        for j in 0..n {
+            let (x, z) = ((at(i) + at(i + 1)) * 0.5, (at(j) + at(j + 1)) * 0.5);
+            mesh.faces.push(polygon(
+                vec![top(i, j), top(i, j + 1), top(i + 1, j + 1), top(i + 1, j)],
+                tag_of(x, z),
+            ));
+        }
+    }
+    // The rim, walked once round, and the base under it.
+    let mut rim = Vec::new();
+    rim.extend((0..n).map(|j| top(0, j)));
+    rim.extend((0..n).map(|i| top(i, n)));
+    rim.extend((0..n).map(|j| top(n, n - j)));
+    rim.extend((0..n).map(|i| top(n - i, 0)));
+    // The base sits 0.18 under the lowest point, never above -0.18.
+    let lowest = mesh.vertices.iter().map(|v| v.y).fold(0., f64::min);
+    let base = (lowest - 0.18).min(-0.18);
+    let first_low = mesh.vertices.len() as u32;
+    for &t in &rim {
+        let v = mesh.vertices[t as usize];
+        mesh.vertices.push(DVec3::new(v.x, base, v.z));
+    }
+    let count = rim.len() as u32;
+    for k in 0..count {
+        let k1 = (k + 1) % count;
+        let quad = vec![
+            rim[k as usize],
+            rim[k1 as usize],
+            first_low + k1,
+            first_low + k,
+        ];
+        let p: Vec<DVec3> = quad.iter().map(|&i| mesh.vertices[i as usize]).collect();
+        let normal = (p[1] - p[0]).cross(p[3] - p[0]);
+        let mid = p.iter().copied().sum::<DVec3>() / 4.;
+        let outward = DVec3::new(mid.x, 0., mid.z);
+        let quad = if normal.dot(outward) < 0. {
+            quad.into_iter().rev().collect()
+        } else {
+            quad
+        };
+        mesh.faces.push(polygon(quad, CLAY));
+    }
+    // Opposite to the walk the walls' low edges follow.
+    let bottom = (first_low..first_low + count).rev().collect();
+    mesh.faces.push(polygon(bottom, CLAY));
+    mesh.validate()?;
+    Ok(mesh)
+}
+
+/// A brush ring: a cyan circle of `radius` in the ground plane at height
+/// `y`, centred over (`x`, `z`).
+fn brush_ring(x: f64, z: f64, y: f64, radius: f64) -> Result<Mesh> {
+    let ring: Vec<DVec3> = (0..=48)
+        .map(|k| {
+            let a = std::f64::consts::TAU * f64::from(k) / 48.;
+            DVec3::new(x + radius * a.cos(), y, z + radius * a.sin())
+        })
+        .collect();
+    tube(&ring, 0.035, 8, "New")
+}
+
+/// A bump falling off as a bell: 1 at the centre.
+fn bell(r: f64, width: f64) -> f64 {
+    (-(r / width).powi(2)).exp()
+}
+
+/// A smooth step from 0 at `a` to 1 at `b`.
+fn smooth_step(a: f64, b: f64, x: f64) -> f64 {
+    let t = ((x - a) / (b - a)).clamp(0., 1.);
+    t * t * (3. - 2. * t)
+}
+
+/// A brush tip on a Clay disc: the tip's cyan profile (radius, height,
+/// ending on the axis) turned about the vertical.
+fn brush_tip(profile: &[(f64, f64)]) -> Result<Mesh> {
+    let mut p = vec![(0., -0.02)];
+    p.extend(profile.iter().copied());
+    merge(vec![
+        revolve(
+            &[(0., -0.02), (0.58, -0.02), (0.58, -0.14), (0., -0.14)],
+            48,
+            false,
+            CLAY,
+        )?,
+        revolve(&p, 48, false, "New")?,
+    ])
+}
+
+/// `mesh` with every face tagged `from` retagged `to`.
+fn retagged(mut mesh: Mesh, from: &str, to: &str) -> Mesh {
+    for f in &mut mesh.faces {
+        if f.material == from {
+            f.material = to.into();
+        }
+    }
+    mesh
+}
+
+/// An image tile in the symbol plane: a thin Clay square, `half` across
+/// half, centred on (cx, cy), set a little behind what sits on it.
+fn image_tile(cx: f64, cy: f64, half: f64, tag: &str) -> Result<Mesh> {
+    let tile = slab(
+        &[
+            (cx - half, cy - half),
+            (cx + half, cy - half),
+            (cx + half, cy + half),
+            (cx - half, cy + half),
+        ],
+        0.06,
+        tag,
+    )?;
+    Ok(deformed(tile, |v| v - DVec3::Z * 0.06))
+}
+
+/// The nine edges of a cube of `size` at `c` that the camera sees.
+fn visible_cube_edges(c: DVec3, size: f64) -> Vec<(DVec3, DVec3)> {
+    let h = size * 0.5;
+    let p = |x: f64, y: f64, z: f64| c + DVec3::new(x, y, z) * h;
+    vec![
+        (p(-1., 1., -1.), p(1., 1., -1.)),
+        (p(1., 1., -1.), p(1., 1., 1.)),
+        (p(1., 1., 1.), p(-1., 1., 1.)),
+        (p(-1., 1., 1.), p(-1., 1., -1.)),
+        (p(1., 1., 1.), p(1., -1., 1.)),
+        (p(1., 1., -1.), p(1., -1., -1.)),
+        (p(-1., 1., 1.), p(-1., -1., 1.)),
+        (p(1., -1., 1.), p(-1., -1., 1.)),
+        (p(1., -1., 1.), p(1., -1., -1.)),
+    ]
+}
+
+/// A red ink drop standing at `c`, `size` tall.
+fn ink_drop(c: DVec3, size: f64) -> Result<Mesh> {
+    let profile: Vec<(f64, f64)> = [
+        (0., -0.5),
+        (0.26, -0.42),
+        (0.36, -0.22),
+        (0.3, 0.02),
+        (0.14, 0.26),
+        (0., 0.5),
+    ]
+    .iter()
+    .map(|&(r, y)| (r * size, y * size))
+    .collect();
+    Ok(deformed(revolve(&profile, 32, false, "Axis X")?, |v| c + v))
+}
+
+/// A square of `tags` stripes across the symbol plane, left to right.
+fn stripes(x0: f64, y0: f64, x1: f64, y1: f64, tags: &[&str], depth: f64) -> Result<Vec<Mesh>> {
+    let w = (x1 - x0) / tags.len() as f64;
+    tags.iter()
+        .enumerate()
+        .map(|(k, tag)| {
+            let a = x0 + w * k as f64;
+            slab(&[(a, y0), (a + w, y0), (a + w, y1), (a, y1)], depth, tag)
+        })
+        .collect()
+}
+
+/// A paint stroke in the symbol plane: a red tube through `points`.
+fn paint_stroke(points: &[(f64, f64)], radius: f64) -> Result<Mesh> {
+    let pts: Vec<DVec3> = points
+        .iter()
+        .map(|&(x, y)| DVec3::new(x, y, 0.02))
+        .collect();
+    tube(&through(&pts, 8), radius, 10, "Axis X")
+}
+
+/// Points round a circle of `r` about `c` in the picture's plane.
+fn circle_points(c: DVec3, r: f64, n: u32) -> Vec<DVec3> {
+    (0..=n)
+        .map(|k| {
+            let a = std::f64::consts::TAU * f64::from(k) / f64::from(n);
+            c + flat(r * a.cos(), r * a.sin())
+        })
+        .collect()
+}
+
+/// A flat ribbon `width` wide along `path`, facing the viewer: the
+/// polygon strip a frozen curve becomes.
+fn ribbon(path: &[DVec3], width: f64, tag: &str) -> Result<Mesh> {
+    let view = DVec3::ONE.normalize();
+    let mut mesh = Mesh::default();
+    for (i, &p) in path.iter().enumerate() {
+        let a = path[i.saturating_sub(1)];
+        let b = path[(i + 1).min(path.len() - 1)];
+        let side = (b - a).cross(view).normalize() * (width * 0.5);
+        mesh.vertices.push(p - side);
+        mesh.vertices.push(p + side);
+    }
+    // The side vector keeps one handedness along the path, so one test
+    // on the first quad orients them all.
+    let p: Vec<DVec3> = [0usize, 2, 1].iter().map(|&k| mesh.vertices[k]).collect();
+    let flip = (p[1] - p[0]).cross(p[2] - p[0]).dot(view) < 0.;
+    for i in 0..path.len() as u32 - 1 {
+        let (a, b) = (2 * i, 2 * i + 2);
+        let quad = vec![a, b, b + 1, a + 1];
+        let quad = if flip {
+            quad.into_iter().rev().collect()
+        } else {
+            quad
+        };
+        mesh.faces.push(polygon(quad, tag));
+    }
+    mesh.validate()?;
+    Ok(mesh)
+}
+
+/// A padlock standing at `c`: a Clay body and an Ink shackle.
+fn padlock(c: DVec3, size: f64) -> Result<Vec<Mesh>> {
+    let h = size * 0.5;
+    let arc: Vec<DVec3> = (0..=16)
+        .map(|k| {
+            let a = std::f64::consts::PI * f64::from(k) / 16.;
+            c + flat(h * 0.6 * a.cos(), h * 0.4 + h * 0.7 * a.sin())
+        })
+        .collect();
+    Ok(vec![
+        block_by(
+            c - DVec3::new(h, h * 0.6, h * 0.5),
+            c + DVec3::new(h, h * 0.4, h * 0.5),
+            "Selected",
+        )?,
+        tube(&arc, size * 0.09, 10, "Ink")?,
+    ])
+}
+
+/// A soft-selection patch: a bump whose centre is selected, for the soft
+/// and element tools.
+fn soft_patch(height: f64) -> Result<Mesh> {
+    heightfield(
+        32,
+        0.55,
+        move |x, z| height * 1.4 * bell((x * x + z * z).sqrt(), 0.3),
+        |x, z| {
+            if (x * x + z * z).sqrt() < 0.14 {
+                "Selected"
+            } else {
+                CLAY
+            }
+        },
+    )
+}
+
+/// The cyan cut lines that split a cube's three visible faces in two.
+fn cube_cross_lines(c: DVec3, size: f64, tag: &str) -> Result<Vec<Mesh>> {
+    let h = size * 0.5 + 0.005;
+    let p = |x: f64, y: f64, z: f64| c + DVec3::new(x, y, z) * h;
+    [
+        (p(-1., 1., 0.), p(1., 1., 0.)),
+        (p(0., 1., -1.), p(0., 1., 1.)),
+        (p(1., -1., 0.), p(1., 1., 0.)),
+        (p(1., 0., -1.), p(1., 0., 1.)),
+        (p(-1., 0., 1.), p(1., 0., 1.)),
+        (p(0., -1., 1.), p(0., 1., 1.)),
+    ]
+    .into_iter()
+    .map(|(a, b)| tube(&[a, b], 0.03, 8, tag))
+    .collect()
+}
+
+/// A low, faceted ball: `sides` round and `bands` from pole to pole.
+fn faceted_ball(c: DVec3, r: f64, sides: u32, bands: u32, tag: &str) -> Result<Mesh> {
+    let profile: Vec<(f64, f64)> = (0..=bands)
+        .map(|k| {
+            let a = -std::f64::consts::FRAC_PI_2
+                + std::f64::consts::PI * f64::from(k) / f64::from(bands);
+            (r * a.cos(), r * a.sin())
+        })
+        .collect();
+    Ok(deformed(revolve(&profile, sides, false, tag)?, |v| c + v))
+}
+
+/// The UV 0-1 square in the symbol plane: a Clay tile with an Ink rim.
+fn uv_square() -> Result<Vec<Mesh>> {
+    let h = 0.55;
+    Ok(vec![
+        image_tile(0., 0., h, CLAY)?,
+        bar(-h, -h, h, -h, 0.04, 0.08, "Ink")?,
+        bar(h, -h, h, h, 0.04, 0.08, "Ink")?,
+        bar(h, h, -h, h, 0.04, 0.08, "Ink")?,
+        bar(-h, h, -h, -h, 0.04, 0.08, "Ink")?,
+    ])
+}
+
+/// A UV island: a pentagon `s` across centred on (cx, cy).
+fn island(cx: f64, cy: f64, s: f64, tag: &str) -> Result<Mesh> {
+    let pts: Vec<(f64, f64)> = [
+        (-0.5, -0.4),
+        (0.4, -0.5),
+        (0.5, 0.2),
+        (0.0, 0.5),
+        (-0.5, 0.25),
+    ]
+    .iter()
+    .map(|&(x, y)| (cx + x * s, cy + y * s))
+    .collect();
+    let m = slab(&pts, 0.1, tag)?;
+    Ok(deformed(m, |v| v + DVec3::Z * 0.03))
+}
+
+/// A cyan arrow in the symbol plane, raised over the square.
+fn uv_arrow(x0: f64, y0: f64, x1: f64, y1: f64) -> Result<Mesh> {
+    arrow(
+        DVec3::new(x0, y0, 0.1),
+        DVec3::new(x1, y1, 0.1),
+        0.045,
+        "New",
+    )
+}
+
+/// A dashed line in the symbol plane.
+fn uv_dashed(x0: f64, y0: f64, x1: f64, y1: f64, tag: &str) -> Result<Vec<Mesh>> {
+    (0..5)
+        .map(|k| {
+            let (t0, t1) = (f64::from(k * 2) / 9., f64::from(k * 2 + 1) / 9.);
+            bar(
+                x0 + (x1 - x0) * t0,
+                y0 + (y1 - y0) * t0,
+                x0 + (x1 - x0) * t1,
+                y0 + (y1 - y0) * t1,
+                0.04,
+                0.14,
+                tag,
+            )
+        })
+        .collect()
+}
+
+/// A bold Ink cross over (cx, cy) in the symbol plane.
+fn uv_cross(cx: f64, cy: f64, s: f64) -> Result<Vec<Mesh>> {
+    Ok(vec![
+        bar(cx - s, cy - s, cx + s, cy + s, 0.08, 0.3, "Ink")?,
+        bar(cx - s, cy + s, cx + s, cy - s, 0.08, 0.3, "Ink")?,
+    ])
+}
+
+/// A cube with a dashed orange seam down its top-right edge.
+fn seam_cube(c: DVec3, size: f64) -> Result<Vec<Mesh>> {
+    let h = size * 0.5 + 0.01;
+    let mut parts = vec![cube_at(c, size, CLAY)?];
+    for k in 0..4 {
+        let (t0, t1) = (-1. + 0.5 * f64::from(k), -0.75 + 0.5 * f64::from(k));
+        parts.push(tube(
+            &[c + DVec3::new(h, h, h * t0), c + DVec3::new(h, h, h * t1)],
+            0.045,
+            8,
+            "Selected",
+        )?);
+        parts.push(tube(
+            &[c + DVec3::new(h, h * -t0, h), c + DVec3::new(h, h * -t1, h)],
+            0.045,
+            8,
+            "Selected",
+        )?);
+    }
+    Ok(parts)
+}
+
+/// `parts` on the UV square, in the symbol frame.
+fn on_uv(parts: Vec<Mesh>) -> Result<Mesh> {
+    let mut all = uv_square()?;
+    all.extend(parts);
+    symbol(all)
 }
 
 /// The geometry of a sample, inside the icon box.
@@ -5634,6 +6807,2766 @@ fn sample_mesh(sample: Sample) -> Result<Mesh> {
                 "New",
             )?,
         ])?,
+        Sample::SculptPush => merge(vec![
+            heightfield(
+                40,
+                0.55,
+                |x, z| -0.3 * bell((x * x + z * z).sqrt(), 0.27),
+                |_, _| CLAY,
+            )?,
+            brush_ring(0., 0., 0.05, 0.3)?,
+            arrow(
+                DVec3::new(0., 0.62, 0.),
+                DVec3::new(0., 0.02, 0.),
+                0.06,
+                "New",
+            )?,
+        ])?,
+        Sample::SculptMove => merge(vec![
+            heightfield(
+                40,
+                0.55,
+                |x, z| 0.4 * bell((x * x + z * z).sqrt(), 0.22),
+                |_, _| CLAY,
+            )?,
+            arrow(
+                DVec3::new(0., 0.44, 0.),
+                DVec3::new(0., 0.85, 0.),
+                0.06,
+                "New",
+            )?,
+        ])?,
+        Sample::SculptInflate => {
+            let dome =
+                |x: f64, z: f64| 0.34 * (1. - (x * x + z * z) / 0.36_f64.powi(2)).max(0.).sqrt();
+            let mut parts = vec![heightfield(48, 0.55, dome, |_, _| CLAY)?];
+            for a in [0.3_f64, 2.4, 4.5] {
+                let d = DVec3::new(a.cos(), 0., a.sin());
+                parts.push(arrow(
+                    d * 0.34 + DVec3::Y * 0.16,
+                    d * 0.6 + DVec3::Y * 0.22,
+                    0.05,
+                    "New",
+                )?);
+            }
+            merge(parts)?
+        }
+        Sample::SculptFold => heightfield(
+            48,
+            0.55,
+            |x, _| 0.3 * (1. - x.abs() / 0.3).max(0.),
+            |_, _| CLAY,
+        )?,
+        Sample::SculptCarve => merge(vec![
+            heightfield(
+                48,
+                0.55,
+                |x, z| -0.18 * (1. - ((x - z) / std::f64::consts::SQRT_2).abs() / 0.16).max(0.),
+                |_, _| CLAY,
+            )?,
+            brush_ring(0.25, 0.25, 0.06, 0.18)?,
+        ])?,
+        Sample::SculptScar => heightfield(
+            64,
+            0.55,
+            |x, z| {
+                let s = ((x - z) / std::f64::consts::SQRT_2).abs();
+                -0.2 * bell(s, 0.05) + 0.09 * bell(s - 0.12, 0.05)
+            },
+            |_, _| CLAY,
+        )?,
+        Sample::SculptClay => {
+            let r = |x: f64, z: f64| (x * x + z * z).sqrt();
+            merge(vec![
+                heightfield(
+                    48,
+                    0.55,
+                    |x, z| {
+                        0.13 * (1. - smooth_step(0.36, 0.4, r(x, z)))
+                            + 0.13 * (1. - smooth_step(0.18, 0.22, r(x, z)))
+                    },
+                    |_, _| CLAY,
+                )?,
+                brush_ring(0., 0., 0.4, 0.22)?,
+            ])?
+        }
+        Sample::SculptSmooth => heightfield(
+            48,
+            0.55,
+            |x, z| {
+                let rough = 1. - smooth_step(-0.25, 0.2, x - z);
+                0.07 * rough * (x * 18.).sin() * (z * 18.).sin()
+            },
+            |_, _| CLAY,
+        )?,
+        Sample::SculptAttenuate => merge(vec![
+            heightfield(
+                48,
+                0.55,
+                |x, z| {
+                    let r = (x * x + z * z).sqrt();
+                    0.06 * smooth_step(0.14, 0.34, r) * (r * 26.).sin()
+                },
+                |_, _| CLAY,
+            )?,
+            brush_ring(0., 0., 0.1, 0.26)?,
+        ])?,
+        Sample::SculptSmudge => {
+            let u = |x: f64, z: f64| (x + z) / std::f64::consts::SQRT_2;
+            let v = |x: f64, z: f64| (x - z) / std::f64::consts::SQRT_2;
+            let along = DVec3::new(1., 0., 1.).normalize();
+            merge(vec![
+                heightfield(
+                    48,
+                    0.55,
+                    |x, z| {
+                        let t = u(x, z);
+                        let tail = if t < 0. { bell(t, 0.42) } else { bell(t, 0.16) };
+                        0.24 * tail * bell(v(x, z), 0.15)
+                    },
+                    |_, _| CLAY,
+                )?,
+                arrow(
+                    -along * 0.3 + DVec3::Y * 0.36,
+                    along * 0.36 + DVec3::Y * 0.36,
+                    0.055,
+                    "New",
+                )?,
+            ])?
+        }
+        Sample::SculptFlatten => merge(vec![
+            heightfield(
+                48,
+                0.55,
+                |x, z| (0.55 * bell((x * x + z * z).sqrt(), 0.36)).min(0.24),
+                |_, _| CLAY,
+            )?,
+            brush_ring(0., 0., 0.3, 0.2)?,
+        ])?,
+        Sample::SculptEmboss => heightfield(
+            64,
+            0.55,
+            |x, z| {
+                let on = (x.abs() < 0.08 || z.abs() < 0.08) && x.abs() < 0.36 && z.abs() < 0.36;
+                if on { 0.17 } else { 0. }
+            },
+            |_, _| CLAY,
+        )?,
+        Sample::SculptSpin => {
+            let ring: Vec<DVec3> = (0..=30)
+                .map(|k| {
+                    let a = 0.5 + std::f64::consts::TAU * 0.75 * f64::from(k) / 30.;
+                    DVec3::new(0.38 * a.cos(), 0.2, 0.38 * a.sin())
+                })
+                .collect();
+            let n = ring.len();
+            merge(vec![
+                heightfield(
+                    64,
+                    0.55,
+                    |x, z| {
+                        let r = (x * x + z * z).sqrt();
+                        let a = z.atan2(x);
+                        0.13 * (3. * a + r * 14.).cos().max(0.) * bell(r, 0.42)
+                    },
+                    |_, _| CLAY,
+                )?,
+                tube(&ring[..n - 2], 0.045, 10, "New")?,
+                arrow(
+                    ring[n - 3],
+                    ring[n - 1] + (ring[n - 1] - ring[n - 3]),
+                    0.045,
+                    "New",
+                )?,
+            ])?
+        }
+        Sample::SculptCenterPinch => {
+            let mut parts = vec![heightfield(
+                64,
+                0.55,
+                |x, z| 0.46 * (1. - (x * x + z * z).sqrt() / 0.42).max(0.).powf(1.6),
+                |_, _| CLAY,
+            )?];
+            for a in [0.6_f64, 2.2, 3.8, 5.4] {
+                let d = DVec3::new(a.cos(), 0., a.sin());
+                parts.push(arrow(
+                    d * 0.58 + DVec3::Y * 0.08,
+                    d * 0.34 + DVec3::Y * 0.08,
+                    0.045,
+                    "New",
+                )?);
+            }
+            merge(parts)?
+        }
+        Sample::SculptTangentPinch => {
+            let across = DVec3::new(1., 0., -1.).normalize();
+            merge(vec![
+                heightfield(
+                    64,
+                    0.55,
+                    |x, z| {
+                        0.32 * (1. - ((x - z) / std::f64::consts::SQRT_2).abs() / 0.24)
+                            .max(0.)
+                            .powi(2)
+                    },
+                    |_, _| CLAY,
+                )?,
+                arrow(
+                    across * 0.6 + DVec3::Y * 0.1,
+                    across * 0.3 + DVec3::Y * 0.1,
+                    0.05,
+                    "New",
+                )?,
+                arrow(
+                    -across * 0.6 + DVec3::Y * 0.1,
+                    -across * 0.3 + DVec3::Y * 0.1,
+                    0.05,
+                    "New",
+                )?,
+            ])?
+        }
+        Sample::VmapPaint => merge(vec![
+            heightfield(
+                40,
+                0.55,
+                |_, _| 0.,
+                |x, z| {
+                    if (z - 0.22 * (x * 5.).sin()).abs() < 0.11 && x.abs() < 0.42 {
+                        "Axis X"
+                    } else {
+                        CLAY
+                    }
+                },
+            )?,
+            brush_ring(0.38, 0.22 * (0.38_f64 * 5.).sin(), 0.08, 0.15)?,
+        ])?,
+        Sample::VmapSmooth => heightfield(
+            64,
+            0.55,
+            |_, _| 0.,
+            |x, z| {
+                let r = (x * x + z * z).sqrt();
+                let a = z.atan2(x);
+                let edge = if x - z < 0. {
+                    0.32 + 0.07 * (9. * a).sin().signum()
+                } else {
+                    0.34
+                };
+                if r < edge { "Axis X" } else { CLAY }
+            },
+        )?,
+        Sample::VmapScaleDown => merge(vec![
+            heightfield(
+                40,
+                0.55,
+                |_, _| 0.,
+                |x, z| {
+                    if (x * x + z * z).sqrt() < 0.22 {
+                        "Axis X"
+                    } else {
+                        CLAY
+                    }
+                },
+            )?,
+            brush_ring(0., 0., 0.04, 0.4)?,
+            arrow(
+                DVec3::new(0., 0.62, 0.),
+                DVec3::new(0., 0.08, 0.),
+                0.06,
+                "New",
+            )?,
+        ])?,
+        Sample::VmapErase => merge(vec![
+            heightfield(
+                48,
+                0.55,
+                |_, _| 0.,
+                |x, z| {
+                    let stroke = ((x - z) / std::f64::consts::SQRT_2).abs() < 0.08;
+                    if (x * x + z * z).sqrt() < 0.4 && !stroke {
+                        "Axis X"
+                    } else {
+                        CLAY
+                    }
+                },
+            )?,
+            brush_ring(0.25, -0.25, 0.06, 0.14)?,
+        ])?,
+        Sample::VmapSetValue => {
+            let lift = DVec3::Y * 0.3 + toward(0.25);
+            merge(vec![
+                heightfield(24, 0.55, |_, _| 0., |_, _| "Axis X")?,
+                tube(
+                    &[flat(-0.5, 0.) + lift, flat(0.5, 0.) + lift],
+                    0.05,
+                    10,
+                    CLAY,
+                )?,
+                ball(flat(0.18, 0.) + lift, 0.11, "Selected")?,
+            ])?
+        }
+        Sample::TipSmooth => {
+            let mut p: Vec<(f64, f64)> = (0..=16)
+                .map(|k| {
+                    let r = 0.5 * f64::from(16 - k) / 16.;
+                    (r, 0.4 * bell(r, 0.22))
+                })
+                .collect();
+            p.insert(0, (0.5, -0.02));
+            brush_tip(&p)?
+        }
+        Sample::TipHard => brush_tip(&[(0.42, -0.02), (0.42, 0.3), (0.38, 0.34), (0., 0.34)])?,
+        Sample::TipSphere => {
+            let mut p: Vec<(f64, f64)> = (0..=16)
+                .map(|k| {
+                    let a = std::f64::consts::FRAC_PI_2 * f64::from(k) / 16.;
+                    (0.4 * a.cos(), 0.4 * a.sin())
+                })
+                .collect();
+            p.insert(0, (0.4, -0.02));
+            brush_tip(&p)?
+        }
+        Sample::TipProcedural => {
+            let mut p: Vec<(f64, f64)> = (0..=40)
+                .map(|k| {
+                    let r = 0.48 * f64::from(40 - k) / 40.;
+                    (
+                        r,
+                        0.05 + 0.07 * (r * 40.).cos().max(0.) + 0.18 * bell(r, 0.16),
+                    )
+                })
+                .collect();
+            p.insert(0, (0.48, -0.02));
+            brush_tip(&p)?
+        }
+        Sample::TipStamp => merge(vec![
+            brush_tip(&[(0.5, -0.02), (0.5, 0.0), (0., 0.0)])?,
+            block_by(
+                DVec3::new(-0.36, 0., -0.09),
+                DVec3::new(0.36, 0.2, 0.09),
+                "New",
+            )?,
+            block_by(
+                DVec3::new(-0.09, 0., -0.36),
+                DVec3::new(0.09, 0.2, 0.36),
+                "New",
+            )?,
+        ])?,
+        Sample::TipText => {
+            let q = glam::DQuat::from_rotation_y(-std::f64::consts::FRAC_PI_4);
+            merge(vec![
+                brush_tip(&[(0.5, -0.02), (0.5, 0.0), (0., 0.0)])?,
+                deformed(
+                    merge(vec![
+                        block_by(
+                            DVec3::new(-0.34, 0., 0.14),
+                            DVec3::new(0.34, 0.2, 0.3),
+                            "New",
+                        )?,
+                        block_by(
+                            DVec3::new(-0.08, 0., -0.36),
+                            DVec3::new(0.08, 0.2, 0.3),
+                            "New",
+                        )?,
+                    ])?,
+                    |v| q * v,
+                ),
+            ])?
+        }
+        Sample::TipTexture => {
+            let mut parts = vec![brush_tip(&[(0.5, -0.02), (0.5, 0.0), (0., 0.0)])?];
+            for i in -2..=2 {
+                for j in -2..=2 {
+                    let (x, z) = (f64::from(i) * 0.15, f64::from(j) * 0.15);
+                    if x * x + z * z > 0.16 || (i + j) % 2 != 0 {
+                        continue;
+                    }
+                    parts.push(block_by(
+                        DVec3::new(x - 0.06, 0., z - 0.06),
+                        DVec3::new(x + 0.06, 0.12, z + 0.06),
+                        "New",
+                    )?);
+                }
+            }
+            merge(parts)?
+        }
+        Sample::MirrorOperation => {
+            let mut parts = vec![
+                cube_at(flat(-0.34, -0.05), 0.4, CLAY)?,
+                block(flat(0.34, -0.05), 0.4, "New")?,
+            ];
+            parts.extend(dashed(flat(0., -0.55), flat(0., 0.45), 4)?);
+            for k in 0..3 {
+                let y = 0.36 + 0.1 * f64::from(k);
+                parts.push(block_by(
+                    flat(0.42, y) - DVec3::new(0.14, 0.025, 0.14),
+                    flat(0.42, y) + DVec3::new(0.14, 0.025, 0.14),
+                    if k == 2 { "Selected" } else { CLAY },
+                )?);
+            }
+            merge(parts)?
+        }
+        Sample::VmapTransfer => {
+            let low = deformed(heightfield(16, 0.55, |_, _| 0., |_, _| CLAY)?, |v| {
+                v - DVec3::Y * 0.42
+            });
+            let high = deformed(
+                heightfield(
+                    16,
+                    0.36,
+                    |_, _| 0.,
+                    |x, z| if x + z < 0.1 { "Axis X" } else { CLAY },
+                )?,
+                |v| v * DVec3::new(1., 0.6, 1.) + DVec3::Y * 0.22,
+            );
+            let mut parts = vec![low, high];
+            for (x, z) in [(-0.28, 0.12), (0.12, -0.28)] {
+                parts.push(arrow(
+                    DVec3::new(x, -0.38, z),
+                    DVec3::new(x, 0.08, z),
+                    0.045,
+                    "New",
+                )?);
+            }
+            merge(parts)?
+        }
+        Sample::SelectSoftEdges => {
+            deformed(retagged(rounded_cube(0.24, 8)?, "New", "Selected"), |v| {
+                v * 0.9
+            })
+        }
+        Sample::ConvertHardEdges => {
+            let mut parts = vec![cube_at(DVec3::ZERO, 0.8, CLAY)?];
+            for (a, b) in visible_cube_edges(DVec3::ZERO, 0.8) {
+                parts.push(tube(&[a, b], 0.035, 8, "Selected")?);
+            }
+            merge(parts)?
+        }
+        Sample::ToggleVertexNormals => {
+            let mut parts = vec![cube_at(DVec3::ZERO, 0.6, CLAY)?];
+            for c in [
+                DVec3::new(0.3, 0.3, 0.3),
+                DVec3::new(-0.3, 0.3, 0.3),
+                DVec3::new(0.3, 0.3, -0.3),
+                DVec3::new(0.3, -0.3, 0.3),
+            ] {
+                parts.push(arrow(c, c + c.normalize() * 0.3, 0.04, "New")?);
+            }
+            parts.push(strike(flat(-0.55, -0.5), flat(0.55, 0.5))?);
+            merge(parts)?
+        }
+        Sample::MorphToNormals => {
+            let mut parts = vec![slab(
+                &[(-0.24, -0.24), (0.24, -0.24), (0.24, 0.24), (-0.24, 0.24)],
+                0.2,
+                CLAY,
+            )?];
+            let h = 0.52;
+            for (a, b) in [
+                ((-h, -h), (h, -h)),
+                ((h, -h), (h, h)),
+                ((h, h), (-h, h)),
+                ((-h, h), (-h, -h)),
+            ] {
+                parts.push(bar(a.0, a.1, b.0, b.1, 0.05, 0.08, "New")?);
+            }
+            for (dx, dy) in [(1., 0.), (-1., 0.), (0., 1.), (0., -1.)] {
+                parts.push(arrow(
+                    DVec3::new(dx * 0.26, dy * 0.26, 0.),
+                    DVec3::new(dx * 0.48, dy * 0.48, 0.),
+                    0.045,
+                    "New",
+                )?);
+            }
+            symbol(parts)?
+        }
+        Sample::SplitNormals => {
+            let mut parts = vec![heightfield(
+                24,
+                0.5,
+                |x, _| 0.25 * (1. - x.abs() / 0.5).max(0.),
+                |_, _| CLAY,
+            )?];
+            let s = std::f64::consts::FRAC_1_SQRT_2;
+            for z in [-0.4, 0.4] {
+                let top = DVec3::new(0., 0.25, z);
+                parts.push(arrow(top, top + DVec3::new(-s, s, 0.) * 0.4, 0.04, "New")?);
+                parts.push(arrow(top, top + DVec3::new(s, s, 0.) * 0.4, 0.04, "New")?);
+            }
+            merge(parts)?
+        }
+        Sample::BakeCurvature => {
+            let h = |x: f64, z: f64| 0.08 * (x * 9.).sin() * (z * 9.).cos();
+            merge(vec![
+                heightfield(
+                    48,
+                    0.5,
+                    h,
+                    move |x, z| if h(x, z) < -0.02 { "Ink" } else { CLAY },
+                )?,
+                deformed(
+                    symbol(vec![
+                        image_tile(0., 0., 0.2, "Ink")?,
+                        slab(&[(-0.2, -0.2), (0.05, -0.2), (-0.2, 0.05)], 0.08, CLAY)?,
+                    ])?,
+                    |v| v + DVec3::new(0.42, 0.35, 0.42),
+                ),
+            ])?
+        }
+        Sample::BakeThickness => merge(vec![
+            tube_with(
+                &through(&[flat(-0.55, -0.3), flat(-0.15, -0.1)], 6),
+                |t| 0.05 + 0.08 * t,
+                16,
+                "Ink",
+            )?,
+            tube_with(
+                &through(&[flat(-0.16, -0.1), flat(0.3, 0.12)], 6),
+                |t| 0.13 + 0.12 * t,
+                20,
+                CLAY,
+            )?,
+            deformed(
+                symbol(vec![
+                    image_tile(0., 0., 0.18, CLAY)?,
+                    slab(
+                        &[(-0.18, -0.18), (0., -0.18), (0., 0.18), (-0.18, 0.18)],
+                        0.08,
+                        "Ink",
+                    )?,
+                ])?,
+                |v| v + flat(0.35, -0.38),
+            ),
+        ])?,
+        Sample::PadTexture => symbol(vec![
+            image_tile(0., 0., 0.55, CLAY)?,
+            slab(
+                &[
+                    (-0.34, -0.24),
+                    (0.2, -0.36),
+                    (0.38, 0.12),
+                    (0.0, 0.42),
+                    (-0.4, 0.2),
+                ],
+                0.08,
+                "Selected",
+            )?,
+            slab(
+                &[
+                    (-0.26, -0.17),
+                    (0.16, -0.27),
+                    (0.29, 0.1),
+                    (0.0, 0.32),
+                    (-0.31, 0.15),
+                ],
+                0.14,
+                "New",
+            )?,
+        ])?,
+        Sample::AddFurTexture => {
+            let mut parts = vec![block_by(
+                DVec3::new(-0.5, -0.4, -0.5),
+                DVec3::new(0.5, -0.3, 0.5),
+                "New",
+            )?];
+            for i in 0..5 {
+                for j in 0..5 {
+                    let (x, z) = (-0.4 + 0.2 * f64::from(i), -0.4 + 0.2 * f64::from(j));
+                    let lean = 0.06 * ((i * 3 + j * 5) % 4) as f64;
+                    parts.push(tube(
+                        &through(
+                            &[
+                                DVec3::new(x, -0.3, z),
+                                DVec3::new(x + lean * 0.4, 0.0, z),
+                                DVec3::new(x + lean, 0.2, z + lean * 0.5),
+                            ],
+                            4,
+                        ),
+                        0.025,
+                        6,
+                        CLAY,
+                    )?);
+                }
+            }
+            merge(parts)?
+        }
+        Sample::GeometryToBrush => merge(vec![
+            cube_at(flat(-0.38, 0.3), 0.34, CLAY)?,
+            arrow(flat(-0.16, 0.08), flat(0.06, -0.14), 0.05, "New")?,
+            deformed(
+                brush_tip(&[(0.5, -0.02), (0.5, 0.06), (0.36, 0.2), (0., 0.24)])?,
+                |v| v * 0.7 + flat(0.28, -0.32),
+            ),
+        ])?,
+        Sample::RelaxMesh => heightfield(
+            8,
+            0.55,
+            |x, z| {
+                let rough = 1. - smooth_step(-0.2, 0.15, x - z);
+                rough * 0.1 * ((x * 23.).sin() + (z * 17.).cos())
+            },
+            |_, _| CLAY,
+        )?,
+        Sample::VectorDisplacement => symbol(vec![
+            image_tile(-0.32, 0.22, 0.24, CLAY)?,
+            arrow(
+                DVec3::new(-0.1, 0.0, 0.),
+                DVec3::new(0.1, -0.2, 0.),
+                0.05,
+                "New",
+            )?,
+            slab(
+                &[(0.06, -0.58), (0.22, -0.58), (0.22, -0.1), (0.06, -0.1)],
+                0.1,
+                "Axis X",
+            )?,
+            slab(
+                &[(0.22, -0.58), (0.38, -0.58), (0.38, -0.1), (0.22, -0.1)],
+                0.1,
+                "Axis Y",
+            )?,
+            slab(
+                &[(0.38, -0.58), (0.54, -0.58), (0.54, -0.1), (0.38, -0.1)],
+                0.1,
+                "Axis Z",
+            )?,
+            arrow(
+                DVec3::new(0.3, -0.34, 0.05),
+                DVec3::new(0.3, -0.34, 0.45),
+                0.04,
+                "New",
+            )?,
+        ])?,
+        Sample::Remesh => {
+            let mut parts = vec![image_tile(0., 0., 0.55, CLAY)?];
+            parts.push(bar(0., -0.55, 0., 0.55, 0.05, 0.12, "Ink")?);
+            for (x0, y0, x1, y1) in [
+                (-0.55, -0.55, -0.1, 0.2),
+                (-0.1, 0.2, -0.45, 0.55),
+                (-0.55, 0.0, -0.1, 0.2),
+                (-0.3, -0.55, -0.1, 0.2),
+                (-0.3, -0.55, 0., -0.2),
+            ] {
+                parts.push(bar(x0, y0, x1, y1, 0.035, 0.1, "Ink")?);
+            }
+            for k in 1..4 {
+                let t = f64::from(k) * 0.275 - 0.55;
+                parts.push(bar(t + 0.55, -0.55, t + 0.55, 0.55, 0.035, 0.1, "New")?);
+                parts.push(bar(0., t, 0.55, t, 0.035, 0.1, "New")?);
+            }
+            symbol(parts)?
+        }
+        Sample::EnvironmentItem => {
+            let mut profile: Vec<(f64, f64)> = (0..=12)
+                .map(|k| {
+                    let a = std::f64::consts::FRAC_PI_2 * f64::from(k) / 12.;
+                    (0.55 * a.sin(), -0.12 + 0.55 * a.cos())
+                })
+                .collect();
+            profile.push((0., -0.12));
+            merge(vec![
+                revolve(&profile, 40, false, "New")?,
+                revolve(
+                    &[(0., -0.1), (0.66, -0.1), (0.66, -0.2), (0., -0.2)],
+                    40,
+                    false,
+                    CLAY,
+                )?,
+                ball(flat(0.22, 0.18) + toward(0.45), 0.12, "Glow")?,
+            ])?
+        }
+        Sample::SketchTool => {
+            let stroke = through(
+                &[
+                    flat(-0.6, -0.2),
+                    flat(-0.3, 0.1),
+                    flat(0.0, -0.25),
+                    flat(0.25, -0.05),
+                ],
+                10,
+            );
+            let tip = flat(0.25, -0.05);
+            let d = flat(0.55, 0.7).normalize();
+            merge(vec![
+                tube(&stroke, 0.045, 10, "New")?,
+                deformed(
+                    revolve(&[(0., 0.), (0.09, 0.2), (0., 0.2)], 16, false, CLAY)?,
+                    |v| tip + glam::DQuat::from_rotation_arc(DVec3::Y, d) * v,
+                ),
+                tube(&[tip + d * 0.2, tip + d * 0.62], 0.09, 6, "Selected")?,
+            ])?
+        }
+        Sample::QuickAlignTool => merge(vec![
+            cube_at(flat(0.3, 0.12), 0.42, CLAY)?,
+            cube_at(flat(-0.42, -0.3), 0.3, "Selected")?,
+            arrow(flat(-0.25, -0.2), flat(0.05, -0.02), 0.05, "New")?,
+        ])?,
+        Sample::RulerTool => {
+            let along = DVec3::new(1., 0., -1.).normalize();
+            let q = glam::DQuat::from_rotation_y(std::f64::consts::FRAC_PI_4);
+            let mut parts = vec![deformed(
+                box_by_normal(
+                    DVec3::new(-0.6, -0.04, -0.14),
+                    DVec3::new(0.6, 0.04, 0.14),
+                    |n| {
+                        if n == DVec3::Y { "Selected" } else { CLAY }
+                    },
+                )?,
+                |v| q * v,
+            )];
+            for k in 0..11 {
+                let t = -0.5 + 0.1 * f64::from(k);
+                let len = if k % 5 == 0 { 0.16 } else { 0.08 };
+                let side = q * DVec3::Z;
+                let a = along * t + side * 0.13 + DVec3::Y * 0.045;
+                parts.push(tube(&[a, a - side * len], 0.018, 6, "Ink")?);
+            }
+            merge(parts)?
+        }
+        Sample::ProtractorTool => {
+            let arc: Vec<(f64, f64)> = (0..=16)
+                .map(|k| {
+                    let a = std::f64::consts::PI * f64::from(k) / 16.;
+                    (0.55 * a.cos(), -0.25 + 0.55 * a.sin())
+                })
+                .collect();
+            let mut parts = vec![slab(&arc, 0.1, CLAY)?];
+            for k in 1..8 {
+                let a = std::f64::consts::PI * f64::from(k) / 8.;
+                let (c, s) = (a.cos(), a.sin());
+                parts.push(bar(
+                    0.42 * c,
+                    -0.25 + 0.42 * s,
+                    0.52 * c,
+                    -0.25 + 0.52 * s,
+                    0.03,
+                    0.14,
+                    "Ink",
+                )?);
+            }
+            parts.push(bar(0., -0.25, 0.3, 0.12, 0.05, 0.16, "Selected")?);
+            symbol(parts)?
+        }
+        Sample::DimensionsTool => {
+            let c = DVec3::new(0., -0.08, 0.);
+            let h = 0.3;
+            let f = DVec3::new(0., 0., 0.12);
+            let r = DVec3::new(0.12, 0., 0.);
+            merge(vec![
+                cube_at(c, 2. * h, CLAY)?,
+                two_way(
+                    c + DVec3::new(-h, -h, h) + f,
+                    c + DVec3::new(h, -h, h) + f,
+                    0.035,
+                    "New",
+                )?,
+                two_way(
+                    c + DVec3::new(h, -h, h) + r,
+                    c + DVec3::new(h, -h, -h) + r,
+                    0.035,
+                    "New",
+                )?,
+                two_way(
+                    c + DVec3::new(h, -h, -h) + r,
+                    c + DVec3::new(h, h, -h) + r,
+                    0.035,
+                    "New",
+                )?,
+            ])?
+        }
+        Sample::SnappingToggle => {
+            let mut parts = magnet(flat(0., 0.05), 0.34)?;
+            parts.push(ball(flat(0., -0.05) + toward(0.1), 0.1, "Selected")?);
+            merge(parts)?
+        }
+        Sample::PaintTarget => {
+            let mut parts = vec![image_tile(0., 0., 0.55, CLAY)?];
+            for (r, tag, z) in [
+                (0.42, "Axis X", 0.0),
+                (0.3, CLAY, 0.03),
+                (0.18, "Axis X", 0.06),
+            ] {
+                let pts: Vec<(f64, f64)> = (0..24)
+                    .map(|k| {
+                        let a = std::f64::consts::TAU * f64::from(k) / 24.;
+                        (r * a.cos(), r * a.sin())
+                    })
+                    .collect();
+                parts.push(deformed(slab(&pts, 0.06, tag)?, move |v| v + DVec3::Z * z));
+            }
+            symbol(parts)?
+        }
+        Sample::PaintAirbrush => {
+            let can = deformed(
+                merge(vec![
+                    revolve(
+                        &[
+                            (0., -0.3),
+                            (0.16, -0.3),
+                            (0.16, 0.2),
+                            (0.1, 0.28),
+                            (0., 0.28),
+                        ],
+                        24,
+                        false,
+                        CLAY,
+                    )?,
+                    revolve(
+                        &[(0., 0.28), (0.05, 0.28), (0.05, 0.36), (0., 0.36)],
+                        12,
+                        false,
+                        "Ink",
+                    )?,
+                ])?,
+                |v| v + flat(-0.32, 0.12),
+            );
+            let mut parts = vec![can];
+            for (k, (x, y)) in [
+                (0.05, 0.3),
+                (0.15, 0.22),
+                (0.12, 0.38),
+                (0.25, 0.3),
+                (0.28, 0.15),
+                (0.35, 0.4),
+                (0.4, 0.25),
+                (0.2, 0.45),
+            ]
+            .into_iter()
+            .enumerate()
+            {
+                parts.push(ball(
+                    flat(x, y) + toward(0.05 * k as f64 / 8.),
+                    0.045,
+                    "Axis X",
+                )?);
+            }
+            parts.push(deformed(
+                symbol(vec![paint_stroke(
+                    &[(-0.3, -0.35), (0.0, -0.25), (0.35, -0.4)],
+                    0.07,
+                )?])?,
+                |v| v + DVec3::Y * -0.05,
+            ));
+            merge(parts)?
+        }
+        Sample::PaintPaintbrush => {
+            let d = flat(0.6, 0.75).normalize();
+            let tip = flat(-0.2, -0.22);
+            merge(vec![
+                symbol(vec![
+                    image_tile(0., -0.05, 0.5, CLAY)?,
+                    paint_stroke(&[(-0.45, -0.3), (-0.2, -0.1), (0.05, -0.32)], 0.07)?,
+                ])?,
+                deformed(
+                    revolve(
+                        &[(0., 0.), (0.08, 0.06), (0.09, 0.18), (0., 0.18)],
+                        16,
+                        false,
+                        "Axis X",
+                    )?,
+                    |v| tip + toward(0.3) + glam::DQuat::from_rotation_arc(DVec3::Y, d) * v,
+                ),
+                tube(
+                    &[tip + toward(0.3) + d * 0.18, tip + toward(0.3) + d * 0.3],
+                    0.085,
+                    12,
+                    CLAY,
+                )?,
+                tube(
+                    &[tip + toward(0.3) + d * 0.3, tip + toward(0.3) + d * 0.85],
+                    0.06,
+                    12,
+                    "Selected",
+                )?,
+            ])?
+        }
+        Sample::PaintEraser => {
+            let mut parts = vec![symbol(vec![
+                image_tile(0., 0., 0.55, CLAY)?,
+                paint_stroke(&[(-0.45, -0.1), (-0.25, 0.0)], 0.08)?,
+                paint_stroke(&[(0.12, 0.05), (0.45, 0.15)], 0.08)?,
+            ])?];
+            let q = glam::DQuat::from_rotation_y(-0.4);
+            parts.push(deformed(
+                merge(vec![
+                    block_by(
+                        DVec3::new(-0.18, 0., -0.1),
+                        DVec3::new(0.18, 0.14, 0.1),
+                        "Axis X",
+                    )?,
+                    block_by(
+                        DVec3::new(-0.19, 0.14, -0.11),
+                        DVec3::new(0.19, 0.3, 0.11),
+                        CLAY,
+                    )?,
+                ])?,
+                move |v| q * v + flat(-0.04, -0.05) + toward(0.3),
+            ));
+            merge(parts)?
+        }
+        Sample::PaintClone => symbol(vec![
+            image_tile(0., 0., 0.55, CLAY)?,
+            paint_stroke(&[(-0.42, 0.15), (-0.3, 0.32), (-0.15, 0.18)], 0.06)?,
+            paint_stroke(&[(0.12, -0.3), (0.24, -0.13), (0.39, -0.27)], 0.06)?,
+            arrow(
+                DVec3::new(-0.2, 0.0, 0.06),
+                DVec3::new(0.1, -0.12, 0.06),
+                0.045,
+                "New",
+            )?,
+            deformed(
+                slab(
+                    &(0..20)
+                        .map(|k| {
+                            let a = std::f64::consts::TAU * f64::from(k) / 20.;
+                            (-0.3 + 0.07 * a.cos(), 0.22 + 0.07 * a.sin())
+                        })
+                        .collect::<Vec<_>>(),
+                    0.04,
+                    "Ink",
+                )?,
+                |v| v + DVec3::Z * 0.1,
+            ),
+        ])?,
+        Sample::PaintLine => symbol(vec![
+            image_tile(0., 0., 0.55, CLAY)?,
+            bar(-0.4, -0.35, 0.4, 0.35, 0.09, 0.1, "Axis X")?,
+            ball(DVec3::new(-0.4, -0.35, 0.05), 0.08, "Selected")?,
+            ball(DVec3::new(0.4, 0.35, 0.05), 0.08, "Selected")?,
+        ])?,
+        Sample::PaintFill => {
+            let q = glam::DQuat::from_rotation_z(-0.7);
+            merge(vec![
+                symbol(vec![
+                    image_tile(0., -0.1, 0.45, CLAY)?,
+                    slab(
+                        &[(-0.38, -0.5), (0.38, -0.5), (0.38, -0.05), (-0.38, -0.05)],
+                        0.07,
+                        "Axis X",
+                    )?,
+                ])?,
+                deformed(
+                    revolve(
+                        &[
+                            (0., -0.16),
+                            (0.14, -0.16),
+                            (0.19, 0.16),
+                            (0.15, 0.16),
+                            (0.11, -0.12),
+                            (0., -0.12),
+                        ],
+                        24,
+                        false,
+                        CLAY,
+                    )?,
+                    move |v| q * v + flat(-0.18, 0.34) + toward(0.3),
+                ),
+                ball(flat(0.06, 0.2) + toward(0.3), 0.06, "Axis X")?,
+            ])?
+        }
+        Sample::PaintLinearGradient => {
+            let mut parts = stripes(
+                -0.55,
+                -0.45,
+                0.55,
+                0.45,
+                &["Axis X", "Selected", "Glow", CLAY],
+                0.06,
+            )?;
+            parts.push(arrow(
+                DVec3::new(-0.42, 0., 0.08),
+                DVec3::new(0.45, 0., 0.08),
+                0.045,
+                "Ink",
+            )?);
+            symbol(parts)?
+        }
+        Sample::PaintRadialGradient => {
+            let mut parts = vec![image_tile(0., 0., 0.55, CLAY)?];
+            for (r, tag, z) in [
+                (0.46, "Glow", 0.0),
+                (0.32, "Selected", 0.02),
+                (0.18, "Axis X", 0.04),
+            ] {
+                let pts: Vec<(f64, f64)> = (0..32)
+                    .map(|k| {
+                        let a = std::f64::consts::TAU * f64::from(k) / 32.;
+                        (r * a.cos(), r * a.sin())
+                    })
+                    .collect();
+                parts.push(deformed(slab(&pts, 0.05, tag)?, move |v| v + DVec3::Z * z));
+            }
+            symbol(parts)?
+        }
+        Sample::PaintSmudge => symbol(vec![
+            image_tile(0., 0., 0.55, CLAY)?,
+            slab(
+                &[(-0.42, -0.12), (-0.18, -0.24), (0.42, 0.0), (-0.18, 0.24)],
+                0.06,
+                "Axis X",
+            )?,
+            slab(
+                &[
+                    (-0.4, -0.18),
+                    (-0.22, -0.22),
+                    (-0.16, 0.0),
+                    (-0.22, 0.22),
+                    (-0.4, 0.18),
+                ],
+                0.1,
+                "Axis X",
+            )?,
+            arrow(
+                DVec3::new(-0.2, -0.38, 0.06),
+                DVec3::new(0.4, -0.38, 0.06),
+                0.045,
+                "New",
+            )?,
+        ])?,
+        Sample::PaintBlur => merge(vec![
+            symbol(vec![
+                image_tile(0., -0.05, 0.5, CLAY)?,
+                paint_stroke(&[(-0.4, -0.25), (0.0, -0.1), (0.4, -0.3)], 0.1)?,
+            ])?,
+            deformed(
+                revolve(
+                    &[
+                        (0., -0.2),
+                        (0.17, -0.14),
+                        (0.2, 0.0),
+                        (0.12, 0.14),
+                        (0., 0.3),
+                    ],
+                    32,
+                    false,
+                    "New",
+                )?,
+                |v| v + flat(0.1, 0.25) + toward(0.3),
+            ),
+        ])?,
+        Sample::PaintSharpen => merge(vec![
+            symbol(vec![
+                image_tile(0., -0.05, 0.5, CLAY)?,
+                paint_stroke(&[(-0.4, -0.25), (0.0, -0.1), (0.4, -0.3)], 0.06)?,
+            ])?,
+            deformed(
+                revolve(&[(0., -0.22), (0.18, -0.22), (0., 0.28)], 4, false, "New")?,
+                |v| v + flat(0.05, 0.22) + toward(0.3),
+            ),
+        ])?,
+        Sample::PaintLasso => {
+            let loop_pts: Vec<DVec3> = (0..=40)
+                .map(|k| {
+                    let a = std::f64::consts::TAU * f64::from(k) / 40.;
+                    let r = 0.36 + 0.06 * (3. * a).sin();
+                    DVec3::new(r * a.cos(), 0.08 + r * a.sin() * 0.8, 0.06)
+                })
+                .collect();
+            // The fill is a plain ellipse inside the loop (a slab must be convex).
+            let fill: Vec<(f64, f64)> = (0..32)
+                .map(|k| {
+                    let a = std::f64::consts::TAU * f64::from(k) / 32.;
+                    (0.3 * a.cos(), 0.08 + 0.24 * a.sin())
+                })
+                .collect();
+            symbol(vec![
+                image_tile(0., 0., 0.55, CLAY)?,
+                slab(&fill, 0.04, "Selected")?,
+                tube(&loop_pts, 0.035, 8, "Ink")?,
+                tube(
+                    &through(
+                        &[
+                            DVec3::new(0.3, -0.16, 0.06),
+                            DVec3::new(0.38, -0.4, 0.06),
+                            DVec3::new(0.5, -0.5, 0.06),
+                        ],
+                        6,
+                    ),
+                    0.035,
+                    8,
+                    "Ink",
+                )?,
+            ])?
+        }
+        Sample::PaintSavePreset => merge(vec![
+            deformed(
+                brush_tip(&[(0.5, -0.02), (0.5, 0.04), (0.3, 0.18), (0., 0.22)])?,
+                |v| v * 0.6 + DVec3::Y * 0.35,
+            ),
+            arrow(
+                DVec3::new(0., 0.28, 0.),
+                DVec3::new(0., -0.12, 0.),
+                0.06,
+                "New",
+            )?,
+            box_by_normal(
+                DVec3::new(-0.42, -0.5, -0.42),
+                DVec3::new(0.42, -0.25, 0.42),
+                |n| {
+                    if n == DVec3::Y { "Ink" } else { CLAY }
+                },
+            )?,
+        ])?,
+        Sample::PaintNozzle => {
+            let mut parts = vec![deformed(
+                revolve(
+                    &[(0., 0.24), (0.06, 0.24), (0.2, -0.04), (0., -0.04)],
+                    24,
+                    false,
+                    CLAY,
+                )?,
+                |v| v + flat(-0.3, 0.3),
+            )];
+            for (x, y, tag) in [
+                (-0.1, 0.05, "Axis X"),
+                (0.15, 0.15, "Selected"),
+                (0.05, -0.25, "New"),
+                (0.35, -0.1, "Axis Y"),
+                (0.32, -0.42, "Axis X"),
+                (-0.2, -0.35, "Selected"),
+            ] {
+                parts.push(deformed(cube_at(DVec3::ZERO, 0.14, tag)?, move |v| {
+                    glam::DQuat::from_rotation_y(x * 4.) * v + flat(x, y)
+                }));
+            }
+            merge(parts)?
+        }
+        Sample::InkImage => merge(vec![
+            symbol(vec![
+                image_tile(0.12, 0.05, 0.42, CLAY)?,
+                slab(&[(-0.25, -0.3), (0.2, -0.3), (-0.05, 0.08)], 0.06, "Axis Y")?,
+                slab(&[(0.05, -0.3), (0.5, -0.3), (0.3, 0.0)], 0.06, "Axis Y")?,
+                ball(DVec3::new(0.32, 0.25, 0.03), 0.07, "Glow")?,
+            ])?,
+            ink_drop(flat(-0.38, -0.12) + toward(0.35), 0.62)?,
+        ])?,
+        Sample::InkParametric => {
+            let lift = toward(0.1);
+            merge(vec![
+                ink_drop(flat(-0.32, 0.1) + toward(0.3), 0.7)?,
+                tube(
+                    &[flat(0.0, 0.3) + lift, flat(0.58, 0.3) + lift],
+                    0.04,
+                    8,
+                    CLAY,
+                )?,
+                ball(flat(0.4, 0.3) + lift, 0.08, "Selected")?,
+                tube(
+                    &[flat(0.0, 0.0) + lift, flat(0.58, 0.0) + lift],
+                    0.04,
+                    8,
+                    CLAY,
+                )?,
+                ball(flat(0.15, 0.0) + lift, 0.08, "Selected")?,
+                tube(
+                    &[flat(0.0, -0.3) + lift, flat(0.58, -0.3) + lift],
+                    0.04,
+                    8,
+                    CLAY,
+                )?,
+                ball(flat(0.3, -0.3) + lift, 0.08, "Selected")?,
+            ])?
+        }
+        Sample::InkRandom => {
+            let q = glam::DQuat::from_rotation_y(0.3);
+            let mut parts = vec![
+                ink_drop(flat(-0.32, 0.1) + toward(0.3), 0.7)?,
+                deformed(cube_at(DVec3::ZERO, 0.42, CLAY)?, move |v| {
+                    q * v + flat(0.3, -0.15)
+                }),
+            ];
+            for p in [
+                DVec3::new(0., 0.215, 0.),
+                DVec3::new(0.1, 0.215, 0.1),
+                DVec3::new(-0.1, 0.215, -0.1),
+            ] {
+                parts.push(ball(q * p + flat(0.3, -0.15), 0.045, "Ink")?);
+            }
+            merge(parts)?
+        }
+        Sample::InkProjection => {
+            let d = flat(1., -0.4).normalize();
+            merge(vec![
+                ink_drop(flat(0.3, 0.12) + toward(0.3), 0.6)?,
+                cube_at(flat(-0.45, 0.2), 0.26, CLAY)?,
+                deformed(
+                    revolve(&[(0., 0.), (0.26, 0.55), (0., 0.55)], 32, false, "Glow")?,
+                    move |v| flat(-0.32, 0.15) + glam::DQuat::from_rotation_arc(DVec3::Y, d) * v,
+                ),
+            ])?
+        }
+        Sample::AddColorTexture => {
+            let mut parts = stripes(-0.5, -0.5, 0.3, 0.3, &["Axis X", "Axis Y", "Axis Z"], 0.08)?;
+            parts.push(bar(0.22, 0.4, 0.58, 0.4, 0.1, 0.16, "New")?);
+            parts.push(bar(0.4, 0.22, 0.4, 0.58, 0.1, 0.16, "New")?);
+            symbol(parts)?
+        }
+        Sample::AddDisplacementTexture => {
+            let mut parts = vec![heightfield(
+                32,
+                0.42,
+                |x, z| 0.08 * ((x * 12.).sin() * (z * 12.).sin()).max(0.),
+                |_, _| CLAY,
+            )?];
+            parts.extend(plus(DVec3::new(0.0, 0.42, 0.0), 0.36, "New")?);
+            merge(parts)?
+        }
+        Sample::AddMaskTexture => {
+            let mut parts = stripes(-0.5, -0.5, 0.3, 0.3, &["Ink", "Glow"], 0.08)?;
+            parts.push(bar(0.22, 0.4, 0.58, 0.4, 0.1, 0.16, "New")?);
+            parts.push(bar(0.4, 0.22, 0.4, 0.58, 0.1, 0.16, "New")?);
+            symbol(parts)?
+        }
+        Sample::ImageInvert => {
+            let disc = |cx: f64, cy: f64| -> Vec<(f64, f64)> {
+                (0..24)
+                    .map(|k| {
+                        let a = std::f64::consts::TAU * f64::from(k) / 24.;
+                        (cx + 0.12 * a.cos(), cy + 0.12 * a.sin())
+                    })
+                    .collect()
+            };
+            symbol(vec![
+                image_tile(-0.3, 0.25, 0.26, CLAY)?,
+                deformed(slab(&disc(-0.3, 0.25), 0.06, "Ink")?, |v| {
+                    v + DVec3::Z * 0.02
+                }),
+                image_tile(0.3, -0.25, 0.26, "Ink")?,
+                deformed(slab(&disc(0.3, -0.25), 0.06, CLAY)?, |v| {
+                    v + DVec3::Z * 0.02
+                }),
+                arrow(
+                    DVec3::new(-0.1, 0.0, 0.05),
+                    DVec3::new(0.12, -0.0, 0.05),
+                    0.045,
+                    "New",
+                )?,
+            ])?
+        }
+        Sample::ImageClear => symbol(vec![
+            image_tile(0., 0., 0.55, CLAY)?,
+            paint_stroke(&[(-0.4, -0.2), (-0.1, 0.2), (0.3, -0.1)], 0.09)?,
+            bar(-0.45, -0.45, 0.45, 0.45, 0.09, 0.3, "Ink")?,
+            bar(-0.45, 0.45, 0.45, -0.45, 0.09, 0.3, "Ink")?,
+        ])?,
+        Sample::ImageExpandSeams => {
+            let mut parts = vec![
+                image_tile(0., 0., 0.55, CLAY)?,
+                slab(
+                    &[
+                        (-0.22, -0.16),
+                        (0.14, -0.24),
+                        (0.25, 0.08),
+                        (0.0, 0.28),
+                        (-0.26, 0.14),
+                    ],
+                    0.12,
+                    "Selected",
+                )?,
+            ];
+            for (dx, dy) in [(1., 0.2), (-1., 0.1), (0.1, 1.), (0.2, -1.)] {
+                let d = DVec3::new(dx, dy, 0.).normalize();
+                parts.push(arrow(
+                    d * 0.26 + DVec3::Z * 0.06,
+                    d * 0.5 + DVec3::Z * 0.06,
+                    0.04,
+                    "New",
+                )?);
+            }
+            symbol(parts)?
+        }
+        Sample::ImageSetResolution => {
+            let mut parts = vec![image_tile(-0.08, 0.08, 0.42, CLAY)?];
+            for k in 1..4 {
+                let t = -0.5 + 0.21 * f64::from(k);
+                parts.push(bar(t + 0.0, -0.34, t, 0.5, 0.025, 0.1, "Ink")?);
+                parts.push(bar(-0.5, t + 0.16, 0.34, t + 0.16, 0.025, 0.1, "Ink")?);
+            }
+            parts.push(two_way(
+                DVec3::new(-0.5, -0.5, 0.05),
+                DVec3::new(0.34, -0.5, 0.05),
+                0.04,
+                "New",
+            )?);
+            parts.push(two_way(
+                DVec3::new(0.5, -0.34, 0.05),
+                DVec3::new(0.5, 0.5, 0.05),
+                0.04,
+                "New",
+            )?);
+            symbol(parts)?
+        }
+        Sample::ImageFlatten => {
+            let mut parts = Vec::new();
+            for (k, tag) in ["Axis X", "Selected", CLAY].into_iter().enumerate() {
+                let y = 0.42 - 0.1 * k as f64;
+                parts.push(block_by(
+                    DVec3::new(-0.3, y - 0.02, -0.3) + flat(-0.25, 0.),
+                    DVec3::new(0.3, y + 0.02, 0.3) + flat(-0.25, 0.),
+                    tag,
+                )?);
+            }
+            parts.push(arrow(flat(-0.25, 0.08), flat(0.05, -0.18), 0.05, "New")?);
+            parts.push(box_by_normal(
+                DVec3::new(-0.3, -0.45, -0.3) + flat(0.32, 0.),
+                DVec3::new(0.3, -0.37, 0.3) + flat(0.32, 0.),
+                |n| if n == DVec3::Y { "Selected" } else { CLAY },
+            )?);
+            merge(parts)?
+        }
+        Sample::DuplicateTransform => {
+            let mut parts = Vec::new();
+            for (k, x) in [-0.42, 0.0, 0.42].into_iter().enumerate() {
+                let c = flat(x, -0.1 - 0.0 * x);
+                parts.push(if k == 1 {
+                    cube_at(c, 0.28, "Selected")?
+                } else {
+                    block(c, 0.28, "New")?
+                });
+            }
+            let c = flat(0., -0.1) + DVec3::Y * 0.16;
+            parts.push(arrow(c, c + DVec3::Y * 0.42, 0.045, "Axis Y")?);
+            parts.push(arrow(c, c + DVec3::X * 0.36, 0.045, "Axis X")?);
+            parts.push(arrow(c, c + DVec3::Z * 0.36, 0.045, "Axis Z")?);
+            merge(parts)?
+        }
+        Sample::TackTool => merge(vec![
+            heightfield(8, 0.55, |_, _| 0., |_, _| CLAY)?,
+            cube_at(DVec3::new(0., 0.14, 0.), 0.28, "Selected")?,
+            tube(
+                &[DVec3::new(0., 0.05, 0.), DVec3::new(0., 0.55, 0.)],
+                0.025,
+                8,
+                "Ink",
+            )?,
+            ball(DVec3::new(0., 0.6, 0.), 0.1, "Axis X")?,
+        ])?,
+        Sample::SolidDrill | Sample::AxisDrill => {
+            let mut parts = vec![
+                box_by_normal(
+                    DVec3::new(-0.42, -0.36, -0.42),
+                    DVec3::new(0.42, -0.06, 0.42),
+                    |_| CLAY,
+                )?,
+                deformed(
+                    revolve(
+                        &[(0., -0.5), (0.18, -0.5), (0.18, 0.3), (0., 0.3)],
+                        6,
+                        false,
+                        "New",
+                    )?,
+                    |v| v + DVec3::new(0.05, 0., 0.05),
+                ),
+            ];
+            if sample == Sample::AxisDrill {
+                parts.push(arrow(
+                    DVec3::new(0.05, 0.32, 0.05),
+                    DVec3::new(0.05, 0.75, 0.05),
+                    0.05,
+                    "Axis Y",
+                )?);
+            }
+            merge(parts)?
+        }
+        Sample::CurveBoolean => {
+            let (ca, cb, r) = (flat(-0.18, 0.05), flat(0.18, -0.05), 0.34);
+            let a = circle_points(ca, r, 48);
+            let b = circle_points(cb, r, 48);
+            let outside = |pts: &[DVec3], c: DVec3| -> Vec<Vec<DVec3>> {
+                let mut runs: Vec<Vec<DVec3>> = vec![Vec::new()];
+                for &p in pts {
+                    if p.distance(c) > r {
+                        runs.last_mut().unwrap().push(p + toward(0.05));
+                    } else if !runs.last().unwrap().is_empty() {
+                        runs.push(Vec::new());
+                    }
+                }
+                runs.into_iter().filter(|r| r.len() > 1).collect()
+            };
+            let mut parts = vec![tube(&a, 0.03, 8, CLAY)?, tube(&b, 0.03, 8, CLAY)?];
+            for run in outside(&a, cb).into_iter().chain(outside(&b, ca)) {
+                parts.push(tube(&run, 0.05, 10, "Selected")?);
+            }
+            merge(parts)?
+        }
+        Sample::AutoRetopology => {
+            let mut parts = vec![ball(DVec3::ZERO, 0.42, CLAY)?];
+            for k in 1..5 {
+                let a = -std::f64::consts::FRAC_PI_2 + std::f64::consts::PI * f64::from(k) / 5.;
+                let (y, r) = (0.44 * a.sin(), 0.44 * a.cos());
+                let ring: Vec<DVec3> = (0..=16)
+                    .map(|j| {
+                        let t = -std::f64::consts::FRAC_PI_4
+                            + std::f64::consts::PI * f64::from(j) / 16.;
+                        DVec3::new(r * t.cos(), y, -r * t.sin())
+                    })
+                    .collect();
+                parts.push(tube(&ring, 0.02, 6, "New")?);
+            }
+            for j in 0..5 {
+                let t = -std::f64::consts::FRAC_PI_4 + std::f64::consts::PI * f64::from(j) / 4.;
+                let meridian: Vec<DVec3> = (0..=16)
+                    .map(|k| {
+                        let a = -std::f64::consts::FRAC_PI_2
+                            + std::f64::consts::PI * f64::from(k) / 16.;
+                        DVec3::new(
+                            0.44 * a.cos() * t.cos(),
+                            0.44 * a.sin(),
+                            -0.44 * a.cos() * t.sin(),
+                        )
+                    })
+                    .collect();
+                parts.push(tube(&meridian, 0.02, 6, "New")?);
+            }
+            merge(parts)?
+        }
+        Sample::RetopoSketch => {
+            let path = through(
+                &[
+                    DVec3::new(-0.45, 0.02, 0.2),
+                    DVec3::new(0., 0.02, -0.05),
+                    DVec3::new(0.45, 0.02, 0.15),
+                ],
+                6,
+            );
+            let mut parts = vec![heightfield(8, 0.55, |_, _| 0., |_, _| CLAY)?];
+            for w in path.windows(2).step_by(2) {
+                let mid = (w[0] + w[1]) * 0.5;
+                parts.push(block_by(
+                    mid - DVec3::new(0.06, 0.0, 0.1),
+                    mid + DVec3::new(0.06, 0.05, 0.1),
+                    "New",
+                )?);
+            }
+            parts.push(tube(
+                &path
+                    .iter()
+                    .map(|p| *p + DVec3::Y * 0.08)
+                    .collect::<Vec<_>>(),
+                0.03,
+                8,
+                "Selected",
+            )?);
+            merge(parts)?
+        }
+        Sample::RetopoEdgeLock => {
+            let mut parts = vec![
+                heightfield(8, 0.55, |_, _| 0., |_, _| CLAY)?,
+                tube(
+                    &[DVec3::new(-0.5, 0.03, 0.3), DVec3::new(0.5, 0.03, -0.3)],
+                    0.045,
+                    8,
+                    "Selected",
+                )?,
+            ];
+            parts.extend(padlock(DVec3::new(0., 0.3, 0.), 0.56)?);
+            merge(parts)?
+        }
+        Sample::RetopoEdgeFlow => {
+            let ring: Vec<DVec3> = (0..=40)
+                .map(|k| {
+                    let a = std::f64::consts::TAU * f64::from(k) / 40.;
+                    DVec3::new(0.36 * a.cos(), 0.03, 0.36 * a.sin())
+                })
+                .collect();
+            merge(vec![
+                heightfield(8, 0.55, |_, _| 0., |_, _| CLAY)?,
+                tube(&ring[..34], 0.045, 8, "New")?,
+                arrow(ring[32], ring[35] + (ring[35] - ring[33]), 0.05, "New")?,
+            ])?
+        }
+        Sample::CurveFreeze => {
+            let path = through(
+                &[
+                    flat(-0.6, -0.3),
+                    flat(-0.2, 0.2),
+                    flat(0.2, -0.1),
+                    flat(0.6, 0.35),
+                ],
+                10,
+            );
+            let n = path.len();
+            merge(vec![
+                tube(&path[..n / 2 + 1], 0.05, 10, "New")?,
+                ribbon(&path[n / 2..], 0.3, CLAY)?,
+            ])?
+        }
+        Sample::CurveMakeOpen => {
+            let path = through(
+                &[
+                    flat(-0.55, -0.3),
+                    flat(-0.2, 0.25),
+                    flat(0.2, -0.15),
+                    flat(0.55, 0.3),
+                ],
+                10,
+            );
+            merge(vec![
+                tube(&path, 0.05, 10, "New")?,
+                ball(path[0], 0.1, "Selected")?,
+                ball(*path.last().unwrap(), 0.1, "Selected")?,
+            ])?
+        }
+        Sample::CurveMakeClosed => {
+            let mut parts = vec![tube(
+                &circle_points(DVec3::ZERO, 0.45, 48),
+                0.05,
+                10,
+                "New",
+            )?];
+            for k in 0..4 {
+                let a = std::f64::consts::FRAC_PI_2 * f64::from(k) + 0.4;
+                parts.push(ball(flat(0.45 * a.cos(), 0.45 * a.sin()), 0.08, CLAY)?);
+            }
+            merge(parts)?
+        }
+        Sample::CurveMakeFill => {
+            let pts: Vec<(f64, f64)> = (0..32)
+                .map(|k| {
+                    let a = std::f64::consts::TAU * f64::from(k) / 32.;
+                    (0.42 * a.cos(), 0.42 * a.sin())
+                })
+                .collect();
+            merge(vec![
+                symbol(vec![slab(&pts, 0.04, "New")?])?,
+                tube(&circle_points(toward(0.05), 0.47, 48), 0.045, 10, CLAY)?,
+            ])?
+        }
+        Sample::EdgesToCurves => {
+            let edges = [
+                flat(-0.6, -0.1),
+                flat(-0.4, 0.25),
+                flat(-0.15, -0.05),
+                flat(-0.0, 0.3),
+            ];
+            let mut parts = vec![tube(&edges, 0.04, 8, "Selected")?];
+            for &e in &edges {
+                parts.push(ball(e, 0.06, "Selected")?);
+            }
+            parts.push(arrow(flat(0.0, 0.05), flat(0.2, -0.12), 0.045, "New")?);
+            parts.push(tube(
+                &through(
+                    &[
+                        flat(0.15, -0.45),
+                        flat(0.3, -0.15),
+                        flat(0.45, -0.4),
+                        flat(0.6, -0.05),
+                    ],
+                    10,
+                ),
+                0.05,
+                10,
+                "New",
+            )?);
+            merge(parts)?
+        }
+        Sample::CurveOffsetOpen | Sample::CurveOffsetTrio => {
+            let base = [
+                flat(-0.55, -0.4),
+                flat(-0.15, 0.05),
+                flat(0.2, -0.2),
+                flat(0.55, 0.2),
+            ];
+            let mut parts = vec![tube(&through(&base, 10), 0.05, 10, CLAY)?];
+            let offsets: &[f64] = if sample == Sample::CurveOffsetTrio {
+                &[0.18, 0.36, 0.54]
+            } else {
+                &[0.25]
+            };
+            for &d in offsets {
+                let shifted: Vec<DVec3> = base.iter().map(|p| *p + flat(-0.0, d)).collect();
+                parts.push(tube(&through(&shifted, 10), 0.045, 10, "New")?);
+            }
+            merge(parts)?
+        }
+        Sample::CurveOffsetClosed => merge(vec![
+            tube(&circle_points(DVec3::ZERO, 0.28, 40), 0.05, 10, CLAY)?,
+            tube(&circle_points(DVec3::ZERO, 0.5, 48), 0.045, 10, "New")?,
+        ])?,
+        Sample::CurveConvert => {
+            let path = through(
+                &[
+                    flat(-0.55, -0.3),
+                    flat(-0.2, 0.25),
+                    flat(0.2, -0.15),
+                    flat(0.55, 0.3),
+                ],
+                10,
+            );
+            merge(vec![
+                tube(&path, 0.045, 10, "New")?,
+                ball(flat(-0.55, -0.3), 0.09, CLAY)?,
+                ball(flat(-0.2, 0.25), 0.09, CLAY)?,
+                cube_at(flat(0.2, -0.15), 0.17, "Selected")?,
+                cube_at(flat(0.55, 0.3), 0.17, "Selected")?,
+            ])?
+        }
+        Sample::BezierTangent => {
+            let path = through(&[flat(-0.6, -0.3), flat(0., 0.1), flat(0.6, -0.25)], 12);
+            let k = flat(0., 0.1);
+            merge(
+                curve_parts(&path, &[k], &[(k, flat(0.34, 0.12))])?
+                    .into_iter()
+                    .chain([
+                        tube(
+                            &[k + toward(0.05), k - flat(0.34, 0.12) + toward(0.05)],
+                            0.03,
+                            8,
+                            "Selected",
+                        )?,
+                        ball(k - flat(0.34, 0.12), 0.07, "Selected")?,
+                    ])
+                    .collect(),
+            )?
+        }
+        Sample::CurveColor => {
+            let path = through(
+                &[
+                    flat(-0.6, 0.1),
+                    flat(-0.25, 0.45),
+                    flat(0.15, 0.2),
+                    flat(0.5, 0.45),
+                ],
+                10,
+            );
+            let mut parts = vec![tube(&path, 0.05, 10, "New")?];
+            for (k, tag) in ["Axis X", "Selected", "Axis Z"].into_iter().enumerate() {
+                parts.push(cube_at(flat(-0.3 + 0.3 * k as f64, -0.3), 0.22, tag)?);
+            }
+            merge(parts)?
+        }
+        Sample::CurveWinding => {
+            let mut parts = Vec::new();
+            for (cx, r) in [(-0.3, 0.26), (0.3, 0.26)] {
+                let pts = circle_points(flat(cx, 0.), r, 40);
+                parts.push(tube(&pts[..30], 0.045, 8, "New")?);
+                parts.push(arrow(pts[28], pts[31] + (pts[31] - pts[29]), 0.05, "New")?);
+            }
+            merge(parts)?
+        }
+        Sample::EditCut => {
+            let mut parts = Vec::new();
+            for (a, b) in visible_cube_edges(DVec3::new(0., -0.18, 0.), 0.46) {
+                parts.extend(dashed(a, b, 2)?);
+            }
+            parts.push(cube_at(
+                DVec3::new(0., -0.18, 0.) + flat(0.3, 0.42),
+                0.4,
+                "Selected",
+            )?);
+            merge(parts)?
+        }
+        Sample::EditPaste => {
+            let board = block_by(
+                DVec3::new(-0.38, -0.5, -0.06),
+                DVec3::new(0.38, 0.45, 0.0),
+                CLAY,
+            )?;
+            let q = glam::DQuat::from_rotation_y(std::f64::consts::FRAC_PI_4);
+            merge(vec![
+                deformed(board, move |v| q * v),
+                deformed(
+                    block_by(
+                        DVec3::new(-0.16, 0.38, -0.08),
+                        DVec3::new(0.16, 0.52, 0.04),
+                        "Ink",
+                    )?,
+                    move |v| q * v,
+                ),
+                block(DVec3::new(0.0, -0.08, 0.0) + toward(0.25), 0.36, "New")?,
+            ])?
+        }
+        Sample::PasteTool => merge(vec![
+            heightfield(8, 0.55, |_, _| 0., |_, _| CLAY)?,
+            block(DVec3::new(0., 0.18, 0.), 0.34, "New")?,
+            arrow(
+                DVec3::new(0., 0.75, 0.),
+                DVec3::new(0., 0.38, 0.),
+                0.05,
+                "New",
+            )?,
+        ])?,
+        Sample::DrawPatch => {
+            let h = |x: f64, z: f64| 0.12 * (1. - (x * x + z * z) / 0.5);
+            let mut parts = vec![heightfield(16, 0.4, h, |_, _| "New")?];
+            for (a, b) in [
+                ((-0.4, -0.4), (0.4, -0.4)),
+                ((0.4, -0.4), (0.4, 0.4)),
+                ((0.4, 0.4), (-0.4, 0.4)),
+                ((-0.4, 0.4), (-0.4, -0.4)),
+            ] {
+                let pts: Vec<DVec3> = (0..=8)
+                    .map(|k| {
+                        let t = f64::from(k) / 8.;
+                        let (x, z) = (a.0 + (b.0 - a.0) * t, a.1 + (b.1 - a.1) * t);
+                        DVec3::new(x, h(x, z) + 0.02, z)
+                    })
+                    .collect();
+                parts.push(tube(&pts, 0.04, 8, "Selected")?);
+            }
+            merge(parts)?
+        }
+        Sample::SolidSketchTool => {
+            let path = through(
+                &[
+                    flat(-0.55, -0.35),
+                    flat(-0.15, 0.2),
+                    flat(0.25, -0.1),
+                    flat(0.55, 0.35),
+                ],
+                12,
+            );
+            let n = path.len();
+            merge(vec![
+                tube_with(&path[..n * 2 / 3], |t| 0.06 + 0.1 * t, 16, CLAY)?,
+                tube(&path[n * 2 / 3 - 1..], 0.04, 8, "Selected")?,
+            ])?
+        }
+        Sample::DeformPush => {
+            let mut parts = vec![cube_at(DVec3::ZERO, 0.6, CLAY)?];
+            for a in [DVec3::X, DVec3::Y, DVec3::Z] {
+                parts.push(arrow(a * 0.3, a * 0.62, 0.05, "New")?);
+            }
+            merge(parts)?
+        }
+        Sample::DeformSmooth => {
+            let ball_mesh = ball(DVec3::ZERO, 0.45, CLAY)?;
+            deformed(ball_mesh, |v| {
+                let rough = 1. - smooth_step(-0.2, 0.2, v.x - v.z);
+                v * (1. + rough * 0.12 * (v.x * 30.).sin() * (v.y * 30.).cos())
+            })
+        }
+        Sample::ElementMove => merge(vec![
+            soft_patch(0.0)?,
+            ball(DVec3::new(0., 0.05, 0.), 0.07, "Selected")?,
+            two_way(
+                DVec3::new(-0.34, 0.06, 0.),
+                DVec3::new(0.34, 0.06, 0.),
+                0.04,
+                "New",
+            )?,
+            two_way(
+                DVec3::new(0., 0.06, -0.34),
+                DVec3::new(0., 0.06, 0.34),
+                0.04,
+                "New",
+            )?,
+        ])?,
+        Sample::ElementPush => merge(vec![
+            soft_patch(-0.2)?,
+            arrow(
+                DVec3::new(0., 0.5, 0.),
+                DVec3::new(0., -0.12, 0.),
+                0.05,
+                "New",
+            )?,
+        ])?,
+        Sample::DeformFlex => {
+            let path = through(
+                &[
+                    DVec3::new(0., -0.55, 0.),
+                    DVec3::new(0.0, -0.2, 0.),
+                    flat(0.28, 0.1),
+                    DVec3::new(0., 0.4, 0.),
+                    DVec3::new(0., 0.6, 0.),
+                ],
+                8,
+            );
+            merge(vec![
+                tube(&path, 0.15, 20, CLAY)?,
+                ball(flat(0.28, 0.1), 0.12, "Selected")?,
+                arrow(
+                    flat(0.42, 0.1) + toward(0.1),
+                    flat(0.68, 0.1) + toward(0.1),
+                    0.05,
+                    "New",
+                )?,
+            ])?
+        }
+        Sample::DeformJitter => {
+            let mut parts = Vec::new();
+            for i in 0..3 {
+                for j in 0..3 {
+                    let (x, z) = (-0.36 + 0.36 * f64::from(i), -0.36 + 0.36 * f64::from(j));
+                    let wob = ((i * 7 + j * 3) % 5) as f64 / 5. - 0.4;
+                    let q = glam::DQuat::from_rotation_y(wob * 1.2)
+                        * glam::DQuat::from_rotation_x(wob * 0.6);
+                    let c = DVec3::new(x + wob * 0.08, wob * 0.12, z - wob * 0.06);
+                    parts.push(deformed(
+                        cube_at(
+                            DVec3::ZERO,
+                            0.22,
+                            if i == 1 && j == 1 { "Selected" } else { CLAY },
+                        )?,
+                        move |v| c + q * v,
+                    ));
+                }
+            }
+            merge(parts)?
+        }
+        Sample::LinearAlign => {
+            let mut parts = vec![tube(&[flat(-0.6, -0.3), flat(0.6, 0.3)], 0.03, 8, "New")?];
+            for (t, off) in [(-0.5, 0.0), (-0.2, 0.25), (0.1, 0.0), (0.4, -0.25)] {
+                let on = flat(t, t * 0.5);
+                if off == 0. {
+                    parts.push(ball(on, 0.09, "Selected")?);
+                } else {
+                    let from = on + flat(0., off);
+                    parts.push(ball(from, 0.08, CLAY)?);
+                    parts.push(arrow(
+                        from + flat(0., -off.signum() * 0.09),
+                        on + flat(0., off.signum() * 0.1),
+                        0.035,
+                        "New",
+                    )?);
+                }
+            }
+            merge(parts)?
+        }
+        Sample::RadialAlign => {
+            let mut parts = vec![tube(&circle_points(DVec3::ZERO, 0.42, 48), 0.03, 8, "New")?];
+            for k in 0..6 {
+                let a = std::f64::consts::TAU * f64::from(k) / 6. + 0.3;
+                parts.push(ball(
+                    flat(0.42 * a.cos(), 0.42 * a.sin()),
+                    0.09,
+                    "Selected",
+                )?);
+            }
+            merge(parts)?
+        }
+        Sample::DeformQuantize => heightfield(
+            32,
+            0.55,
+            |x, z| 0.13 * ((x + z) * 2.2 + 2.).floor().clamp(0., 4.),
+            |_, _| CLAY,
+        )?,
+        Sample::DeformSculpt => merge(vec![
+            heightfield(
+                40,
+                0.55,
+                |x, z| 0.24 * bell(((x - 0.1).powi(2) + (z + 0.1).powi(2)).sqrt(), 0.22),
+                |_, _| CLAY,
+            )?,
+            brush_ring(0.1, -0.1, 0.27, 0.22)?,
+        ])?,
+        Sample::SoftDrag => merge(vec![
+            soft_patch(0.28)?,
+            arrow(
+                DVec3::new(0., 0.32, 0.),
+                DVec3::new(0.0, 0.32, 0.) + flat(0.45, 0.2),
+                0.05,
+                "New",
+            )?,
+        ])?,
+        Sample::SoftMove => merge(vec![
+            soft_patch(0.28)?,
+            arrow(
+                DVec3::new(0., 0.32, 0.),
+                DVec3::new(0., 0.75, 0.),
+                0.055,
+                "New",
+            )?,
+        ])?,
+        Sample::SoftSelectionMove | Sample::SoftSelectionTransform => {
+            let c = DVec3::new(0., 0.3, 0.);
+            let mut parts = vec![soft_patch(0.28)?];
+            for (a, tag) in [
+                (DVec3::X, "Axis X"),
+                (DVec3::Y, "Axis Y"),
+                (DVec3::Z, "Axis Z"),
+            ] {
+                parts.push(arrow(c, c + a * 0.42, 0.04, tag)?);
+                if sample == Sample::SoftSelectionTransform {
+                    parts.push(block(c + a * 0.26, 0.08, tag)?);
+                }
+            }
+            if sample == Sample::SoftSelectionTransform {
+                let ring: Vec<DVec3> = (0..=40)
+                    .map(|k| {
+                        let t = std::f64::consts::TAU * f64::from(k) / 40.;
+                        c + DVec3::new(0.3 * t.cos(), 0., 0.3 * t.sin())
+                    })
+                    .collect();
+                parts.push(tube(&ring, 0.025, 8, "Axis Y")?);
+            }
+            merge(parts)?
+        }
+        Sample::SoftSelectionRotate => {
+            let c = DVec3::new(0., 0.3, 0.);
+            let ring = |axis: DVec3, tag: &str| -> Result<Mesh> {
+                let side = axis.any_orthonormal_vector();
+                let up = axis.cross(side);
+                let pts: Vec<DVec3> = (0..=40)
+                    .map(|k| {
+                        let t = std::f64::consts::TAU * f64::from(k) / 40.;
+                        c + (side * t.cos() + up * t.sin()) * 0.3
+                    })
+                    .collect();
+                tube(&pts, 0.025, 8, tag)
+            };
+            merge(vec![
+                soft_patch(0.28)?,
+                ring(DVec3::X, "Axis X")?,
+                ring(DVec3::Y, "Axis Y")?,
+                ring(DVec3::Z, "Axis Z")?,
+            ])?
+        }
+        Sample::SoftSelectionScale => {
+            let c = DVec3::new(0., 0.3, 0.);
+            let mut parts = vec![soft_patch(0.28)?];
+            for (a, tag) in [
+                (DVec3::X, "Axis X"),
+                (DVec3::Y, "Axis Y"),
+                (DVec3::Z, "Axis Z"),
+            ] {
+                parts.push(tube(&[c, c + a * 0.36], 0.025, 8, tag)?);
+                parts.push(block(c + a * 0.38, 0.1, tag)?);
+            }
+            merge(parts)?
+        }
+        Sample::DeformSwirl => {
+            let spiral: Vec<DVec3> = (0..=60)
+                .map(|k| {
+                    let t = f64::from(k) / 60.;
+                    let a = t * std::f64::consts::TAU * 1.6;
+                    let r = 0.05 + 0.4 * t;
+                    DVec3::new(r * a.cos(), 0.03, r * a.sin())
+                })
+                .collect();
+            merge(vec![
+                heightfield(8, 0.55, |_, _| 0., |_, _| CLAY)?,
+                tube(&spiral, 0.045, 8, "New")?,
+            ])?
+        }
+        Sample::DeformVortex => {
+            let helix: Vec<DVec3> = (0..=80)
+                .map(|k| {
+                    let t = f64::from(k) / 80.;
+                    let a = t * std::f64::consts::TAU * 3.;
+                    let r = 0.08 + 0.4 * t;
+                    DVec3::new(r * a.cos(), -0.5 + t, r * a.sin())
+                })
+                .collect();
+            tube(&helix, 0.05, 8, "New")?
+        }
+        Sample::RadialSweepTool => {
+            let arc: Vec<DVec3> = (0..=30)
+                .map(|k| {
+                    let a = 1.5 * std::f64::consts::PI * f64::from(k) / 30.;
+                    DVec3::new(0.38 * a.cos(), -0.1, 0.38 * a.sin())
+                })
+                .collect();
+            merge(vec![
+                tube(&arc, 0.14, 16, CLAY)?,
+                block_by(
+                    DVec3::new(0.24, -0.26, -0.01),
+                    DVec3::new(0.52, 0.06, 0.03),
+                    "Selected",
+                )?,
+                tube(
+                    &[DVec3::new(0., -0.5, 0.), DVec3::new(0., 0.5, 0.)],
+                    0.03,
+                    8,
+                    "Axis Y",
+                )?,
+            ])?
+        }
+        Sample::EdgeSliceTool => {
+            let h = 0.3;
+            merge(vec![
+                cube_at(DVec3::ZERO, 2. * h, CLAY)?,
+                tube(
+                    &[
+                        DVec3::new(-h, h + 0.01, -0.1),
+                        DVec3::new(h + 0.01, h + 0.01, 0.15),
+                        DVec3::new(h + 0.01, -h, 0.0),
+                    ],
+                    0.035,
+                    8,
+                    "New",
+                )?,
+            ])?
+        }
+        Sample::PolygonSliceTool => symbol(vec![
+            slab(
+                &[(-0.5, -0.38), (0.45, -0.45), (0.5, 0.4), (-0.42, 0.45)],
+                0.08,
+                CLAY,
+            )?,
+            bar(-0.6, 0.3, 0.6, -0.3, 0.06, 0.14, "New")?,
+        ])?,
+        Sample::CurveSliceTool => {
+            let h = 0.3;
+            let pts: Vec<DVec3> = (0..=16)
+                .map(|k| {
+                    let t = f64::from(k) / 16.;
+                    DVec3::new(-h + 2. * h * t, h + 0.01, 0.12 * (t * 6.).sin())
+                })
+                .collect();
+            merge(vec![
+                cube_at(DVec3::ZERO, 2. * h, CLAY)?,
+                tube(&pts, 0.035, 8, "New")?,
+            ])?
+        }
+        Sample::PenSliceTool => {
+            let h = 0.3;
+            let pts = [
+                DVec3::new(-h, h + 0.01, 0.1),
+                DVec3::new(-0.05, h + 0.01, -0.15),
+                DVec3::new(0.12, h + 0.01, 0.12),
+                DVec3::new(h, h + 0.01, -0.05),
+            ];
+            let mut parts = vec![
+                cube_at(DVec3::ZERO, 2. * h, CLAY)?,
+                tube(&pts, 0.035, 8, "New")?,
+            ];
+            for p in pts {
+                parts.push(ball(p, 0.055, "Selected")?);
+            }
+            merge(parts)?
+        }
+        Sample::AxisSliceTool => merge(vec![
+            cube_at(DVec3::ZERO, 0.6, CLAY)?,
+            block_by(
+                DVec3::new(-0.01, -0.45, -0.45),
+                DVec3::new(0.01, 0.45, 0.45),
+                "New",
+            )?,
+            arrow(
+                DVec3::new(0.0, 0., 0.0),
+                DVec3::new(0.65, 0., 0.0),
+                0.05,
+                "Axis X",
+            )?,
+        ])?,
+        Sample::PrimitiveSliceTool => {
+            let h = 0.3;
+            let ring: Vec<DVec3> = (0..=40)
+                .map(|k| {
+                    let t = std::f64::consts::TAU * f64::from(k) / 40.;
+                    DVec3::new(0.18 * t.cos(), h + 0.01, 0.18 * t.sin())
+                })
+                .collect();
+            merge(vec![
+                cube_at(DVec3::ZERO, 2. * h, CLAY)?,
+                tube(&ring, 0.035, 8, "New")?,
+            ])?
+        }
+        Sample::FreezeSubdivision => merge(vec![
+            ball(flat(-0.32, 0.22), 0.24, CLAY)?,
+            arrow(flat(-0.08, 0.0), flat(0.12, -0.18), 0.05, "New")?,
+            faceted_ball(flat(0.32, -0.25), 0.26, 6, 4, "Selected")?,
+        ])?,
+        Sample::SdsSubdivide => {
+            let mut parts = vec![ball(DVec3::ZERO, 0.36, CLAY)?];
+            for (a, b) in visible_cube_edges(DVec3::ZERO, 0.8) {
+                parts.push(tube(&[a, b], 0.025, 6, "Ink")?);
+            }
+            merge(parts)?
+        }
+        Sample::SubdivideSmooth => {
+            let mut parts = vec![faceted_ball(DVec3::ZERO, 0.45, 12, 8, CLAY)?];
+            for k in 1..4 {
+                let a = -std::f64::consts::FRAC_PI_2 + std::f64::consts::PI * f64::from(k) / 4.;
+                let pts: Vec<DVec3> = (0..=24)
+                    .map(|j| {
+                        let t = std::f64::consts::TAU * f64::from(j) / 24.;
+                        DVec3::new(
+                            0.46 * a.cos() * t.cos(),
+                            0.46 * a.sin(),
+                            0.46 * a.cos() * t.sin(),
+                        )
+                    })
+                    .collect();
+                parts.push(tube(&pts, 0.025, 6, "New")?);
+            }
+            merge(parts)?
+        }
+        Sample::SubdivideFaceted => {
+            let mut parts = vec![cube_at(DVec3::ZERO, 0.7, CLAY)?];
+            parts.extend(cube_cross_lines(DVec3::ZERO, 0.7, "New")?);
+            merge(parts)?
+        }
+        Sample::SubdivideOptions => {
+            let mut parts = vec![cube_at(flat(-0.15, 0.1), 0.5, CLAY)?];
+            parts.extend(cube_cross_lines(flat(-0.15, 0.1), 0.5, "New")?);
+            for (y, k) in [(-0.3, 0.35), (-0.48, 0.5)] {
+                parts.push(tube(
+                    &[flat(0.0, y) + toward(0.3), flat(0.6, y) + toward(0.3)],
+                    0.03,
+                    8,
+                    CLAY,
+                )?);
+                parts.push(ball(flat(k, y) + toward(0.3), 0.07, "Selected")?);
+            }
+            merge(parts)?
+        }
+        Sample::Unsubdivide => {
+            let mut parts = vec![cube_at(DVec3::ZERO, 0.7, CLAY)?];
+            parts.extend(cube_cross_lines(DVec3::ZERO, 0.7, "Ink")?);
+            parts.push(minus(flat(0.38, 0.42), 0.3, "Ink")?);
+            merge(parts)?
+        }
+        Sample::FlattenNgons => {
+            let hex: Vec<(f64, f64)> = (0..6)
+                .map(|k| {
+                    let a = std::f64::consts::TAU * f64::from(k) / 6.;
+                    (0.42 * a.cos(), 0.3 * a.sin())
+                })
+                .collect();
+            symbol(vec![
+                slab(&hex, 0.08, "Selected")?,
+                arrow(
+                    DVec3::new(0., 0.58, 0.05),
+                    DVec3::new(0., 0.33, 0.05),
+                    0.045,
+                    "New",
+                )?,
+                arrow(
+                    DVec3::new(0., -0.58, 0.05),
+                    DVec3::new(0., -0.33, 0.05),
+                    0.045,
+                    "New",
+                )?,
+            ])?
+        }
+        Sample::PolyReduct => merge(vec![
+            faceted_ball(flat(-0.32, 0.22), 0.25, 24, 16, CLAY)?,
+            arrow(flat(-0.08, 0.0), flat(0.12, -0.18), 0.05, "New")?,
+            faceted_ball(flat(0.32, -0.25), 0.25, 5, 3, CLAY)?,
+        ])?,
+        Sample::VertexCreate => {
+            let mut parts = vec![heightfield(4, 0.5, |_, _| 0., |_, _| CLAY)?];
+            parts.push(ball(DVec3::new(0., 0.14, 0.), 0.1, "New")?);
+            parts.extend(plus(DVec3::new(0.3, 0.3, -0.3), 0.3, "New")?);
+            merge(parts)?
+        }
+        Sample::TransformGizmo => {
+            let mut parts = vec![ball(DVec3::ZERO, 0.1, CLAY)?];
+            for (a, tag) in [
+                (DVec3::X, "Axis X"),
+                (DVec3::Y, "Axis Y"),
+                (DVec3::Z, "Axis Z"),
+            ] {
+                parts.push(arrow(a * 0.1, a * 0.62, 0.045, tag)?);
+                parts.push(block(a * 0.4, 0.09, tag)?);
+            }
+            let ring: Vec<DVec3> = (0..=40)
+                .map(|k| {
+                    let t = std::f64::consts::TAU * f64::from(k) / 40.;
+                    DVec3::new(0.32 * t.cos(), 0., 0.32 * t.sin())
+                })
+                .collect();
+            parts.push(tube(&ring, 0.025, 8, "Axis Y")?);
+            merge(parts)?
+        }
+        Sample::UvProject => merge(vec![
+            cube_at(flat(-0.32, 0.25), 0.36, CLAY)?,
+            arrow(flat(-0.1, 0.04), flat(0.08, -0.12), 0.05, "New")?,
+            deformed(on_uv(vec![island(0., 0., 0.6, "New")?])?, |v| {
+                v * 0.5 + flat(0.3, -0.3)
+            }),
+        ])?,
+        Sample::UvProjectView => {
+            let eye = flat(-0.45, 0.35) + toward(0.2);
+            let mut parts = vec![deformed(on_uv(vec![island(0., 0., 0.6, "New")?])?, |v| {
+                v * 0.6 + flat(0.2, -0.15)
+            })];
+            for c in [
+                flat(-0.1, 0.18),
+                flat(0.5, 0.18),
+                flat(-0.1, -0.48),
+                flat(0.5, -0.48),
+            ] {
+                parts.push(tube(&[eye, c], 0.02, 6, "Ink")?);
+            }
+            parts.push(ball(eye, 0.09, "Selected")?);
+            merge(parts)?
+        }
+        Sample::UvUnwrap => {
+            let cross = [
+                (0., 0.),
+                (-0.3, 0.),
+                (0.3, 0.),
+                (0.6, 0.),
+                (0., 0.3),
+                (0., -0.3),
+            ];
+            let parts = cross
+                .iter()
+                .map(|&(x, y)| {
+                    slab(
+                        &[
+                            (x - 0.13, y - 0.13),
+                            (x + 0.13, y - 0.13),
+                            (x + 0.13, y + 0.13),
+                            (x - 0.13, y + 0.13),
+                        ],
+                        0.08,
+                        "New",
+                    )
+                })
+                .collect::<Result<Vec<_>>>()?;
+            merge(vec![
+                deformed(symbol(parts)?, |v| v + flat(-0.1, -0.1)),
+                cube_at(flat(-0.42, 0.42), 0.22, CLAY)?,
+            ])?
+        }
+        Sample::UvRelax => {
+            let mut parts = vec![island(0., 0., 0.9, "New")?];
+            for k in 0..3 {
+                let t = -0.2 + 0.2 * f64::from(k);
+                parts.push(bar(
+                    t - 0.05 * (k as f64 - 1.),
+                    -0.35,
+                    t,
+                    0.35,
+                    0.03,
+                    0.16,
+                    "Ink",
+                )?);
+                parts.push(bar(
+                    -0.4,
+                    t,
+                    0.4,
+                    t + 0.04 * (k as f64 - 1.),
+                    0.03,
+                    0.16,
+                    "Ink",
+                )?);
+            }
+            on_uv(parts)?
+        }
+        Sample::UvPelt => {
+            let mut parts = vec![island(0., 0., 0.55, "New")?];
+            for (x, y, cx, cy) in [
+                (-0.25, -0.2, -0.5, -0.5),
+                (0.22, -0.25, 0.5, -0.5),
+                (0.25, 0.1, 0.5, 0.5),
+                (-0.25, 0.12, -0.5, 0.5),
+            ] {
+                parts.push(bar(x, y, cx, cy, 0.03, 0.16, "Ink")?);
+                parts.push(deformed(
+                    ball(DVec3::new(cx, cy, 0.), 0.06, "Selected")?,
+                    |v| v + DVec3::Z * 0.05,
+                ));
+            }
+            on_uv(parts)?
+        }
+        Sample::UvIslandAlign => on_uv(vec![
+            bar(-0.42, -0.45, -0.42, 0.45, 0.05, 0.16, "Selected")?,
+            island(-0.2, 0.22, 0.4, "New")?,
+            island(-0.15, -0.2, 0.5, "New")?,
+        ])?,
+        Sample::UvQuickAlign => on_uv(vec![
+            slab(
+                &[(-0.35, -0.12), (0.35, -0.12), (0.35, 0.12), (-0.35, 0.12)],
+                0.1,
+                "New",
+            )?,
+            bar(-0.45, -0.3, 0.45, -0.3, 0.04, 0.16, "Selected")?,
+            uv_arrow(0.0, 0.42, 0.0, 0.2)?,
+        ])?,
+        Sample::UvOrient => {
+            let mut parts = vec![island(0., 0., 0.6, "New")?];
+            parts.extend(
+                symbol_arc(0., 0., 0.42, "Ink")?
+                    .into_iter()
+                    .map(|m| deformed(m, |v| v + DVec3::Z * 0.1)),
+            );
+            on_uv(parts)?
+        }
+        Sample::UvToOrigin => on_uv(vec![
+            island(0.2, 0.2, 0.4, "New")?,
+            uv_arrow(0.05, 0.05, -0.3, -0.3)?,
+            deformed(ball(DVec3::new(-0.5, -0.5, 0.), 0.08, "Selected")?, |v| {
+                v + DVec3::Z * 0.06
+            }),
+        ])?,
+        Sample::UvTexelDensity => {
+            let mut parts = vec![island(0., 0., 0.9, "New")?];
+            for i in 0..4 {
+                for j in 0..4 {
+                    if (i + j) % 2 == 0 {
+                        let (x, y) = (-0.3 + 0.15 * f64::from(i), -0.3 + 0.15 * f64::from(j));
+                        parts.push(deformed(
+                            slab(
+                                &[(x, y), (x + 0.15, y), (x + 0.15, y + 0.15), (x, y + 0.15)],
+                                0.06,
+                                "Ink",
+                            )?,
+                            |v| v + DVec3::Z * 0.09,
+                        ));
+                    }
+                }
+            }
+            on_uv(parts)?
+        }
+        Sample::UvSplit => on_uv(vec![
+            slab(
+                &[(-0.45, -0.3), (-0.06, -0.3), (-0.06, 0.3), (-0.45, 0.3)],
+                0.1,
+                "New",
+            )?,
+            slab(
+                &[(0.06, -0.3), (0.45, -0.3), (0.45, 0.3), (0.06, 0.3)],
+                0.1,
+                "Selected",
+            )?,
+        ])?,
+        Sample::UvSew => {
+            let mut parts = vec![
+                slab(
+                    &[(-0.45, -0.3), (-0.02, -0.3), (-0.02, 0.3), (-0.45, 0.3)],
+                    0.1,
+                    "New",
+                )?,
+                slab(
+                    &[(0.02, -0.3), (0.45, -0.3), (0.45, 0.3), (0.02, 0.3)],
+                    0.1,
+                    "New",
+                )?,
+            ];
+            for k in 0..4 {
+                let y = -0.22 + 0.15 * f64::from(k);
+                parts.push(bar(-0.1, y - 0.05, 0.1, y + 0.05, 0.03, 0.2, "Ink")?);
+            }
+            on_uv(parts)?
+        }
+        Sample::UvMoveSew => on_uv(vec![
+            slab(
+                &[(-0.45, -0.3), (-0.08, -0.3), (-0.08, 0.3), (-0.45, 0.3)],
+                0.1,
+                "New",
+            )?,
+            slab(
+                &[(0.18, -0.3), (0.45, -0.3), (0.45, 0.3), (0.18, 0.3)],
+                0.1,
+                "Selected",
+            )?,
+            uv_arrow(0.15, 0.0, -0.05, 0.0)?,
+        ])?,
+        Sample::UvSelectBorder => {
+            let pts = [
+                (-0.5, -0.4),
+                (0.4, -0.5),
+                (0.5, 0.2),
+                (0.0, 0.5),
+                (-0.5, 0.25),
+                (-0.5, -0.4),
+            ];
+            let mut parts = vec![island(0., 0., 0.8, "New")?];
+            for w in pts.windows(2) {
+                parts.push(bar(
+                    w[0].0 * 0.8,
+                    w[0].1 * 0.8,
+                    w[1].0 * 0.8,
+                    w[1].1 * 0.8,
+                    0.06,
+                    0.16,
+                    "Selected",
+                )?);
+            }
+            on_uv(parts)?
+        }
+        Sample::UvRectangle => on_uv(vec![
+            island(-0.22, 0.2, 0.36, CLAY)?,
+            uv_arrow(-0.1, 0.05, 0.05, -0.08)?,
+            slab(
+                &[(0.0, -0.45), (0.45, -0.45), (0.45, -0.12), (0.0, -0.12)],
+                0.1,
+                "New",
+            )?,
+        ])?,
+        Sample::UvAtlas => {
+            let mut parts = Vec::new();
+            for (x, y, s, tag) in [
+                (-0.3, 0.3, 0.4, "New"),
+                (0.25, 0.3, 0.35, "Selected"),
+                (-0.3, -0.25, 0.35, "Axis Y"),
+                (0.25, -0.25, 0.45, "Axis X"),
+                (0.0, 0.02, 0.2, "Axis Z"),
+            ] {
+                parts.push(island(x, y, s, tag)?);
+            }
+            on_uv(parts)?
+        }
+        Sample::UvPack => on_uv(vec![
+            island(-0.22, 0.2, 0.4, "New")?,
+            island(0.22, 0.2, 0.4, "New")?,
+            island(-0.22, -0.22, 0.4, "New")?,
+            island(0.22, -0.22, 0.4, "New")?,
+        ])?,
+        Sample::UvFit => on_uv(vec![
+            slab(
+                &[(-0.48, -0.48), (0.48, -0.48), (0.48, 0.48), (-0.48, 0.48)],
+                0.06,
+                "New",
+            )?,
+            uv_arrow(0.1, 0.1, 0.4, 0.4)?,
+            uv_arrow(-0.1, -0.1, -0.4, -0.4)?,
+        ])?,
+        Sample::UvFlipU | Sample::UvFlipV => {
+            let u = sample == Sample::UvFlipU;
+            let mut parts = vec![island(0., 0., 0.6, "New")?];
+            let (a, b) = if u {
+                ((-0.4, -0.38), (0.4, -0.38))
+            } else {
+                ((-0.38, -0.4), (-0.38, 0.4))
+            };
+            parts.push(two_way(
+                DVec3::new(a.0, a.1, 0.1),
+                DVec3::new(b.0, b.1, 0.1),
+                0.045,
+                "Ink",
+            )?);
+            on_uv(parts)?
+        }
+        Sample::UvMirrorU | Sample::UvMirrorV => {
+            let u = sample == Sample::UvMirrorU;
+            let mut parts = if u {
+                uv_dashed(0., -0.5, 0., 0.5, "Ink")?
+            } else {
+                uv_dashed(-0.5, 0., 0.5, 0., "Ink")?
+            };
+            if u {
+                parts.push(island(-0.25, 0., 0.35, "Selected")?);
+                parts.push(deformed(island(-0.25, 0., 0.35, "New")?, |v| {
+                    DVec3::new(-v.x, v.y, v.z)
+                }));
+            } else {
+                parts.push(island(0., 0.25, 0.35, "Selected")?);
+                parts.push(deformed(island(0., 0.25, 0.35, "New")?, |v| {
+                    DVec3::new(v.x, -v.y, v.z)
+                }));
+            }
+            on_uv(parts)?
+        }
+        Sample::UvAlignUp | Sample::UvAlignDown | Sample::UvAlignLeft | Sample::UvAlignRight => {
+            let (lx0, ly0, lx1, ly1, a0, a1): (f64, f64, f64, f64, (f64, f64), (f64, f64)) =
+                match sample {
+                    Sample::UvAlignUp => (-0.45, 0.42, 0.45, 0.42, (0.0, 0.0), (0.0, 0.25)),
+                    Sample::UvAlignDown => (-0.45, -0.42, 0.45, -0.42, (0.0, 0.0), (0.0, -0.25)),
+                    Sample::UvAlignLeft => (-0.42, -0.45, -0.42, 0.45, (0.0, 0.0), (-0.25, 0.0)),
+                    _ => (0.42, -0.45, 0.42, 0.45, (0.0, 0.0), (0.25, 0.0)),
+                };
+            let along_u = ly0 == ly1;
+            let off = |k: f64| {
+                if along_u {
+                    (k, ly0 - 0.2 * ly0.signum())
+                } else {
+                    (lx0 - 0.2 * lx0.signum(), k)
+                }
+            };
+            let (p, q) = (off(-0.22), off(0.22));
+            on_uv(vec![
+                bar(lx0, ly0, lx1, ly1, 0.05, 0.16, "Selected")?,
+                island(p.0, p.1, 0.3, "New")?,
+                island(q.0, q.1, 0.3, "New")?,
+                uv_arrow(a0.0, a0.1, a1.0 * 0.6, a1.1 * 0.6)?,
+            ])?
+        }
+        Sample::UvSeamDialog
+        | Sample::UvSeamAdd
+        | Sample::UvSeamClear
+        | Sample::UvSeamSelect
+        | Sample::UvSeamMarker => {
+            let mut parts = seam_cube(flat(-0.08, 0.0), 0.62)?;
+            let badge = flat(0.4, -0.4) + toward(0.35);
+            match sample {
+                Sample::UvSeamAdd => parts.extend(plus(badge, 0.3, "New")?),
+                Sample::UvSeamClear => {
+                    parts.push(strike(
+                        badge + flat(-0.14, -0.14),
+                        badge + flat(0.14, 0.14),
+                    )?);
+                    parts.push(strike(
+                        badge + flat(-0.14, 0.14),
+                        badge + flat(0.14, -0.14),
+                    )?);
+                }
+                Sample::UvSeamSelect => parts.push(deformed(
+                    revolve(&[(0., 0.), (0.1, -0.2), (0., -0.16)], 3, false, "Selected")?,
+                    move |v| badge + v,
+                )),
+                Sample::UvSeamMarker => {
+                    let d = flat(0.6, 0.8).normalize();
+                    parts.push(tube(&[badge, badge + d * 0.4], 0.07, 10, "Selected")?);
+                    parts.push(deformed(
+                        revolve(&[(0., 0.), (0.07, 0.12), (0., 0.12)], 12, false, "Ink")?,
+                        move |v| badge + glam::DQuat::from_rotation_arc(DVec3::Y, d) * v - d * 0.12,
+                    ));
+                }
+                _ => {}
+            }
+            merge(parts)?
+        }
+        Sample::UvDeleteMap => {
+            let mut parts = vec![island(0., 0., 0.6, "New")?];
+            parts.extend(uv_cross(0., 0., 0.3)?);
+            on_uv(parts)?
+        }
+        Sample::UvUnwrapTool | Sample::UvUnwrapRelax => {
+            let mut flaps = Vec::new();
+            for &(x, y) in &[(0., 0.), (-0.3, 0.), (0.3, 0.), (0., 0.3), (0., -0.3)] {
+                flaps.push(slab(
+                    &[
+                        (x - 0.13, y - 0.13),
+                        (x + 0.13, y - 0.13),
+                        (x + 0.13, y + 0.13),
+                        (x - 0.13, y + 0.13),
+                    ],
+                    0.08,
+                    "New",
+                )?);
+            }
+            if sample == Sample::UvUnwrapRelax {
+                for k in [-0.15, 0.0, 0.15] {
+                    flaps.push(bar(k, -0.42, k, 0.42, 0.025, 0.14, "Ink")?);
+                    flaps.push(bar(-0.42, k, 0.42, k, 0.025, 0.14, "Ink")?);
+                }
+            }
+            let mut parts = vec![deformed(symbol(flaps)?, |v| v + flat(0.1, -0.12))];
+            parts.extend(seam_cube(flat(-0.42, 0.42), 0.26)?);
+            merge(parts)?
+        }
+        Sample::UvQuickU | Sample::UvQuickV => {
+            let u = sample == Sample::UvQuickU;
+            let parts = if u {
+                vec![
+                    slab(
+                        &[(-0.4, -0.1), (0.4, -0.1), (0.4, 0.1), (-0.4, 0.1)],
+                        0.1,
+                        "New",
+                    )?,
+                    two_way(
+                        DVec3::new(-0.45, -0.3, 0.1),
+                        DVec3::new(0.45, -0.3, 0.1),
+                        0.045,
+                        "Ink",
+                    )?,
+                ]
+            } else {
+                vec![
+                    slab(
+                        &[(-0.1, -0.4), (0.1, -0.4), (0.1, 0.4), (-0.1, 0.4)],
+                        0.1,
+                        "New",
+                    )?,
+                    two_way(
+                        DVec3::new(-0.3, -0.45, 0.1),
+                        DVec3::new(-0.3, 0.45, 0.1),
+                        0.045,
+                        "Ink",
+                    )?,
+                ]
+            };
+            on_uv(parts)?
+        }
+        Sample::UvIslandUCenter | Sample::UvIslandUMax => {
+            let x = if sample == Sample::UvIslandUCenter {
+                0.0
+            } else {
+                0.42
+            };
+            let ix = if x == 0. { 0.0 } else { 0.2 };
+            on_uv(vec![
+                bar(x, -0.48, x, 0.48, 0.05, 0.18, "Selected")?,
+                island(ix, 0.22, 0.32, "New")?,
+                island(ix, -0.22, 0.32, "New")?,
+            ])?
+        }
+        Sample::UvIslandVMin | Sample::UvIslandVCenter | Sample::UvIslandVMax => {
+            let y: f64 = match sample {
+                Sample::UvIslandVMin => -0.42,
+                Sample::UvIslandVCenter => 0.0,
+                _ => 0.42,
+            };
+            let iy = if y == 0. { 0.0 } else { y - 0.2 * y.signum() };
+            on_uv(vec![
+                bar(-0.48, y, 0.48, y, 0.05, 0.18, "Selected")?,
+                island(-0.22, iy, 0.32, "New")?,
+                island(0.22, iy, 0.32, "New")?,
+            ])?
+        }
+        Sample::UvSymOff => {
+            let mut parts = vec![island(0., 0., 0.6, "New")?];
+            parts.extend(uv_dashed(0., -0.5, 0., 0.5, "Ink")?);
+            parts.extend(uv_cross(0.32, 0.32, 0.14)?);
+            on_uv(parts)?
+        }
+        Sample::UvSymU | Sample::UvSymV => {
+            let u = sample == Sample::UvSymU;
+            let mut parts = if u {
+                uv_dashed(0., -0.5, 0., 0.5, "Ink")?
+            } else {
+                uv_dashed(-0.5, 0., 0.5, 0., "Ink")?
+            };
+            let (x, y) = if u { (-0.25, 0.) } else { (0., 0.25) };
+            parts.push(island(x, y, 0.35, "New")?);
+            parts.push(deformed(island(x, y, 0.35, "New")?, move |v| {
+                if u {
+                    DVec3::new(-v.x, v.y, v.z)
+                } else {
+                    DVec3::new(v.x, -v.y, v.z)
+                }
+            }));
+            on_uv(parts)?
+        }
+        Sample::UvSymCenter => {
+            let mut parts = uv_dashed(0., -0.5, 0., 0.5, "Ink")?;
+            parts.extend(uv_dashed(-0.5, 0., 0.5, 0., "Ink")?);
+            parts.push(deformed(ball(DVec3::ZERO, 0.1, "Selected")?, |v| {
+                v + DVec3::Z * 0.1
+            }));
+            on_uv(parts)?
+        }
+        Sample::UvSymmetrize => {
+            let mut parts = uv_dashed(0., -0.5, 0., 0.5, "Ink")?;
+            parts.push(island(-0.25, 0., 0.35, "Selected")?);
+            parts.push(deformed(island(-0.25, 0., 0.35, "New")?, |v| {
+                DVec3::new(-v.x, v.y, v.z)
+            }));
+            parts.push(uv_arrow(-0.2, 0.36, 0.2, 0.36)?);
+            on_uv(parts)?
+        }
+        Sample::UvBrush => merge(vec![
+            on_uv(vec![island(0., 0., 0.8, "New")?])?,
+            deformed(brush_ring(0., 0., 0., 0.26)?, |v| {
+                symbol_frame() * DVec3::new(v.x, v.z, 0.12 + v.y)
+            }),
+        ])?,
+        Sample::UvErrors => {
+            let mut parts = vec![island(-0.15, -0.1, 0.6, "New")?];
+            parts.push(deformed(
+                slab(&[(0.05, -0.05), (0.5, -0.05), (0.275, 0.4)], 0.12, "Axis X")?,
+                |v| v + DVec3::Z * 0.1,
+            ));
+            parts.push(deformed(
+                bar(0.275, 0.08, 0.275, 0.27, 0.05, 0.1, "Ink")?,
+                |v| v + DVec3::Z * 0.17,
+            ));
+            parts.push(deformed(
+                slab(
+                    &[(0.25, 0.0), (0.3, 0.0), (0.3, 0.05), (0.25, 0.05)],
+                    0.1,
+                    "Ink",
+                )?,
+                |v| v + DVec3::Z * 0.17,
+            ));
+            on_uv(parts)?
+        }
+        Sample::UvUnmapped => {
+            let pts = [
+                (-0.5, -0.4),
+                (0.4, -0.5),
+                (0.5, 0.2),
+                (0.0, 0.5),
+                (-0.5, 0.25),
+                (-0.5, -0.4),
+            ];
+            let mut parts = Vec::new();
+            for w in pts.windows(2) {
+                let (a, b) = ((w[0].0 * 0.8, w[0].1 * 0.8), (w[1].0 * 0.8, w[1].1 * 0.8));
+                parts.push(bar(
+                    a.0,
+                    a.1,
+                    (a.0 + b.0) * 0.5,
+                    (a.1 + b.1) * 0.5,
+                    0.05,
+                    0.14,
+                    "Selected",
+                )?);
+            }
+            on_uv(parts)?
+        }
+        Sample::UvCopy => on_uv(vec![
+            island(-0.15, 0.15, 0.5, "Selected")?,
+            island(0.18, -0.18, 0.5, "New")?,
+        ])?,
+        Sample::UvCut => {
+            let pts = [
+                (-0.5, -0.4),
+                (0.4, -0.5),
+                (0.5, 0.2),
+                (0.0, 0.5),
+                (-0.5, 0.25),
+                (-0.5, -0.4),
+            ];
+            let mut parts = vec![island(0.22, 0.22, 0.4, "Selected")?];
+            for w in pts.windows(2) {
+                let (a, b) = (
+                    (-0.15 + w[0].0 * 0.5, -0.15 + w[0].1 * 0.5),
+                    (-0.15 + w[1].0 * 0.5, -0.15 + w[1].1 * 0.5),
+                );
+                parts.push(bar(
+                    a.0,
+                    a.1,
+                    (a.0 + b.0) * 0.5,
+                    (a.1 + b.1) * 0.5,
+                    0.035,
+                    0.12,
+                    "Ink",
+                )?);
+            }
+            on_uv(parts)?
+        }
+        Sample::UvPaste => on_uv(vec![
+            island(0., -0.12, 0.6, "New")?,
+            uv_arrow(0.0, 0.5, 0.0, 0.22)?,
+        ])?,
+        Sample::UvDelete => {
+            let mut parts = vec![island(0., 0., 0.6, "Selected")?];
+            parts.extend(uv_cross(0., 0., 0.28)?);
+            on_uv(parts)?
+        }
+        Sample::UvSetValue => on_uv(vec![
+            island(0., 0.12, 0.55, "New")?,
+            bar(-0.4, -0.35, 0.4, -0.35, 0.05, 0.14, "Ink")?,
+            deformed(ball(DVec3::new(0.1, -0.35, 0.), 0.08, "Selected")?, |v| {
+                v + DVec3::Z * 0.1
+            }),
+        ])?,
+        Sample::UvRotate => {
+            let mut parts = vec![island(0., 0., 0.55, "New")?];
+            parts.extend(
+                symbol_arc(0., 0., 0.4, "New")?
+                    .into_iter()
+                    .map(|m| deformed(m, |v| v + DVec3::Z * 0.1)),
+            );
+            on_uv(parts)?
+        }
+        Sample::UvSelectTile => {
+            let mut parts = Vec::new();
+            for (x, y, tag) in [
+                (-0.28, 0.28, CLAY),
+                (0.28, 0.28, "Selected"),
+                (-0.28, -0.28, CLAY),
+                (0.28, -0.28, CLAY),
+            ] {
+                parts.push(image_tile(x, y, 0.25, tag)?);
+            }
+            symbol(parts)?
+        }
+        Sample::UvTileLeft | Sample::UvTileRight | Sample::UvTileUp | Sample::UvTileDown => {
+            let (dx, dy) = match sample {
+                Sample::UvTileLeft => (-1., 0.),
+                Sample::UvTileRight => (1., 0.),
+                Sample::UvTileUp => (0., 1.),
+                _ => (0., -1.),
+            };
+            symbol(vec![
+                image_tile(-dx * 0.18, -dy * 0.18, 0.32, CLAY)?,
+                island(-dx * 0.18, -dy * 0.18, 0.35, "New")?,
+                arrow(
+                    DVec3::new(dx * 0.1, dy * 0.1, 0.1),
+                    DVec3::new(dx * 0.55, dy * 0.55, 0.1),
+                    0.06,
+                    "New",
+                )?,
+            ])?
+        }
         Sample::LoopSlice => {
             let mut parts = vec![sample_mesh(Sample::Cube)?];
             let r = 0.505;

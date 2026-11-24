@@ -77,7 +77,8 @@
     },
     {
       "command": "Split Normals",
-      "tooltip": "Split Normals · edge.splitNormals{binding}"
+      "tooltip": "Split Normals · edge.splitNormals{binding}",
+      "icon": "split-normals"
     },
     {
       "command": "Vertex Normal Tools...",
@@ -110,7 +111,8 @@
     },
     {
       "command": "Edges To Curves",
-      "tooltip": "Edges To Curves · edges.toCurve{binding}"
+      "tooltip": "Edges To Curves · edges.toCurve{binding}",
+      "icon": "edges-to-curves"
     },
     {
       "command": "Unbevel",

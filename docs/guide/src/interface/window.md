@@ -27,6 +27,8 @@ numbers match the list below.
    **+** adds another one.
 5. **Transform tools**: **Transform**, **Move**, **Rotate** and **Scale**,
    the tools you use most. Their keys are **Y**, **W**, **E** and **R**.
+   Every tool set shares this one row; the **Setup** and **Animation** sets
+   add **World** and **Local** (where the tools pivot) just below it.
 6. **View dot**: drag it to move this view or tear it off into its own
    window. Right-click it for the view's frame menu.
 7. **View header**: pick the view's camera (**Perspective**, **Top**,

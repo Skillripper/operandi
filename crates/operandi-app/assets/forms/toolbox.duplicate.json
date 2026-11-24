@@ -125,7 +125,8 @@
           },
           {
             "command": "Curve Transform",
-            "label": "Curve Transform"
+            "label": "Curve Transform",
+            "icon": "duplicate-transform"
           },
           {
             "command": "Bezier Clone",
@@ -144,7 +145,8 @@
           },
           {
             "command": "Bezier Transform",
-            "label": "Bezier Transform"
+            "label": "Bezier Transform",
+            "icon": "duplicate-transform"
           },
           {
             "command": "B-Spline Clone",
@@ -163,7 +165,8 @@
           },
           {
             "command": "B-Spline Transform",
-            "label": "B-Spline Transform"
+            "label": "B-Spline Transform",
+            "icon": "duplicate-transform"
           },
           {
             "command": "Pen Clone",
@@ -182,7 +185,8 @@
           },
           {
             "command": "Transform Pen",
-            "label": "Transform Pen"
+            "label": "Transform Pen",
+            "icon": "duplicate-transform"
           }
         ]
       },
@@ -218,7 +222,8 @@
           },
           {
             "command": "Transform Scatter",
-            "label": "Transform Scatter"
+            "label": "Transform Scatter",
+            "icon": "duplicate-transform"
           }
         ]
       },
@@ -277,7 +282,8 @@
           },
           {
             "command": "Transform Array",
-            "label": "Transform Array"
+            "label": "Transform Array",
+            "icon": "duplicate-transform"
           }
         ]
       },
@@ -312,7 +318,8 @@
           },
           {
             "command": "Transform Radial Array",
-            "label": "Transform Radial Array"
+            "label": "Transform Radial Array",
+            "icon": "duplicate-transform"
           }
         ]
       },
@@ -373,7 +380,8 @@
       "command": "Tack Tool",
       "label": "Tack Tool",
       "look": "flat",
-      "noShortcut": true
+      "noShortcut": true,
+      "icon": "tack-tool"
     },
     {
       "command": "Paste Tool",
@@ -394,16 +402,17 @@
           {
             "command": "Duplicate Item",
             "label": "Duplicate",
-            "look": "centered",
-            "tooltip": "Duplicate{binding} · a copy of the selected item in place, named Name (2); its children stay behind"
+            "tooltip": "Duplicate{binding} · a copy of the selected item in place, named Name (2); its children stay behind",
+            "icon": "duplicate-item"
           },
           {
             "command": "Duplicate Hierarchy",
             "label": "Duplicate Hierarchy",
-            "look": "centered",
-            "tooltip": "Duplicate Hierarchy{binding} · a copy of each selected item with all its children, links kept"
+            "tooltip": "Duplicate Hierarchy{binding} · a copy of each selected item with all its children, links kept",
+            "icon": "duplicate-hierarchy"
           }
-        ]
+        ],
+        "icons": "both"
       }
     }
   ]
