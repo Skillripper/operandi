@@ -89,6 +89,7 @@ pub mod camera_light_defaults;
 #[path = "render/camera_props.rs"]
 pub mod camera_props;
 mod corner_uv;
+#[path = "tools/drop_action.rs"]
 pub mod drop_action;
 #[path = "render/environment.rs"]
 pub mod environment;
@@ -242,6 +243,7 @@ pub mod merge_instance;
 pub mod mesh_paint;
 #[path = "primitives/plane_item.rs"]
 pub mod plane_item;
+#[path = "tools/scaffold.rs"]
 pub mod scaffold;
 #[path = "primitives/teapot.rs"]
 pub mod teapot;
@@ -498,6 +500,7 @@ pub use vertex_commands::{
     vertex_slide_direction, vertex_slide_geometry, vertex_tear_geometry, weld_drag_geometry,
     weld_points,
 };
+#[path = "tools/numeric.rs"]
 pub mod numeric;
 #[path = "deformers/tweak.rs"]
 pub mod tweak;
@@ -539,6 +542,7 @@ pub use project::Project;
 #[path = "duplication/radial.rs"]
 pub mod radial;
 pub use radial::*;
+#[path = "tools/active_task.rs"]
 pub mod active_task;
 #[path = "render/backdrop.rs"]
 pub mod backdrop;
@@ -569,6 +573,7 @@ pub use scene::*;
 pub use selection::*;
 #[path = "deformers/bend.rs"]
 pub mod bend;
+#[path = "tools/click_start.rs"]
 pub mod click_start;
 #[path = "deformers/deform.rs"]
 pub mod deform;
@@ -591,9 +596,12 @@ pub use deform_finish::{
     RelaxMeshOptions,
 };
 pub use topology_pen::{PenEdit, PenMode, TopologyPenOptions};
+#[path = "tools/haul.rs"]
 pub mod haul;
 pub mod pivot_service;
+#[path = "tools/tool_preset.rs"]
 pub mod tool_preset;
+#[path = "tools/tool_reset.rs"]
 mod tool_reset;
 pub use tool_preset::{PresetRow, PresetSession};
 #[path = "scene_items/scene_index.rs"]
@@ -633,6 +641,7 @@ pub mod symmetry;
 pub mod symmetry_fix;
 pub mod symmetry_sides;
 pub mod symmetry_support;
+#[path = "tools/tool_card.rs"]
 pub mod tool_card;
 pub use shared::Shared;
 pub use symmetry::{Side, SymmetrizeSide, Symmetry};
@@ -654,6 +663,7 @@ pub use mesh_attributes::*;
 
 #[path = "primitives/cone_editor.rs"]
 pub mod cone_editor;
+#[path = "tools/numeric_session.rs"]
 mod numeric_session;
 pub use numeric_session::*;
 
@@ -730,6 +740,7 @@ pub use live_extrude::*;
 
 #[path = "commands/history_policy.rs"]
 mod history_policy;
+#[path = "tools/mid_tool_undo.rs"]
 pub(crate) mod mid_tool_undo;
 pub use history_policy::*;
 pub use mid_tool_undo::{ToolReopen, ToolTweaks};

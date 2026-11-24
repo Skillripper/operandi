@@ -40,7 +40,7 @@ pub mod feel {
     pub const SCALAR_PER_PX: f64 = 0.01;
 }
 
-const FACTORY_TOML: &str = include_str!("../presets/factory-hauls.toml");
+const FACTORY_TOML: &str = include_str!("../../presets/factory-hauls.toml");
 
 /// A mouse button the layer can claim.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]

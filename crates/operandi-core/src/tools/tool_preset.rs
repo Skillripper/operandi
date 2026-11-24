@@ -26,7 +26,7 @@ use crate::{
 use serde::Deserialize;
 use std::sync::OnceLock;
 
-const FACTORY_TOML: &str = include_str!("../presets/factory-tool-presets.toml");
+const FACTORY_TOML: &str = include_str!("../../presets/factory-tool-presets.toml");
 
 /// Bend's row (bend-handles-2026-11-15 BN-01): `center.auto + axis.auto +
 /// xfrm.bend`. Starting Bend any way goes through it.
