@@ -8,6 +8,20 @@
 use super::*;
 use operandi_core::rig::UserType;
 
+/// The pointer is locked in place for a slider drag on macOS (as the view
+/// corner buttons do, VBF-2); elsewhere the field follows the pointer.
+const LOCK_POINTER: bool = cfg!(target_os = "macos") && !cfg!(test);
+
+/// How far a slider moves per point of mouse travel, in the units it shows:
+/// 0.5 % or 0.5° a point, 0.01 m or 0.01 a point (Shift ×0.1, Ctrl ×10).
+fn drag_rate(ty: UserType) -> f64 {
+    match ty {
+        UserType::Percentage | UserType::Angle => 0.5,
+        UserType::Integer | UserType::Choice => 0.1,
+        _ => 0.01,
+    }
+}
+
 impl Operandi {
     /// Draws the rows; returns whether there were any.
     pub(super) fn rig_user_channel_rows(&mut self, ui: &mut Ui) -> bool {
@@ -76,18 +90,18 @@ impl Operandi {
                     };
                     let key = egui::Id::new(("rig-user-channel", item, &name));
                     let mut shown: f64 = ui.data_mut(|d| d.get_temp(key).unwrap_or(value * scale));
+                    // The drag is read here, not by the field (speed 0):
+                    // the pointer is locked in place on macOS so the screen
+                    // edge never stops a scrub, and its own movement drives
+                    // the value; it comes back where it was pressed.
                     let mut drag = crate::numeric_tab::DragValue::new(&mut shown)
-                        .speed(if u.ty == UserType::Percentage {
-                            0.5
-                        } else {
-                            0.01
-                        })
+                        .speed(0.0)
                         .suffix(suffix);
                     if matches!(u.ty, UserType::Integer | UserType::Choice) {
                         drag = drag.fixed_decimals(0);
                     }
                     let r = ui.add(drag);
-                    if r.changed() {
+                    if r.changed() && !r.dragged() {
                         ui.data_mut(|d| d.insert_temp(key, shown));
                     }
                     // UIC-51: a drag stays live. Each frame writes the value
@@ -96,18 +110,66 @@ impl Operandi {
                     // the release makes the whole drag one undo step and
                     // one Auto Key. Typing still waits for Enter.
                     let before = egui::Id::new(("rig-user-channel-drag", item, &name));
-                    if r.dragged() && r.changed() {
-                        if ui.data(|d| d.get_temp::<f64>(before)).is_none() {
-                            ui.data_mut(|d| d.insert_temp(before, value));
+                    let home = egui::Id::new(("rig-user-channel-home", item, &name));
+                    if r.drag_started() {
+                        if let Some(p) = r.interact_pointer_pos() {
+                            ui.data_mut(|d| d.insert_temp(home, p));
                         }
-                        if let Some(c) = self
-                            .editor
-                            .scene
-                            .animation
-                            .rig
-                            .user_channel_mut(item, &name)
-                        {
-                            let _ = c.set(&name, shown / scale);
+                        if LOCK_POINTER {
+                            ui.ctx()
+                                .send_viewport_cmd(egui::ViewportCommand::CursorGrab(
+                                    egui::CursorGrab::Locked,
+                                ));
+                        }
+                    }
+                    if r.dragged() {
+                        ui.ctx().set_cursor_icon(egui::CursorIcon::None);
+                        let dx = if LOCK_POINTER {
+                            crate::viewport_buttons::raw_motion(ui).map_or(0., |d| d.x)
+                        } else {
+                            r.drag_delta().x
+                        };
+                        if dx != 0. {
+                            let m = ui.input(|i| i.modifiers);
+                            let fine = if m.shift {
+                                0.1
+                            } else if m.command || m.ctrl {
+                                10.
+                            } else {
+                                1.
+                            };
+                            shown += f64::from(dx) * drag_rate(u.ty) * fine;
+                            if let Some(lo) = u.min {
+                                shown = shown.max(lo * scale);
+                            }
+                            if let Some(hi) = u.max {
+                                shown = shown.min(hi * scale);
+                            }
+                            ui.data_mut(|d| d.insert_temp(key, shown));
+                            if ui.data(|d| d.get_temp::<f64>(before)).is_none() {
+                                ui.data_mut(|d| d.insert_temp(before, value));
+                            }
+                            if let Some(c) = self
+                                .editor
+                                .scene
+                                .animation
+                                .rig
+                                .user_channel_mut(item, &name)
+                            {
+                                let _ = c.set(&name, shown / scale);
+                            }
+                        }
+                    }
+                    if r.drag_stopped() {
+                        if LOCK_POINTER {
+                            ui.ctx()
+                                .send_viewport_cmd(egui::ViewportCommand::CursorGrab(
+                                    egui::CursorGrab::None,
+                                ));
+                        }
+                        if let Some(p) = ui.data_mut(|d| d.remove_temp::<egui::Pos2>(home)) {
+                            ui.ctx()
+                                .send_viewport_cmd(egui::ViewportCommand::CursorPosition(p));
                         }
                     }
                     if r.drag_stopped()

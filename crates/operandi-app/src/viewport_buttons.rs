@@ -49,7 +49,7 @@ pub const PAN_BUTTON_RATE: f32 = 3.;
 /// The mouse's own movement this frame, in points (`None` when the
 /// platform sent none). macOS reports it in points already; elsewhere it
 /// comes in device units, taken as physical pixels (VBF-Q1, provisional).
-fn raw_motion(ui: &Ui) -> Option<Vec2> {
+pub(crate) fn raw_motion(ui: &Ui) -> Option<Vec2> {
     ui.input(|i| {
         let mut sum = None;
         for e in &i.events {
