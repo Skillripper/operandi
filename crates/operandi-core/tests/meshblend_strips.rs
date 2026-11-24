@@ -152,3 +152,64 @@ fn results_repeat_in_any_source_order() {
     let c = evaluate(&r, &two_boxes()).unwrap();
     assert_eq!(check::fingerprint(&a.mesh), check::fingerprint(&c.mesh));
 }
+
+/// Triangles with a corner under 10° on source `item`, for the tidy pass.
+fn slivers(b: &operandi_core::meshblend::Blend, item: u64) -> usize {
+    let m = &b.mesh;
+    m.faces
+        .iter()
+        .zip(&b.origin)
+        .filter(|(f, o)| f.vertices.len() == 3 && o.item == item && o.polygon != u32::MAX)
+        .map(|(f, _)| f)
+        .filter(|f| {
+            let p: Vec<glam::DVec3> = f.vertices.iter().map(|&v| m.vertices[v as usize]).collect();
+            let ang = |a: glam::DVec3, b: glam::DVec3, c: glam::DVec3| (b - a).angle_between(c - a);
+            ang(p[0], p[1], p[2])
+                .min(ang(p[1], p[2], p[0]))
+                .min(ang(p[2], p[0], p[1]))
+                < 10f64.to_radians()
+        })
+        .count()
+}
+
+#[test]
+fn the_cut_faces_beside_strips_have_few_slivers() {
+    // Jason's QA case: a one-segment cube and a cylinder, Tab off.
+    let inputs = vec![
+        input(1, corpus::boxed([0.; 3], [1.; 3], [1; 3], false)),
+        input(2, corpus::cylinder([0.3, 0.5, 0.3], 0.3, 0.8, 24, 1)),
+    ];
+    let b = evaluate(&recipe(&[1, 2], 0.05), &inputs).unwrap();
+    assert!(strips(&b) > 0, "{:?}", b.notes);
+    // The cube's faces (the cylinder's own tall side quads are thin by
+    // design, so they don't count).
+    let n = slivers(&b, 1);
+    let tris = b
+        .mesh
+        .faces
+        .iter()
+        .zip(&b.origin)
+        .filter(|(f, o)| f.vertices.len() == 3 && o.item == 1)
+        .count();
+    if std::env::var("OPERANDI_B0_PICTURE").is_ok() {
+        use operandi_core::meshblend_spike::picture;
+        let kind: Vec<u8> = b
+            .origin
+            .iter()
+            .map(|o| u8::from(o.polygon == u32::MAX))
+            .collect();
+        let source: Vec<u32> = b.origin.iter().map(|o| o.item as u32).collect();
+        let view = picture::View::fit(&b.mesh, glam::DVec3::new(1.0, 0.85, 1.45));
+        let rgb = picture::render(&b.mesh, &kind, &source, view, 900, 680);
+        let out = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../development/meshblend-b0/cube-cylinder.png");
+        picture::save_png(&out, 900, 680, &rgb).unwrap();
+        eprintln!(
+            "{n} slivers of {tris} triangles, {} polygons",
+            b.mesh.faces.len()
+        );
+    }
+    // Fans remain where many rim points face one long cube edge (an edge
+    // shared with the next face can't take new points yet).
+    assert!(n * 2 <= tris.max(1), "{n} slivers of {tris} triangles");
+}

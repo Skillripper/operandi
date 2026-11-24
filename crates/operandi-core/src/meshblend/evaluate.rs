@@ -527,7 +527,23 @@ fn with_strips(
             continue;
         }
         let (mut mesh, mut origin) = strip_polygons(prepared, &built);
-        pair_triangles(&mut mesh, &mut origin, &built.kind);
+        // Re-mesh the flat cut faces (tidy.rs); kept only if the result
+        // still passes ST-10.
+        let mut kind = built.kind.clone();
+        {
+            let (mut m, mut o) = (mesh.clone(), origin.clone());
+            super::tidy::tidy(&mut m, &mut o, w);
+            if m.validate().is_ok() && super::check::st10(&m, w, None).passes() {
+                kind = o
+                    .iter()
+                    .map(|(x, _)| u8::from(x.polygon == u32::MAX))
+                    .collect();
+                mesh = m;
+                origin = o;
+            }
+        }
+        flip_edges(&mut mesh, &origin, &kind);
+        pair_triangles(&mut mesh, &mut origin, &kind);
         if mesh.validate().is_err() {
             continue;
         }
@@ -588,6 +604,73 @@ fn strip_polygons(
         ));
     }
     (mesh, origin)
+}
+
+/// Better triangles beside the strips: an edge between two surface
+/// triangles of the same source polygon is flipped to the quad's other
+/// diagonal when that makes the smaller of the two triangles' smallest
+/// angles bigger (the Delaunay rule, inside one flat polygon so the shape
+/// doesn't change). The fans the cut leaves turn into even triangles.
+fn flip_edges(mesh: &mut Mesh, origin: &[(Origin, bool)], kind: &[u8]) {
+    use std::collections::HashMap;
+    let n = mesh.faces.len();
+    let flippable =
+        |m: &Mesh, f: usize| m.faces[f].vertices.len() == 3 && origin[f].1 && kind[f] == 0;
+    for _pass in 0..12 {
+        let mut by_edge: HashMap<(u32, u32), usize> = HashMap::new();
+        for f in 0..n {
+            if flippable(mesh, f) {
+                let v = &mesh.faces[f].vertices;
+                for k in 0..3 {
+                    by_edge.insert((v[k], v[(k + 1) % 3]), f);
+                }
+            }
+        }
+        let mut touched = vec![false; n];
+        let mut flips = 0;
+        for f in 0..n {
+            if !flippable(mesh, f) || touched[f] {
+                continue;
+            }
+            let v = mesh.faces[f].vertices.clone();
+            for k in 0..3 {
+                let (a, b, c) = (v[k], v[(k + 1) % 3], v[(k + 2) % 3]);
+                let Some(&g) = by_edge.get(&(b, a)) else {
+                    continue;
+                };
+                if g == f || touched[g] || origin[g].0 != origin[f].0 {
+                    continue;
+                }
+                let w = &mesh.faces[g].vertices;
+                let Some(d) = w.iter().copied().find(|&x| x != a && x != b) else {
+                    continue;
+                };
+                if d == c || quad_quality(&mesh.vertices, &[a, d, b, c]).is_none() {
+                    continue;
+                }
+                let p = |i: u32| mesh.vertices[i as usize];
+                let before = min_angle(p(a), p(b), p(c)).min(min_angle(p(b), p(a), p(d)));
+                let after = min_angle(p(c), p(a), p(d)).min(min_angle(p(d), p(b), p(c)));
+                if after > before * 1.05 {
+                    mesh.faces[f].vertices = vec![c, a, d];
+                    mesh.faces[g].vertices = vec![d, b, c];
+                    touched[f] = true;
+                    touched[g] = true;
+                    flips += 1;
+                    break;
+                }
+            }
+        }
+        if flips == 0 {
+            break;
+        }
+    }
+}
+
+/// The smallest corner angle of a triangle, in radians.
+fn min_angle(a: DVec3, b: DVec3, c: DVec3) -> f64 {
+    let ang = |p: DVec3, q: DVec3, r: DVec3| (q - p).angle_between(r - p);
+    ang(a, b, c).min(ang(b, c, a)).min(ang(c, a, b))
 }
 
 /// "Closed, clean" (SB-50): pairs of surface triangles from the same

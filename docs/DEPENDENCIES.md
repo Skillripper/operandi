@@ -394,6 +394,7 @@ compatibility warning; the current build passes. Milestone 1 had no authored uns
 | slab | 0.4.12 | MIT | [source](https://github.com/tokio-rs/slab) |
 | slotmap | 1.1.1 | Zlib | [source](https://github.com/orlp/slotmap) |
 | smallvec | 1.16.3 | MIT OR Apache-2.0 | [source](https://github.com/servo/rust-smallvec) |
+| spade | 2.15.1 | MIT OR Apache-2.0 | [source](https://github.com/Stoeoef/spade) |
 | smithay-client-toolkit | 0.19.2 | MIT | [source](https://github.com/smithay/client-toolkit) |
 | smithay-client-toolkit | 0.20.0 | MIT | [source](https://github.com/smithay/client-toolkit) |
 | smithay-clipboard | 0.7.3 | MIT | [source](https://github.com/smithay/smithay-clipboard) |
