@@ -39,7 +39,6 @@ pub mod curve_ops;
 pub mod curves;
 pub mod dicer;
 pub mod generator_ops;
-pub mod icon_studio;
 pub mod item_merge;
 pub mod patch;
 pub mod patch_live;

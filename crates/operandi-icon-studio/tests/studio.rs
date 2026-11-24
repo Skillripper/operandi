@@ -1,9 +1,9 @@
 //! The icon studio scene and how icon scenes render through it
-//! (`icon_studio.rs`).
+//! (`src/studio.rs`).
 use glam::DVec3;
 use operandi_core::camera_light::Projection;
-use operandi_core::icon_studio::{self, MATERIALS, Sample};
 use operandi_core::shader_tree::{NodeKind, TagMask};
+use operandi_icon_studio::{self as icon_studio, MATERIALS, Sample};
 
 fn temp(name: &str) -> std::path::PathBuf {
     std::env::temp_dir().join(format!("icon-studio-{}-{name}", std::process::id()))
@@ -256,7 +256,7 @@ fn glow_glows_and_the_light_sample_uses_it() {
 
 #[test]
 fn revolved_and_tube_shapes_are_closed_and_face_outward() {
-    use operandi_core::icon_studio::{revolve, through, tube};
+    use operandi_icon_studio::{revolve, through, tube};
     let check = |mesh: &operandi_core::Mesh, centre_of: &dyn Fn(DVec3) -> DVec3, name: &str| {
         mesh.validate().unwrap();
         for face in &mesh.faces {

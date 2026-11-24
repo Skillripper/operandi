@@ -259,8 +259,6 @@ mod i2_live_history;
 mod i2_origin_active_save_confirmation;
 #[path = "i2_review_fixes.rs"]
 mod i2_review_fixes;
-#[path = "icon_studio.rs"]
-mod icon_studio;
 #[path = "identity_positions.rs"]
 mod identity_positions;
 #[path = "ik_body.rs"]

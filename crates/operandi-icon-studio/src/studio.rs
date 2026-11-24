@@ -21,9 +21,11 @@
 //! [`render_scene`] puts the icon's items into a fresh copy of the studio,
 //! so the studio's camera, lights, sky and materials always win and an
 //! icon can't drift from the shared look by editing its own copy.
-use crate::shader_tree::{GroupMask, MaterialChannels, NewLayer, NodeKind, TagMask, TagType};
-use crate::{Mesh, Result, Scene, Transform};
 use glam::DVec3;
+use operandi_core::shader_tree::{
+    GroupMask, MaterialChannels, NewLayer, NodeKind, TagMask, TagType,
+};
+use operandi_core::{Mesh, Result, Scene, Transform};
 
 /// The pixel sizes every icon is rendered at, each also at 2× for
 /// high-density screens.
@@ -209,9 +211,9 @@ fn add_tag_material(scene: &mut Scene, look: &StudioMaterial) -> Result<()> {
 
 /// The camera's settings: orthographic, framing [`HALF_SIZE`] metres
 /// either side of the centre on a square picture.
-pub fn camera_settings() -> crate::camera_light::CameraSettings {
-    let mut camera = crate::camera_light::new_scene_camera_settings();
-    camera.projection = crate::camera_light::Projection::Orthographic;
+pub fn camera_settings() -> operandi_core::camera_light::CameraSettings {
+    let mut camera = operandi_core::camera_light::new_scene_camera_settings();
+    camera.projection = operandi_core::camera_light::Projection::Orthographic;
     let (_, half_tan) = camera.half_tangents(1.);
     // Orthographic size is the frame a perspective lens would see at the
     // Target Distance (CL-Q02), so the distance sets the size.
@@ -224,7 +226,7 @@ pub fn camera_settings() -> crate::camera_light::CameraSettings {
 fn aimed(eye: DVec3, target: DVec3) -> Transform {
     Transform {
         translation: eye,
-        rotation: crate::camera_light::look_at_rotation(eye, target),
+        rotation: operandi_core::camera_light::look_at_rotation(eye, target),
         ..Default::default()
     }
 }
@@ -239,7 +241,7 @@ pub fn studio_scene() -> Result<Scene> {
         item.name = "Icon Camera".into();
     }
 
-    let key = crate::camera_light::LightSettings {
+    let key = operandi_core::camera_light::LightSettings {
         intensity: KEY_INTENSITY,
         color: KEY_COLOR,
         spread_angle: KEY_SPREAD_DEGREES.to_radians(),
@@ -2245,8 +2247,8 @@ fn tagged(mut mesh: Mesh, tag: &str) -> Mesh {
     mesh
 }
 
-fn polygon(vertices: Vec<u32>, tag: &str) -> crate::Face {
-    crate::Face {
+fn polygon(vertices: Vec<u32>, tag: &str) -> operandi_core::Face {
+    operandi_core::Face {
         vertices,
         uv: None,
         material: tag.into(),
@@ -2385,9 +2387,9 @@ pub fn tube_with(
 /// A small ball (a curve's point, a selected vertex).
 fn ball(center: DVec3, radius: f64, tag: &str) -> Result<Mesh> {
     Ok(tagged(
-        crate::radial::globe_geometry(
+        operandi_core::radial::globe_geometry(
             center,
-            crate::radial::RadialParameters {
+            operandi_core::radial::RadialParameters {
                 radius: DVec3::splat(radius),
                 sides: 24,
                 segments: 12,
@@ -2430,7 +2432,7 @@ pub fn through(points: &[DVec3], steps: usize) -> Vec<DVec3> {
 fn merge(meshes: Vec<Mesh>) -> Result<Mesh> {
     let mut all = Mesh::default();
     for mesh in meshes {
-        crate::primitive::append_geometry(&mut all, mesh)?;
+        operandi_core::primitive::append_geometry(&mut all, mesh)?;
     }
     Ok(all)
 }
@@ -2438,7 +2440,7 @@ fn merge(meshes: Vec<Mesh>) -> Result<Mesh> {
 /// A box from `min` to `max`, its top tagged `top`, sides `sides` and
 /// bottom `bottom`.
 fn tagged_box(min: DVec3, max: DVec3, top: &str, sides: &str, bottom: &str) -> Result<Mesh> {
-    let mut mesh = crate::primitive::cube_geometry((min + max) * 0.5, max - min)?;
+    let mut mesh = operandi_core::primitive::cube_geometry((min + max) * 0.5, max - min)?;
     let mid = (min.y + max.y) * 0.5;
     for i in 0..mesh.faces.len() {
         let ys: Vec<f64> = mesh.faces[i]
@@ -2475,7 +2477,7 @@ fn visible_corners() -> Vec<DVec3> {
 
 /// A box from `min` to `max` whose faces are tagged by `tag_of(normal)`.
 fn box_by_normal(min: DVec3, max: DVec3, tag_of: impl Fn(DVec3) -> &'static str) -> Result<Mesh> {
-    let mut mesh = crate::primitive::cube_geometry((min + max) * 0.5, max - min)?;
+    let mut mesh = operandi_core::primitive::cube_geometry((min + max) * 0.5, max - min)?;
     let centre = (min + max) * 0.5;
     for i in 0..mesh.faces.len() {
         let p: Vec<DVec3> = mesh.faces[i]
@@ -3032,9 +3034,9 @@ fn dup_layout(family: Sample) -> Result<Layout> {
                     .map(|&(x, z)| {
                         let c = DVec3::new(x, 0.02, z);
                         // A coarse ball, so its wireframe and points stay few.
-                        let coarse = crate::radial::globe_geometry(
+                        let coarse = operandi_core::radial::globe_geometry(
                             c,
-                            crate::radial::RadialParameters {
+                            operandi_core::radial::RadialParameters {
                                 radius: DVec3::splat(0.1),
                                 sides: 6,
                                 segments: 4,
@@ -4013,10 +4015,10 @@ fn row_axes(cube: f64, length: f64, boxes: bool) -> Result<Vec<Mesh>> {
 
 /// The geometry of a sample, inside the icon box.
 fn sample_mesh(sample: Sample) -> Result<Mesh> {
-    use crate::radial::{RadialParameters, cylinder_geometry, globe_geometry};
+    use operandi_core::radial::{RadialParameters, cylinder_geometry, globe_geometry};
     Ok(match sample {
         Sample::Cube => tagged(
-            crate::primitive::cube_geometry(DVec3::ZERO, DVec3::ONE)?,
+            operandi_core::primitive::cube_geometry(DVec3::ZERO, DVec3::ONE)?,
             CLAY,
         ),
         Sample::SelectedFace => {
@@ -5131,9 +5133,9 @@ fn sample_mesh(sample: Sample) -> Result<Mesh> {
             // A round body cut at X = 0: the kept +X half Clay, the mirrored
             // −X half cyan, and the welded seam ring selected. (Mirror shows
             // two separate copies and a plane; this shows one welded whole.)
-            let mut body = crate::radial::globe_geometry(
+            let mut body = operandi_core::radial::globe_geometry(
                 DVec3::ZERO,
-                crate::radial::RadialParameters {
+                operandi_core::radial::RadialParameters {
                     radius: DVec3::new(0.5, 0.58, 0.5),
                     sides: 48,
                     segments: 24,
@@ -10346,7 +10348,7 @@ fn sample_mesh(sample: Sample) -> Result<Mesh> {
                 )?,
                 "Ink",
             );
-            crate::primitive::append_geometry(&mut bulb, base)?;
+            operandi_core::primitive::append_geometry(&mut bulb, base)?;
             bulb
         }
     })
@@ -10388,7 +10390,7 @@ pub fn sample_scene(sample: Sample) -> Result<Scene> {
 
 /// Whether `item` is one of the studio's own kinds (camera, light, sky),
 /// which an icon scene's copy of the studio carries but never renders.
-fn studio_kind(item: &crate::Item) -> bool {
+fn studio_kind(item: &operandi_core::Item) -> bool {
     item.camera.is_some() || item.light.is_some() || item.environment.is_some()
 }
 
@@ -10402,7 +10404,7 @@ pub fn render_scene(studio: &Scene, icon: &Scene) -> Result<Scene> {
     let mut scene = studio.clone();
     // The studio itself renders nothing but what the icon adds.
     scene.items.retain(studio_kind);
-    let copied: Vec<&crate::Item> = icon.items.iter().filter(|i| !studio_kind(i)).collect();
+    let copied: Vec<&operandi_core::Item> = icon.items.iter().filter(|i| !studio_kind(i)).collect();
     if !copied.iter().any(|i| !i.mesh.faces.is_empty()) {
         return Err("The icon scene has no polygons to render".into());
     }
