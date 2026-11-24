@@ -583,7 +583,7 @@ macro_rules! icon_files {
             /// The generator's SVG, if the icon has one.
             fn svg(self) -> Option<&'static str> {
                 match self {
-                    $($(#[$m])* Icon::$icon => Some(include_str!(concat!("../assets/icons/", $file))),)*
+                    $($(#[$m])* Icon::$icon => Some(include_str!(concat!("../../assets/icons/", $file))),)*
                     $(Icon::$ricon => None,)*
                 }
             }

@@ -16,6 +16,7 @@ mod animated_scene_frames_tests;
 #[cfg(test)]
 #[path = "anim/channel_panel_tests.rs"]
 mod channel_panel_tests;
+#[path = "controls/collapse_line.rs"]
 mod collapse_line;
 #[path = "commands/command_history.rs"]
 mod command_history;
@@ -41,6 +42,7 @@ mod node_view_open;
 mod node_view_open_tests;
 #[cfg(test)]
 mod node_view_panel_tests;
+#[path = "controls/popup_title.rs"]
 mod popup_title;
 mod snaps_panel;
 mod symmetrize_panel;
@@ -48,6 +50,7 @@ mod symmetry_ui;
 use crate::prefs_file::PrefsFile;
 use snaps_panel::SnapPreset;
 mod action_center_click;
+#[path = "controls/app_environment.rs"]
 mod app_environment;
 mod app_menu;
 mod backdrop_gpu;
@@ -56,10 +59,12 @@ mod background_ui;
 mod bevel_panel;
 mod bind_dialog_ui;
 mod boolean_dialog;
+#[path = "controls/branding.rs"]
 mod branding;
 mod bridge_panel;
 mod bug_report;
 mod bug_report_capture;
+#[path = "controls/button_variants.rs"]
 mod button_variants;
 mod camera;
 mod camera_light_handles;
@@ -75,7 +80,9 @@ mod character_rig_ui;
 #[path = "anim/clip_picker.rs"]
 mod clip_picker;
 mod color_theme;
+#[path = "controls/colour_field.rs"]
 mod colour_field;
+#[path = "controls/colour_picker.rs"]
 mod colour_picker;
 #[path = "commands/command.rs"]
 mod command;
@@ -160,6 +167,7 @@ mod help_mode;
 mod help_mode_tests;
 #[path = "commands/i2_route.rs"]
 mod i2_route;
+#[path = "controls/icons.rs"]
 mod icons;
 mod image_decode;
 mod image_viewer;
@@ -208,6 +216,7 @@ mod multi_active_tests;
 mod multires_ui;
 #[cfg(test)]
 mod multires_ui_tests;
+#[path = "controls/native.rs"]
 mod native;
 mod native_menu;
 mod navigation_preferences;
@@ -216,10 +225,13 @@ mod numeric_tab;
 mod online_library;
 mod online_library_ui;
 mod open_documents;
+#[path = "controls/option_row.rs"]
 mod option_row;
 mod orbit_selected;
+#[path = "controls/original_compatible.rs"]
 mod original_compatible;
 mod os_color;
+#[path = "controls/outline.rs"]
 mod outline;
 mod panel_close;
 mod panel_dot;
@@ -279,6 +291,7 @@ mod relax_mesh_dialog;
 mod remesh_dialog;
 mod render_item_ui;
 mod render_preferences;
+#[path = "controls/rendered_icons.rs"]
 mod rendered_icons;
 mod replica_rows;
 #[cfg(test)]
@@ -398,13 +411,17 @@ mod tool_form;
 mod tool_framing;
 mod tool_split;
 mod toolbox;
+#[path = "controls/tree_list.rs"]
 mod tree_list;
+#[path = "controls/typography.rs"]
 mod typography;
 #[cfg(test)]
 #[path = "commands/ui_inventory.rs"]
 mod ui_inventory;
 mod ui_preferences;
+#[path = "controls/ui_text.rs"]
 mod ui_text;
+#[path = "controls/unavailable.rs"]
 mod unavailable;
 mod undo_autosave;
 mod units_preferences;
@@ -417,6 +434,7 @@ mod uv_editor;
 mod uv_ops_ui;
 mod uv_tool_forms;
 mod uv_view;
+#[path = "controls/value_display.rs"]
 mod value_display;
 mod value_presets;
 mod vertex_panel;
@@ -3987,6 +4005,7 @@ mod absolute_scaling_tests;
 #[cfg(test)]
 mod active_mesh_pick_tests;
 #[cfg(test)]
+#[path = "controls/button_variants_tests.rs"]
 mod button_variants_tests;
 #[cfg(test)]
 mod camera_props_tests;
@@ -4086,6 +4105,7 @@ mod link_button_tests;
 #[cfg(test)]
 mod mini_properties_tests;
 #[cfg(test)]
+#[path = "controls/number_field_tests.rs"]
 mod number_field_tests;
 #[cfg(test)]
 mod numeric_tab_tests;
@@ -4196,6 +4216,7 @@ mod snapping_tests;
 #[cfg(test)]
 mod soft_move_falloff_tests;
 #[cfg(test)]
+#[path = "controls/tree_list_tests.rs"]
 mod tree_list_tests;
 #[cfg(test)]
 mod viewport_center_tests;

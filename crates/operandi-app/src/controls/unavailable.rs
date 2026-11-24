@@ -172,14 +172,15 @@ mod tests {
                     .to_string_lossy()
                     .replace('\\', "/");
                 if path.extension().is_none_or(|e| e != "rs")
-                    || rel == "unavailable.rs"
+                    || rel == "controls/unavailable.rs"
                     || rel.ends_with("_tests.rs")
                     || rel == "tests.rs"
                 {
                     continue;
                 }
                 // The form rows grey with a derived reason (form/mod.rs).
-                let form_rows = rel == "form/dialog.rs" || rel == "form/panel.rs";
+                let form_rows =
+                    rel == "window_layout/form/dialog.rs" || rel == "window_layout/form/panel.rs";
                 let text = std::fs::read_to_string(&path).unwrap();
                 for (n, line) in text.lines().enumerate() {
                     let code = line.split("//").next().unwrap_or("");

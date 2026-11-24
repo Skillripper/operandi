@@ -6,11 +6,11 @@ use eframe::egui::*;
 
 /// Dock tile (the O on a black tile): the window icon under cargo run
 /// and on Linux/Windows. Inside a macOS .app the bundle's own icon is used.
-pub const DOCK_ICON: &[u8] = include_bytes!("../../../assets/branding/operandi-dock-icon.png");
+pub const DOCK_ICON: &[u8] = include_bytes!("../../../../assets/branding/operandi-dock-icon.png");
 /// The full logo with wordmark (1448 × 1086).
-const LOGO: &[u8] = include_bytes!("../../../assets/branding/operandi-logo.png");
+const LOGO: &[u8] = include_bytes!("../../../../assets/branding/operandi-logo.png");
 /// Uniform 128px (Lanczos) derivative of OP-LOGO-APP-2 (branding-manifest.json).
-const SYMBOL: &[u8] = include_bytes!("../assets/operandi-symbol-128.png");
+const SYMBOL: &[u8] = include_bytes!("../../assets/operandi-symbol-128.png");
 
 fn texture(ctx: &Context, full: bool) -> Option<TextureHandle> {
     let id = Id::new(if full {
