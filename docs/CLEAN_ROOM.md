@@ -61,8 +61,7 @@ The maintainer's own builds keep a stricter clean room. Modo is studied in
 a separate, private project, which writes behaviour specs into a
 private specs repository that isn't published; the maintainer's build agents work
 only from those specs and never see Modo (the "Clean-room boundary" in
-[AGENTS.md](../AGENTS.md), and the guard in `.claude/`). That is what the
-"Built clean" section of [ABOUT.md](ABOUT.md) describes.
+[AGENTS.md](../AGENTS.md), and the guard in `.claude/`).
 
 Contributors don't have to work that way. The maintainer can share the
 spec for a tool you want to work on; when it or the docs don't answer something, log it in
