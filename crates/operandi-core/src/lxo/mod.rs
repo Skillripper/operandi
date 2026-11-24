@@ -15,6 +15,7 @@ mod phase1;
 pub mod preset_items;
 mod q001;
 mod rig_import;
+mod user_channels;
 pub(crate) mod wire;
 use crate::Scene;
 /// A channel value as the readers store it.

@@ -226,6 +226,20 @@ pub fn to_curve(
     interpolation: Interpolation,
     rate: FrameRate,
 ) -> (Curve, Conversion) {
+    convert(env, interpolation, &|t| key_time(t, rate))
+}
+
+/// A relationship curve (LXA-110..112): its key times are a driver's
+/// values, kept exactly rather than put on frames.
+pub fn to_value_curve(env: &Envelope) -> (Curve, Conversion) {
+    convert(env, Interpolation::Curve, &Tick::from_seconds)
+}
+
+fn convert(
+    env: &Envelope,
+    interpolation: Interpolation,
+    key_time: &dyn Fn(f64) -> Tick,
+) -> (Curve, Conversion) {
     let mut stats = Conversion::default();
     let mut curve = Curve {
         pre: behavior(env.pre),
@@ -236,14 +250,14 @@ pub fn to_curve(
         // LXA-12 / LXA-16: hold each key's value until the next.
         curve.stepped = true;
         for k in &env.keys {
-            curve.put(Key::new(key_time(k.time, rate), k.value));
+            curve.put(Key::new(key_time(k.time), k.value));
         }
         return (curve, stats);
     }
     if interpolation == Interpolation::Linear {
         // LXA-16: straight lines between the keys.
         for k in &env.keys {
-            let mut key = Key::new(key_time(k.time, rate), k.value);
+            let mut key = Key::new(key_time(k.time), k.value);
             key.slope_in = Slope::Linear;
             key.slope_out = Slope::Linear;
             curve.put(key);
@@ -257,7 +271,7 @@ pub fn to_curve(
     for (i, k) in env.keys.iter().enumerate() {
         let before = i.checked_sub(1).map(|j| k.time - env.keys[j].time);
         let after = env.keys.get(i + 1).map(|b| b.time - k.time);
-        let mut key = Key::new(key_time(k.time, rate), k.value);
+        let mut key = Key::new(key_time(k.time), k.value);
         key.slope_in = slope_of(k.incoming.slope_type);
         key.manual_in = k.incoming.slope;
         key.weight_in = relative_weight(k.incoming.weight, k.incoming.slope, before);

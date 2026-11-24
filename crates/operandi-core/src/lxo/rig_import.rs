@@ -32,8 +32,16 @@ pub fn handled(kind: &str) -> bool {
             | "cmMathBasic"
             | "Expression"
             | "cmIKDual2D"
+            | "cmIK2Bar3Bar"
+            | "cmChannelRelation"
+            | "cmPathConstraint"
             | "morphDeform"
-    )
+    ) || quiet(kind)
+}
+
+/// LXA-170: schematic layout items, skipped without a report line.
+fn quiet(kind: &str) -> bool {
+    matches!(kind, "schmNode" | "elbow" | "backdropSchm" | "noteSchm")
 }
 
 /// One skin to build (LXA-61).
@@ -53,7 +61,9 @@ pub struct SkinPlan {
 pub struct IkPlan {
     pub solver: u32,
     pub root: u32,
-    pub mid: u32,
+    /// The middle joint of a two-bone chain; `None` for a chain IK
+    /// (three-bar planar IK, LXA-131).
+    pub mid: Option<u32>,
     pub end: u32,
     pub goal: u32,
 }
@@ -91,10 +101,7 @@ pub fn plan(items: &BTreeMap<u32, RawItem>, extras: &Extras) -> Plan {
             .iter()
             .find(|(g, t, _)| g == "deformers" && items.get(t).is_some_and(|m| m.kind == "mesh"))
         else {
-            *plan
-                .left_out
-                .entry("joint influences on no mesh".into())
-                .or_default() += 1;
+            // LXA-170: it has no effect; nothing to report.
             continue;
         };
         if text(influence, "type").is_some_and(|t| t != "mapWeight") {
@@ -210,8 +217,48 @@ pub fn plan(items: &BTreeMap<u32, RawItem>, extras: &Extras) -> Plan {
         plan.ik.push(IkPlan {
             solver: solver.id,
             root,
-            mid,
+            mid: Some(mid),
             end,
+            goal,
+        });
+    }
+    // LXA-130/131: planar IK. Two bars are two-bone IK; three bars a
+    // chain IK on the four joints.
+    for solver in items.values().filter(|i| i.kind == "cmIK2Bar3Bar") {
+        let joint = |c: &str| input(extras, solver.id, c).map(|l| l.from);
+        let three = number(solver, "joints").unwrap_or(0.) >= 0.5;
+        let (root, b, cj, end) = (
+            joint("jointA"),
+            joint("jointB"),
+            joint("jointC"),
+            joint("jointE"),
+        );
+        let goal = joint("goalWPos");
+        let parent = |id: u32| items.get(&id).and_then(|i| i.link("parent"));
+        let locator =
+            |id: Option<u32>| id.filter(|j| items.get(j).is_some_and(|i| i.kind == "locator"));
+        let chain: Option<Vec<u32>> = if three {
+            [root, b, cj, end].iter().map(|j| locator(*j)).collect()
+        } else {
+            [root, b, end].iter().map(|j| locator(*j)).collect()
+        };
+        let linked = chain
+            .as_ref()
+            .is_some_and(|c| c.windows(2).all(|w| parent(w[1]) == Some(w[0])));
+        let (Some(chain), Some(goal), true) = (chain, locator(goal), linked) else {
+            *plan
+                .left_out
+                .entry("planar IK whose chain isn't linked joints".into())
+                .or_default() += 1;
+            continue;
+        };
+        plan.joints.extend(chain.iter().copied());
+        plan.goals.insert(goal);
+        plan.ik.push(IkPlan {
+            solver: solver.id,
+            root: chain[0],
+            mid: (!three).then_some(chain[1]),
+            end: *chain.last().unwrap(),
             goal,
         });
     }
@@ -298,6 +345,15 @@ fn outputs(items: &BTreeMap<u32, RawItem>, extras: &Extras, m: u32) -> Vec<Chann
         .filter(|l| l.from == m && l.from_channel == "output")
         .filter_map(|l| target(items, None, l.to, &l.to_channel))
         .collect()
+}
+
+/// `kind` as the static name of a rig piece kind.
+fn kind_name(kind: &str) -> &'static str {
+    crate::rig::KINDS
+        .iter()
+        .find(|k| **k == kind)
+        .copied()
+        .unwrap_or("position")
 }
 
 /// Makes the rig pieces (LXA-70..80) and the skins (LXA-61).
@@ -624,33 +680,135 @@ pub fn pieces(
 
     // Two-bone IK (LXA-80); the bend hint needs the setup pose (`finish`).
     for ik in &plan.ik {
-        if [ik.root, ik.mid, ik.end, ik.goal]
+        if [ik.root, ik.end, ik.goal]
             .iter()
+            .chain(ik.mid.iter())
             .any(|j| !exists(scene, *j))
         {
-            leave("two-bone IK on items not imported".into());
+            leave("IK on items not imported".into());
             continue;
         }
-        let mut p = Piece::new(
-            new_id(scene)?,
-            crate::ik::TWO_BONE,
-            oid(ik.root),
-            vec![oid(ik.goal)],
-        );
-        p.names.insert("mid".into(), oid(ik.mid).to_string());
+        let kind = if ik.mid.is_some() {
+            crate::ik::TWO_BONE
+        } else {
+            crate::ik::CHAIN
+        };
+        let mut p = Piece::new(new_id(scene)?, kind, oid(ik.root), vec![oid(ik.goal)]);
+        if let Some(mid) = ik.mid {
+            p.names.insert("mid".into(), oid(mid).to_string());
+        }
         p.names.insert("end".into(), oid(ik.end).to_string());
         if let Some(b) = items.get(&ik.solver).and_then(|s| number(s, "blend")) {
             let _ = p.set("blend", b);
         }
-        map.insert(ik.solver, (p.id, crate::ik::TWO_BONE));
+        map.insert(ik.solver, (p.id, kind));
         scene.animation.rig.pieces.push(p);
-        *stats.entry("two-bone IK").or_default() += 1;
+        if kind == crate::ik::CHAIN {
+            // LXA-131: Operandi's chain solver isn't the planar three-bar
+            // one, and the bend share (weightA) has no setting.
+            *stats
+                .entry("three-bar planar IK (as chain IK)")
+                .or_default() += 1;
+        } else {
+            *stats.entry("two-bone IK").or_default() += 1;
+        }
+    }
+
+    // Channel Relationships (LXA-110..112): links in relationship mode.
+    for r in items.values().filter(|i| i.kind == "cmChannelRelation") {
+        let driver =
+            input(extras, r.id, "input").and_then(|l| target(items, None, l.from, &l.from_channel));
+        let env = extras
+            .actions
+            .setup
+            .grads
+            .get(&r.id)
+            .and_then(|g| g.get("value"))
+            .or_else(|| r.grads.get("value"))
+            .and_then(|e| extras.envelopes.get(e));
+        let (Some(driver), Some(env)) = (driver, env) else {
+            leave("channel relationships with no driver or curve".into());
+            continue;
+        };
+        let (mut curve, _) = super::envelope::to_value_curve(env);
+        let offset = number(r, "offset").unwrap_or(0.);
+        for k in &mut curve.keys {
+            k.value += offset;
+        }
+        let outs = outputs(items, extras, r.id);
+        if outs.is_empty() || scene.item(driver.item).is_none() {
+            leave("channel relationships that drive nothing".into());
+            continue;
+        }
+        for out in outs {
+            if scene.item(out.item).is_none() {
+                continue;
+            }
+            let mut p = Piece::new(new_id(scene)?, "link", out.item, vec![driver.item]);
+            let _ = p.set("enable", number(r, "enable").unwrap_or(1.));
+            p.names.insert("driven".into(), out.channel.clone());
+            p.names.insert("driver".into(), driver.channel.clone());
+            p.names.insert("mode".into(), "relationship".into());
+            p.curve = Some(curve.clone());
+            map.insert(r.id, (p.id, "link"));
+            scene.animation.rig.pieces.push(p);
+            *stats.entry("channel relationships").or_default() += 1;
+        }
+    }
+
+    // Path constraints (LXA-140).
+    for c in items.values().filter(|i| i.kind == "cmPathConstraint") {
+        let kind = match text(c, "operation") {
+            Some("curveNormal") => "pathNormal",
+            Some("curvePath") => "path",
+            _ => "pathPosition",
+        };
+        let item = c.link("chanMods");
+        let curve = input(extras, c.id, "mesh").map(|l| l.from);
+        let (Some(item), Some(curve)) = (item, curve) else {
+            leave("path constraints with no item or curve".into());
+            continue;
+        };
+        if !exists(scene, item) || !exists(scene, curve) {
+            leave("path constraints on items not imported".into());
+            continue;
+        }
+        let mut p = Piece::new(new_id(scene)?, kind, oid(item), vec![oid(curve)]);
+        let _ = p.set("enable", number(c, "enable").unwrap_or(1.));
+        for (from, to) in [
+            ("percent", "percent"),
+            ("offset", "pathOffset"),
+            ("wrap", "wrap"),
+        ] {
+            if let Some(v) = number(c, from) {
+                let _ = p.set(to, v);
+            }
+        }
+        if kind != "pathPosition" {
+            let axis = match text(c, "axis") {
+                Some("x") => 0.,
+                Some("y") => 1.,
+                _ => 2.,
+            };
+            let _ = p.set("axis", axis);
+            let _ = p.set("negative", number(c, "axisNeg").unwrap_or(0.));
+            let _ = p.set("roll", number(c, "roll").unwrap_or(0.));
+            let _ = p.set("localUp", number(c, "local").unwrap_or(0.));
+            set_group(&mut p, "up.", xyz(c, "up", 0.));
+            set_group(&mut p, "offset.rot.", xyz(c, "offsetRot", 0.));
+        }
+        set_group(&mut p, "offset.pos.", xyz(c, "offsetPos", 0.));
+        map.insert(c.id, (p.id, kind_name(kind)));
+        scene.animation.rig.pieces.push(p);
+        *stats.entry("constraints").or_default() += 1;
     }
 
     // Everything else of Modo's rig library (GAPS 2, 3, 8).
     for i in items.values() {
         if i.kind == "morphDeform" {
             leave("morph influences (animated morph amounts)".into());
+        } else if i.kind == "cmMatrixBlend" {
+            leave("matrix blends".into());
         } else if i.kind.starts_with("cm") && !handled(&i.kind) {
             leave(format!("{} rig items", i.kind));
         }
@@ -684,6 +842,29 @@ pub fn finish(scene: &mut Scene, plan: &Plan, report: &mut Report) {
         crate::skin::ensure_setup_channels(scene, oid(*j));
     }
     for ik in &plan.ik {
+        let Some(mid) = ik.mid else {
+            // Chain IK: the goal's setup rotation is its twist reference.
+            let twist = crate::skin::setup_world(scene, oid(ik.goal))
+                .map(|m| {
+                    m.to_scale_rotation_translation()
+                        .1
+                        .to_euler(glam::EulerRot::XYZ)
+                })
+                .unwrap_or_default();
+            if let Some(p) = scene
+                .animation
+                .rig
+                .pieces
+                .iter_mut()
+                .find(|p| p.kind == crate::ik::CHAIN && p.item == oid(ik.root))
+            {
+                for (axis, v) in ["X", "Y", "Z"].iter().zip([twist.0, twist.1, twist.2]) {
+                    p.values
+                        .insert(format!("twist.{axis}"), crate::rig::clean(v));
+                }
+            }
+            continue;
+        };
         let pos = |s: &Scene, id: u32| {
             crate::skin::setup_world(s, oid(id))
                 .map(|m| m.w_axis.truncate())
@@ -696,7 +877,7 @@ pub fn finish(scene: &mut Scene, plan: &Plan, report: &mut Report) {
             .unwrap_or(glam::DMat4::IDENTITY);
         let bend = crate::ik::rest_bend(
             pos(scene, ik.root),
-            pos(scene, ik.mid),
+            pos(scene, mid),
             pos(scene, ik.end),
             parent,
         );

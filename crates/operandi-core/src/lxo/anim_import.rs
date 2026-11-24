@@ -61,7 +61,13 @@ fn piece_channel(kind: &str, modo: &str) -> Option<String> {
                 _ => None,
             }
         }
-        crate::ik::TWO_BONE => (modo == "blend").then(|| "blend".into()),
+        crate::ik::TWO_BONE | crate::ik::CHAIN => (modo == "blend").then(|| "blend".into()),
+        "path" | "pathPosition" | "pathNormal" => match modo {
+            "percent" => Some("percent".into()),
+            "offset" => Some("pathOffset".into()),
+            "roll" => Some("roll".into()),
+            _ => None,
+        },
         _ => None,
     }
 }
@@ -96,6 +102,14 @@ pub fn target(
             let light = item.link("parent")?;
             let c = super::cameras_lights::channel("lightMaterial", channel)?;
             Some(ChannelKey::new(oid(light), &c))
+        }
+        // User channels (LXA-101) key and link under their own names.
+        _ if item
+            .user
+            .iter()
+            .any(|u| super::user_channels::names(u).iter().any(|n| n == channel)) =>
+        {
+            scene_kind(&item.kind).then(|| ChannelKey::new(oid(modo), channel))
         }
         kind if scene_kind(kind) => {
             let c = super::cameras_lights::channel(kind, channel)?;

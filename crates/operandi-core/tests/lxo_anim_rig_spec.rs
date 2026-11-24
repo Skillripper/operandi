@@ -466,3 +466,126 @@ fn importing_into_a_scene_keeps_the_animation_and_rig() {
     );
     assert!((p - w).length() < 1e-4, "{p} vs {w}");
 }
+
+// --- spec v2: LXA-100..180 ---------------------------------------------------
+
+#[test]
+fn lxa102_user_channels_with_labels_types_and_values() {
+    use rig::UserType as T;
+    let s = import("user-channels-relation-math.lxo").scene;
+    let ctrl = s.items.iter().find(|i| i.name == "Ctrl").unwrap().id;
+    let user = |n: &str| {
+        s.animation
+            .rig
+            .user_channel(ctrl, n)
+            .unwrap_or_else(|| panic!("{n}"))
+    };
+    for (n, ty) in [
+        ("uFloat", T::Float),
+        ("uDist", T::Distance),
+        ("uAngle", T::Angle),
+        ("uPct", T::Percentage),
+        ("uInt", T::Integer),
+        ("uBool", T::Boolean),
+        ("uStr", T::String),
+        ("uTime", T::Time),
+    ] {
+        assert_eq!(user(n).ty, ty, "{n}");
+        assert_eq!(user(n).display, format!("{n} label"));
+    }
+    assert_eq!(user("uFloat").get("uFloat"), Some(0.5));
+    assert_eq!(user("uDist").get("uDist"), Some(1.5));
+    assert_eq!(user("uInt").get("uInt"), Some(3.));
+    assert_eq!((user("uPct").min, user("uPct").max), (Some(0.), Some(1.)));
+    // The keyed sliders carry their curves.
+    assert!(
+        s.animation
+            .channels
+            .contains_key(&animation::ChannelKey::new(ctrl, "uPct"))
+    );
+    assert!(
+        s.animation
+            .channels
+            .contains_key(&animation::ChannelKey::new(ctrl, "uAngle"))
+    );
+}
+
+#[test]
+fn lxa111_channel_relationship_drives_the_door_like_modo() {
+    let all = cases();
+    let mut e = editor("user-channels-relation-math.lxo");
+    for row in all["user-channels-relation-math.lxo"]["expected"]["driven"]
+        .as_array()
+        .unwrap()
+    {
+        let frame = row[0].as_i64().unwrap();
+        let want = row[2].as_f64().unwrap();
+        at_frame(&mut e, frame);
+        let w = world(&e, "Door");
+        let got = w.x_axis.y.atan2(w.x_axis.x);
+        assert!((got - want).abs() < 1e-4, "f{frame}: {got} vs {want}");
+    }
+}
+
+#[test]
+fn lxa120_math_operations_without_an_operandi_twin_are_reported() {
+    let r = import("user-channels-relation-math.lxo").report.summary();
+    assert!(r.contains("math modifiers with operation mod"), "{r}");
+    assert!(r.contains("math modifiers with operation avg"), "{r}");
+}
+
+/// LXA-131 / Q-LXA-14: both planar chains reach their goals; the three-bar
+/// chain is Operandi's chain IK (an iterative solve, within a few mm),
+/// so only the ends are compared.
+#[test]
+fn lxa130_planar_ik_chains_reach_their_goals() {
+    let all = cases();
+    let table = &all["planar-ik.lxo"]["expected"]["world"];
+    let mut e = editor("planar-ik.lxo");
+    let kinds: Vec<&str> = e
+        .scene
+        .animation
+        .rig
+        .pieces
+        .iter()
+        .map(|p| p.kind.as_str())
+        .collect();
+    assert!(
+        kinds.contains(&ik::TWO_BONE) && kinds.contains(&ik::CHAIN),
+        "{kinds:?}"
+    );
+    for frame in [0, 15, 30] {
+        at_frame(&mut e, frame);
+        for (end, tol) in [("b2", 1e-4), ("c3", 5e-3)] {
+            let want = matrix(&table[end][frame.to_string()]).w_axis.truncate();
+            let got = world(&e, end).w_axis.truncate();
+            assert!(
+                (got - want).length() < tol,
+                "{end} f{frame}: {got} vs {want}"
+            );
+        }
+    }
+}
+
+#[test]
+fn lxa140_path_constraint_rides_the_curve() {
+    let all = cases();
+    let mut e = editor("path-blend-shader.lxo");
+    for (frame, p) in all["path-blend-shader.lxo"]["expected"]["rider"]
+        .as_object()
+        .unwrap()
+    {
+        at_frame(&mut e, frame.parse().unwrap());
+        let got = world(&e, "Rider").w_axis.truncate();
+        let want = DVec3::new(
+            p[0].as_f64().unwrap(),
+            p[1].as_f64().unwrap(),
+            p[2].as_f64().unwrap(),
+        );
+        // Operandi measures percent along the curve's length; the file's
+        // curve is a little uneven along its straight run (2.0025 at 50 %).
+        assert!((got - want).length() < 5e-3, "f{frame}: {got} vs {want}");
+    }
+    let r = import("path-blend-shader.lxo").report.summary();
+    assert!(r.contains("matrix blends"), "{r}");
+}

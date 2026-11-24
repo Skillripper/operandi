@@ -47,6 +47,10 @@ pub(super) struct RawItem {
     pub(super) channels: BTreeMap<String, Value>,
     /// (graph, target reference, ordinal)
     pub(super) links: Vec<(String, u32, u32)>,
+    /// User channels (`UCHN`, LXA-100), in file order.
+    pub(super) user: Vec<super::user_channels::UserDef>,
+    /// Gradient channels (`GRAD`): channel name → envelope (LXA-33/110).
+    pub(super) grads: BTreeMap<String, u32>,
 }
 
 impl RawItem {
@@ -287,6 +291,12 @@ fn gather(chunks: &[Chunk<'_>], c: &mut Control<'_>) -> Result<Gathered> {
                     let mut s = Reader::new(sub.data, sub.offset);
                     match &sub.id {
                         b"VNAM" => item.visible_name = Some(s.string(c)?),
+                        b"UCHN" => item.user.push(super::user_channels::read(&mut s, c)?),
+                        b"GRAD" => {
+                            let (name, _) = s.text(c)?;
+                            let env = s.vx()?;
+                            item.grads.insert(name, env);
+                        }
                         b"LINK" => {
                             let graph = s.string(c)?;
                             let target = s.u32()?;
@@ -432,6 +442,9 @@ fn geometry(
                 _ => None,
             };
             layer.latest.clear();
+            if &kind == b"HCRV" && hermite_curves(&mut r, layer, c)? {
+                return Ok(());
+            }
             if representation.is_none() {
                 // Curves (BCRV, CURV, BEZR), text, bones and other types
                 // don't share the face record layout (a B-spline curve
@@ -592,9 +605,64 @@ fn geometry(
     Ok(())
 }
 
+/// `HCRV` curves (spec lxo-import-anim-rig LXA-140 fixture): per curve a
+/// count, a flags word and that many point indices (provisional reading,
+/// LXO-AR-Q06). Imported as open curves; returns false (and reads
+/// nothing) when the chunk doesn't fit that layout.
+fn hermite_curves(r: &mut Reader<'_>, layer: &mut Layer, c: &mut Control<'_>) -> Result<bool> {
+    let start = r.pos;
+    let mut curves: Vec<Vec<u32>> = Vec::new();
+    let fits = (|| -> Result<bool> {
+        while !r.done() {
+            let n = (r.u16()? & 0x3ff) as usize;
+            let _flags = r.u32()?;
+            let mut v = Vec::with_capacity(n);
+            for _ in 0..n {
+                let i = r.vx()?;
+                if i as usize >= layer.points.len() {
+                    return Ok(false);
+                }
+                v.push(i);
+            }
+            if n >= 2 {
+                curves.push(v);
+            }
+        }
+        Ok(true)
+    })()
+    .unwrap_or(false);
+    if !fits {
+        r.pos = start;
+        return Ok(false);
+    }
+    for v in curves {
+        c.charge(256 + v.len() * 64)?;
+        layer.latest.push(Some(layer.faces.len()));
+        layer.faces.push(Face {
+            vertices: v,
+            uv: None,
+            material: "Default".into(),
+            smooth: false,
+            part: None,
+            material_label: None,
+        });
+        layer.representations.push(PolygonRepresentation::Polyline {
+            closed: false,
+            curve: crate::curves::CurveKind::Curve {
+                start_control: false,
+                end_control: false,
+            },
+        });
+    }
+    Ok(true)
+}
+
 pub(super) fn number(item: &RawItem, key: &str) -> Option<f64> {
     match item.channels.get(key) {
         Some(Value::Number(n)) => Some(*n),
+        // LXA-101: integer and boolean user channels store their value as
+        // text.
+        Some(Value::Text(t)) if item.user.iter().any(|u| u.name == key) => t.trim().parse().ok(),
         _ => None,
     }
 }
@@ -926,6 +994,7 @@ fn scene(
     scene.next_id = scene.items.iter().map(|i| i.id).max().unwrap_or(0) + 1;
     // Rig pieces, then keys and the scene's time (they key piece channels
     // too), then what needs the setup pose (spec lxo-import-anim-rig).
+    super::user_channels::create(&mut scene, &items, &mut report);
     let pieces = super::rig_import::pieces(&mut scene, &items, &extras, &rig_plan, &mut report)?;
     super::anim_import::apply(&mut scene, &items, &extras, &pieces, &mut report)?;
     super::rig_import::finish(&mut scene, &rig_plan, &mut report);

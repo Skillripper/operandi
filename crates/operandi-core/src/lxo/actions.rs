@@ -22,6 +22,8 @@ pub struct Record {
 #[derive(Clone, Debug, Default)]
 pub struct Layer {
     pub records: BTreeMap<u32, BTreeMap<String, Record>>,
+    /// Gradient channels (`GRAD`): item → channel → envelope (LXA-110).
+    pub grads: BTreeMap<u32, BTreeMap<String, u32>>,
 }
 
 /// The three default layers (LXA-01; extra user layers are Q-LXA-11).
@@ -95,7 +97,21 @@ pub(super) fn read(
                     },
                 );
             }
-            // GRAD (gradients, LXA-33), CHNS (strings), PRNT and others
+            b"GRAD" => {
+                let Some(item) = owner else {
+                    continue;
+                };
+                let index = s.vx()? as usize;
+                let envelope = s.vx()?;
+                if let Some(name) = names.get(index) {
+                    layer
+                        .grads
+                        .entry(item)
+                        .or_default()
+                        .insert(name.clone(), envelope);
+                }
+            }
+            // CHNS (strings), PRNT and others
             // carry nothing the import reads.
             _ => {}
         }

@@ -9759,6 +9759,9 @@ The spec's own defaults (Q-LXA-01..11) are used as written. Found while testing 
 - LXO-AR-Q04 The spec's world matrices for `constraints.lxo` hold the targets where the edit layer pins them, not where their keys move them (the import drops those edits, LXA-03). The test pins those six targets to compare the constraint maths alone.
 - LXO-AR-Q05 Q-LXA-08: Operandi's two-bone solver bends `ik-and-stacked-constraints.lxo`'s chain to the side its setup pose bends; the spec's matrices have the knee on the other side. The end joint, bone lengths and chain plane agree. Does the solver's `plane`/`sense` setting pick the side?
 
+- LXO-AR-Q06 `HCRV` polygons (the path in `path-blend-shader.lxo`): read as per curve a count, a 4-byte flags word and that many point indices, imported as open Curve polylines with no end controls. The flags aren't decoded. Confirm the layout.
+- LXO-AR-Q07 Planar IK three bars imports as chain IK (Q-LXA-14): the end reaches the goal within the solver's tolerance (a few mm in `planar-ik.lxo`); `weightA` (the bend share) and `orient2/3` have no Operandi setting and are left out.
+
 ## Multiresolution sculpting (2026-11-23, branch claude/project-thread-0cmp4g, provisional)
 
 Built without a behaviour spec (Jason approved the feature; none of this was observed in the reference). Every answer below is Operandi's own provisional reading.
