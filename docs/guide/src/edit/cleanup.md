@@ -14,4 +14,4 @@ Three one-click repairs for common problems in a mesh's flow.
 ## Related
 
 - [Edit tab](index.md)
-- [Mesh Cleanup](../interface/window.md)
+- [Mesh Cleanup](mesh-cleanup.md)
