@@ -124,6 +124,7 @@ pub mod cycles_voronoi;
 pub mod dispersion;
 #[path = "materials/gradient.rs"]
 pub mod gradient;
+#[path = "nodes/graph_view.rs"]
 pub mod graph_view;
 pub mod light_path_expressions;
 #[path = "materials/material.rs"]
@@ -131,11 +132,17 @@ pub mod material;
 #[path = "materials/material_values.rs"]
 pub mod material_values;
 pub mod materialx;
+#[path = "nodes/node_graph.rs"]
 pub mod node_graph;
+#[path = "nodes/node_material.rs"]
 pub mod node_material;
+#[path = "nodes/node_view.rs"]
 pub mod node_view;
+#[path = "nodes/node_view_board.rs"]
 pub mod node_view_board;
+#[path = "nodes/node_view_commands.rs"]
 pub mod node_view_commands;
+#[path = "nodes/node_view_settings.rs"]
 pub mod node_view_settings;
 pub mod openpbr;
 pub mod per_light_outputs;
@@ -411,6 +418,7 @@ pub use tweak::{
 pub mod mesh_pack;
 #[path = "geometry/mesh_slot.rs"]
 pub mod mesh_slot;
+#[path = "nodes/node_graph_reader.rs"]
 pub mod node_graph_reader;
 #[path = "geometry/packed_mesh.rs"]
 pub mod packed_mesh;

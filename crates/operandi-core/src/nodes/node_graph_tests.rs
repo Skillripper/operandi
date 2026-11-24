@@ -1,6 +1,7 @@
 use super::*;
 
-pub(crate) const NOISE_RAMP: &str = include_str!("../../../fixtures/node-graphs/noise_ramp.json");
+pub(crate) const NOISE_RAMP: &str =
+    include_str!("../../../../fixtures/node-graphs/noise_ramp.json");
 
 fn graph() -> StoredGraph {
     import(NOISE_RAMP, None).unwrap().remove(0)

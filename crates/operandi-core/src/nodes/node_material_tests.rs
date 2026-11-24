@@ -3,7 +3,7 @@ use crate::shader_eval::{Context, Expr};
 use crate::shader_tree::{NewLayer, NodeKind, ShaderTreeEdit, TextureSource};
 use crate::{Command, Editor};
 
-const NOISE_RAMP: &str = include_str!("../../../fixtures/node-graphs/noise_ramp.json");
+const NOISE_RAMP: &str = include_str!("../../../../fixtures/node-graphs/noise_ramp.json");
 
 fn graphs() -> Vec<StoredGraph> {
     node_graph::import(NOISE_RAMP, None).unwrap()
