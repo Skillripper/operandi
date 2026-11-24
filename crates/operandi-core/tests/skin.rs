@@ -136,6 +136,47 @@ fn sk30_weights_are_normalised_and_unweighted_points_stay() {
     near(point(&a, 1), rest1);
 }
 
+/// Posing remembers each point's influences with the weights
+/// (heavy-mesh-speed); editing the weights, as a copy or in place, must
+/// re-skin with the new ones.
+#[test]
+fn weight_edits_after_posing_re_skin_with_the_new_weights() {
+    let mut a = arm(0.5, skin::LINEAR);
+    bend(&mut a);
+    near(point(&a, 0), DVec3::new(0.1, 0.1, 0.));
+    near(point(&a, 0), DVec3::new(0.1, 0.1, 0.));
+    {
+        let m = a.e.scene.item_mut(a.mesh).unwrap();
+        let mut mesh = m.mesh.open().clone();
+        mesh.attributes
+            .point_weights
+            .get_mut("Shoulder")
+            .unwrap()
+            .insert(0, 0.);
+        mesh.attributes
+            .point_weights
+            .get_mut("Elbow")
+            .unwrap()
+            .insert(0, 1.);
+        m.mesh = mesh.into();
+    }
+    near(point(&a, 0), DVec3::new(0., 0.2, 0.));
+
+    // In place: the only holder of the weights edits them.
+    let mut mesh = primitive::cube_geometry(DVec3::ZERO, DVec3::splat(1.)).unwrap();
+    mesh.attributes
+        .point_weights
+        .insert("A".into(), BTreeMap::from([(0u32, 1.)]));
+    let mut values = SkinValues::default();
+    values.add(7, "A");
+    let up = [Some(glam::DMat4::from_translation(DVec3::Y))];
+    let rest = mesh.vertices[0];
+    let moved = skin::deform(&mesh, &values, &up).vertices[0];
+    near(moved, rest + DVec3::Y);
+    mesh.attributes.point_weights.get_mut("A").unwrap().clear();
+    near(skin::deform(&mesh, &values, &up).vertices[0], rest);
+}
+
 #[test]
 fn sk51_setup_mode_shows_the_rest_shape_and_moves_the_bind_pose() {
     let mut a = arm(1., skin::LINEAR);

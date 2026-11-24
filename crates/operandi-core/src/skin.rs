@@ -243,31 +243,96 @@ pub fn influences(mesh: &Mesh, v: &SkinValues, live: &[bool]) -> Vec<Vec<(u32, f
     out
 }
 
+/// What `influences` depends on besides the weight maps themselves.
+#[derive(PartialEq)]
+struct InfluenceKey {
+    points: usize,
+    maps: Vec<String>,
+    smooth: Vec<bool>,
+    threshold: f64,
+    sharpness: f64,
+    limit_sources: bool,
+    max_sources: u32,
+    live: Vec<bool>,
+}
+
+/// The last few influence lists worked out for one weight-map allocation.
+type InfluenceMemo = std::sync::Mutex<Vec<(InfluenceKey, std::sync::Arc<Vec<Vec<(u32, f64)>>>)>>;
+
+/// `influences`, remembered with the mesh's attributes: posing re-skins
+/// every frame with the same weights, and working them out again (a pass
+/// over every weight map) was most of a frame's skinning. Editing the
+/// weights makes a new attributes allocation (or clears its memo), so a
+/// remembered list never outlives the weights it came from.
+fn shared_influences(
+    mesh: &Mesh,
+    v: &SkinValues,
+    live: &[bool],
+) -> std::sync::Arc<Vec<Vec<(u32, f64)>>> {
+    let key = InfluenceKey {
+        points: mesh.vertices.len(),
+        maps: v.maps.clone(),
+        smooth: v.smooth.clone(),
+        threshold: v.threshold,
+        sharpness: v.sharpness,
+        limit_sources: v.limit_sources,
+        max_sources: v.max_sources,
+        live: live.to_vec(),
+    };
+    let memo = mesh.attributes.derived(|_| InfluenceMemo::new(Vec::new()));
+    if let Some((_, hit)) = memo
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .iter()
+        .find(|(k, _)| *k == key)
+    {
+        return hit.clone();
+    }
+    let made = std::sync::Arc::new(influences(mesh, v, live));
+    let mut memo = memo.lock().unwrap_or_else(|e| e.into_inner());
+    // A few skins (or settings being dragged) on one mesh; the oldest goes.
+    if memo.len() >= 4 {
+        memo.remove(0);
+    }
+    memo.push((key, made.clone()));
+    made
+}
+
 /// `mesh` with every weighted point moved by its influences' `moves`.
+/// Points are independent, so they're moved on every core; each point's
+/// sum runs in the same order as on one, so the result is the same.
 pub fn deform(mesh: &Mesh, v: &SkinValues, moves: &[Option<DMat4>]) -> Mesh {
+    use rayon::prelude::*;
     let live: Vec<bool> = moves.iter().map(Option::is_some).collect();
-    let weights = influences(mesh, v, &live);
-    let mut out = mesh.clone();
+    let weights = shared_influences(mesh, v, &live);
     let dual = v.interpolation == DUAL_QUATERNION;
     let duals: Vec<Option<Dual>> = if dual {
         moves.iter().map(|m| m.map(Dual::from_matrix)).collect()
     } else {
         Vec::new()
     };
-    for (p, slot) in weights.iter().enumerate() {
-        if slot.is_empty() {
-            continue;
-        }
-        let rest = mesh.vertices[p];
-        out.vertices[p] = if dual {
-            blend_dual(rest, slot, &duals)
-        } else {
-            slot.iter()
-                .map(|&(i, w)| moves[i as usize].expect("live").transform_point3(rest) * w)
-                .sum()
-        };
+    let vertices = mesh
+        .vertices
+        .par_iter()
+        .zip(weights.par_iter())
+        .map(|(&rest, slot)| {
+            if slot.is_empty() {
+                rest
+            } else if dual {
+                blend_dual(rest, slot, &duals)
+            } else {
+                slot.iter()
+                    .map(|&(i, w)| moves[i as usize].expect("live").transform_point3(rest) * w)
+                    .sum()
+            }
+        })
+        .collect();
+    Mesh {
+        vertices,
+        faces: mesh.faces.clone(),
+        uv_maps: mesh.uv_maps.clone(),
+        attributes: mesh.attributes.clone(),
     }
-    out
 }
 
 /// A rigid move as a unit dual quaternion (real `r`, dual `d`).

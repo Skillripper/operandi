@@ -155,7 +155,11 @@ pub fn transform_vertices(scene: &Scene) -> Result<BTreeSet<u32>> {
         .active()
         .ok_or("Select a mesh; empty item selection targets nothing")?;
     let s = &scene.selection;
-    let mut vertices = BTreeSet::new();
+    // Gathered in a list and collected once: a set built from a whole
+    // list is sorted and filled in one go, where inserting a million
+    // selected points one at a time was most of a whole-mesh drag frame
+    // (heavy-mesh-speed). Same set either way.
+    let mut vertices: Vec<u32> = Vec::new();
     match s.mode {
         Mode::Vertex => vertices.extend(s.vertices.iter().copied()),
         Mode::Edge => {
@@ -188,7 +192,7 @@ pub fn transform_vertices(scene: &Scene) -> Result<BTreeSet<u32>> {
     {
         return Err("No eligible vertices or invalid selection".into());
     }
-    Ok(vertices)
+    Ok(vertices.into_iter().collect())
 }
 /// D18-A: equal oriented face votes, sorted by geometric direction for stable
 /// accumulation independent of ordered selection and face storage. No render

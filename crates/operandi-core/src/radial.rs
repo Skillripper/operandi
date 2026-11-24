@@ -105,6 +105,10 @@ pub fn globe_geometry(position: DVec3, p: RadialParameters) -> Result<Mesh> {
     let n = p.sides;
     let s = p.segments;
     let mut mesh = Mesh::default();
+    // Both counts are known up front (Steve Hill's tip): two poles and a
+    // ring per inner latitude; a polygon per side per band.
+    mesh.vertices.reserve(2 + (n * (s - 1)) as usize);
+    mesh.faces.reserve((n * s) as usize);
     mesh.vertices.push(position - DVec3::Y * p.radius.y);
     for ring in 1..s {
         let latitude = std::f64::consts::PI * ring as f64 / s as f64;
@@ -240,6 +244,10 @@ pub fn cylinder_geometry_with(
     let n = p.sides;
     let s = p.segments;
     let mut mesh = Mesh::default();
+    // The walls' counts are known; the caps add at most a ring, a centre
+    // and their polygons each.
+    mesh.vertices.reserve((n * (s + 1) + 2 * (n + 1)) as usize);
+    mesh.faces.reserve((n * s + 2 * (n + n / 2 + 1)) as usize);
     for ring in 0..=s {
         for side in 0..n {
             let angle = std::f64::consts::TAU * side as f64 / n as f64;
@@ -339,7 +347,10 @@ pub fn tessellated_sphere(
     }
     let tau = std::f64::consts::TAU;
     let (y, ring) = (1. / 5f64.sqrt(), 2. / 5f64.sqrt());
-    let mut points = vec![DVec3::Y];
+    // Level L has 10·4^L + 2 points and 20·4^L triangles (Steve Hill's tip:
+    // reserve what is known instead of growing).
+    let mut points = Vec::with_capacity(10 * 4usize.pow(level) + 2);
+    points.push(DVec3::Y);
     for k in 0..5 {
         let a = tau * k as f64 / 5.;
         points.push(DVec3::new(ring * a.sin(), y, ring * a.cos()));
@@ -349,14 +360,17 @@ pub fn tessellated_sphere(
         let a = tau * (k as f64 + 0.5) / 5.;
         points.push(DVec3::new(ring * a.sin(), -y, ring * a.cos()));
     }
-    let mut triangles = Vec::new();
+    let mut triangles = Vec::with_capacity(20);
     for k in 0..5u32 {
         let (u, un) = (1 + k, 1 + (k + 1) % 5);
         let (l, ln) = (7 + k, 7 + (k + 1) % 5);
         triangles.extend([[0, u, un], [u, l, un], [un, l, ln], [6, ln, l]]);
     }
     for _ in 0..level {
-        let mut middle = std::collections::BTreeMap::new();
+        // One middle point per edge; the lookup only finds them, so their
+        // order (and the points' ids) stays the order they're made in.
+        let mut middle = crate::fxhash::FxHashMap::default();
+        middle.reserve(triangles.len() * 3 / 2);
         let mut split = |a: u32, b: u32, points: &mut Vec<DVec3>| -> u32 {
             *middle.entry((a.min(b), a.max(b))).or_insert_with(|| {
                 points.push((points[a as usize] + points[b as usize]).normalize());
@@ -414,7 +428,7 @@ pub fn tessellated_sphere(
         .into_iter()
         .map(|p| position + to_world(axis, r * p))
         .collect();
-    mesh.faces = triangles.into_iter().map(|t| face(t.to_vec())).collect();
+    *mesh.faces = triangles.into_iter().map(|t| face(t.to_vec())).collect();
     mesh.validate()?;
     Ok(mesh)
 }
