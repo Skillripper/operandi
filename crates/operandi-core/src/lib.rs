@@ -155,7 +155,9 @@ pub use polygon_tags::*;
 pub mod colour_math;
 #[path = "curve_tools/contour.rs"]
 pub mod contour;
+#[path = "edges/diagonal_redirect.rs"]
 pub mod diagonal_redirect;
+#[path = "edges/edge_zip.rs"]
 pub mod edge_zip;
 pub mod editor_color;
 pub mod fix_black_dots;
@@ -175,6 +177,7 @@ mod polygon_split;
 pub mod polygon_unify;
 pub use polygon_part::*;
 pub use polygon_unify::*;
+#[path = "edges/bridge_commands.rs"]
 mod bridge_commands;
 #[path = "anim/channels.rs"]
 pub mod channels;
@@ -209,28 +212,36 @@ pub mod polygon_merge;
 pub use polygon_merge::*;
 pub mod polygon_collapse;
 pub use polygon_collapse::*;
+#[path = "edges/edge_extend.rs"]
 pub mod edge_extend;
 pub use edge_extend::{
     EXTEND_UV_MAP, EdgeExtendOptions, ExtendHandles, ExtendHaul, ExtendPlane, ExtendShape,
     ExtendUvs, edge_extend_at_zero, edge_extend_geometry, edge_extend_shaped,
 };
+#[path = "edges/edge_extrude.rs"]
 pub mod edge_extrude;
 pub use edge_extrude::{
     edge_extrude_geometry, edge_extrude_start_width, edge_extrude_with, vertex_extrude_start_width,
 };
+#[path = "edges/edge_slide.rs"]
 pub mod edge_slide;
 pub use edge_slide::{
     SlideExtras, edge_slide_extra, edge_slide_geometry, edge_slide_weighted, edge_slide_with,
 };
+#[path = "edges/edge_crease.rs"]
 pub mod edge_crease;
 pub use edge_crease::edge_crease_geometry;
+#[path = "edges/edge_bevel.rs"]
 pub mod edge_bevel;
+#[path = "edges/edge_bevel_junctions.rs"]
 mod edge_bevel_junctions;
 pub use edge_bevel::{
     EdgeBevelMode, EdgeBevelOptions, EdgeBevelPreset, EdgeBevelResult, EdgeBevelSettings,
     EdgeBevelShape, EdgeEnd, edge_bevel_geometry, edge_bevel_with,
 };
+#[path = "edges/edge_commands.rs"]
 pub mod edge_commands;
+#[path = "edges/edge_relax.rs"]
 pub mod edge_relax;
 pub use edge_commands::{
     EdgeCommand, edge_bridge, edge_bridge_geometry, edge_command_geometry, edge_delete_geometry,
@@ -322,6 +333,7 @@ pub use duplicate::{
     Array, Circle, CloneLine, Copies, DuplicateParameters, Lathe, Mirror, MirrorMode, RadialArray,
     Sweep, UvsAround,
 };
+#[path = "edges/edge_insert.rs"]
 pub mod edge_insert;
 pub mod path_slice;
 pub use axis_slice::{AxisSlice, AxisSliceMode, axis_slice_bounds, axis_slice_planes};
@@ -547,8 +559,10 @@ pub use history_completion::*;
 mod mode_eligibility;
 pub use mode_eligibility::*;
 
+#[path = "edges/bridge.rs"]
 pub mod bridge;
 pub use bridge::*;
+#[path = "edges/bridge_editor.rs"]
 mod bridge_editor;
 
 #[path = "curve_tools/pen_interactive.rs"]
@@ -567,6 +581,7 @@ pub use reduction::*;
 mod reduction_editor;
 pub use reduction_editor::*;
 
+#[path = "edges/chamfer.rs"]
 pub mod chamfer;
 pub use chamfer::*;
 
