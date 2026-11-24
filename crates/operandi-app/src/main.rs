@@ -128,6 +128,7 @@ mod drag_undo_guard_tests;
 mod draw_tools;
 mod drill_dialog;
 mod drop_action_ui;
+#[path = "input_devices/drop_keys.rs"]
 mod drop_keys;
 mod duplicate_item_rows;
 #[path = "duplication/duplicate_panel.rs"]
@@ -208,6 +209,7 @@ mod image_viewer_ui;
 mod import;
 #[path = "files/import_into.rs"]
 mod import_into;
+#[path = "input_devices/input.rs"]
 mod input;
 mod input_map_editor;
 #[path = "files/interchange_ui.rs"]
@@ -216,6 +218,7 @@ mod item_common_ui;
 mod item_extras_ui;
 mod item_list_ui;
 mod items_tree;
+#[path = "input_devices/key_toggles.rs"]
 mod key_toggles;
 mod lasso;
 mod layout;
@@ -249,6 +252,7 @@ mod modeling_menu;
 #[path = "commands/monkey_tests.rs"]
 mod monkey_tests;
 #[cfg(test)]
+#[path = "input_devices/mouse_rule_tests.rs"]
 mod mouse_rule_tests;
 #[cfg(test)]
 mod multi_active_tests;
@@ -376,6 +380,7 @@ mod shading_panel;
 #[path = "create_tools/shape_panel.rs"]
 mod shape_panel;
 #[cfg(test)]
+#[path = "input_devices/shifted_key_tests.rs"]
 mod shifted_key_tests;
 mod side_tabs;
 #[cfg(test)]
@@ -390,6 +395,7 @@ mod snap_service;
 mod snapping;
 #[path = "create_tools/solid_sketch_ui.rs"]
 mod solid_sketch_ui;
+#[path = "input_devices/space_mouse/mod.rs"]
 mod space_mouse;
 mod spike_panel;
 mod statistics_ui;
@@ -459,6 +465,7 @@ mod painting_uv_tests;
 #[cfg(feature = "painting")]
 mod painting_viewer;
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+#[path = "input_devices/tablet.rs"]
 mod tablet;
 mod tag_mode_ui;
 mod theme;
@@ -4114,6 +4121,7 @@ mod drop_action_tests;
 #[path = "files/drop_files_tests.rs"]
 mod drop_files_tests;
 #[cfg(test)]
+#[path = "input_devices/drop_keys_tests.rs"]
 mod drop_keys_tests;
 #[cfg(test)]
 mod drop_lag_tests;
@@ -4153,12 +4161,14 @@ mod history_limit_more_tests;
 #[cfg(test)]
 mod history_limit_tests;
 #[cfg(test)]
+#[path = "input_devices/input_focus_tests.rs"]
 mod input_focus_tests;
 #[cfg(test)]
 mod inset_shift_tests;
 #[cfg(test)]
 mod item_list_header_tests;
 #[cfg(test)]
+#[path = "input_devices/key_toggles_tests.rs"]
 mod key_toggles_tests;
 #[cfg(test)]
 mod lasso_ui_tests;
@@ -4430,10 +4440,12 @@ mod group_eye_tests;
 #[path = "files/journal_tests.rs"]
 mod journal_tests;
 #[cfg(test)]
+#[path = "input_devices/look_around_tests.rs"]
 mod look_around_tests;
 #[cfg(test)]
 mod material_editing_tests;
 #[cfg(test)]
+#[path = "input_devices/nav_lock_hide_tests.rs"]
 mod nav_lock_hide_tests;
 #[cfg(test)]
 mod symmetry_tests;
