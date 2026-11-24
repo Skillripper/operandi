@@ -260,6 +260,7 @@ pub mod rig_eval;
 pub mod rig_expression;
 pub mod rig_list;
 pub mod rig_schematic;
+pub mod rig_user_set;
 pub mod scene_time;
 pub mod script_mesh;
 pub mod skeleton;

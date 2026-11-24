@@ -29,6 +29,7 @@ The import report lists everything it didn't bring in, by kind. The common ones:
 
 ## Tips
 
+- A rig's custom channels (the sliders that drive it, such as an arm angle or landing gear) are on the **User Channels** tab of the item that holds them, usually the rig's top locator. Drag a slider to pose the rig; with Auto Key on, the change is keyed.
 - An imported two-bone IK chain bends to the side its setup pose bends. If the knee points the wrong way, set a pole target on the IK. A three-bar chain shares its bend the way Operandi's chain IK does, which can differ from the original.
 - **File > Open** and **File > Import** both bring the animation in. Import adds the file's items to your scene; if your scene has no keys yet, it also takes the file's frame rate and time range.
 - Open the **Graph Editor** to see the imported curves; handles that came in as **Manual** show it in their slope type.

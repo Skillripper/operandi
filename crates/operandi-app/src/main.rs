@@ -257,6 +257,7 @@ mod resource_write;
 mod rig_tab_tests;
 #[cfg(test)]
 mod rig_ui_tests;
+mod rig_user_channels_ui;
 mod scale_offset_dialog;
 mod scenes;
 mod schematic_ui;

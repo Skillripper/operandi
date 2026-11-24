@@ -13,7 +13,8 @@ this page is the "which files" companion. Paths are under `crates/`.
 - Spec IDs (`TWB-03`, `UIC-51`, `VX-B11`) appear in code comments and test
   names, so grepping an ID finds the code and its test.
 - A tool's command name (`poly.bevel`, `xfrm.bend`) finds its registry row
-  (`operandi-core/src/command_registry.rs`), its handler and its tests.
+  (`operandi-core/src/command_registry/commands/<area>.rs`), its handler
+  and its tests.
 - App tests live next to the code as `*_tests.rs` in `operandi-app/src`;
   core tests are one file per tool or spec in `operandi-core/tests/`.
 
@@ -21,14 +22,14 @@ this page is the "which files" companion. Paths are under `crates/`.
 
 | Job | Start here |
 |---|---|
-| Tool list, tool enum, every `Command` | `operandi-core/src/editor.rs` (`enum Tool`, `enum Command`, `preview_one` = per-tool geometry arm) |
+| Tool list, tool enum, every `Command` | `operandi-core/src/editor/`: `tool.rs` (`enum Tool`), `command.rs` (`enum Command`), `dispatch.rs` (runs a `Command`), `activate.rs`, `finish.rs` (Apply/Drop/Cancel), `history.rs` (undo), `preview.rs` (`preview_one` = per-tool geometry arm); `editor.rs` holds the `Editor` struct |
 | What a tool is (family, modes, layers, handles) | `operandi-core/src/tool_card.rs` |
 | Preset buttons (Soft Move, Flex, Flare, Flip It ...): pipe layers + tool | `operandi-core/presets/factory-tool-presets.toml` (data), `operandi-core/src/tool_preset.rs` (activate / drop rules) |
 | Drag controls (hauls): which value each mouse button drags per tool | `operandi-core/presets/factory-hauls.toml` (data), `operandi-core/src/haul.rs` (axis lock, steps, feel numbers), `operandi-app/src/haul_view.rs` (viewport) |
 | Preset browser online libraries (Poly Haven, ambientCG) | `operandi-core/src/preset/online.rs` (catalogues, cache, download plans), `operandi-app/src/online_library.rs` (prefs, curl threads), `online_library_ui.rs` (browser, Preferences, commands, MCP) |
 | A tool's geometry | its own core module (`bevel.rs`, `edge_extend.rs`, ...) |
 | Command names, renames, deprecated names | `operandi-core/src/command_names.rs`, `docs/COMMAND_NAMES.md` |
-| Command-line commands and arguments | `operandi-core/src/command_registry.rs`; app handlers in `operandi-app/src/command_handlers.rs` |
+| Command-line commands and arguments | `operandi-core/src/command_registry.rs` (entry types), `command_registry/commands/<area>.rs` (the rows), `tool_ids.rs`, `lookup.rs`; app handlers in `operandi-app/src/command_handlers.rs` |
 | Undo inside and after tools | `operandi-core/src/mid_tool_undo.rs`, `history_policy.rs` |
 | Scene, items, hierarchy | `operandi-core/src/scene.rs`, `channels.rs`, `item_*.rs` |
 | Mesh data and topology memo | `operandi-core/src/mesh.rs`, `polygon.rs`, `topology_cache.rs` |
@@ -71,9 +72,10 @@ this page is the "which files" companion. Paths are under `crates/`.
 Twist Bevel (commit `89763be0`) is a good recent example to copy. A new
 interactive tool normally touches:
 
-- **core:** its own module (`<tool>.rs`) and `lib.rs`; `editor.rs` (`Tool`
-  variant, `Command`, `preview_one` arm); `tool_card.rs`;
-  `command_registry.rs`; `mid_tool_undo.rs` / `history_policy.rs` when it
+- **core:** its own module (`<tool>.rs`) and `lib.rs`; `editor/` (`Tool`
+  variant in `tool.rs`, `Command` in `command.rs`, `preview_one` arm in
+  `preview.rs`); `tool_card.rs`; its rows in
+  `command_registry/commands/<area>.rs`; `mid_tool_undo.rs` / `history_policy.rs` when it
   has steps; `identity_editor.rs`.
 - **core tests:** `tests/<tool>.rs`, plus the lists in `tests/tool_card.rs`
   and `tests/tool_list.rs`.
