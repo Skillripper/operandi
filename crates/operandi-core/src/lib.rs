@@ -99,11 +99,14 @@ pub use history_settings::*;
 mod flip;
 mod flip_it;
 pub mod freeze;
+#[path = "geometry/fxhash.rs"]
 pub mod fxhash;
 pub mod interchange;
 pub mod lxo;
+#[path = "geometry/mesh.rs"]
 pub mod mesh;
 pub mod multires;
+#[path = "geometry/polygon.rs"]
 pub mod polygon;
 pub mod render_settings;
 pub mod shading;
@@ -371,9 +374,12 @@ pub use tweak::{
     edge_loop_points, tweak_apply, tweak_mirror, tweak_mirror_points, tweak_plan, tweak_points,
     tweak_points_mirrored,
 };
+#[path = "geometry/mesh_pack.rs"]
 pub mod mesh_pack;
+#[path = "geometry/mesh_slot.rs"]
 pub mod mesh_slot;
 pub mod node_graph_reader;
+#[path = "geometry/packed_mesh.rs"]
 pub mod packed_mesh;
 pub use mesh_slot::{MeshSlot, MeshView};
 #[path = "duplication/mesh_instance.rs"]
@@ -427,6 +433,7 @@ pub mod deform_finish;
 pub mod falloff;
 pub mod mesh_stack_deform;
 pub mod select_tools;
+#[path = "geometry/topology_cleanup.rs"]
 pub mod topology_cleanup;
 #[path = "curve_tools/topology_pen.rs"]
 pub mod topology_pen;
@@ -443,8 +450,11 @@ pub mod tool_preset;
 mod tool_reset;
 pub use tool_preset::{PresetRow, PresetSession};
 pub mod scene_index;
+#[path = "geometry/shared.rs"]
 pub mod shared;
+#[path = "geometry/topology.rs"]
 pub mod topology;
+#[path = "geometry/topology_cache.rs"]
 pub mod topology_cache;
 pub use falloff::{
     ActiveFalloff, CylinderFalloff, Falloff, FalloffShape, FalloffSymmetric, LinearFalloff,
@@ -485,6 +495,7 @@ pub mod inset;
 pub mod mesh_cleanup_ops;
 pub use inset::{InsetResult, inset_geometry, shift_geometry};
 pub use mesh_cleanup_ops::{CleanupOption, CleanupResult, mesh_cleanup_geometry};
+#[path = "geometry/mesh_attributes.rs"]
 pub mod mesh_attributes;
 pub use mesh_attributes::*;
 
