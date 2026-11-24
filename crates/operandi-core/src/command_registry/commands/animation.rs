@@ -328,6 +328,91 @@ pub(super) const COMMANDS: &[Entry] = &[
         .undo()
         .operandi()
         .example("operandi.rig.userChannelSet item:3 name:crank value:0.5"),
+    script("operandi.channelSet.create", Items, "Create Channel Set (CP-10): a channel panel from the selected channels; it becomes current.")
+        .on_editor(
+            "Create a channel set from the named or selected channels, one undo step; it becomes the current set and its panel shows over the 3D view.",
+            &[
+            jopt("name", "string", "Its name (default Channel Set)."),
+            jopt("channels", "string", "item:name,... (default the channel selection, UIC-119)."),
+        ],
+            crate::channel_sets::run,
+        )
+        .undo()
+        .operandi()
+        .example("operandi.channelSet.create name:Ship channels:3:uPct,5:rot.Z"),
+    script("operandi.channelSet.add", Items, "Add Selected Channels (CP-20) to the current channel set.")
+        .on_editor(
+            "Add channels to a channel set, one undo step; ones already in it stay where they are.",
+            &[
+            jopt("set", "integer", "Channel set id (default the current set)."),
+            jopt("channels", "string", "item:name,... (default the channel selection, UIC-119)."),
+        ],
+            crate::channel_sets::run,
+        )
+        .undo()
+        .operandi()
+        .example("operandi.channelSet.add channels:5:rot.Y"),
+    script("operandi.channelSet.remove", Items, "Remove Selected Channels (CP-22) from the current channel set.")
+        .on_editor(
+            "Remove channels from a channel set (all:true empties it), one undo step.",
+            &[
+            jopt("set", "integer", "Channel set id (default the current set)."),
+            jopt("channels", "string", "item:name,... (default the channel selection, UIC-119)."),
+            jopt("all", "boolean", "Remove every channel."),
+        ],
+            crate::channel_sets::run,
+        )
+        .undo()
+        .operandi()
+        .example("operandi.channelSet.remove channels:5:rot.Y"),
+    script("operandi.channelSet.move", Items, "Move a channel's row in its channel set (CP-23).")
+        .on_editor(
+            "Move one row of a channel set to to: (0 is the top) or by: rows, one undo step.",
+            &[
+            jopt("set", "integer", "Channel set id (default the current set)."),
+            jreq("channel", "string", "The row, item:name."),
+            jopt("to", "integer", "New place, 0 = top."),
+            jopt("by", "integer", "Rows to move, negative = up."),
+        ],
+            crate::channel_sets::run,
+        )
+        .undo()
+        .operandi()
+        .example("operandi.channelSet.move channel:5:rot.Y by:-1"),
+    script("operandi.channelSet.rename", Items, "Rename a channel set.")
+        .on_editor(
+            "Rename a channel set, one undo step.",
+            &[
+            jopt("set", "integer", "Channel set id (default the current set)."),
+            jreq("name", "string", "New name."),
+        ],
+            crate::channel_sets::run,
+        )
+        .undo()
+        .operandi()
+        .example("operandi.channelSet.rename name:Controls"),
+    script("operandi.channelSet.delete", Items, "Delete a channel set (its channels stay).")
+        .on_editor(
+            "Delete a channel set, one undo step; the channels themselves are untouched.",
+            &[
+            jopt("set", "integer", "Channel set id (default the current set)."),
+        ],
+            crate::channel_sets::run,
+        )
+        .undo()
+        .operandi()
+        .example("operandi.channelSet.delete set:12"),
+    script("operandi.channelSet.current", Items, "Picks the current channel set (CP-30); none closes the panel.")
+        .on_editor(
+            "Pick the channel set whose panel shows over the 3D view, or none; view state, not an undo step.",
+            &[
+            jopt("set", "string", "Channel set id, or none."),
+        ],
+            crate::channel_sets::run,
+        )
+        .ui()
+        .operandi()
+        .example("operandi.channelSet.current set:none"),
     script("operandi.rig.bindUserChannel", Items, "Bind into User Channel (RG-54): a user channel on target drives the channel.")
         .on_editor(
             "Add a user channel of the same kind to target (named after the channel unless name is given) and link the channel to it, one undo step; the channel becomes driven.",

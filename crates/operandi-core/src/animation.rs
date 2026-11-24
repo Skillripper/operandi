@@ -323,6 +323,12 @@ pub struct Animation {
     pub settings: TimeSettings,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub markers: Vec<Marker>,
+    /// CP-01..70: channel sets (the channel panel's rows) and the current
+    /// one (channel_sets.rs; saved, native v66).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub channel_sets: Vec<crate::channel_sets::ChannelSet>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub current_set: Option<u64>,
     /// GE-80: shadow copies of curves, by channel (saved; native v61).
     #[serde(
         default,
@@ -1255,6 +1261,8 @@ impl crate::Editor {
                 scene.animation.channels.remove(&k);
             }
         }
+        // CP-24: and leaves every channel set.
+        scene.prune_channel_sets();
         // SK-01: in Setup mode an edit changes the setup values of the
         // animated channels it touched; nothing is keyed.
         // Setup channels with no keys (a bound joint's, skin.rs) count too.

@@ -8,6 +8,8 @@ mod anim_ui;
 mod anim_ui_tests;
 #[cfg(test)]
 mod animated_scene_frames_tests;
+#[cfg(test)]
+mod channel_panel_tests;
 mod collapse_line;
 mod command_history;
 mod command_history_ui;
@@ -56,6 +58,8 @@ mod camera_light_handles;
 mod camera_light_ui;
 mod camera_props_ui;
 mod channel_links_ui;
+mod channel_panel_ui;
+mod channel_row;
 mod character_rig_ui;
 mod clip_picker;
 mod color_theme;
@@ -3536,6 +3540,7 @@ impl Operandi {
             overlay_rects.extend(shown.map(|s| s.response.rect));
             self.surface_mini_properties = open;
         }
+        overlay_rects.extend(self.channel_panel(ctx));
         overlay_rects.extend(self.mini_properties_window(ctx));
         self.overlay_rects = overlay_rects;
         self.workspace_dialogs(ctx);

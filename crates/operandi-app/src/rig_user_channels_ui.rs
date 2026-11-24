@@ -1,10 +1,11 @@
 //! The active item's rig user channels (RG-53) as sliders on the User
 //! Channels tab: an imported rig's controls (an arm angle, wings, landing
 //! gear) and the ones Add User Channel makes in the Channel Links window.
-//! Each edit is `operandi.rig.userChannelSet`, one undo step that Auto Key
-//! keys like any channel edit (UIC-112: keyed rows show their state the
-//! way the rest of the panel does is a follow-up).
+//! The field is the channel panel's (channel_row.rs): a drag is live with
+//! the pointer locked (UIC-51), the release or a typed value on Enter is
+//! one undo step that Auto Key keys like any channel edit.
 use super::*;
+use operandi_core::animation::ChannelKey;
 use operandi_core::rig::UserType;
 
 impl Operandi {
@@ -38,66 +39,21 @@ impl Operandi {
                 ui.strong(label);
                 continue;
             }
-            for name in u
-                .channel_names()
-                .into_iter()
-                .chain((u.ty == UserType::String).then(|| u.name.clone()))
-            {
-                let part = name.strip_prefix(&u.name).unwrap_or("");
+            if u.ty == UserType::String {
                 ui.horizontal(|ui| {
-                    crate::option_row::label(ui, &format!("{label}{part}"))
-                        .on_hover_text(format!("{name} ({})", u.ty.name()));
-                    if u.ty == UserType::String {
-                        ui.label(&u.text);
-                        return;
-                    }
-                    let value = operandi_core::animation::read(
-                        &self.editor.scene,
-                        &operandi_core::animation::ChannelKey::new(item, &name),
-                    )
-                    .unwrap_or(u.default);
-                    let set = |v: f64| {
-                        format!("operandi.rig.userChannelSet item:{item} name:{name} value:{v}")
-                    };
-                    if u.ty == UserType::Boolean {
-                        let mut on = value >= 0.5;
-                        if ui.checkbox(&mut on, "").changed() {
-                            lines.push(set(if on { 1. } else { 0. }));
-                        }
-                        return;
-                    }
-                    let (scale, suffix) = match u.ty {
-                        UserType::Distance => (1.0, " m"),
-                        UserType::Angle => (180.0 / std::f64::consts::PI, "°"),
-                        UserType::Percentage => (100.0, " %"),
-                        UserType::Time => (1.0, " s"),
-                        _ => (1.0, ""),
-                    };
-                    let key = egui::Id::new(("rig-user-channel", item, &name));
-                    let mut shown: f64 = ui.data_mut(|d| d.get_temp(key).unwrap_or(value * scale));
-                    let mut drag = crate::numeric_tab::DragValue::new(&mut shown)
-                        .speed(if u.ty == UserType::Percentage {
-                            0.5
-                        } else {
-                            0.01
-                        })
-                        .suffix(suffix);
-                    if matches!(u.ty, UserType::Integer | UserType::Choice) {
-                        drag = drag.fixed_decimals(0);
-                    }
-                    let r = ui.add(drag);
-                    if r.changed() {
-                        ui.data_mut(|d| d.insert_temp(key, shown));
-                    }
-                    if r.drag_stopped()
-                        || r.lost_focus()
-                        || (r.changed() && !r.dragged() && !r.has_focus())
-                    {
-                        ui.data_mut(|d| d.remove::<f64>(key));
-                        if (shown / scale - value).abs() > 1e-12 {
-                            lines.push(set(shown / scale));
-                        }
-                    }
+                    crate::option_row::label(ui, &label).on_hover_text(&u.name);
+                    ui.label(&u.text);
+                });
+                continue;
+            }
+            for name in u.channel_names() {
+                let part = name.strip_prefix(&u.name).unwrap_or("");
+                let key = ChannelKey::new(item, &name);
+                // UIC-112/119: the status light keys it; the label picks
+                // it for keying and for a channel set (CP-10).
+                self.anim_row_keys(std::slice::from_ref(&key), false);
+                crate::form::rows::row(ui, &format!("{label}{part}"), |ui| {
+                    self.channel_field(ui, &key, &mut lines)
                 });
             }
         }
