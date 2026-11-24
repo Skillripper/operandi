@@ -56,6 +56,7 @@ pub mod curve_fit;
 pub mod curve_ops;
 #[path = "curve_tools/curves.rs"]
 pub mod curves;
+#[path = "slicing/dicer.rs"]
 pub mod dicer;
 #[path = "meshops/generator_ops.rs"]
 pub mod generator_ops;
@@ -339,6 +340,7 @@ pub use edge_commands::{
     edge_join_symmetric_geometry, edge_subdivide_geometry,
 };
 pub use edge_relax::edge_relax_geometry;
+#[path = "slicing/axis_slice.rs"]
 pub mod axis_slice;
 #[path = "polygons/detriangulate.rs"]
 pub mod detriangulate;
@@ -366,11 +368,13 @@ pub mod anim_edit;
 pub mod anim_graph;
 #[path = "anim/animation.rs"]
 pub mod animation;
+#[path = "slicing/boolean.rs"]
 pub mod boolean;
 #[path = "anim/channel_sets.rs"]
 pub mod channel_sets;
 #[path = "selections/click_select.rs"]
 pub mod click_select;
+#[path = "slicing/drill.rs"]
 pub mod drill;
 #[path = "meshops/eval_build.rs"]
 pub mod eval_build;
@@ -460,12 +464,15 @@ pub use duplicate::{
 };
 #[path = "edges/edge_insert.rs"]
 pub mod edge_insert;
+#[path = "slicing/path_slice.rs"]
 pub mod path_slice;
 pub use axis_slice::{AxisSlice, AxisSliceMode, axis_slice_bounds, axis_slice_planes};
 #[path = "scene_items/profile.rs"]
 pub mod profile;
 pub use profile::{ProfilePick, ProfilePoint, ProfileShape};
+#[path = "slicing/slice.rs"]
 pub mod slice;
+#[path = "slicing/slice_cut.rs"]
 pub(crate) mod slice_cut;
 pub use edge_insert::{
     EdgeInsertOptions, add_loop, add_loop_ring, add_loop_with, add_point, add_point_with,
