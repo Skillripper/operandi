@@ -8,6 +8,40 @@ Please read this page, the [Modo ground rules](docs/CLEAN_ROOM.md) and the
 [docs/SETUP.md](docs/SETUP.md) gets you from a fresh clone to a running
 app on macOS, Windows or Linux.
 
+## How to send a change
+
+Only the maintainer can push to this repository, so `git push` to
+`operandi3d/operandi` fails with a 403 error. That's expected. Send your
+change from your own copy (a fork) instead:
+
+1. Click **Fork** at the top of the
+   [repository page](https://github.com/operandi3d/operandi). GitHub makes
+   your own copy at `github.com/<you>/operandi`.
+2. Clone your fork and start a branch from `main`:
+
+   ```bash
+   git clone https://github.com/<you>/operandi.git
+   cd operandi
+   git switch -c my-change
+   ```
+
+   Already cloned `operandi3d/operandi`? Point it at your fork instead:
+   `git remote rename origin upstream`, then
+   `git remote add origin https://github.com/<you>/operandi.git`.
+3. Commit with a sign-off, `git commit -s` (see "Signing off your work"
+   below). A check on the pull request fails without it.
+4. Push the branch to your fork: `git push -u origin my-change`.
+5. GitHub then shows a **Compare & pull request** button on your fork or on
+   this repository. Open the pull request against `operandi3d/operandi`
+   `main` and fill in its checklist.
+
+The first time you contribute, the checks wait until the maintainer starts
+them, so don't worry if they sit for a while. To change the pull request
+later, push more commits to the same branch; it updates by itself. To catch
+up with `main`, run `git pull upstream main` (add the `upstream` remote
+with `git remote add upstream https://github.com/operandi3d/operandi.git`
+if you cloned your fork).
+
 ## Modo: what we can't accept (read this first)
 
 Operandi is an homage to Modo (see [docs/ABOUT.md](docs/ABOUT.md)). Knowing

@@ -33,6 +33,11 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) first, including the short
 from another commercial app, or based on reverse engineering one. Be kind: see the [code of conduct](CODE_OF_CONDUCT.md). AI
 agents follow [AGENTS.md](AGENTS.md).
 
+To send a change, fork the repository and open a pull request from your
+fork, with signed-off commits (`git commit -s`). Pushing straight to this
+repository isn't possible. CONTRIBUTING.md has the steps under
+[How to send a change](CONTRIBUTING.md#how-to-send-a-change).
+
 Contributor docs:
 
 - [docs/SETUP.md](docs/SETUP.md): setting up a machine and building.
