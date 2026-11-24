@@ -1,14 +1,20 @@
 mod about;
 mod absolute_scaling_ui;
 mod add_browser;
+#[path = "anim/anim_keys.rs"]
 mod anim_keys;
+#[path = "anim/anim_switch.rs"]
 mod anim_switch;
+#[path = "anim/anim_ui.rs"]
 mod anim_ui;
 #[cfg(test)]
+#[path = "anim/anim_ui_tests.rs"]
 mod anim_ui_tests;
 #[cfg(test)]
+#[path = "anim/animated_scene_frames_tests.rs"]
 mod animated_scene_frames_tests;
 #[cfg(test)]
+#[path = "anim/channel_panel_tests.rs"]
 mod channel_panel_tests;
 mod collapse_line;
 mod command_history;
@@ -57,10 +63,14 @@ mod camera;
 mod camera_light_handles;
 mod camera_light_ui;
 mod camera_props_ui;
+#[path = "anim/channel_links_ui.rs"]
 mod channel_links_ui;
+#[path = "anim/channel_panel_ui.rs"]
 mod channel_panel_ui;
+#[path = "anim/channel_row.rs"]
 mod channel_row;
 mod character_rig_ui;
+#[path = "anim/clip_picker.rs"]
 mod clip_picker;
 mod color_theme;
 mod colour_field;
@@ -267,6 +277,7 @@ mod rig_user_channels_ui;
 mod scale_offset_dialog;
 mod scenes;
 mod schematic_ui;
+#[path = "anim/scrub.rs"]
 mod scrub;
 mod sculpt_ui;
 #[cfg(test)]
@@ -3804,6 +3815,7 @@ mod preview;
 mod preview_ui;
 mod primitive_panel;
 mod render_ui;
+#[path = "anim/timeline.rs"]
 mod timeline;
 mod vertex_normal_ui;
 mod view_display;
@@ -4089,6 +4101,7 @@ mod scene_panel_tests;
 #[cfg(test)]
 mod scenes_tests;
 #[cfg(test)]
+#[path = "anim/scrub_tests.rs"]
 mod scrub_tests;
 #[cfg(test)]
 mod select_tab_tests;
