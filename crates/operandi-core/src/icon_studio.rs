@@ -789,10 +789,64 @@ pub enum Sample {
     DeleteHigher,
     /// Apply Multiresolution: levels pressed into the mesh.
     ApplyMultires,
+    /// Sculpt Push: a dent pressed into a block, with the brush ring.
+    SculptPush,
+    /// Sculpt Move: a bump pulled up.
+    SculptMove,
+    /// Sculpt Inflate: a dome swelling outward.
+    SculptInflate,
+    /// Sculpt Fold: a sharp folded ridge.
+    SculptFold,
+    /// Sculpt Carve: a V groove cut across.
+    SculptCarve,
+    /// Sculpt Scar: a narrow cut with raised lips.
+    SculptScar,
+    /// Sculpt Clay: stacked layers built up.
+    SculptClay,
+    /// Sculpt Smooth: rough surface turning smooth.
+    SculptSmooth,
+    /// Sculpt Attenuate: ripples flattened under the brush.
+    SculptAttenuate,
+    /// Sculpt Smudge: a bump dragged into a tail.
+    SculptSmudge,
+    /// Sculpt Flatten: a hill with its top planed flat.
+    SculptFlatten,
+    /// Sculpt Emboss: a raised cross pattern.
+    SculptEmboss,
+    /// Sculpt Spin: a swirl with a turning arrow.
+    SculptSpin,
+    /// Sculpt Center Pinch: a sharp peak pinched to a point.
+    SculptCenterPinch,
+    /// Sculpt Tangent Pinch: a ridge pinched to a line.
+    SculptTangentPinch,
+    /// Vertex Map Paint: a red weight stroke.
+    VmapPaint,
+    /// Vertex Map Smooth: a red patch, ragged edge smoothed.
+    VmapSmooth,
+    /// Vertex Map Scale Down: a red patch with a down arrow.
+    VmapScaleDown,
+    /// Vertex Map Erase: a red patch with a stroke erased.
+    VmapErase,
+    /// Vertex Map Set Value: all red, with a slider.
+    VmapSetValue,
+    /// Smooth brush tip: a soft bell.
+    TipSmooth,
+    /// Hard brush tip: a flat-topped disc.
+    TipHard,
+    /// Sphere brush tip: a half ball.
+    TipSphere,
+    /// Procedural brush tip: rings round a bump.
+    TipProcedural,
+    /// Stamp brush tip: a raised cross.
+    TipStamp,
+    /// Text brush tip: a raised letter T.
+    TipText,
+    /// Texture brush tip: a raised checker.
+    TipTexture,
 }
 
 impl Sample {
-    pub const ALL: [Sample; 250] = [
+    pub const ALL: [Sample; 277] = [
         Sample::Cube,
         Sample::SelectedFace,
         Sample::Sphere,
@@ -1043,6 +1097,33 @@ impl Sample {
         Sample::LevelDown,
         Sample::DeleteHigher,
         Sample::ApplyMultires,
+        Sample::SculptPush,
+        Sample::SculptMove,
+        Sample::SculptInflate,
+        Sample::SculptFold,
+        Sample::SculptCarve,
+        Sample::SculptScar,
+        Sample::SculptClay,
+        Sample::SculptSmooth,
+        Sample::SculptAttenuate,
+        Sample::SculptSmudge,
+        Sample::SculptFlatten,
+        Sample::SculptEmboss,
+        Sample::SculptSpin,
+        Sample::SculptCenterPinch,
+        Sample::SculptTangentPinch,
+        Sample::VmapPaint,
+        Sample::VmapSmooth,
+        Sample::VmapScaleDown,
+        Sample::VmapErase,
+        Sample::VmapSetValue,
+        Sample::TipSmooth,
+        Sample::TipHard,
+        Sample::TipSphere,
+        Sample::TipProcedural,
+        Sample::TipStamp,
+        Sample::TipText,
+        Sample::TipTexture,
     ];
 
     /// File stem and icon slug.
@@ -1298,6 +1379,33 @@ impl Sample {
             Sample::LevelDown => "multires-level-down",
             Sample::DeleteHigher => "multires-delete-higher",
             Sample::ApplyMultires => "multires-apply",
+            Sample::SculptPush => "sculpt-push",
+            Sample::SculptMove => "sculpt-move",
+            Sample::SculptInflate => "sculpt-inflate",
+            Sample::SculptFold => "sculpt-fold",
+            Sample::SculptCarve => "sculpt-carve",
+            Sample::SculptScar => "sculpt-scar",
+            Sample::SculptClay => "sculpt-clay",
+            Sample::SculptSmooth => "sculpt-smooth",
+            Sample::SculptAttenuate => "sculpt-attenuate",
+            Sample::SculptSmudge => "sculpt-smudge",
+            Sample::SculptFlatten => "sculpt-flatten",
+            Sample::SculptEmboss => "sculpt-emboss",
+            Sample::SculptSpin => "sculpt-spin",
+            Sample::SculptCenterPinch => "sculpt-center-pinch",
+            Sample::SculptTangentPinch => "sculpt-tangent-pinch",
+            Sample::VmapPaint => "vmap-paint",
+            Sample::VmapSmooth => "vmap-smooth",
+            Sample::VmapScaleDown => "vmap-scale-down",
+            Sample::VmapErase => "vmap-erase",
+            Sample::VmapSetValue => "vmap-set-value",
+            Sample::TipSmooth => "tip-smooth",
+            Sample::TipHard => "tip-hard",
+            Sample::TipSphere => "tip-sphere",
+            Sample::TipProcedural => "tip-procedural",
+            Sample::TipStamp => "tip-stamp",
+            Sample::TipText => "tip-text",
+            Sample::TipTexture => "tip-texture",
         }
     }
 
@@ -2608,6 +2716,113 @@ fn block_plate(y: f64) -> Result<Mesh> {
         "New",
         "New",
     )
+}
+
+/// A sculpt patch: a square block `2 * half` across whose top is the
+/// height field `h(x, z)` on an `n` by `n` grid, each top quad tagged by
+/// `tag_of` at its centre, standing on a flat base at least 0.18 deep.
+fn heightfield(
+    n: u32,
+    half: f64,
+    h: impl Fn(f64, f64) -> f64,
+    tag_of: impl Fn(f64, f64) -> &'static str,
+) -> Result<Mesh> {
+    let at = |i: u32| -half + 2. * half * f64::from(i) / f64::from(n);
+    let mut mesh = Mesh::default();
+    for i in 0..=n {
+        for j in 0..=n {
+            let (x, z) = (at(i), at(j));
+            mesh.vertices.push(DVec3::new(x, h(x, z), z));
+        }
+    }
+    let top = |i: u32, j: u32| i * (n + 1) + j;
+    for i in 0..n {
+        for j in 0..n {
+            let (x, z) = ((at(i) + at(i + 1)) * 0.5, (at(j) + at(j + 1)) * 0.5);
+            mesh.faces.push(polygon(
+                vec![top(i, j), top(i, j + 1), top(i + 1, j + 1), top(i + 1, j)],
+                tag_of(x, z),
+            ));
+        }
+    }
+    // The rim, walked once round, and the base under it.
+    let mut rim = Vec::new();
+    rim.extend((0..n).map(|j| top(0, j)));
+    rim.extend((0..n).map(|i| top(i, n)));
+    rim.extend((0..n).map(|j| top(n, n - j)));
+    rim.extend((0..n).map(|i| top(n - i, 0)));
+    // The base sits 0.18 under the lowest point, never above -0.18.
+    let lowest = mesh.vertices.iter().map(|v| v.y).fold(0., f64::min);
+    let base = (lowest - 0.18).min(-0.18);
+    let first_low = mesh.vertices.len() as u32;
+    for &t in &rim {
+        let v = mesh.vertices[t as usize];
+        mesh.vertices.push(DVec3::new(v.x, base, v.z));
+    }
+    let count = rim.len() as u32;
+    for k in 0..count {
+        let k1 = (k + 1) % count;
+        let quad = vec![
+            rim[k as usize],
+            rim[k1 as usize],
+            first_low + k1,
+            first_low + k,
+        ];
+        let p: Vec<DVec3> = quad.iter().map(|&i| mesh.vertices[i as usize]).collect();
+        let normal = (p[1] - p[0]).cross(p[3] - p[0]);
+        let mid = p.iter().copied().sum::<DVec3>() / 4.;
+        let outward = DVec3::new(mid.x, 0., mid.z);
+        let quad = if normal.dot(outward) < 0. {
+            quad.into_iter().rev().collect()
+        } else {
+            quad
+        };
+        mesh.faces.push(polygon(quad, CLAY));
+    }
+    // Opposite to the walk the walls' low edges follow.
+    let bottom = (first_low..first_low + count).rev().collect();
+    mesh.faces.push(polygon(bottom, CLAY));
+    mesh.validate()?;
+    Ok(mesh)
+}
+
+/// A brush ring: a cyan circle of `radius` in the ground plane at height
+/// `y`, centred over (`x`, `z`).
+fn brush_ring(x: f64, z: f64, y: f64, radius: f64) -> Result<Mesh> {
+    let ring: Vec<DVec3> = (0..=48)
+        .map(|k| {
+            let a = std::f64::consts::TAU * f64::from(k) / 48.;
+            DVec3::new(x + radius * a.cos(), y, z + radius * a.sin())
+        })
+        .collect();
+    tube(&ring, 0.035, 8, "New")
+}
+
+/// A bump falling off as a bell: 1 at the centre.
+fn bell(r: f64, width: f64) -> f64 {
+    (-(r / width).powi(2)).exp()
+}
+
+/// A smooth step from 0 at `a` to 1 at `b`.
+fn smooth_step(a: f64, b: f64, x: f64) -> f64 {
+    let t = ((x - a) / (b - a)).clamp(0., 1.);
+    t * t * (3. - 2. * t)
+}
+
+/// A brush tip on a Clay disc: the tip's cyan profile (radius, height,
+/// ending on the axis) turned about the vertical.
+fn brush_tip(profile: &[(f64, f64)]) -> Result<Mesh> {
+    let mut p = vec![(0., -0.02)];
+    p.extend(profile.iter().copied());
+    merge(vec![
+        revolve(
+            &[(0., -0.02), (0.58, -0.02), (0.58, -0.14), (0., -0.14)],
+            48,
+            false,
+            CLAY,
+        )?,
+        revolve(&p, 48, false, "New")?,
+    ])
 }
 
 /// The geometry of a sample, inside the icon box.
@@ -5634,6 +5849,389 @@ fn sample_mesh(sample: Sample) -> Result<Mesh> {
                 "New",
             )?,
         ])?,
+        Sample::SculptPush => merge(vec![
+            heightfield(
+                40,
+                0.55,
+                |x, z| -0.3 * bell((x * x + z * z).sqrt(), 0.27),
+                |_, _| CLAY,
+            )?,
+            brush_ring(0., 0., 0.05, 0.3)?,
+            arrow(
+                DVec3::new(0., 0.62, 0.),
+                DVec3::new(0., 0.02, 0.),
+                0.06,
+                "New",
+            )?,
+        ])?,
+        Sample::SculptMove => merge(vec![
+            heightfield(
+                40,
+                0.55,
+                |x, z| 0.4 * bell((x * x + z * z).sqrt(), 0.22),
+                |_, _| CLAY,
+            )?,
+            arrow(
+                DVec3::new(0., 0.44, 0.),
+                DVec3::new(0., 0.85, 0.),
+                0.06,
+                "New",
+            )?,
+        ])?,
+        Sample::SculptInflate => {
+            let dome =
+                |x: f64, z: f64| 0.34 * (1. - (x * x + z * z) / 0.36_f64.powi(2)).max(0.).sqrt();
+            let mut parts = vec![heightfield(48, 0.55, dome, |_, _| CLAY)?];
+            for a in [0.3_f64, 2.4, 4.5] {
+                let d = DVec3::new(a.cos(), 0., a.sin());
+                parts.push(arrow(
+                    d * 0.34 + DVec3::Y * 0.16,
+                    d * 0.6 + DVec3::Y * 0.22,
+                    0.05,
+                    "New",
+                )?);
+            }
+            merge(parts)?
+        }
+        Sample::SculptFold => heightfield(
+            48,
+            0.55,
+            |x, _| 0.3 * (1. - x.abs() / 0.3).max(0.),
+            |_, _| CLAY,
+        )?,
+        Sample::SculptCarve => merge(vec![
+            heightfield(
+                48,
+                0.55,
+                |x, z| -0.18 * (1. - ((x - z) / std::f64::consts::SQRT_2).abs() / 0.16).max(0.),
+                |_, _| CLAY,
+            )?,
+            brush_ring(0.25, 0.25, 0.06, 0.18)?,
+        ])?,
+        Sample::SculptScar => heightfield(
+            64,
+            0.55,
+            |x, z| {
+                let s = ((x - z) / std::f64::consts::SQRT_2).abs();
+                -0.2 * bell(s, 0.05) + 0.09 * bell(s - 0.12, 0.05)
+            },
+            |_, _| CLAY,
+        )?,
+        Sample::SculptClay => {
+            let r = |x: f64, z: f64| (x * x + z * z).sqrt();
+            merge(vec![
+                heightfield(
+                    48,
+                    0.55,
+                    |x, z| {
+                        0.13 * (1. - smooth_step(0.36, 0.4, r(x, z)))
+                            + 0.13 * (1. - smooth_step(0.18, 0.22, r(x, z)))
+                    },
+                    |_, _| CLAY,
+                )?,
+                brush_ring(0., 0., 0.4, 0.22)?,
+            ])?
+        }
+        Sample::SculptSmooth => heightfield(
+            48,
+            0.55,
+            |x, z| {
+                let rough = 1. - smooth_step(-0.25, 0.2, x - z);
+                0.07 * rough * (x * 18.).sin() * (z * 18.).sin()
+            },
+            |_, _| CLAY,
+        )?,
+        Sample::SculptAttenuate => merge(vec![
+            heightfield(
+                48,
+                0.55,
+                |x, z| {
+                    let r = (x * x + z * z).sqrt();
+                    0.06 * smooth_step(0.14, 0.34, r) * (r * 26.).sin()
+                },
+                |_, _| CLAY,
+            )?,
+            brush_ring(0., 0., 0.1, 0.26)?,
+        ])?,
+        Sample::SculptSmudge => {
+            let u = |x: f64, z: f64| (x + z) / std::f64::consts::SQRT_2;
+            let v = |x: f64, z: f64| (x - z) / std::f64::consts::SQRT_2;
+            let along = DVec3::new(1., 0., 1.).normalize();
+            merge(vec![
+                heightfield(
+                    48,
+                    0.55,
+                    |x, z| {
+                        let t = u(x, z);
+                        let tail = if t < 0. { bell(t, 0.42) } else { bell(t, 0.16) };
+                        0.24 * tail * bell(v(x, z), 0.15)
+                    },
+                    |_, _| CLAY,
+                )?,
+                arrow(
+                    -along * 0.3 + DVec3::Y * 0.36,
+                    along * 0.36 + DVec3::Y * 0.36,
+                    0.055,
+                    "New",
+                )?,
+            ])?
+        }
+        Sample::SculptFlatten => merge(vec![
+            heightfield(
+                48,
+                0.55,
+                |x, z| (0.55 * bell((x * x + z * z).sqrt(), 0.36)).min(0.24),
+                |_, _| CLAY,
+            )?,
+            brush_ring(0., 0., 0.3, 0.2)?,
+        ])?,
+        Sample::SculptEmboss => heightfield(
+            64,
+            0.55,
+            |x, z| {
+                let on = (x.abs() < 0.08 || z.abs() < 0.08) && x.abs() < 0.36 && z.abs() < 0.36;
+                if on { 0.17 } else { 0. }
+            },
+            |_, _| CLAY,
+        )?,
+        Sample::SculptSpin => {
+            let ring: Vec<DVec3> = (0..=30)
+                .map(|k| {
+                    let a = 0.5 + std::f64::consts::TAU * 0.75 * f64::from(k) / 30.;
+                    DVec3::new(0.38 * a.cos(), 0.2, 0.38 * a.sin())
+                })
+                .collect();
+            let n = ring.len();
+            merge(vec![
+                heightfield(
+                    64,
+                    0.55,
+                    |x, z| {
+                        let r = (x * x + z * z).sqrt();
+                        let a = z.atan2(x);
+                        0.13 * (3. * a + r * 14.).cos().max(0.) * bell(r, 0.42)
+                    },
+                    |_, _| CLAY,
+                )?,
+                tube(&ring[..n - 2], 0.045, 10, "New")?,
+                arrow(
+                    ring[n - 3],
+                    ring[n - 1] + (ring[n - 1] - ring[n - 3]),
+                    0.045,
+                    "New",
+                )?,
+            ])?
+        }
+        Sample::SculptCenterPinch => {
+            let mut parts = vec![heightfield(
+                64,
+                0.55,
+                |x, z| 0.46 * (1. - (x * x + z * z).sqrt() / 0.42).max(0.).powf(1.6),
+                |_, _| CLAY,
+            )?];
+            for a in [0.6_f64, 2.2, 3.8, 5.4] {
+                let d = DVec3::new(a.cos(), 0., a.sin());
+                parts.push(arrow(
+                    d * 0.58 + DVec3::Y * 0.08,
+                    d * 0.34 + DVec3::Y * 0.08,
+                    0.045,
+                    "New",
+                )?);
+            }
+            merge(parts)?
+        }
+        Sample::SculptTangentPinch => {
+            let across = DVec3::new(1., 0., -1.).normalize();
+            merge(vec![
+                heightfield(
+                    64,
+                    0.55,
+                    |x, z| {
+                        0.32 * (1. - ((x - z) / std::f64::consts::SQRT_2).abs() / 0.24)
+                            .max(0.)
+                            .powi(2)
+                    },
+                    |_, _| CLAY,
+                )?,
+                arrow(
+                    across * 0.6 + DVec3::Y * 0.1,
+                    across * 0.3 + DVec3::Y * 0.1,
+                    0.05,
+                    "New",
+                )?,
+                arrow(
+                    -across * 0.6 + DVec3::Y * 0.1,
+                    -across * 0.3 + DVec3::Y * 0.1,
+                    0.05,
+                    "New",
+                )?,
+            ])?
+        }
+        Sample::VmapPaint => merge(vec![
+            heightfield(
+                40,
+                0.55,
+                |_, _| 0.,
+                |x, z| {
+                    if (z - 0.22 * (x * 5.).sin()).abs() < 0.11 && x.abs() < 0.42 {
+                        "Axis X"
+                    } else {
+                        CLAY
+                    }
+                },
+            )?,
+            brush_ring(0.38, 0.22 * (0.38_f64 * 5.).sin(), 0.08, 0.15)?,
+        ])?,
+        Sample::VmapSmooth => heightfield(
+            64,
+            0.55,
+            |_, _| 0.,
+            |x, z| {
+                let r = (x * x + z * z).sqrt();
+                let a = z.atan2(x);
+                let edge = if x - z < 0. {
+                    0.32 + 0.07 * (9. * a).sin().signum()
+                } else {
+                    0.34
+                };
+                if r < edge { "Axis X" } else { CLAY }
+            },
+        )?,
+        Sample::VmapScaleDown => merge(vec![
+            heightfield(
+                40,
+                0.55,
+                |_, _| 0.,
+                |x, z| {
+                    if (x * x + z * z).sqrt() < 0.22 {
+                        "Axis X"
+                    } else {
+                        CLAY
+                    }
+                },
+            )?,
+            brush_ring(0., 0., 0.04, 0.4)?,
+            arrow(
+                DVec3::new(0., 0.62, 0.),
+                DVec3::new(0., 0.08, 0.),
+                0.06,
+                "New",
+            )?,
+        ])?,
+        Sample::VmapErase => merge(vec![
+            heightfield(
+                48,
+                0.55,
+                |_, _| 0.,
+                |x, z| {
+                    let stroke = ((x - z) / std::f64::consts::SQRT_2).abs() < 0.08;
+                    if (x * x + z * z).sqrt() < 0.4 && !stroke {
+                        "Axis X"
+                    } else {
+                        CLAY
+                    }
+                },
+            )?,
+            brush_ring(0.25, -0.25, 0.06, 0.14)?,
+        ])?,
+        Sample::VmapSetValue => {
+            let lift = DVec3::Y * 0.3 + toward(0.25);
+            merge(vec![
+                heightfield(24, 0.55, |_, _| 0., |_, _| "Axis X")?,
+                tube(
+                    &[flat(-0.5, 0.) + lift, flat(0.5, 0.) + lift],
+                    0.05,
+                    10,
+                    CLAY,
+                )?,
+                ball(flat(0.18, 0.) + lift, 0.11, "Selected")?,
+            ])?
+        }
+        Sample::TipSmooth => {
+            let mut p: Vec<(f64, f64)> = (0..=16)
+                .map(|k| {
+                    let r = 0.5 * f64::from(16 - k) / 16.;
+                    (r, 0.4 * bell(r, 0.22))
+                })
+                .collect();
+            p.insert(0, (0.5, -0.02));
+            brush_tip(&p)?
+        }
+        Sample::TipHard => brush_tip(&[(0.42, -0.02), (0.42, 0.3), (0.38, 0.34), (0., 0.34)])?,
+        Sample::TipSphere => {
+            let mut p: Vec<(f64, f64)> = (0..=16)
+                .map(|k| {
+                    let a = std::f64::consts::FRAC_PI_2 * f64::from(k) / 16.;
+                    (0.4 * a.cos(), 0.4 * a.sin())
+                })
+                .collect();
+            p.insert(0, (0.4, -0.02));
+            brush_tip(&p)?
+        }
+        Sample::TipProcedural => {
+            let mut p: Vec<(f64, f64)> = (0..=40)
+                .map(|k| {
+                    let r = 0.48 * f64::from(40 - k) / 40.;
+                    (
+                        r,
+                        0.05 + 0.07 * (r * 40.).cos().max(0.) + 0.18 * bell(r, 0.16),
+                    )
+                })
+                .collect();
+            p.insert(0, (0.48, -0.02));
+            brush_tip(&p)?
+        }
+        Sample::TipStamp => merge(vec![
+            brush_tip(&[(0.5, -0.02), (0.5, 0.0), (0., 0.0)])?,
+            block_by(
+                DVec3::new(-0.36, 0., -0.09),
+                DVec3::new(0.36, 0.2, 0.09),
+                "New",
+            )?,
+            block_by(
+                DVec3::new(-0.09, 0., -0.36),
+                DVec3::new(0.09, 0.2, 0.36),
+                "New",
+            )?,
+        ])?,
+        Sample::TipText => {
+            let q = glam::DQuat::from_rotation_y(-std::f64::consts::FRAC_PI_4);
+            merge(vec![
+                brush_tip(&[(0.5, -0.02), (0.5, 0.0), (0., 0.0)])?,
+                deformed(
+                    merge(vec![
+                        block_by(
+                            DVec3::new(-0.34, 0., 0.14),
+                            DVec3::new(0.34, 0.2, 0.3),
+                            "New",
+                        )?,
+                        block_by(
+                            DVec3::new(-0.08, 0., -0.36),
+                            DVec3::new(0.08, 0.2, 0.3),
+                            "New",
+                        )?,
+                    ])?,
+                    |v| q * v,
+                ),
+            ])?
+        }
+        Sample::TipTexture => {
+            let mut parts = vec![brush_tip(&[(0.5, -0.02), (0.5, 0.0), (0., 0.0)])?];
+            for i in -2..=2 {
+                for j in -2..=2 {
+                    let (x, z) = (f64::from(i) * 0.15, f64::from(j) * 0.15);
+                    if x * x + z * z > 0.16 || (i + j) % 2 != 0 {
+                        continue;
+                    }
+                    parts.push(block_by(
+                        DVec3::new(x - 0.06, 0., z - 0.06),
+                        DVec3::new(x + 0.06, 0.12, z + 0.06),
+                        "New",
+                    )?);
+                }
+            }
+            merge(parts)?
+        }
         Sample::LoopSlice => {
             let mut parts = vec![sample_mesh(Sample::Cube)?];
             let r = 0.505;
