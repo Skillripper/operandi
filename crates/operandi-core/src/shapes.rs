@@ -355,7 +355,8 @@ pub fn torus_geometry(parameters: &TorusParameters) -> Result<Mesh> {
         }
     }
     let at = |k: u32, i: u32| (k % m) * n + i % n;
-    let mut uvs = p.make_uvs.then(Vec::new);
+    mesh.faces.reserve((n * m) as usize);
+    let mut uvs = p.make_uvs.then(|| Vec::with_capacity((n * m) as usize));
     for k in 0..m {
         for i in 0..n {
             mesh.faces.push(face(vec![

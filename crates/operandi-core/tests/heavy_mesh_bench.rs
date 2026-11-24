@@ -1,7 +1,8 @@
 //! Opt-in timings for heavy meshes (heavy-mesh-speed, 2026-11-24): building
 //! the biggest primitives, and skinning a million points. Run it in release
 //! and compare before/after numbers on one machine:
-//! `cargo test --release --workspace -- heavy_mesh_bench:: --ignored --nocapture`
+//! `cargo test --release --workspace -- heavy_mesh_bench:: --ignored --nocapture --test-threads=1`
+//! (one test at a time: side by side they slow each other down)
 //!
 //! Each line prints the best of a few runs (other work on the machine only
 //! ever makes a run slower). The drag through the viewport's GPU buffers is

@@ -210,8 +210,20 @@ pub fn segmented_cube(position: DVec3, size: DVec3, segments: [u32; 3]) -> Resul
     if segments == [1; 3] {
         return cube_geometry(position, size);
     }
+    // Both counts are known (Steve Hill's tip): a flat grid's points, or a
+    // box surface's (the whole lattice less its inside). The point lookup
+    // is a hash map sized for them; ids still follow the order points are
+    // made in, so the mesh is the same as before.
+    let points = if let Some(&normal) = zero.first() {
+        u128::from(segments[(normal + 1) % 3] + 1) * u128::from(segments[(normal + 2) % 3] + 1)
+    } else {
+        (a + 1) * (b + 1) * (c + 1) - (a - 1) * (b - 1) * (c - 1)
+    } as usize;
     let mut mesh = crate::Mesh::default();
-    let mut indices = std::collections::BTreeMap::<[u32; 3], u32>::new();
+    mesh.vertices.reserve(points);
+    mesh.faces.reserve(faces as usize);
+    let mut indices = crate::fxhash::FxHashMap::<[u32; 3], u32>::default();
+    indices.reserve(points);
     let planes: Vec<_> = if let Some(&normal) = zero.first() {
         vec![(normal, true)]
     } else {
