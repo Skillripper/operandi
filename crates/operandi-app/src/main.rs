@@ -1,6 +1,7 @@
 #[path = "files/about.rs"]
 mod about;
 mod absolute_scaling_ui;
+#[path = "presets/add_browser.rs"]
 mod add_browser;
 #[path = "anim/anim_keys.rs"]
 mod anim_keys;
@@ -299,7 +300,9 @@ mod native_menu;
 mod navigation_preferences;
 mod numeric_draft;
 mod numeric_tab;
+#[path = "presets/online_library.rs"]
 mod online_library;
+#[path = "presets/online_library_ui.rs"]
 mod online_library_ui;
 #[path = "files/open_documents.rs"]
 mod open_documents;
@@ -359,9 +362,11 @@ mod prefs_commands;
 mod prefs_file;
 #[path = "create_tools/primitive_input.rs"]
 mod primitive_input;
+#[path = "presets/profile_browser.rs"]
 mod profile_browser;
 #[path = "files/project_files.rs"]
 mod project_files;
+#[path = "presets/project_presets.rs"]
 mod project_presets;
 #[path = "files/project_ui.rs"]
 mod project_ui;
@@ -575,6 +580,7 @@ mod uv_tool_forms;
 mod uv_view;
 #[path = "controls/value_display.rs"]
 mod value_display;
+#[path = "presets/value_presets.rs"]
 mod value_presets;
 #[path = "edges/vertex_panel.rs"]
 mod vertex_panel;
@@ -3989,9 +3995,13 @@ mod menu_forms_tests;
 mod palettes;
 #[cfg(test)]
 mod palettes_tests;
+#[path = "presets/preset_browser.rs"]
 mod preset_browser;
+#[path = "presets/preset_browser_ui.rs"]
 mod preset_browser_ui;
+#[path = "presets/preset_thumbs.rs"]
 mod preset_thumbs;
+#[path = "presets/preset_ui.rs"]
 mod preset_ui;
 mod preview;
 mod preview_ui;
@@ -4278,6 +4288,7 @@ mod number_field_tests;
 #[cfg(test)]
 mod numeric_tab_tests;
 #[cfg(test)]
+#[path = "presets/online_library_tests.rs"]
 mod online_library_tests;
 #[cfg(test)]
 mod path_slice_tools_tests;
@@ -4293,8 +4304,10 @@ mod picture_capture_tests;
 #[cfg(test)]
 mod placement_snap_tests;
 #[cfg(test)]
+#[path = "presets/preset_drop_tests.rs"]
 mod preset_drop_tests;
 #[cfg(test)]
+#[path = "presets/preset_ui_tests.rs"]
 mod preset_ui_tests;
 #[cfg(test)]
 #[path = "create_tools/primitive_modifier_tests.rs"]
@@ -4339,6 +4352,7 @@ mod tool_card_view_tests;
 mod tool_field_handoff_tests;
 mod tool_info;
 #[cfg(test)]
+#[path = "presets/tool_presets_tests.rs"]
 mod tool_presets_tests;
 #[cfg(test)]
 mod tool_properties_header_tests;
