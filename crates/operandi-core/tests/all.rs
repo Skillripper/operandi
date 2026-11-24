@@ -165,6 +165,8 @@ mod edge_bevel_measured;
 mod edge_bevel_normal_map;
 #[path = "edge_bevel_options.rs"]
 mod edge_bevel_options;
+#[path = "edge_bevel_support.rs"]
+mod edge_bevel_support;
 #[path = "edge_commands.rs"]
 mod edge_commands;
 #[path = "edge_delete_border_points.rs"]

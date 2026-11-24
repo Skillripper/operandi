@@ -277,6 +277,7 @@ impl Operandi {
             self.status = match attr {
                 "mode" => format!("{:?}", o.mode).to_ascii_lowercase(),
                 "inset" | "offset" | "width" => format!("{} m", p.chamfer.offset),
+                "mitering" => format!("{} m", o.support),
                 "level" => (p.chamfer.segments / 2).to_string(),
                 "segments" => p.chamfer.segments.to_string(),
                 "shape" => format!("{:?}", o.shape).to_ascii_lowercase(),
@@ -310,6 +311,14 @@ impl Operandi {
                 }
                 "inset" | "offset" | "width" => {
                     p.chamfer.offset = numeric::parse_quantity(value, numeric::Quantity::Distance)?
+                }
+                // Mitering: the second handle's edge on each side (2026-11-23).
+                "mitering" if bevel => {
+                    let d = numeric::parse_quantity(value, numeric::Quantity::Distance)?;
+                    if d.is_nan() || d < 0. {
+                        return Err("Mitering is a distance of 0 or more".into());
+                    }
+                    o.support = d;
                 }
                 "level" if bevel => {
                     let level = numeric::parse_quantity(value, numeric::Quantity::Scalar)?;
@@ -357,10 +366,12 @@ impl Operandi {
             return;
         }
         let (offset, segments, depth) = (p.chamfer.offset, p.chamfer.segments, p.chamfer.depth);
+        let mitering = p.edge_bevel.support;
         if self.run_ok(Command::Preview(p)) {
             self.sync_numeric_value("chamfer_offset", offset, " m");
             self.sync_numeric_value("chamfer_depth", depth, "");
             if bevel {
+                self.sync_numeric_value("ebc_mitering", mitering, " m");
                 self.sync_numeric_value("edge_round_level", (segments / 2) as f64, "");
             } else {
                 self.sync_numeric_value("chamfer_segments", segments as f64, "");

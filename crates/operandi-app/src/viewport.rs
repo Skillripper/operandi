@@ -3240,6 +3240,18 @@ impl Operandi {
             .symmetry_handle_centre()
             .filter(|_| card.anchor == HandleAnchor::PolygonStage);
         let origin = match card.anchor {
+            // Edge Bevel's handles ride on the bevel as it grows (2026-11-23),
+            // as Polygon Bevel's ride on the moved cap: once the mesh has
+            // changed, the centre of the live selection (the new strips'
+            // edges). Before that, the selected edges themselves.
+            HandleAnchor::Edge
+                if l.tool == Tool::EdgeBevel
+                    && (l.params.chamfer.offset > 0. || l.params.edge_bevel.support > 0.) =>
+            {
+                self.edge_bevel_centre()
+                    .or_else(|| self.edge_handle_frame().map(|f| f.0))
+                    .unwrap_or(DVec3::ZERO)
+            }
             HandleAnchor::Edge => self.edge_handle_frame().map(|f| f.0).unwrap_or(DVec3::ZERO),
             HandleAnchor::EdgeRail => self.edge_slide_frame().map(|f| f.0).unwrap_or(DVec3::ZERO),
             HandleAnchor::Vertex => self.vertex_frame().map(|f| f.0).unwrap_or(DVec3::ZERO),
@@ -3349,10 +3361,13 @@ impl Operandi {
             ) && a.distance(b) > 5.
             {
                 // ACS-Q-HANDLE1: the box-centre tools' arms start about
-                // 25 px out from the centre.
+                // 25 px out from the centre. The Bevels' arrows start on the
+                // selection (2026-11-23): set off, an edge's arrows floated
+                // beside the edge and read as pointing the wrong way.
                 let gap = if operandi_core::handle_pick(l.tool)
                     == operandi_core::HandlePick::BoxCentre
                     && card.anchor != HandleAnchor::PolygonStage
+                    && card.axes != HandleAxes::SelectionNormal
                 {
                     25. * s
                 } else {
@@ -3377,7 +3392,14 @@ impl Operandi {
                     } else if l.tool == Tool::EdgeCrease {
                         "Weight".into()
                     } else if l.tool == Tool::EdgeBevel {
-                        "Inset".into()
+                        if axis == 1 {
+                            "Mitering"
+                        } else if l.params.edge_bevel.mode == operandi_core::EdgeBevelMode::Width {
+                            "Width"
+                        } else {
+                            "Inset"
+                        }
+                        .into()
                     } else if matches!(l.tool, Tool::EdgeChamfer | Tool::EdgeRelax) {
                         "Offset".into()
                     } else if l.tool == Tool::VertexBevel {
@@ -3479,6 +3501,30 @@ impl Operandi {
                         .map(|(_, up, side)| if axis == 0 { up } else { side })
                         .unwrap_or(DVec3::Z);
                 }
+                // The Bevels: the selection's average normal; the handle
+                // element's own normal when the normals cancel out.
+                HandleAxes::SelectionNormal => {
+                    let points = l.tool.card().handles.anchor == HandleAnchor::Vertex;
+                    let of = if points {
+                        operandi_core::NormalOf::Points
+                    } else {
+                        operandi_core::NormalOf::Edges
+                    };
+                    let normal = self.bevel_normal(of).unwrap_or_else(|| {
+                        if points {
+                            self.vertex_frame().map_or(DVec3::Z, |f| f.1)
+                        } else {
+                            self.edge_handle_frame().map_or(DVec3::Z, |f| f.1)
+                        }
+                    });
+                    if axis == 0 || points {
+                        return normal;
+                    }
+                    // Edge Bevel's Support Edges handle: into the first
+                    // edge's polygon, square to the bevel arrow.
+                    let side = self.edge_handle_frame().map_or(DVec3::X, |f| f.2);
+                    return side.reject_from(normal).normalize_or(side);
+                }
             }
         }
         if axis > 2
@@ -3566,11 +3612,19 @@ impl Operandi {
                         .normalize_or_zero()
                 };
                 // Face-local directions shown in world space for moved items.
-                return l
+                let world = l
                     .base
                     .world_matrix(i.id)
                     .map(|m| m.transform_vector3(local).normalize_or_zero())
                     .unwrap_or(local);
+                // The normal arrow follows the whole selection's average
+                // normal (2026-11-23), not only the first polygon's; the
+                // Inset arrow stays square to it.
+                return match self.bevel_normal(operandi_core::NormalOf::Polygons) {
+                    Some(normal) if axis == 0 => normal,
+                    Some(normal) => world.reject_from(normal).normalize_or(world),
+                    None => world,
+                };
             }
             a
         } else if let Some(basis) = self.local_handle_basis() {
@@ -3785,6 +3839,10 @@ impl Operandi {
                 // the weight by 100 %; it runs from -100 % to 100 % (EW-01).
                 let span = (self.camera.distance * 0.25).max(1e-9);
                 params.shift = (params.shift + amount / span).clamp(-1., 1.);
+            }
+            // Edge Bevel's second handle: Support Edges (2026-11-23).
+            Tool::EdgeBevel if axis == 1 => {
+                params.edge_bevel.support = (params.edge_bevel.support + amount).max(0.);
             }
             Tool::EdgeBevel | Tool::EdgeChamfer => {
                 params.chamfer.offset = (params.chamfer.offset + amount).max(0.);
@@ -7298,6 +7356,39 @@ impl Operandi {
                 operandi_core::vertex_handle_frame(&l.base, symmetry, pick)
             })
     }
+    /// The selection's average normal (`operandi_core::selection_normal`)
+    /// for the live tool's base, once per drag: the Bevels' gizmo direction.
+    fn bevel_normal(&self, of: operandi_core::NormalOf) -> Option<DVec3> {
+        let l = self.editor.live.as_ref()?;
+        let key = (self.editor.active_symmetry(), of);
+        let memo = &self.selection_normal_memo;
+        let stale = matches!(&*memo.0.borrow(), Some((_, (at, _))) if *at != key);
+        if stale {
+            *memo.0.borrow_mut() = None;
+        }
+        memo.get(&l.base, || {
+            (key, operandi_core::selection_normal(&l.base, key.0, of))
+        })
+        .1
+    }
+    /// Where Edge Bevel's handles sit once it has bevelled: the middle of
+    /// the live selected edges (the bevel strips' edges), in world space.
+    /// With Symmetry on, `handles` still moves it to the primary pivot.
+    fn edge_bevel_centre(&self) -> Option<DVec3> {
+        let item = self.editor.scene.active()?;
+        let edges = &self.editor.scene.selection.edges;
+        if edges.is_empty() {
+            return None;
+        }
+        let v = &item.mesh.vertices;
+        let sum = edges.iter().try_fold(DVec3::ZERO, |sum, e| {
+            Some(sum + (*v.get(e.0 as usize)? + *v.get(e.1 as usize)?) / 2.)
+        })?;
+        let centre = sum / edges.len() as f64;
+        let world = self.editor.scene.world_matrix(item.id).ok()?;
+        Some(world.transform_point3(centre))
+    }
+
     /// The edge tools' handle frame (`HandleAnchor::Edge`), once per drag;
     /// see `operandi_core::edge_handle_frame`.
     fn edge_handle_frame(&self) -> Option<(DVec3, DVec3, DVec3)> {

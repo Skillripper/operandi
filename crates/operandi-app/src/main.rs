@@ -450,6 +450,12 @@ struct Operandi {
     edge_slide_frame_memo: viewport::SymmetryMemo<Option<(DVec3, DVec3, f64)>>,
     vertex_frame_memo: viewport::SymmetryMemo<Option<(DVec3, DVec3, DVec3, f64)>>,
     edge_frame_memo: viewport::SymmetryMemo<Option<(DVec3, DVec3, DVec3)>>,
+    /// The Bevels' gizmo direction: the selection's average normal, once
+    /// per drag (`operandi_core::selection_normal`).
+    selection_normal_memo: viewport::BaseMemo<(
+        (operandi_core::Symmetry, operandi_core::NormalOf),
+        Option<DVec3>,
+    )>,
     /// Twist Bevel's first tube frame, Group off and on (twist_bevel_handles.rs).
     twist_bevel_frame_memo: viewport::BaseMemo<[Option<operandi_core::TubeFrame>; 2]>,
     /// A twist or Bend Direction ring drag's turn so far, in degrees, so
@@ -1363,6 +1369,7 @@ impl Operandi {
             edge_slide_frame_memo: Default::default(),
             vertex_frame_memo: Default::default(),
             edge_frame_memo: Default::default(),
+            selection_normal_memo: Default::default(),
             twist_bevel_frame_memo: Default::default(),
             twist_bevel_turn: None,
             whole_mesh_basis_memo: Default::default(),
@@ -3936,6 +3943,8 @@ mod app_bundle_icon_tests {
 mod absolute_scaling_tests;
 #[cfg(test)]
 mod active_mesh_pick_tests;
+#[cfg(test)]
+mod bevel_gizmo_tests;
 #[cfg(test)]
 mod button_variants_tests;
 #[cfg(test)]

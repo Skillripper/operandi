@@ -1610,6 +1610,21 @@ fn edge_bevel_form(p: &Parameters, f: &mut Form, bevel: bool) {
         |p| p.chamfer.offset,
         |p, v| p.chamfer.offset = v,
     ));
+    if bevel {
+        // Mitering, the second handle (2026-11-23): the drag-layer spec
+        // gives Edge Bevel's second handle as Mitering; this is the
+        // tester's reading of it (an edge added on each side), live
+        // instead of the greyed EBC-Q03 placeholder.
+        f.field(
+            dist(
+                "ebc_mitering",
+                "Mitering",
+                |p| p.edge_bevel.support,
+                |p, v| p.edge_bevel.support = v.max(0.),
+            )
+            .tip("Adds an edge this far beyond the bevel on each side of the selected edges; with Inset 0 it adds them beside the edge itself. 0 adds none"),
+        );
+    }
     // UIC-92 / UIC-117: rows that don't apply grey in place. Square and
     // Sharp ignore Level, Segments and Depth (EBS-03); Depth only moves the
     // middle points, which Round Level 0 / Segments 1 doesn't have (EBS-02).
@@ -1739,9 +1754,12 @@ fn edge_bevel_form(p: &Parameters, f: &mut Form, bevel: bool) {
         greyed_check("ebc_sharp", "Sharp", false, why)
     } else {
         greyed_check("ebc_sharp", "Sharp Corner", false, why)
-    })
-    .field(tf::value("ebc_mitering", "Mitering", "0").enabled_if(false, why))
-    .field(greyed_check("ebc_coplanar", "Coplanar", false, why));
+    });
+    if !bevel {
+        // Edge Bevel's Mitering is live (above); Edge Chamfer's isn't yet.
+        f.field(tf::value("ebc_mitering", "Mitering", "0").enabled_if(false, why));
+    }
+    f.field(greyed_check("ebc_coplanar", "Coplanar", false, why));
     if !bevel {
         f.field(tf::value("ebc_flatness", "Flatness", "0.00001").enabled_if(false, why))
             .field(greyed_check("ebc_reverse_x", "Reverse X", false, why))

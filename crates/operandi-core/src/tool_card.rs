@@ -248,6 +248,10 @@ pub enum HandleAxes {
     EdgeSide,
     /// Handle 0 along the first edge's normal, the others into its polygon.
     EdgeNormal,
+    /// Along the selection's average normal ([`crate::selection_normal`]):
+    /// the Bevels' gizmo follows a polygon's normal, an edge's diagonal or a
+    /// point's normal, and the average over a group (2026-11-23).
+    SelectionNormal,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -510,7 +514,17 @@ pub fn card(tool: Tool) -> ToolCard {
             .handles(K::Single, At::Edge, Ax::EdgeNormal)
             .drag_anywhere()
             .multi_mesh(),
-        Tool::EdgeBevel | Tool::EdgeChamfer => c(tool, F::Edge, Modes::EDGE)
+        // Edge Bevel (2026-11-23): the bevel arrow follows the selected
+        // edges' normal; the second handle, into the first edge's polygon,
+        // sets Support Edges. Edge Chamfer's one arrow still points into
+        // that polygon.
+        Tool::EdgeBevel => c(tool, F::Edge, Modes::EDGE)
+            .takes(Takes::Edges)
+            .layers(Unused, FALLOFF, ViaSelection, Snap::None)
+            .handles(K::Pair, At::Edge, Ax::SelectionNormal)
+            .drag_anywhere()
+            .multi_mesh(),
+        Tool::EdgeChamfer => c(tool, F::Edge, Modes::EDGE)
             .takes(Takes::Edges)
             .layers(Unused, FALLOFF, ViaSelection, Snap::None)
             .handles(K::Single, At::Edge, Ax::EdgeSide)
@@ -533,12 +547,13 @@ pub fn card(tool: Tool) -> ToolCard {
         }
         // Vertex Bevel's plain drag off the handle is still its own gesture
         // (left/right sets the Inset). Its Inset arrow sits on the handle
-        // point along its rail, as Vertex Merge's does (2026-11-23: every
-        // Bevel shows a gizmo when picked; ACS-Q-HANDLE1 had none).
+        // point along the selected points' normal (2026-11-23: every Bevel
+        // shows a gizmo when picked, following the selection's normal;
+        // ACS-Q-HANDLE1 had none).
         Tool::VertexBevel => c(tool, F::Vertex, Modes::VERTEX)
             .takes(Takes::Points)
             .layers(Unused, FALLOFF, ViaSelection, Snap::None)
-            .handles(K::Single, At::Vertex, Ax::VertexRail)
+            .handles(K::Single, At::Vertex, Ax::SelectionNormal)
             .multi_mesh(),
         Tool::VertexExtrude => c(tool, F::Vertex, Modes::VERTEX)
             .takes(Takes::Points)
