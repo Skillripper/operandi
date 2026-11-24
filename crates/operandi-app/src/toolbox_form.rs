@@ -66,7 +66,7 @@ pub(super) const PAINT_UTILITIES_FORM: &str = "toolbox.paintutil";
 /// Painting builds' own forms: not in the shipped folder, so default
 /// builds never list them.
 #[cfg(feature = "painting")]
-const PAINTING_FORMS: &[(&str, &str)] = &[
+pub(super) const PAINTING_FORMS: &[(&str, &str)] = &[
     (
         "toolbox.paint.json",
         include_str!("../assets/forms-painting/toolbox.paint.json"),
@@ -325,8 +325,9 @@ impl Operandi {
                 Item::Menu {
                     label,
                     tooltip,
+                    icon,
                     controls,
-                } => self.form_menu(ui, &label, &tooltip, &controls),
+                } => self.form_menu(ui, &label, &tooltip, icon.as_deref(), &controls),
                 Item::Button(control, icons) => {
                     self.form_button(ui, &control, icons, Place::Column)
                 }
@@ -1062,7 +1063,14 @@ impl Operandi {
     /// A flyout: a button opening a menu of `controls`' lines, each with
     /// its shortcut. Greyed, with the first reason, while none can run
     /// (UIC-223).
-    fn form_menu(&mut self, ui: &mut Ui, label: &str, tooltip: &str, controls: &[Control]) {
+    fn form_menu(
+        &mut self,
+        ui: &mut Ui,
+        label: &str,
+        tooltip: &str,
+        icon: Option<&str>,
+        controls: &[Control],
+    ) {
         let lines: Vec<&str> = controls
             .iter()
             .filter_map(|c| c.command.as_deref())
@@ -1083,7 +1091,13 @@ impl Operandi {
         let button = CommandButton {
             unavailable: why.as_deref(),
             shortcut: None,
-            ..CommandButton::row(ui, label, label, ButtonStyle::TextRow)
+            ..CommandButton::row(
+                ui,
+                label,
+                label,
+                icon.and_then(icons::Icon::from_slug)
+                    .map_or(ButtonStyle::TextRow, ButtonStyle::IconRow),
+            )
         };
         let response = self.command_button(ui, button);
         self.form_rects

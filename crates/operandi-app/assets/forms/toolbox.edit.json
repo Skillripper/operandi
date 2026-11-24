@@ -259,7 +259,8 @@
     {
       "command": "Remesh",
       "label": "Remesh...",
-      "tooltip": "Remesh...{binding} · Rebuild the whole active mesh: Voxel (sculpt.remesh), or Blocks, Smooth and Sharp on an octree (operandi.remesh)"
+      "tooltip": "Remesh...{binding} · Rebuild the whole active mesh: Voxel (sculpt.remesh), or Blocks, Smooth and Sharp on an octree (operandi.remesh)",
+      "icon": "remesh"
     },
     {
       "heading": "Commands",

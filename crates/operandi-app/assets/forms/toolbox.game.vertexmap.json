@@ -65,7 +65,8 @@
     },
     {
       "command": "operandi.vertMap.transfer",
-      "label": "Transfer from Background"
+      "label": "Transfer from Background",
+      "icon": "vmap-transfer"
     },
     {
       "divider": "Hard Edges",
@@ -161,7 +162,8 @@
           },
           {
             "command": "Select Soft Edges",
-            "label": "Select Soft"
+            "label": "Select Soft",
+            "icon": "select-soft-edges"
           }
         ],
         "icons": "both"
@@ -169,7 +171,8 @@
     },
     {
       "command": "Convert to Hard Edges",
-      "label": "Convert to Hard Edges"
+      "label": "Convert to Hard Edges",
+      "icon": "convert-hard-edges"
     },
     {
       "divider": "Normal Maps",
@@ -189,7 +192,8 @@
     },
     {
       "command": "Toggle Vertex Normal Maps",
-      "label": "Toggle Vertex Normal Maps"
+      "label": "Toggle Vertex Normal Maps",
+      "icon": "toggle-vertex-normals"
     },
     {
       "command": "Transfer Normals",
@@ -199,11 +203,13 @@
     },
     {
       "command": "Morph to Normals",
-      "label": "Morph to Normals"
+      "label": "Morph to Normals",
+      "icon": "morph-to-normals"
     },
     {
       "command": "Split Normals",
-      "label": "Split Normals"
+      "label": "Split Normals",
+      "icon": "split-normals"
     }
   ]
 }

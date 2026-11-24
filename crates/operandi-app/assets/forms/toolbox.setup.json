@@ -261,7 +261,8 @@
     {
       "command": "mirror.clone.create",
       "label": "Mirror Operation",
-      "tooltip": "Mirror Operation · adds a Mirror mesh operation to the selected mesh (mirror.clone.create)"
+      "tooltip": "Mirror Operation · adds a Mirror mesh operation to the selected mesh (mirror.clone.create)",
+      "icon": "mirror-operation"
     },
     {
       "divider": "Measure",

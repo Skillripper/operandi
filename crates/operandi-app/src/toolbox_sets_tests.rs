@@ -263,3 +263,43 @@ fn no_toolbox_form_repeats_the_shared_transform_row() {
         "Setup's Local"
     );
 }
+
+/// Every `icon` a toolbox form names resolves to an icon file (a studio
+/// render or a generator SVG), so no button silently falls back to text.
+#[test]
+fn every_toolbox_form_icon_slug_resolves() {
+    fn icons(v: &serde_json::Value, out: &mut Vec<String>) {
+        match v {
+            serde_json::Value::Object(m) => {
+                if let Some(serde_json::Value::String(s)) = m.get("icon")
+                    && !s.is_empty()
+                {
+                    out.push(s.clone());
+                }
+                m.values().for_each(|v| icons(v, out));
+            }
+            serde_json::Value::Array(a) => a.iter().for_each(|v| icons(v, out)),
+            _ => {}
+        }
+    }
+    let mut files: Vec<(&str, &str)> = crate::toolbox_form::SHIPPED_FORMS.to_vec();
+    #[cfg(feature = "painting")]
+    files.extend_from_slice(crate::toolbox_form::PAINTING_FORMS);
+    let mut checked = 0;
+    for (file, text) in files {
+        if !file.starts_with("toolbox.") {
+            continue;
+        }
+        let form: serde_json::Value = serde_json::from_str(text).unwrap();
+        let mut all = Vec::new();
+        icons(&form, &mut all);
+        for slug in all {
+            assert!(
+                icons::Icon::from_slug(&slug).is_some(),
+                "{file}: icon {slug:?} has no file"
+            );
+            checked += 1;
+        }
+    }
+    assert!(checked > 100, "{checked} icons");
+}

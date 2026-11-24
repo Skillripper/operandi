@@ -244,7 +244,8 @@
       },
       "id": "anim-auto-key",
       "label": "Auto Key",
-      "tooltip": "Auto Key · key channels as you change them"
+      "tooltip": "Auto Key · key channels as you change them",
+      "icon": "auto-key"
     },
     {
       "divider": "Commands",

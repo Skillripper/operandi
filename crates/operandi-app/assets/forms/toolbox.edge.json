@@ -77,7 +77,8 @@
     },
     {
       "command": "Split Normals",
-      "tooltip": "Split Normals · edge.splitNormals{binding}"
+      "tooltip": "Split Normals · edge.splitNormals{binding}",
+      "icon": "split-normals"
     },
     {
       "command": "Vertex Normal Tools...",
