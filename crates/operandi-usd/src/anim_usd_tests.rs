@@ -264,6 +264,10 @@ fn camera_and_light_keys_round_trip() {
             .insert(key, AnimChannel { curve: c, rest });
     }
     scene.time.end = rate.tick_of(10);
+    // A document is always posed at its current time (export reads it as
+    // it is there).
+    let now = scene.time.current;
+    animation::pose(&mut scene, now);
     let path = out_dir().join("lens-and-lamp.usda");
     crate::export(&path, &scene, ExportFormat::Usda).unwrap();
     let back = crate::import(&path, &Default::default()).unwrap().scene;
