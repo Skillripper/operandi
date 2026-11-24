@@ -3987,6 +3987,30 @@ fn gizmo(arrows: bool, rings: bool, boxes: bool) -> Result<Vec<Mesh>> {
     Ok(parts)
 }
 
+/// The transform row's cube with its three axes from the near top
+/// corner, as the old flat icons draw them: X red to the right, the
+/// depth axis green to the left, up blue. Arrows, or bars ending in
+/// boxes for Scale.
+fn row_axes(cube: f64, length: f64, boxes: bool) -> Result<Vec<Mesh>> {
+    let corner = DVec3::splat(cube * 0.5);
+    let mut parts = vec![cube_at(DVec3::ZERO, cube, CLAY)?];
+    for (a, tag) in [
+        (DVec3::X, "Axis X"),
+        (DVec3::Z, "Axis Y"),
+        (DVec3::Y, "Axis Z"),
+    ] {
+        let end = corner + a * length;
+        if boxes {
+            parts.push(tube(&[corner, end], 0.054, 10, tag)?);
+            parts.push(block(end, 0.23, tag)?);
+        } else {
+            parts.push(arrow(corner, end, 0.054, tag)?);
+        }
+    }
+    parts.push(ball(corner, 0.05, "Ink")?);
+    Ok(parts)
+}
+
 /// The geometry of a sample, inside the icon box.
 fn sample_mesh(sample: Sample) -> Result<Mesh> {
     use crate::radial::{RadialParameters, cylinder_geometry, globe_geometry};
@@ -9771,10 +9795,47 @@ fn sample_mesh(sample: Sample) -> Result<Mesh> {
                 )?,
             ])?
         }
-        Sample::MoveTool => merge(gizmo(true, false, false)?)?,
-        Sample::RotateTool => merge(gizmo(false, true, false)?)?,
-        Sample::ScaleTool => merge(gizmo(false, false, true)?)?,
-        Sample::TransformTool => merge(gizmo(true, true, true)?)?,
+        // The transform row matches the old flat icons' layout (Jason,
+        // 2026-11-24): the same cube and axis colours (X red to the right,
+        // the depth axis green to the left, up blue), rendered.
+        Sample::MoveTool => merge(row_axes(1.0, 1.24, false)?)?,
+        Sample::ScaleTool => merge(row_axes(1.0, 1.08, true)?)?,
+        Sample::TransformTool => {
+            let mut parts = row_axes(0.62, 0.9, false)?;
+            parts.push(tube(&circle_points(DVec3::ZERO, 0.93, 64), 0.022, 8, CLAY)?);
+            merge(parts)?
+        }
+        Sample::RotateTool => {
+            // Three curved arrows round the cube, as the old flat icon (Jason
+            // picked this over 3D rings, 2026-11-24): red up the left side,
+            // green down the right, blue a plain line along the bottom.
+            let mut parts = vec![cube_at(DVec3::ZERO, 0.6, CLAY)?];
+            for (a0, a1, rx, ry, tag) in [
+                (235.0_f64, 92.0_f64, 0.64, 0.7, "Axis X"),
+                (62.0, -78.0, 0.62, 0.68, "Axis Y"),
+                (196.0, 345.0, 0.72, 0.4, "Axis Z"),
+            ] {
+                let pts: Vec<DVec3> = (0..=32)
+                    .map(|k| {
+                        let a = (a0 + (a1 - a0) * f64::from(k) / 32.).to_radians();
+                        flat(rx * a.cos(), ry * a.sin() - 0.03) + toward(0.5)
+                    })
+                    .collect();
+                let n = pts.len();
+                if tag == "Axis Z" {
+                    parts.push(tube(&pts, 0.044, 10, tag)?);
+                } else {
+                    parts.push(tube(&pts[..n - 2], 0.044, 10, tag)?);
+                    parts.push(arrow(
+                        pts[n - 3],
+                        pts[n - 1] + (pts[n - 1] - pts[n - 3]),
+                        0.054,
+                        tag,
+                    )?);
+                }
+            }
+            merge(parts)?
+        }
         Sample::ActionCenterIcon => {
             let mut parts = vec![cube_at(DVec3::ZERO, 0.6, CLAY)?];
             let c = DVec3::new(0., 0.3, 0.) + DVec3::Y * 0.01;
