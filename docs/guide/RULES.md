@@ -50,6 +50,7 @@ Templates (in docs/guide/_templates/):
 
 ## 5. Help > User Guide and context help
 Help > User Guide opens operandi3d.org/guide/<running version>/ (test builds: /guide/test/). F1 or Help > What's This? enters help mode (UIC-06); the next click opens that control's page.
+A version not published yet (no release tag) falls back to the same page in /guide/latest/, or /guide/test/ before the first release (the site's guide/404.html).
 Help id = the command-registry name of the tool/command/panel/preference. Pages list the help ids they cover; the build makes a redirect per id at /guide/<version>/go/<help-id>. The app only opens that URL. Missing id: lands on search with the name filled in, and the coverage report flags it. Tooltips (UIC-04) remain the first line of help.
 Offline copy bundled in the app: later.
 
