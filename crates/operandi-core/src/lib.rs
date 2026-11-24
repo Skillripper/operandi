@@ -105,7 +105,9 @@ pub mod units;
 #[path = "commands/user_defaults.rs"]
 pub mod user_defaults;
 pub use history_settings::*;
+#[path = "polygons/flip.rs"]
 mod flip;
+#[path = "polygons/flip_it.rs"]
 mod flip_it;
 pub mod freeze;
 #[path = "geometry/fxhash.rs"]
@@ -178,15 +180,21 @@ pub mod shader_wgsl;
 pub mod texture_locator;
 #[path = "anim/transform_channel.rs"]
 pub mod transform_channel;
+#[path = "polygons/vertex_map_texture.rs"]
 pub mod vertex_map_texture;
 pub use material::{Material, MaterialKind};
 pub use shader_tree::ShaderTreeEdit;
+#[path = "polygons/polygon_material.rs"]
 pub mod polygon_material;
 pub use polygon_material::*;
+#[path = "polygons/flatten_ngons.rs"]
 mod flatten_ngons;
+#[path = "polygons/polygon_align.rs"]
 mod polygon_align;
 pub use flatten_ngons::*;
+#[path = "polygons/polygon_part.rs"]
 pub mod polygon_part;
+#[path = "polygons/polygon_tags.rs"]
 pub mod polygon_tags;
 pub use polygon_tags::*;
 #[path = "materials/colour_math.rs"]
@@ -199,6 +207,7 @@ pub mod diagonal_redirect;
 pub mod edge_zip;
 #[path = "materials/editor_color.rs"]
 pub mod editor_color;
+#[path = "polygons/fix_black_dots.rs"]
 pub mod fix_black_dots;
 #[path = "duplication/merge_instance.rs"]
 pub mod merge_instance;
@@ -210,10 +219,15 @@ pub mod teapot;
 pub use editor_color::EditorColor;
 pub mod tag_selection;
 pub use tag_selection::{TagRegion, TagSelection};
+#[path = "polygons/polygon_quadruple.rs"]
 mod polygon_quadruple;
+#[path = "polygons/polygon_scale_offset.rs"]
 mod polygon_scale_offset;
+#[path = "polygons/polygon_spin.rs"]
 mod polygon_spin;
+#[path = "polygons/polygon_split.rs"]
 mod polygon_split;
+#[path = "polygons/polygon_unify.rs"]
 pub mod polygon_unify;
 pub use polygon_part::*;
 pub use polygon_unify::*;
@@ -238,18 +252,24 @@ mod set_position;
 pub use set_position::*;
 mod absolute_scaling;
 pub use absolute_scaling::*;
+#[path = "polygons/polygon_subdivide.rs"]
 pub mod polygon_subdivide;
 pub use polygon_subdivide::{
     SubdivideBoundary, SubdivideMethod, SubdivideOptions, SubdivideOutcome, UnsubdivideOptions,
 };
+#[path = "polygons/polygon_triple.rs"]
 pub mod polygon_triple;
 pub use polygon_triple::*;
+#[path = "polygons/mesh_cleanup.rs"]
 pub mod mesh_cleanup;
 pub use mesh_cleanup::*;
+#[path = "polygons/polygon_remove.rs"]
 pub mod polygon_remove;
 pub use polygon_remove::*;
+#[path = "polygons/polygon_merge.rs"]
 pub mod polygon_merge;
 pub use polygon_merge::*;
+#[path = "polygons/polygon_collapse.rs"]
 pub mod polygon_collapse;
 pub use polygon_collapse::*;
 #[path = "edges/edge_extend.rs"]
@@ -289,6 +309,7 @@ pub use edge_commands::{
 };
 pub use edge_relax::edge_relax_geometry;
 pub mod axis_slice;
+#[path = "polygons/detriangulate.rs"]
 pub mod detriangulate;
 pub mod uv_edit;
 pub mod uv_export;
@@ -404,7 +425,9 @@ pub use slice::{
     EdgeSlice, LoopSlice, LoopSliceEdit, LoopSliceMode, OffsetSide, PlaneCut, PolygonSlice,
     SliceParameters, SlicePoint, SliceShow,
 };
+#[path = "polygons/polygon_make.rs"]
 pub mod polygon_make;
+#[path = "polygons/vertex_commands.rs"]
 pub mod vertex_commands;
 pub use polygon_make::*;
 pub use vertex_commands::{
@@ -542,7 +565,9 @@ pub type Result<T> = std::result::Result<T, String>;
 
 pub mod cone;
 pub use cone::*;
+#[path = "polygons/inset.rs"]
 pub mod inset;
+#[path = "polygons/mesh_cleanup_ops.rs"]
 pub mod mesh_cleanup_ops;
 pub use inset::{InsetResult, inset_geometry, shift_geometry};
 pub use mesh_cleanup_ops::{CleanupOption, CleanupResult, mesh_cleanup_geometry};
@@ -566,35 +591,46 @@ pub mod element_state;
 pub use element_state::{ElementKind, ElementMask, ElementOp, ElementState, Protection};
 mod shape_editor;
 
+#[path = "polygons/spike.rs"]
 pub mod spike;
 pub use spike::*;
+#[path = "polygons/spike_editor.rs"]
 mod spike_editor;
 
+#[path = "polygons/extrude.rs"]
 pub mod extrude;
 pub use extrude::*;
 
+#[path = "polygons/smooth_shift.rs"]
 pub mod smooth_shift;
 pub use smooth_shift::*;
 
+#[path = "polygons/smooth_shift_editor.rs"]
 mod smooth_shift_editor;
 
+#[path = "polygons/bevel.rs"]
 pub mod bevel;
 pub use bevel::*;
 
+#[path = "polygons/twist_bevel.rs"]
 pub mod twist_bevel;
 pub use twist_bevel::{
     TubeFrame, TwistAxis, TwistBevelOptions, TwistBevelPipe, TwistBevelResult, twist_bevel_frames,
     twist_bevel_geometry, twist_bevel_rings,
 };
 
+#[path = "polygons/bevel_editor.rs"]
 mod bevel_editor;
 pub use bevel_editor::*;
 
+#[path = "polygons/bevel_profile.rs"]
 mod bevel_profile;
 pub use bevel_profile::*;
 
+#[path = "polygons/bevel_weld.rs"]
 mod bevel_weld;
 
+#[path = "polygons/correspondence.rs"]
 pub mod correspondence;
 pub use correspondence::*;
 pub mod identity;
@@ -602,6 +638,7 @@ pub use identity::*;
 
 mod identity_editor;
 
+#[path = "polygons/live_extrude.rs"]
 pub mod live_extrude;
 pub use live_extrude::*;
 
@@ -631,15 +668,19 @@ mod bridge_editor;
 pub mod pen_interactive;
 pub use pen_interactive::*;
 pub mod guides;
+#[path = "polygons/reduction.rs"]
 pub mod reduction;
 pub mod remesh;
 pub mod remesh_voxel;
 #[path = "duplication/replicator.rs"]
 pub mod replicator;
+#[path = "polygons/vertex_normals.rs"]
 pub mod vertex_normals;
 pub use remesh::{CountMode, OctreeMode, OctreeOptions, RemeshOp, RetopoOptions, VoxelOptions};
+#[path = "polygons/reduction_qem.rs"]
 mod reduction_qem;
 pub use reduction::*;
+#[path = "polygons/reduction_editor.rs"]
 mod reduction_editor;
 pub use reduction_editor::*;
 
