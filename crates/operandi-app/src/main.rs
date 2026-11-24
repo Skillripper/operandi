@@ -71,7 +71,9 @@ mod app_environment;
 mod app_menu;
 #[path = "graphics/backdrop_gpu.rs"]
 mod backdrop_gpu;
+#[path = "render/backdrop_ui.rs"]
 mod backdrop_ui;
+#[path = "render/background_ui.rs"]
 mod background_ui;
 #[path = "polygons/bevel_panel.rs"]
 mod bevel_panel;
@@ -88,8 +90,11 @@ mod bug_report_capture;
 #[path = "controls/button_variants.rs"]
 mod button_variants;
 mod camera;
+#[path = "render/camera_light_handles.rs"]
 mod camera_light_handles;
+#[path = "render/camera_light_ui.rs"]
 mod camera_light_ui;
+#[path = "render/camera_props_ui.rs"]
 mod camera_props_ui;
 #[path = "anim/channel_links_ui.rs"]
 mod channel_links_ui;
@@ -166,8 +171,11 @@ mod ellipsoid_panel;
 mod empty_expand;
 #[path = "graphics/environment_gpu.rs"]
 mod environment_gpu;
+#[path = "render/environment_preset_ui.rs"]
 mod environment_preset_ui;
+#[path = "render/environment_ui.rs"]
 mod environment_ui;
+#[path = "render/exr_multilayer.rs"]
 mod exr_multilayer;
 #[path = "deformers/falloff_panel.rs"]
 mod falloff_panel;
@@ -254,12 +262,15 @@ mod layout;
 mod layout_keys;
 mod layouts;
 mod layouts_edit;
+#[path = "render/light_tier2_ui.rs"]
 mod light_tier2_ui;
+#[path = "render/light_tier3_ui.rs"]
 mod light_tier3_ui;
 mod link_mode;
 mod live_fields;
 #[path = "files/log_ring.rs"]
 mod log_ring;
+#[path = "render/lpe_rows.rs"]
 mod lpe_rows;
 #[path = "graphics/matcap.rs"]
 mod matcap;
@@ -385,6 +396,7 @@ mod reduction_panel;
 #[path = "polygons/relax_mesh_dialog.rs"]
 mod relax_mesh_dialog;
 mod remesh_dialog;
+#[path = "render/render_item_ui.rs"]
 mod render_item_ui;
 mod render_preferences;
 #[path = "controls/rendered_icons.rs"]
@@ -471,8 +483,10 @@ mod topology_tools_ui;
 #[path = "files/usd_import_dialog.rs"]
 mod usd_import_dialog;
 #[cfg(all(test, feature = "cycles", feature = "usd"))]
+#[path = "render/usd_render_tests.rs"]
 mod usd_render_tests;
 // Pen-tablet input is read only on macOS; elsewhere the code is unused.
+#[path = "render/bake_dialogs.rs"]
 mod bake_dialogs;
 #[cfg(all(test, not(feature = "painting")))]
 #[path = "painting_ui/no_painting_tests.rs"]
@@ -4003,10 +4017,13 @@ mod preset_browser_ui;
 mod preset_thumbs;
 #[path = "presets/preset_ui.rs"]
 mod preset_ui;
+#[path = "render/preview.rs"]
 mod preview;
+#[path = "render/preview_ui.rs"]
 mod preview_ui;
 #[path = "create_tools/primitive_panel.rs"]
 mod primitive_panel;
+#[path = "render/render_ui.rs"]
 mod render_ui;
 #[path = "anim/timeline.rs"]
 mod timeline;
@@ -4166,6 +4183,7 @@ mod active_mesh_pick_tests;
 #[path = "controls/button_variants_tests.rs"]
 mod button_variants_tests;
 #[cfg(test)]
+#[path = "render/camera_props_tests.rs"]
 mod camera_props_tests;
 #[cfg(test)]
 mod camera_view_settle_tests;
@@ -4225,10 +4243,13 @@ mod edge_tab_tests;
 #[cfg(test)]
 mod empty_expand_tests;
 #[cfg(test)]
+#[path = "render/environment_image_tests.rs"]
 mod environment_image_tests;
 #[cfg(test)]
+#[path = "render/environment_preset_tests.rs"]
 mod environment_preset_tests;
 #[cfg(test)]
+#[path = "render/environment_ui_tests.rs"]
 mod environment_ui_tests;
 #[cfg(test)]
 mod extend_handles_tests;
@@ -4275,8 +4296,10 @@ mod layouts_edit_tests;
 #[cfg(test)]
 mod layouts_tests;
 #[cfg(test)]
+#[path = "render/light_properties_tests.rs"]
 mod light_properties_tests;
 #[cfg(test)]
+#[path = "render/light_view_tests.rs"]
 mod light_view_tests;
 #[cfg(test)]
 mod link_button_tests;
@@ -4300,6 +4323,7 @@ mod perf_drags_tests;
 #[cfg(test)]
 mod perf_view_tests;
 #[cfg(test)]
+#[path = "render/picture_capture_tests.rs"]
 mod picture_capture_tests;
 #[cfg(test)]
 mod placement_snap_tests;
@@ -4316,8 +4340,10 @@ mod primitive_modifier_tests;
 #[path = "create_tools/primitive_ui_tests.rs"]
 mod primitive_ui_tests;
 #[cfg(test)]
+#[path = "render/render_item_ui_tests.rs"]
 mod render_item_ui_tests;
 #[cfg(test)]
+#[path = "render/render_outputs_save_tests.rs"]
 mod render_outputs_save_tests;
 #[cfg(test)]
 mod reset_tool_tests;
@@ -4374,6 +4400,7 @@ mod uv_dialogs_tests;
 #[cfg(test)]
 mod uv_editing_tests;
 #[cfg(test)]
+#[path = "render/viewport_transparency_capture_tests.rs"]
 mod viewport_transparency_capture_tests;
 #[cfg(test)]
 #[path = "deformers/weights_distortion_tests.rs"]
@@ -4383,6 +4410,7 @@ mod workbench;
 mod workbench_tests;
 
 #[cfg(test)]
+#[path = "render/background_ui_tests.rs"]
 mod background_ui_tests;
 #[cfg(test)]
 #[path = "commands/doors_tests.rs"]
