@@ -1,6 +1,7 @@
 //! Portable modeling state. No window, graphics, or platform API dependencies.
 pub mod action_center;
 pub mod bake;
+#[path = "sculpting/brush_engine.rs"]
 pub mod brush_engine;
 #[cfg(feature = "painting")]
 #[path = "painting/paint.rs"]
@@ -135,6 +136,7 @@ pub mod interchange;
 pub mod lxo;
 #[path = "geometry/mesh.rs"]
 pub mod mesh;
+#[path = "sculpting/multires.rs"]
 pub mod multires;
 #[path = "geometry/polygon.rs"]
 pub mod polygon;
@@ -601,8 +603,10 @@ pub mod falloff_screen;
 pub use falloff_pattern::{GrayImage, ImageFalloff, NoiseFalloff};
 pub use falloff_reach::{CoplanarFalloff, ElementFalloff, SoftSelectionFalloff};
 pub use falloff_screen::{AirbrushFalloff, LassoFalloff, LassoStyle, ScreenFalloff};
+#[path = "sculpting/sculpt.rs"]
 pub mod sculpt;
 /// Blender-derived brush maths (GPL-2.0-or-later, see the module header).
+#[path = "sculpting/sculpt_blender/mod.rs"]
 pub mod sculpt_blender;
 // The rest stays under `sculpt::` (its `Stroke` would clash with egui's in
 // the app's glob imports).
@@ -735,7 +739,9 @@ pub use pen_interactive::*;
 pub mod guides;
 #[path = "polygons/reduction.rs"]
 pub mod reduction;
+#[path = "sculpting/remesh.rs"]
 pub mod remesh;
+#[path = "sculpting/remesh_voxel.rs"]
 pub mod remesh_voxel;
 #[path = "duplication/replicator.rs"]
 pub mod replicator;
