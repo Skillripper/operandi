@@ -30,42 +30,42 @@ pub const BUILT_IN: [(&str, &str, &[u8]); 8] = [
     (
         "clay_studio",
         "Clay Studio",
-        include_bytes!("../assets/studiolights/clay_studio.png"),
+        include_bytes!("../../assets/studiolights/clay_studio.png"),
     ),
     (
         "basic_grey",
         "Basic Grey",
-        include_bytes!("../assets/studiolights/basic_grey.png"),
+        include_bytes!("../../assets/studiolights/basic_grey.png"),
     ),
     (
         "pearl",
         "Pearl",
-        include_bytes!("../assets/studiolights/pearl.png"),
+        include_bytes!("../../assets/studiolights/pearl.png"),
     ),
     (
         "resin",
         "Resin",
-        include_bytes!("../assets/studiolights/resin.png"),
+        include_bytes!("../../assets/studiolights/resin.png"),
     ),
     (
         "ceramic_lightbulb",
         "Ceramic Lightbulb",
-        include_bytes!("../assets/studiolights/ceramic_lightbulb.png"),
+        include_bytes!("../../assets/studiolights/ceramic_lightbulb.png"),
     ),
     (
         "metal_carpaint",
         "Metal Carpaint",
-        include_bytes!("../assets/studiolights/metal_carpaint.png"),
+        include_bytes!("../../assets/studiolights/metal_carpaint.png"),
     ),
     (
         "fullmetal",
         "Full Metal",
-        include_bytes!("../assets/studiolights/fullmetal.png"),
+        include_bytes!("../../assets/studiolights/fullmetal.png"),
     ),
     (
         "check_reflection_horizontal",
         "Check Reflection",
-        include_bytes!("../assets/studiolights/check_reflection_horizontal.png"),
+        include_bytes!("../../assets/studiolights/check_reflection_horizontal.png"),
     ),
 ];
 /// Custom images the GPU keeps at once (each its own layer). More than

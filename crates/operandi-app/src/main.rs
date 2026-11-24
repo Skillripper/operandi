@@ -55,6 +55,7 @@ mod action_center_click;
 #[path = "controls/app_environment.rs"]
 mod app_environment;
 mod app_menu;
+#[path = "graphics/backdrop_gpu.rs"]
 mod backdrop_gpu;
 mod backdrop_ui;
 mod background_ui;
@@ -141,6 +142,7 @@ mod editor_color_ui;
 #[path = "create_tools/ellipsoid_panel.rs"]
 mod ellipsoid_panel;
 mod empty_expand;
+#[path = "graphics/environment_gpu.rs"]
 mod environment_gpu;
 mod environment_preset_ui;
 mod environment_ui;
@@ -156,15 +158,24 @@ mod file_io_preferences;
 mod flip_it_dialog;
 mod form;
 mod form_app;
+#[path = "graphics/frame_stats.rs"]
 mod frame_stats;
+#[path = "graphics/free_memory.rs"]
 mod free_memory;
+#[path = "graphics/gpu.rs"]
 mod gpu;
+#[path = "graphics/gpu_arena.rs"]
 mod gpu_arena;
+#[path = "graphics/gpu_backend.rs"]
 mod gpu_backend;
+#[path = "graphics/gpu_chunks.rs"]
 mod gpu_chunks;
+#[path = "graphics/gpu_memory.rs"]
 mod gpu_memory;
+#[path = "graphics/gpu_scene.rs"]
 mod gpu_scene;
 mod gradient_ui;
+#[path = "graphics/grid.rs"]
 mod grid;
 mod groups_ui;
 #[cfg(test)]
@@ -218,9 +229,12 @@ mod live_fields;
 #[path = "files/log_ring.rs"]
 mod log_ring;
 mod lpe_rows;
+#[path = "graphics/matcap.rs"]
 mod matcap;
+#[path = "graphics/material_gpu.rs"]
 mod material_gpu;
 #[cfg(test)]
+#[path = "graphics/material_gpu_tests.rs"]
 mod material_gpu_tests;
 mod material_layout;
 #[path = "commands/mcp.rs"]
@@ -352,8 +366,10 @@ mod select_tools_ui;
 mod selection_normals;
 mod selection_preferences;
 mod selection_set_dialog;
+#[path = "graphics/session_draw.rs"]
 mod session_draw;
 #[cfg(test)]
+#[path = "graphics/session_draw_tests.rs"]
 mod session_draw_tests;
 mod set_position_dialog;
 mod shading_panel;
@@ -377,8 +393,10 @@ mod solid_sketch_ui;
 mod space_mouse;
 mod spike_panel;
 mod statistics_ui;
+#[path = "graphics/subd_gpu.rs"]
 mod subd_gpu;
 #[cfg(test)]
+#[path = "graphics/subd_gpu_tests.rs"]
 mod subd_gpu_tests;
 #[cfg(test)]
 mod subdivide_tab_tests;
@@ -3876,6 +3894,7 @@ mod form_editor_tests;
 mod graph_editor;
 #[path = "create_tools/guides_ui.rs"]
 mod guides_ui;
+#[path = "graphics/matcap_render.rs"]
 mod matcap_render;
 mod materialx_ui;
 #[cfg(test)]
@@ -4075,8 +4094,10 @@ mod deform_tab_tests;
 #[cfg(test)]
 mod drag_anywhere_tests;
 #[cfg(test)]
+#[path = "graphics/drag_patch_tests.rs"]
 mod drag_patch_tests;
 #[cfg(test)]
+#[path = "graphics/draw_depth_tests.rs"]
 mod draw_depth_tests;
 #[cfg(test)]
 #[path = "create_tools/draw_point_mode_tests.rs"]
@@ -4085,6 +4106,7 @@ mod draw_point_mode_tests;
 #[path = "create_tools/draw_tools_tests.rs"]
 mod draw_tools_tests;
 #[cfg(test)]
+#[path = "graphics/drawing_equivalence_tests.rs"]
 mod drawing_equivalence_tests;
 #[cfg(test)]
 mod drop_action_tests;
@@ -4124,6 +4146,7 @@ mod handle_tips_tests;
 #[cfg(test)]
 mod haul_tests;
 #[cfg(test)]
+#[path = "graphics/heavy_mesh_frames_tests.rs"]
 mod heavy_mesh_frames_tests;
 #[cfg(test)]
 mod history_limit_more_tests;
@@ -4363,6 +4386,7 @@ mod polygon_reduction_tests;
 #[cfg(test)]
 mod flip_basic_tests;
 #[cfg(test)]
+#[path = "graphics/gl_count_tests.rs"]
 mod gl_count_tests;
 #[cfg(test)]
 mod statistics_ui_tests;
