@@ -51,19 +51,19 @@ fn of(scale: f64, suffix: &'static str, rate: f64) -> Kind {
 pub(crate) fn kind(scene: &operandi_core::Scene, key: &ChannelKey) -> Kind {
     if let Some(u) = scene.animation.rig.user_channel(key.item, &key.channel) {
         let mut k = match u.ty {
-            UserType::Distance => of(1., " m", 0.01),
-            UserType::Angle => of(DEG, "°", 0.5),
-            UserType::Percentage => of(100., " %", 0.5),
-            UserType::Time => of(1., " s", 0.01),
+            UserType::Distance => of(1., " m", 0.02),
+            UserType::Angle => of(DEG, "°", 1.),
+            UserType::Percentage => of(100., " %", 1.),
+            UserType::Time => of(1., " s", 0.02),
             UserType::Integer | UserType::Choice => Kind {
                 whole: true,
-                ..of(1., "", 0.1)
+                ..of(1., "", 0.2)
             },
             UserType::Boolean => Kind {
                 boolean: true,
                 ..of(1., "", 0.)
             },
-            _ => of(1., "", 0.01),
+            _ => of(1., "", 0.02),
         };
         k.min = u.min;
         k.max = u.max;
@@ -71,9 +71,9 @@ pub(crate) fn kind(scene: &operandi_core::Scene, key: &ChannelKey) -> Kind {
     }
     if let Some((group, _)) = key.transform_part() {
         return match group {
-            "pos" => of(1., " m", 0.01),
-            "rot" => of(DEG, "°", 0.5),
-            _ => of(100., " %", 0.5),
+            "pos" => of(1., " m", 0.02),
+            "rot" => of(DEG, "°", 1.),
+            _ => of(100., " %", 1.),
         };
     }
     let base = key.channel.split('.').next().unwrap_or("");
@@ -84,20 +84,20 @@ pub(crate) fn kind(scene: &operandi_core::Scene, key: &ChannelKey) -> Kind {
         },
         Some(ChannelType::Int | ChannelType::Enum(_)) => Kind {
             whole: true,
-            ..of(1., "", 0.1)
+            ..of(1., "", 0.2)
         },
-        Some(ChannelType::Distance) => of(1., " m", 0.01),
-        Some(ChannelType::Angle) => of(DEG, "°", 0.5),
+        Some(ChannelType::Distance) => of(1., " m", 0.02),
+        Some(ChannelType::Angle) => of(DEG, "°", 1.),
         Some(ChannelType::Percent) => Kind {
             min: Some(0.),
             max: Some(1.),
-            ..of(100., " %", 0.5)
+            ..of(100., " %", 1.)
         },
         Some(ChannelType::Colour) => Kind {
             min: Some(0.),
-            ..of(1., "", 0.005)
+            ..of(1., "", 0.01)
         },
-        _ => of(1., "", 0.01),
+        _ => of(1., "", 0.02),
     }
 }
 
