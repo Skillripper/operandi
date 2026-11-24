@@ -333,6 +333,11 @@ fn every_toolbox_form_button_has_hover_text() {
                 };
                 let tip = a.form_button_tooltip(&c, line).unwrap_or_default();
                 assert!(!tip.trim().is_empty(), "{id}: {line} has no tooltip");
+                // Users never see spec codes (Jason, 2026-11-24).
+                assert!(
+                    !crate::ui_text::has_spec_code(&tip),
+                    "{id}: {line} shows a spec code: {tip}"
+                );
                 checked += 1;
             }
         }
@@ -353,4 +358,41 @@ fn every_toolbox_form_button_has_hover_text() {
         .form_button_tooltip(&parent, "operandi.rig.parent")
         .unwrap();
     assert!(tip.starts_with("Parent · "), "{tip}");
+}
+
+/// Menu items' written tooltips carry no spec codes either; every registry
+/// help line, as a tooltip shows it, is free of them too.
+#[test]
+fn menu_tooltips_and_shown_help_have_no_spec_codes() {
+    fn tooltips(v: &serde_json::Value, out: &mut Vec<String>) {
+        match v {
+            serde_json::Value::Object(m) => {
+                if let Some(serde_json::Value::String(s)) = m.get("tooltip") {
+                    out.push(s.clone());
+                }
+                m.values().for_each(|v| tooltips(v, out));
+            }
+            serde_json::Value::Array(a) => a.iter().for_each(|v| tooltips(v, out)),
+            _ => {}
+        }
+    }
+    for (file, text) in crate::toolbox_form::SHIPPED_FORMS {
+        if !file.starts_with("menu.") {
+            continue;
+        }
+        let form: serde_json::Value = serde_json::from_str(text).unwrap();
+        let mut all = Vec::new();
+        tooltips(&form, &mut all);
+        for tip in all {
+            assert!(!crate::ui_text::has_spec_code(&tip), "{file}: {tip}");
+        }
+    }
+    for command in crate::command_handlers::registry().iter() {
+        let shown = crate::ui_text::without_spec_codes(command.entry.help);
+        assert!(
+            !crate::ui_text::has_spec_code(&shown),
+            "{}: {shown}",
+            command.entry.name
+        );
+    }
 }

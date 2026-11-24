@@ -81,7 +81,11 @@ impl Gate for Ui {
 /// greyed) with `why` as its hover text, or returns it unchanged.
 pub(crate) fn explain(response: Response, why: Option<&str>) -> Response {
     match why {
-        Some(why) => response.on_hover_text(why).on_disabled_hover_text(why),
+        Some(why) => {
+            // Users never see spec codes (Jason, 2026-11-24).
+            let why = crate::ui_text::without_spec_codes(why);
+            response.on_hover_text(&why).on_disabled_hover_text(why)
+        }
         None => response,
     }
 }

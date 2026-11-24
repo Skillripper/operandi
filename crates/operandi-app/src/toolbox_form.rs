@@ -375,7 +375,7 @@ impl Operandi {
                 Item::Property(_) => {}
                 Item::Missing(id) => {
                     ui.label(RichText::new(format!("Missing form {id}")).color(theme::error()))
-                        .on_hover_text("No form has this id; it shows nothing (UIC-221)");
+                        .on_hover_text("No form has this id; it shows nothing");
                 }
             }
         }
@@ -423,6 +423,7 @@ impl Operandi {
     /// The tooltip a form button running `line` shows.
     pub(super) fn form_button_tooltip(&self, control: &Control, line: &str) -> Option<String> {
         self.button_tooltip(control, line)
+            .map(|tip| crate::ui_text::without_spec_codes(&tip))
     }
 
     fn form_button(&mut self, ui: &mut Ui, control: &Control, icons: IconMode, place: Place) {
@@ -500,7 +501,7 @@ impl Operandi {
                     self.form_rects.insert(line.to_owned(), response.rect);
                     self.run_shown_variant(ui, control, line, &response);
                     if let Some(tip) = self.button_tooltip(control, line) {
-                        response.on_hover_text(tip);
+                        response.on_hover_text(crate::ui_text::without_spec_codes(&tip));
                     }
                     return;
                 }
@@ -616,7 +617,7 @@ impl Operandi {
             self.run_form_line(ui, control, line);
         }
         if let Some(tip) = self.button_tooltip(control, line) {
-            response.on_hover_text(tip);
+            response.on_hover_text(crate::ui_text::without_spec_codes(&tip));
         }
     }
 
@@ -859,10 +860,10 @@ impl Operandi {
                 .unwrap_or_else(|| label_of(face).to_owned())
         };
         let names: Vec<&str> = (0..controls.len()).map(label_of).collect();
-        let response = response.on_hover_text(format!(
+        let response = response.on_hover_text(crate::ui_text::without_spec_codes(&format!(
             "{face_tip} · hold or right-click for {}",
             names.join(", ")
-        ));
+        )));
         if open {
             let mut picked = None;
             let area = egui::Area::new(Id::new(("form-flyout-list", key)))
@@ -1033,7 +1034,7 @@ impl Operandi {
         } else {
             self.form_tooltip(tooltip, line)
         };
-        response.on_hover_text(tip);
+        response.on_hover_text(crate::ui_text::without_spec_codes(&tip));
     }
 
     /// A tooltip with `{shortcut}` replaced by the line's binding (the
@@ -1167,9 +1168,12 @@ impl Operandi {
                     })
                 })
                 .collect();
-            response.on_hover_text(format!("{label} · pick one: {}", names.join(", ")));
+            response.on_hover_text(crate::ui_text::without_spec_codes(&format!(
+                "{label} · pick one: {}",
+                names.join(", ")
+            )));
         } else {
-            response.on_hover_text(tooltip);
+            response.on_hover_text(crate::ui_text::without_spec_codes(tooltip));
         }
     }
 
