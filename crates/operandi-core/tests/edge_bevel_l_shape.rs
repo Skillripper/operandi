@@ -172,8 +172,42 @@ fn every_pattern_fills_the_inner_corner() {
                 assert!(biggest <= 4, "{what}: a {biggest}-sided polygon is left");
                 assert!(fill.len() >= 3 * n, "{what}: only {} polygons", fill.len());
             }
-            assert!(!seen.contains(&fill), "{what} fills like another pattern");
-            seen.push(fill);
+            let mut at: Vec<[i64; 3]> = out
+                .mesh
+                .vertices
+                .iter()
+                .map(|p| (*p * 1e6).round().as_i64vec3().to_array())
+                .collect();
+            at.sort_unstable();
+            assert!(!seen.contains(&at), "{what} fills like another pattern");
+            seen.push(at);
+            if matches!(corner, CornerPattern::Radial | CornerPattern::Uniform) {
+                // The pole is the top mitre point: every triangle of the
+                // fill has it as a corner (the tester's Maya pictures).
+                let mitre = out
+                    .mesh
+                    .vertices
+                    .iter()
+                    .position(|p| p.distance(DVec3::new(-0.3, 1., 0.3)) < 1e-9)
+                    .unwrap() as u32;
+                let corner_point = DVec3::new(0., 1., 0.);
+                let triangles: Vec<&Face> = out
+                    .mesh
+                    .faces
+                    .iter()
+                    .filter(|f| {
+                        f.vertices.len() == 3
+                            && f.vertices.iter().all(|&v| {
+                                out.mesh.vertices[v as usize].distance(corner_point) < 0.45
+                            })
+                    })
+                    .collect();
+                assert_eq!(triangles.len(), n, "{what}: n triangles at the pole");
+                assert!(
+                    triangles.iter().all(|f| f.vertices.contains(&mitre)),
+                    "{what}: a triangle misses the top mitre point"
+                );
+            }
         }
     }
 }

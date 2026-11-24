@@ -1100,12 +1100,52 @@ pub(crate) fn general(
                 let first_new = new_faces.len();
                 // Corner Pattern (EBC-Q-CP1): Edge Bevel's other fills for a
                 // Round corner; Patch is the measured one below.
-                if !chamfer && !square && options.corner != CornerPattern::Patch {
-                    let centre = corner_centre(&layout_ring, n);
+                let three = layout_ring.len() == 3 * n && stand_ins.is_empty();
+                if !chamfer && !square && options.corner == CornerPattern::None {
+                    // Provisional until the rounded outline is built: one
+                    // polygon.
+                    new_faces.push((ring.clone(), homes.clone()));
+                } else if !chamfer
+                    && !square
+                    && three
+                    && matches!(
+                        options.corner,
+                        CornerPattern::Radial | CornerPattern::Uniform
+                    )
+                {
+                    // The pole: the strip corner across from the one strip
+                    // whose edge turns the other way (the L's inner
+                    // vertical edge among two outer top edges), else the
+                    // first.
+                    let convex: Vec<Option<bool>> = (0..3)
+                        .map(|t| {
+                            let (e0, e1) =
+                                (layout_ring[t * n], layout_ring[((t + 1) * n) % (3 * n)]);
+                            ends.iter()
+                                .find(|(key, run)| {
+                                    key.2 == v
+                                        && ((run[0] == e0 && run[run.len() - 1] == e1)
+                                            || (run[0] == e1 && run[run.len() - 1] == e0))
+                                })
+                                .map(|(&(x, y, _), _)| {
+                                    let f2 = &mesh.faces[face_of[&(y, x)]].vertices;
+                                    let c2 =
+                                        f2.iter().map(|&i| p(i)).sum::<DVec3>() / f2.len() as f64;
+                                    (c2 - p(x)).dot(newell(mesh, face_of[&(x, y)])) < 0.
+                                })
+                        })
+                        .collect();
+                    let odd = (0..3).find(|&t| {
+                        convex[t].is_some()
+                            && (0..3)
+                                .filter(|&u| u != t)
+                                .all(|u| convex[u].is_some() && convex[u] != convex[t])
+                    });
+                    let pole = odd.map_or(0, |t| (t + 2) % 3);
                     corner_fill(
-                        &ring,
-                        centre,
+                        &layout_ring,
                         n,
+                        pole,
                         options.corner,
                         &mut out,
                         &mut defs,
@@ -1441,44 +1481,27 @@ fn corner_layout(ring: &[u32], n: usize, is_row: impl Fn(&u32) -> bool) -> Optio
     (corners >= 3).then_some((turned, runs))
 }
 
-/// Where [`corner_patch`]'s grids meet with even rows, for a laid-out
-/// opening (one point per strip corner): the mean of the parallelograms
-/// A + B − C of each strip corner C and the two profile points A, B half a
-/// profile away, so it lies on the rounded surface the strips describe.
-fn corner_centre(ring: &[u32], n: usize) -> Comb {
-    let len = ring.len();
-    let k = len / n;
-    let m = (n / 2).max(1);
-    let r = |i: isize| ring[i.rem_euclid(len as isize) as usize];
-    let mut sum: BTreeMap<u32, f64> = BTreeMap::new();
-    for i in 0..k {
-        let corner = (i * n) as isize;
-        for (id, w) in [
-            (r(corner + m as isize), 1.),
-            (r(corner - m as isize), 1.),
-            (r(corner), -1.),
-        ] {
-            *sum.entry(id).or_default() += w / k as f64;
-        }
-    }
-    sum.into_iter().filter(|&(_, w)| w != 0.).collect()
-}
-
-/// Corner Pattern (a tester's request, 2026-11-24; EBC-Q-CP1): fill the
-/// opening `ring` where strips of `n` rows meet (laid out as for
-/// [`corner_patch`]) with one of the patterns besides Patch.
-/// * Uniform: a triangle from each profile segment to one centre point.
-/// * Radial: rings between the opening and the centre (`n / 2` of them,
-///   at least one), quads between rings, triangles to the centre.
-/// * None: the opening as one polygon.
-///
-/// `centre` is [`corner_centre`]; `ring` may hold more than one corner
-/// point between two strips (see `corner_layout`).
+/// Corner Pattern Radial and Uniform (the tester's Maya pictures,
+/// 2026-11-24) where three strips of `n` rows meet: a grid with its pole at
+/// one corner of the opening, `pole` (0, 1 or 2 strip corners along the
+/// laid-out `ring`), on the corner's edge rather than inside it. Going out
+/// from the pole, the two strips on either side of it (their profiles
+/// pole→A and pole→B) give the grid's rows, which run across the corner
+/// from one strip's row to the same row of the other; the third strip's
+/// profile A→B is the far side, and its rows run as lines into the pole.
+/// All quads, with thin triangles only at the pole.
+/// * Radial: each row is shaped like the far profile, curved, so the rows
+///   are rings around the pole.
+/// * Uniform: each row is two straight runs meeting on the middle line, so
+///   the rows are chevrons and the lines close in on the pole like a
+///   pointed arch.
+// The grid is indexed by row and line together.
+#[allow(clippy::needless_range_loop)]
 #[allow(clippy::too_many_arguments)]
 fn corner_fill(
     ring: &[u32],
-    centre_comb: Comb,
     n: usize,
+    pole: usize,
     pattern: CornerPattern,
     out: &mut Mesh,
     defs: &mut BTreeMap<u32, Def>,
@@ -1486,49 +1509,95 @@ fn corner_fill(
     homes: &[usize],
 ) -> Result<()> {
     let len = ring.len();
-    if pattern == CornerPattern::None {
-        new_faces.push((ring.to_vec(), homes.to_vec()));
-        return Ok(());
-    }
-    let m = (n / 2).max(1);
-    let mut make = |out: &mut Mesh, comb: Comb| -> Result<u32> {
-        let position = comb
-            .iter()
-            .map(|&(id, w)| out.vertices[id as usize] * w)
-            .sum::<DVec3>();
-        let id = u32::try_from(out.vertices.len()).map_err(|_| "Mesh point budget exceeded")?;
-        out.vertices.push(position);
-        defs.insert(id, Def::Blend(comb));
-        Ok(id)
+    // Point `t` along the profile that starts at strip corner `c`.
+    let at = |c: usize, t: usize| ring[(c * n + t) % len];
+    let pole_id = at(pole, 0);
+    // R: pole → A; O: the far profile from B (j = 0) to A (j = n); L: pole → B.
+    let r = |i: usize| at(pole, i);
+    let o = |j: usize| at(pole + 1, n - j);
+    let l = |i: usize| at(pole + 2, n - i);
+    let one = |id: u32, w: f64| (id, w);
+    let add = |parts: Vec<(u32, f64)>| -> Comb {
+        let mut sum: BTreeMap<u32, f64> = BTreeMap::new();
+        for (id, w) in parts {
+            *sum.entry(id).or_default() += w;
+        }
+        sum.into_iter().filter(|&(_, w)| w.abs() > 1e-15).collect()
     };
-    let centre = make(out, centre_comb.clone())?;
-    // Uniform is Radial with no rings.
-    let rings = if pattern == CornerPattern::Radial {
-        m
-    } else {
-        0
-    };
-    let mut outer: Vec<u32> = ring.to_vec();
-    for level in 1..=rings {
-        let t = level as f64 / (rings + 1) as f64;
-        let mut inner = Vec::with_capacity(len);
-        for &id in ring {
-            let mut comb: Comb = centre_comb.iter().map(|&(c, w)| (c, w * t)).collect();
-            match comb.iter_mut().find(|(c, _)| *c == id) {
-                Some((_, w)) => *w += 1. - t,
-                None => comb.push((id, 1. - t)),
+    // The Radial point at row i, line j: a blend of the two side profiles,
+    // pushed out to land on the far profile at i = n.
+    let radial = |i: usize, s: f64, oj: Option<u32>| -> Comb {
+        let f = i as f64 / n as f64;
+        let mut parts = vec![one(l(i), 1. - s), one(r(i), s)];
+        parts.push(one(l(n), -f * (1. - s)));
+        parts.push(one(r(n), -f * s));
+        match oj {
+            Some(id) => parts.push(one(id, f)),
+            // Between two far points (the middle line of an odd n).
+            None => {
+                let k = s * n as f64;
+                let (j0, w) = (k.floor() as usize, k.fract());
+                parts.push(one(o(j0), f * (1. - w)));
+                parts.push(one(o((j0 + 1).min(n)), f * w));
             }
-            inner.push(make(out, comb)?);
         }
-        for i in 0..len {
-            let j = (i + 1) % len;
-            new_faces.push((vec![outer[i], outer[j], inner[j], inner[i]], homes.to_vec()));
+        add(parts)
+    };
+    let mut grid = vec![vec![u32::MAX; n + 1]; n + 1];
+    for i in 0..=n {
+        for j in 0..=n {
+            grid[i][j] = if i == 0 {
+                pole_id
+            } else if i == n {
+                o(j)
+            } else if j == 0 {
+                l(i)
+            } else if j == n {
+                r(i)
+            } else {
+                let s = j as f64 / n as f64;
+                let comb = if pattern == CornerPattern::Uniform {
+                    // Straight from the side row to the middle line.
+                    let mid = radial(i, 0.5, None);
+                    let (side, t) = if s <= 0.5 {
+                        (l(i), 2. * s)
+                    } else {
+                        (r(i), 2. * (1. - s))
+                    };
+                    let mut parts: Vec<(u32, f64)> = vec![one(side, 1. - t)];
+                    parts.extend(mid.into_iter().map(|(id, w)| (id, w * t)));
+                    add(parts)
+                } else {
+                    radial(i, s, Some(o(j)))
+                };
+                let position = comb
+                    .iter()
+                    .map(|&(id, w)| out.vertices[id as usize] * w)
+                    .sum::<DVec3>();
+                let id =
+                    u32::try_from(out.vertices.len()).map_err(|_| "Mesh point budget exceeded")?;
+                out.vertices.push(position);
+                defs.insert(id, Def::Blend(comb));
+                id
+            };
         }
-        outer = inner;
     }
-    for i in 0..len {
-        let j = (i + 1) % len;
-        new_faces.push((vec![outer[i], outer[j], centre], homes.to_vec()));
+    // Wound as the opening runs: pole → A along j = n, A → B along i = n,
+    // B → pole along j = 0.
+    for i in 0..n {
+        for j in 0..n {
+            let face = if i == 0 {
+                vec![pole_id, grid[1][j + 1], grid[1][j]]
+            } else {
+                vec![
+                    grid[i][j],
+                    grid[i][j + 1],
+                    grid[i + 1][j + 1],
+                    grid[i + 1][j],
+                ]
+            };
+            new_faces.push((face, homes.to_vec()));
+        }
     }
     Ok(())
 }

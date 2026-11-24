@@ -247,12 +247,19 @@ fn edge_bevel_corner_pattern_field_and_script_attribute() {
     a.fields.insert("chamfer_segments".into(), "2".into());
     assert!(a.confirm_fields(), "{}", a.status);
     a.execute("tool.attr edge.bevel level 2");
-    // Each fill's polygons by their number of sides (Patch's 12 quads and
-    // Uniform's 12 triangles have the same count).
+    // Each fill by its polygons' sides and its points' places (Radial and
+    // Uniform share one layout and differ in where the points go).
     let shapes = |a: &Operandi| {
-        let mut s: Vec<usize> = mesh(a).faces.iter().map(|f| f.vertices.len()).collect();
+        let m = mesh(a);
+        let mut s: Vec<usize> = m.faces.iter().map(|f| f.vertices.len()).collect();
         s.sort_unstable();
-        s
+        let mut at: Vec<[i64; 3]> = m
+            .vertices
+            .iter()
+            .map(|p| (*p * 1e6).round().as_i64vec3().to_array())
+            .collect();
+        at.sort_unstable();
+        (s, at)
     };
     let mut seen = vec![shapes(&a)];
     for (word, want) in [

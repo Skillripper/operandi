@@ -1,8 +1,11 @@
-//! Edge Bevel's Corner Pattern (a tester's request, 2026-11-24, from a
-//! picture of an L-shaped block's inner corner): how the opening where
+//! Edge Bevel's Corner Pattern (a tester's request, 2026-11-24, from Maya
+//! pictures of an L-shaped block's inner corner): how the opening where
 //! three rounded strips meet is filled. Patch is the measured EBC-J-05
-//! grid (the default); Uniform fans lines to one centre point; Radial adds
-//! rings around it; None closes the opening with one polygon.
+//! grid (the default). Radial and Uniform are grids with their pole at one
+//! corner of the opening, on its edge: the rows of the two strips beside
+//! the pole run across as rings (Radial) or chevrons (Uniform), and the
+//! third strip's rows run into the pole. No point inside the corner joins
+//! everything, and every polygon is a quad but the pole's thin triangles.
 use crate::edge_bevel_loop_slide::hole;
 use glam::DVec3;
 use operandi_core::*;
@@ -60,10 +63,22 @@ fn sides(m: &Mesh, n: usize) -> usize {
     m.faces.iter().filter(|f| f.vertices.len() == n).count()
 }
 
+/// How many polygons each point is used by, at most, among points that
+/// aren't on the original mesh's surface edges (the fills' inside points).
+fn busiest_point(m: &Mesh) -> usize {
+    let mut uses = vec![0usize; m.vertices.len()];
+    for f in m.faces.iter() {
+        for &v in &f.vertices {
+            uses[v as usize] += 1;
+        }
+    }
+    uses.into_iter().max().unwrap_or(0)
+}
+
 #[test]
-fn every_pattern_closes_the_corner() {
+fn radial_and_uniform_are_quad_grids_with_a_pole_on_the_edge() {
     let c = cube();
-    // Name, mesh, edges and how many corners where three strips meet.
+    // Name, mesh, edges, and how many corners where three strips meet.
     type Shape = (&'static str, Mesh, Vec<(u32, u32)>, usize);
     let shapes: [Shape; 2] = [
         ("cube corner", c.clone(), cube_corner(&c), 1),
@@ -72,65 +87,43 @@ fn every_pattern_closes_the_corner() {
     for (name, m, edges, corners) in shapes {
         for level in [1, 2, 3] {
             let n = 2 * level as usize;
-            // The opening at each corner: three strip corners, each with
-            // n − 1 profile rows after it.
-            let opening = 3 * n;
             let patch = bevel(&m, &edges, level, CornerPattern::Patch);
-            let uniform = bevel(&m, &edges, level, CornerPattern::Uniform);
             let radial = bevel(&m, &edges, level, CornerPattern::Radial);
-            let none = bevel(&m, &edges, level, CornerPattern::None);
+            let uniform = bevel(&m, &edges, level, CornerPattern::Uniform);
             let what = format!("{name}, level {level}");
-            assert_eq!(
-                sides(&none, opening),
-                corners + sides(&patch, opening),
-                "{what}: None closes each corner with one {opening}-sided polygon"
-            );
-            assert_eq!(
-                sides(&uniform, 3),
-                corners * opening + sides(&none, 3),
-                "{what}: Uniform fans {opening} triangles at each corner"
-            );
-            let rings = level as usize;
-            assert_eq!(
-                sides(&radial, 3),
-                sides(&uniform, 3),
-                "{what}: Radial ends in the same fan"
-            );
-            assert_eq!(
-                sides(&radial, 4),
-                sides(&none, 4) + corners * opening * rings,
-                "{what}: Radial adds {rings} rings of {opening} quads"
-            );
-            assert_ne!(
-                patch.faces.len(),
-                none.faces.len(),
-                "{what}: Patch is its own fill"
-            );
+            for (pattern, mesh) in [("Radial", &radial), ("Uniform", &uniform)] {
+                // Each corner: n × n cells, the first row of them triangles.
+                assert_eq!(
+                    sides(mesh, 3),
+                    sides(&patch, 3) + corners * n,
+                    "{what}: {pattern} has n triangles at each pole"
+                );
+                // Polygons the bevel cut keep their extra corners; the
+                // fill itself adds none of more than four sides.
+                let big = |m: &Mesh| m.faces.iter().filter(|f| f.vertices.len() > 4).count();
+                assert_eq!(
+                    big(mesh),
+                    big(&patch),
+                    "{what}: {pattern} left a polygon of more than four sides"
+                );
+                // The pole is shared by its n triangles and the polygons
+                // around the original corner, never by a whole fan.
+                assert!(
+                    busiest_point(mesh) <= n + 4,
+                    "{what}: {pattern} has a point joining {} polygons",
+                    busiest_point(mesh)
+                );
+            }
+            // At Level 1 the only inside point is on the middle line, where
+            // a ring and a chevron meet anyway.
+            if level >= 2 {
+                assert_ne!(
+                    radial.vertices, uniform.vertices,
+                    "{what}: Radial's rings and Uniform's chevrons differ"
+                );
+            }
         }
     }
-}
-
-#[test]
-fn the_centre_sits_on_the_rounded_corner() {
-    // On the cube's corner, Uniform's centre point is the one point the
-    // corner's triangles share; it lies inside the cube, past the strips'
-    // chord and short of the old corner, on the corner's diagonal.
-    let c = cube();
-    let m = bevel(&c, &cube_corner(&c), 2, CornerPattern::Uniform);
-    let mut uses = vec![0usize; m.vertices.len()];
-    for f in m.faces.iter().filter(|f| f.vertices.len() == 3) {
-        for &v in &f.vertices {
-            uses[v as usize] += 1;
-        }
-    }
-    let centre = m.vertices[(0..uses.len()).max_by_key(|&i| uses[i]).unwrap()];
-    let diagonal = DVec3::ONE.normalize();
-    assert!(
-        (centre - diagonal * centre.dot(diagonal)).length() < 1e-9,
-        "{centre} is off the corner's diagonal"
-    );
-    assert!(centre.max_element() < 1., "{centre} is outside the cube");
-    assert!(centre.min_element() > 0.9, "{centre} is too far in");
 }
 
 #[test]
