@@ -99,6 +99,18 @@
   (OPERANDI_BLESS_GUIDE=1 rewrites it). New QA harness settings for the
   shots: OPERANDI_QA_PRIMITIVE_HEIGHT (height drag), OPERANDI_QA_FIELDS
   (type into Tool Properties), OPERANDI_QA_CLICKS (clicks at world points).
+- **Scripting guide pages (2026-11-23, branch scripting-guide):**
+  User Guide section Scripting and the test bridge: overview, Python
+  scripting (switch, Script Console, Run Script, mesh data, animation,
+  undo, limits), Python reference (written from operandi.py, the
+  registry's script-askable queries and the operandi.python.* commands by
+  guide_python_tests.rs; bless with OPERANDI_BLESS_GUIDE=1), Kits and
+  extensions (scripts on menus via operandi.form.add, kit items kept,
+  the two Rust register hooks, what isn't built). Every ```python block
+  in those pages runs in the app as a test (python feature). Fix found on
+  the way: in the app a script couldn't run any command without a
+  headless form (tools, select.*, operandi.form.*, command.list): the
+  query check refused them first (operandi-python answer_editor).
 
 - **Help > User Guide (2026-11-23, branch guide-help-menu):** Help >
   Documentation is now User Guide and always lit; it opens
