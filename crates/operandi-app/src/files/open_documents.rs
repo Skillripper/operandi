@@ -259,7 +259,7 @@ mod bundle_tests {
     /// puts the declaration and its icon into every macOS app.
     #[test]
     fn macos_bundle_declares_opscene() {
-        let plist = include_str!("../../../assets/macos/opscene-document-type.plist");
+        let plist = include_str!("../../../../assets/macos/opscene-document-type.plist");
         for needle in [
             "<string>opscene</string>",
             "<string>org.operandi3d.opscene</string>",
@@ -269,7 +269,7 @@ mod bundle_tests {
         ] {
             assert!(plist.contains(needle), "document type plist lacks {needle}");
         }
-        let script = include_str!("../../../scripts/macos-app-bundle.sh");
+        let script = include_str!("../../../../scripts/macos-app-bundle.sh");
         assert!(script.contains("Merge assets/macos/opscene-document-type.plist"));
         assert!(script.contains("OperandiScene.icns"));
         assert!(script.contains("assets/branding/operandi-document-icon.png"));

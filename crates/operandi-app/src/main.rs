@@ -1,3 +1,4 @@
+#[path = "files/about.rs"]
 mod about;
 mod absolute_scaling_ui;
 mod add_browser;
@@ -64,7 +65,9 @@ mod boolean_dialog;
 mod branding;
 #[path = "edges/bridge_panel.rs"]
 mod bridge_panel;
+#[path = "files/bug_report.rs"]
 mod bug_report;
+#[path = "files/bug_report_capture.rs"]
 mod bug_report_capture;
 #[path = "controls/button_variants.rs"]
 mod button_variants;
@@ -145,7 +148,9 @@ mod exr_multilayer;
 #[path = "deformers/falloff_panel.rs"]
 mod falloff_panel;
 mod field_handoff;
+#[path = "files/file_chooser.rs"]
 mod file_chooser;
+#[path = "files/file_commands.rs"]
 mod file_commands;
 mod file_io_preferences;
 mod flip_it_dialog;
@@ -182,13 +187,19 @@ mod help_mode_tests;
 mod i2_route;
 #[path = "controls/icons.rs"]
 mod icons;
+#[path = "files/image_decode.rs"]
 mod image_decode;
+#[path = "files/image_viewer.rs"]
 mod image_viewer;
+#[path = "files/image_viewer_ui.rs"]
 mod image_viewer_ui;
+#[path = "files/import.rs"]
 mod import;
+#[path = "files/import_into.rs"]
 mod import_into;
 mod input;
 mod input_map_editor;
+#[path = "files/interchange_ui.rs"]
 mod interchange_ui;
 mod item_common_ui;
 mod item_extras_ui;
@@ -204,6 +215,7 @@ mod light_tier2_ui;
 mod light_tier3_ui;
 mod link_mode;
 mod live_fields;
+#[path = "files/log_ring.rs"]
 mod log_ring;
 mod lpe_rows;
 mod matcap;
@@ -237,6 +249,7 @@ mod numeric_draft;
 mod numeric_tab;
 mod online_library;
 mod online_library_ui;
+#[path = "files/open_documents.rs"]
 mod open_documents;
 #[path = "controls/option_row.rs"]
 mod option_row;
@@ -290,8 +303,10 @@ mod prefs_file;
 #[path = "create_tools/primitive_input.rs"]
 mod primitive_input;
 mod profile_browser;
+#[path = "files/project_files.rs"]
 mod project_files;
 mod project_presets;
+#[path = "files/project_ui.rs"]
 mod project_ui;
 #[path = "commands/python_switch.rs"]
 mod python_switch;
@@ -314,7 +329,9 @@ mod replica_rows;
 #[cfg(test)]
 mod replica_safety_tests;
 mod replicator_ui;
+#[path = "files/report_bug_dialog.rs"]
 mod report_bug_dialog;
+#[path = "files/resource_write.rs"]
 mod resource_write;
 #[cfg(test)]
 mod rig_tab_tests;
@@ -322,6 +339,7 @@ mod rig_tab_tests;
 mod rig_ui_tests;
 mod rig_user_channels_ui;
 mod scale_offset_dialog;
+#[path = "files/scenes.rs"]
 mod scenes;
 mod schematic_ui;
 #[path = "anim/scrub.rs"]
@@ -370,6 +388,7 @@ mod topology_mode;
 mod topology_pen_ui;
 mod topology_tab;
 mod topology_tools_ui;
+#[path = "files/usd_import_dialog.rs"]
 mod usd_import_dialog;
 #[cfg(all(test, feature = "cycles", feature = "usd"))]
 mod usd_render_tests;
@@ -444,7 +463,9 @@ mod ui_text;
 mod unavailable;
 mod undo_autosave;
 mod units_preferences;
+#[path = "files/update_check.rs"]
 mod update_check;
+#[path = "files/update_check_ui.rs"]
 mod update_check_ui;
 mod uv_checker;
 mod uv_dialogs;
@@ -4068,6 +4089,7 @@ mod drawing_equivalence_tests;
 #[cfg(test)]
 mod drop_action_tests;
 #[cfg(test)]
+#[path = "files/drop_files_tests.rs"]
 mod drop_files_tests;
 #[cfg(test)]
 mod drop_keys_tests;
@@ -4090,8 +4112,10 @@ mod environment_ui_tests;
 #[cfg(test)]
 mod extend_handles_tests;
 #[cfg(test)]
+#[path = "files/file_chooser_tests.rs"]
 mod file_chooser_tests;
 #[cfg(test)]
+#[path = "files/file_error_tests.rs"]
 mod file_error_tests;
 #[cfg(test)]
 mod handle_style_menu_tests;
@@ -4170,6 +4194,7 @@ mod reset_tool_tests;
 #[cfg(test)]
 mod scene_panel_tests;
 #[cfg(test)]
+#[path = "files/scenes_tests.rs"]
 mod scenes_tests;
 #[cfg(test)]
 #[path = "anim/scrub_tests.rs"]
@@ -4276,6 +4301,7 @@ mod perf_snapshot_tests;
 mod pie_menu_tests;
 
 #[cfg(test)]
+#[path = "files/bridge_recovery_save_tests.rs"]
 mod bridge_recovery_save_tests;
 
 #[cfg(test)]
@@ -4295,9 +4321,11 @@ mod extrude_spike_chain_tests;
 mod identity_audit;
 
 #[cfg(test)]
+#[path = "files/new_scene_empty_mesh_tests.rs"]
 mod new_scene_empty_mesh_tests;
 
 #[cfg(test)]
+#[path = "files/cone_new_document_retention_tests.rs"]
 mod cone_new_document_retention_tests;
 
 #[cfg(test)]
@@ -4375,6 +4403,7 @@ mod add_loop_slide_options_tests;
 #[cfg(test)]
 mod group_eye_tests;
 #[cfg(test)]
+#[path = "files/journal_tests.rs"]
 mod journal_tests;
 #[cfg(test)]
 mod look_around_tests;
