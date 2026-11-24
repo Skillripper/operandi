@@ -60,6 +60,7 @@ mod node_view_open_tests;
 mod node_view_panel_tests;
 #[path = "controls/popup_title.rs"]
 mod popup_title;
+#[path = "view/snaps_panel.rs"]
 mod snaps_panel;
 #[path = "transforms/symmetrize_panel.rs"]
 mod symmetrize_panel;
@@ -67,6 +68,7 @@ mod symmetrize_panel;
 mod symmetry_ui;
 use crate::prefs_file::PrefsFile;
 use snaps_panel::SnapPreset;
+#[path = "view/action_center_click.rs"]
 mod action_center_click;
 #[path = "controls/app_environment.rs"]
 mod app_environment;
@@ -94,6 +96,7 @@ mod bug_report;
 mod bug_report_capture;
 #[path = "controls/button_variants.rs"]
 mod button_variants;
+#[path = "view/camera.rs"]
 mod camera;
 #[path = "render/camera_light_handles.rs"]
 mod camera_light_handles;
@@ -173,6 +176,7 @@ mod duplicate_item_rows;
 mod duplicate_panel;
 #[path = "duplication/duplicate_transform_panel.rs"]
 mod duplicate_transform_panel;
+#[path = "view/duplicate_view.rs"]
 mod duplicate_view;
 #[path = "edges/edge_panel.rs"]
 mod edge_panel;
@@ -239,7 +243,9 @@ mod guide_python_tests;
 mod guide_shortcuts_tests;
 #[path = "settings/handle_preferences.rs"]
 mod handle_preferences;
+#[path = "view/handle_tips.rs"]
 mod handle_tips;
+#[path = "view/haul_view.rs"]
 mod haul_view;
 #[path = "menus/help_menu.rs"]
 mod help_menu;
@@ -351,6 +357,7 @@ mod online_library_ui;
 mod open_documents;
 #[path = "controls/option_row.rs"]
 mod option_row;
+#[path = "view/orbit_selected.rs"]
 mod orbit_selected;
 #[path = "controls/original_compatible.rs"]
 mod original_compatible;
@@ -372,18 +379,22 @@ mod panels;
 mod patch_safety_tests;
 #[path = "slicing/path_slice_panel.rs"]
 mod path_slice_panel;
+#[path = "view/path_slice_view.rs"]
 mod path_slice_view;
 #[path = "slicing/path_tool_panel.rs"]
 mod path_tool_panel;
+#[path = "view/path_tool_view.rs"]
 mod path_tool_view;
 #[path = "create_tools/pen_interactive_ui.rs"]
 mod pen_interactive_ui;
+#[path = "view/picking.rs"]
 mod picking;
 #[path = "menus/pie_menu.rs"]
 mod pie_menu;
 #[path = "uv/planar_texture_ui.rs"]
 mod planar_texture_ui;
 #[cfg(test)]
+#[path = "view/plane_handles_tests.rs"]
 mod plane_handles_tests;
 #[cfg(test)]
 #[path = "create_tools/plane_teapot_tests.rs"]
@@ -483,6 +494,7 @@ mod sculpt_ui_tests;
 mod select_panel;
 #[path = "selections/select_tools_ui.rs"]
 mod select_tools_ui;
+#[path = "view/selection_normals.rs"]
 mod selection_normals;
 #[path = "settings/selection_preferences.rs"]
 mod selection_preferences;
@@ -508,14 +520,18 @@ mod side_tabs;
 mod skeleton_tool_tests;
 #[path = "rigging/skeleton_tool_ui.rs"]
 mod skeleton_tool_ui;
+#[path = "view/slice_view.rs"]
 mod slice_view;
 #[cfg(test)]
 #[path = "polygons/small_commands_tab_tests.rs"]
 mod small_commands_tab_tests;
 #[path = "polygons/smooth_shift_panel.rs"]
 mod smooth_shift_panel;
+#[path = "view/snap_kinds.rs"]
 mod snap_kinds;
+#[path = "view/snap_service.rs"]
 mod snap_service;
+#[path = "view/snapping.rs"]
 mod snapping;
 #[path = "create_tools/solid_sketch_ui.rs"]
 mod solid_sketch_ui;
@@ -535,6 +551,7 @@ mod subd_gpu_tests;
 mod subdivide_tab_tests;
 #[path = "polygons/subdivide_ui.rs"]
 mod subdivide_ui;
+#[path = "view/subdivision_view.rs"]
 mod subdivision_view;
 #[path = "topology_tools/topology_mode.rs"]
 mod topology_mode;
@@ -4108,13 +4125,19 @@ mod render_ui;
 mod timeline;
 #[path = "items/vertex_normal_ui.rs"]
 mod vertex_normal_ui;
+#[path = "view/view_display.rs"]
 mod view_display;
+#[path = "view/view_display_ui.rs"]
 mod view_display_ui;
+#[path = "view/view_fov.rs"]
 mod view_fov;
+#[path = "view/view_nav.rs"]
 mod view_nav;
 mod view_tab_presets;
 mod viewport;
+#[path = "view/viewport_buttons.rs"]
 mod viewport_buttons;
+#[path = "view/viewport_properties.rs"]
 mod viewport_properties;
 mod views;
 /// One "does this scene need saving?" rule for the open scene and the
@@ -4258,6 +4281,7 @@ mod app_bundle_icon_tests {
 #[path = "transforms/absolute_scaling_tests.rs"]
 mod absolute_scaling_tests;
 #[cfg(test)]
+#[path = "view/active_mesh_pick_tests.rs"]
 mod active_mesh_pick_tests;
 #[cfg(test)]
 #[path = "controls/button_variants_tests.rs"]
@@ -4266,6 +4290,7 @@ mod button_variants_tests;
 #[path = "render/camera_props_tests.rs"]
 mod camera_props_tests;
 #[cfg(test)]
+#[path = "view/camera_view_settle_tests.rs"]
 mod camera_view_settle_tests;
 #[cfg(test)]
 #[path = "tools/click_start_tests.rs"]
@@ -4337,6 +4362,7 @@ mod environment_preset_tests;
 #[path = "render/environment_ui_tests.rs"]
 mod environment_ui_tests;
 #[cfg(test)]
+#[path = "view/extend_handles_tests.rs"]
 mod extend_handles_tests;
 #[cfg(test)]
 #[path = "files/file_chooser_tests.rs"]
@@ -4348,6 +4374,7 @@ mod file_error_tests;
 #[path = "menus/handle_style_menu_tests.rs"]
 mod handle_style_menu_tests;
 #[cfg(test)]
+#[path = "view/handle_tips_tests.rs"]
 mod handle_tips_tests;
 #[cfg(test)]
 #[path = "tools/haul_tests.rs"]
@@ -4415,11 +4442,13 @@ mod pen_ui_tests;
 #[path = "tools/perf_drags_tests.rs"]
 mod perf_drags_tests;
 #[cfg(test)]
+#[path = "view/perf_view_tests.rs"]
 mod perf_view_tests;
 #[cfg(test)]
 #[path = "render/picture_capture_tests.rs"]
 mod picture_capture_tests;
 #[cfg(test)]
+#[path = "view/placement_snap_tests.rs"]
 mod placement_snap_tests;
 #[cfg(test)]
 #[path = "presets/preset_drop_tests.rs"]
@@ -4467,6 +4496,7 @@ mod shading_panel_tests;
 #[path = "slicing/slice_tools_tests.rs"]
 mod slice_tools_tests;
 #[cfg(test)]
+#[path = "view/snaps_panel_tests.rs"]
 mod snaps_panel_tests;
 #[cfg(test)]
 mod tests;
@@ -4542,8 +4572,10 @@ mod falloff_panel_tests;
 #[path = "items/mesh_stack_tests.rs"]
 mod mesh_stack_tests;
 #[cfg(test)]
+#[path = "view/snap_service_tests.rs"]
 mod snap_service_tests;
 #[cfg(test)]
+#[path = "view/snapping_tests.rs"]
 mod snapping_tests;
 #[cfg(test)]
 #[path = "deformers/soft_move_falloff_tests.rs"]
@@ -4552,6 +4584,7 @@ mod soft_move_falloff_tests;
 #[path = "controls/tree_list_tests.rs"]
 mod tree_list_tests;
 #[cfg(test)]
+#[path = "view/viewport_center_tests.rs"]
 mod viewport_center_tests;
 
 #[cfg(test)]
@@ -4718,4 +4751,5 @@ mod nav_lock_hide_tests;
 #[path = "transforms/symmetry_tests.rs"]
 mod symmetry_tests;
 #[cfg(test)]
+#[path = "view/zoom_to_surface_tests.rs"]
 mod zoom_to_surface_tests;
