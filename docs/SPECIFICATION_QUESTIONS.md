@@ -9754,10 +9754,10 @@ From a real Modo 17.1 scene that wouldn't open (a user's file, never in the repo
 The spec's own defaults (Q-LXA-01..11) are used as written. Found while testing against its fixtures:
 
 - LXO-AR-Q01 LXA-72 scale constraint `offset`: the file stores 0 for no offset. Read as an offset added to a scale of 1 (Operandi offset = 1 + stored). Only 0 was seen.
-- LXO-AR-Q02 cases.json `constraints.lxo`: the world row of Dst_expr stays at the origin at frames 0/15/30, while the same file's `modifiers_eval.expr` gives Y 1, 4, 7 (Expression `A * 2 + 1` on Src X). The test follows `modifiers_eval`. Which is right?
-- LXO-AR-Q03 LXA-71 says a direct link copies the driver's value, but Src X 1.5 drives Dst_link rotation Z to 1.5° (0.02618 rad) in the fixture: the value moves in display units. A link between a rotation and another channel imports as an Expression `A * π/180` (or `180/π`). Angles other than transform rotations (cone angle, user channels) are not converted yet.
-- LXO-AR-Q04 cases.json `constraints.lxo` world matrices were read with the edit layer's values in force (targets pinned at their first X), not the keyed curves the import keeps (LXA-03 drop rule). The test pins those six targets to compare the constraint maths alone.
-- LXO-AR-Q05 Q-LXA-08 observed: with the goal keyed, Operandi's two-bone solver bends `ik-and-stacked-constraints.lxo`'s chain toward +Z (the side its setup pose bends), Modo's matrices bend it toward −Z. The end joint, bone lengths and chain plane agree. Does the solver's `plane`/`sense` pick the side?
+- LXO-AR-Q02 The spec's cases for `constraints.lxo` disagree with themselves about Dst_expr: its world matrices leave it unmoved, its modifier results move it by the Expression. The test follows the modifier results. Which is right?
+- LXO-AR-Q03 LXA-71 says a direct link copies the driver's value, but the spec's cases show a distance driving a rotation in display units (1 m gives 1°). A link between a rotation and another channel imports as an Expression `A * π/180` (or `180/π`). Angles other than transform rotations (cone angle, user channels) are not converted yet. Confirm in the spec.
+- LXO-AR-Q04 The spec's world matrices for `constraints.lxo` hold the targets where the edit layer pins them, not where their keys move them (the import drops those edits, LXA-03). The test pins those six targets to compare the constraint maths alone.
+- LXO-AR-Q05 Q-LXA-08: Operandi's two-bone solver bends `ik-and-stacked-constraints.lxo`'s chain to the side its setup pose bends; the spec's matrices have the knee on the other side. The end joint, bone lengths and chain plane agree. Does the solver's `plane`/`sense` setting pick the side?
 
 ## Multiresolution sculpting (2026-11-23, branch claude/project-thread-0cmp4g, provisional)
 
