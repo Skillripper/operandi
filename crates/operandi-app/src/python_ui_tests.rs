@@ -84,7 +84,7 @@ fn the_python_switch_on_shows_the_console_and_menu_entries() {
 
 /// One Python thread runs one script at a time; these tests take turns.
 #[cfg(feature = "python")]
-static TURN: std::sync::Mutex<()> = std::sync::Mutex::new(());
+pub(crate) static TURN: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
 /// Runs a script from the command line and draws frames until it ends.
 #[cfg(feature = "python")]

@@ -31,13 +31,22 @@ pub trait Source {
 /// installed (it keeps the device to itself, so raw HID can't open it
 /// then), else raw HID; `None` where neither is built in.
 pub fn start(ctx: &eframe::egui::Context) -> Option<Box<dyn Source>> {
+    // Why 3DxWare is installed but unusable, so raw HID's failure to open
+    // the device it holds can say what's really wrong.
     #[cfg(target_os = "macos")]
-    if let Some(source) = super::framework::FrameworkSource::start(ctx) {
-        return Some(Box::new(source));
-    }
+    let driver_problem = match super::framework::FrameworkSource::start(ctx) {
+        Ok(Some(source)) => return Some(Box::new(source)),
+        Ok(None) => None,
+        Err(problem) => {
+            eprintln!("3D mouse: 3DxWare is installed but unusable: {problem}");
+            Some(problem)
+        }
+    };
+    #[cfg(target_os = "windows")]
+    let driver_problem = None;
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     {
-        Some(Box::new(hid::HidSource::start(ctx.clone())))
+        Some(Box::new(hid::HidSource::start(ctx.clone(), driver_problem)))
     }
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
@@ -67,13 +76,13 @@ mod hid {
     }
 
     impl HidSource {
-        pub fn start(ctx: Context) -> Self {
+        pub fn start(ctx: Context, driver_problem: Option<String>) -> Self {
             let (send, events) = channel();
             let stop = Arc::new(AtomicBool::new(false));
             let flag = stop.clone();
             let spawned = std::thread::Builder::new()
                 .name("space-mouse".into())
-                .spawn(move || run(&send, &flag, &ctx));
+                .spawn(move || run(&send, &flag, &ctx, driver_problem.as_deref()));
             if let Err(error) = spawned {
                 // The receiver stays empty: no device, no harm.
                 eprintln!("3D mouse: could not start its reader: {error}");
@@ -95,7 +104,26 @@ mod hid {
         }
     }
 
-    fn run(send: &Sender<Event>, stop: &AtomicBool, ctx: &Context) {
+    /// What Preferences says when the device is there but won't open:
+    /// the fix first (the row cuts long text; hovering shows the rest).
+    fn open_problem(name: &str, error: &str, driver_problem: Option<&str>) -> String {
+        if let Some(driver) = driver_problem {
+            format!(
+                "Can't reach the 3DxWare driver, which holds the {name}: {driver}. \
+                 Reopen Operandi; if it keeps happening, reinstall 3DxWare."
+            )
+        } else if cfg!(target_os = "macos") {
+            format!(
+                "macOS won't let Operandi open the {name}. Allow Operandi in System \
+                 Settings > Privacy & Security > Input Monitoring, quit other apps \
+                 using it, then reopen Operandi. ({error})"
+            )
+        } else {
+            format!("{name} found but could not be opened: {error}")
+        }
+    }
+
+    fn run(send: &Sender<Event>, stop: &AtomicBool, ctx: &Context, driver_problem: Option<&str>) {
         let tell = |e: Event| {
             let ok = send.send(e).is_ok();
             ctx.request_repaint();
@@ -129,7 +157,7 @@ mod hid {
             let device = match info.open_device(&api) {
                 Ok(device) => device,
                 Err(error) => {
-                    let problem = format!("{name} found but could not be opened: {error}");
+                    let problem = open_problem(&name, &error.to_string(), driver_problem);
                     if last_problem.as_ref() != Some(&problem) {
                         tell(Event::Problem(problem.clone()));
                         last_problem = Some(problem);
@@ -162,6 +190,25 @@ mod hid {
             }
             if !tell(Event::Disconnected) {
                 return;
+            }
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::open_problem;
+
+        #[test]
+        fn open_problem_says_what_to_do() {
+            let held = open_problem("SpaceNavigator", "hid_open_path failed", Some("it said no"));
+            assert!(
+                held.contains("3DxWare") && held.contains("it said no"),
+                "{held}"
+            );
+            let plain = open_problem("SpaceNavigator", "hid_open_path failed", None);
+            assert!(plain.contains("hid_open_path failed"), "{plain}");
+            if cfg!(target_os = "macos") {
+                assert!(plain.contains("Input Monitoring"), "{plain}");
             }
         }
     }

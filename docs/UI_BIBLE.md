@@ -82,7 +82,7 @@ Version 1, 2026-11-07. Behaviour only. Open questions and exceptions are tracked
 - **UIC-19** Pie menus open from a key combination, centred on the
   pointer, with up to 8 entries in a ring. Only the first 8 entries of a
   pie's list are used, and disabled entries still take their slot. The
-  default view pie is on Ctrl+Space. [ref] Details: PM spec (and).
+  default view pie is on Ctrl+Space. [ref] Details: PM spec.
 
 ## 3. Tabs and buttons
 
@@ -200,7 +200,8 @@ Version 1, 2026-11-07. Behaviour only. Open questions and exceptions are tracked
   three at once: Shift = brightness, Ctrl = hue, Alt = saturation. A click
   anywhere on the swatch (no drag) opens the colour picker popover, which
   is non-modal and closes when the pointer leaves it. [ref] Details: CN
-  spec. How to type a value:.
+  spec. Double-clicking the numbers to type a value is an Operandi
+  addition (an exception to UIC-51).
 - **UIC-59** One preference sets colour units everywhere colours are shown
   or typed: 0–1 decimals (default), percent, 0–255 integers, or hex. [ref]
 
@@ -229,6 +230,9 @@ Version 1, 2026-11-07. Behaviour only. Open questions and exceptions are tracked
   its x closes it (not Esc, clicks or the pointer leaving; it overrides
   UIC-62). **Q** and **Esc** drop the active tool. **Alt+Shift+Space**
   cycles selection modes. [ref] (the maintainer, 2026-11-10, curve tool thread.)
+  Its bottom-right corner drags to resize it; it keeps its top-left corner
+  while you drag, and opens at that size until you quit. (the maintainer,
+  2026-11-24, issue #8.)
 
 ## 7. Viewports, windows, drag and drop
 
@@ -277,6 +281,19 @@ Version 1, 2026-11-07. Behaviour only. Open questions and exceptions are tracked
   the tool's values with left/right (and maybe up/down) motion. An optional
   handle mode draws labelled guide lines for those values; they stay while
   the haul can be resumed, and clicking one hauls only that value. [ref]
+- **UIC-77** Tools start live or wait for a click. **A tool that only
+  uses your selection starts live:** picking it shows its handles straight
+  away (Move, the bevels, Extrude, Smooth Shift, Thicken, Inset). **A tool
+  that needs a spot from a click waits:** picking it only arms it (values
+  can be typed and Apply works), and the first click in a 3D view starts it
+  and supplies that spot (a cut line, a new point, the element under the
+  pointer, a primitive's corner, a deformer's spine or falloff: knives,
+  primitives, Bend, Twist). Every tool follows this rule; none is an
+  exception. The user can change any tool's setting in the Tool Chain, and
+  a preference can force one value for every tool. Picking and dropping a
+  tool without a click never changes the mesh. A builder adding a tool
+  applies the rule; if it's unclear which kind a tool is, log a spec
+  question. [OP] (the maintainer, 2026-11-24.)
 
 ## 8. Dialogs (command option boxes)
 
@@ -657,6 +674,10 @@ type icons and names; the selected rows darker with names in accent.
 - **UIC-154** A new tree list must fit the shared shape. If it needs
   something the component can't do, add it to the component (and to this
   section), never as a one-off. [OP]
+  - *Fill-last-column option (the maintainer, 2026-11-16):* a list may opt
+    in so its last column takes the leftover width and shrinks in narrow
+    panels, the Name border drags down to 40 px, and cut-off cells show
+    their full text in a hover tooltip. First used by Command History. [OP]
 
 ### Panel-group tabs (above any list)
 - **UIC-155** When several panels share a slot, their tab names run along
@@ -670,6 +691,14 @@ type icons and names; the selected rows darker with names in accent.
   it, so this doesn't break UIC-21). [ref/OP] Tabs can be dragged to
   reorder (insert line, as UIC-13) and closed from their right-click menu
   [OP]. The group's tabs are saved with the layout. [OP]
+  Exception (the maintainer, 2026-11-22, for now): a docked panel's header
+  also shows a × that closes it (added for the Node View); revisit in the
+  bible rework.
+  Change (the maintainer, 2026-11-23): dragging a tab sideways **within its
+  own tab row** reorders it at any time, outside UI build mode. Dragging a
+  tab **out** of its row (to dock or float it) still needs UI build mode,
+  like every other panel move. Tool tabs (Create, Select…) are not
+  reorderable.
 - **UIC-157** **Plumbing:** every panel kind registers itself once in a
   panel-type registry (name, category, how to create it). The + menu, the
   layout save/load and any later "new window" command all read that
@@ -844,6 +873,12 @@ until then the current behaviour stays. 1: UIC-190, 191, 195, 196, 198,
 - **UIC-197** One toolbox panel, several toolbox sets. Each layout opens
   with its own set; set buttons above the toolbox switch only the toolbox.
   Click = show, Alt+click = popover, Ctrl+click = palette. [ref]
+  Update (the maintainer, 2026-11-23): the set buttons live in the tool set
+  bar at the top and **never change the screen layout** (no companion
+  views open or close); they only swap the toolbox's tabs. Sets, in
+  order: Model, UV, Brush (sculpting + painting), Setup, Animation,
+  Workbench, Game. A set with one form shows it without a tab strip; a
+  set with no tools shows an empty toolbox with a short note (UIC-209).
 - **UIC-198** Every way of switching runs one command, `layout.restore`.
   Switching back shows a layout exactly as it was left. [ref]
 - **UIC-199** Changes are remembered automatically. Save Layout, Save
@@ -938,7 +973,7 @@ layout stages (section 14); **M** = macros; **P** = Python and kits.
   `tool.set <tool> on`, one `tool.attr` line per changed value,
   `tool.doApply`, `tool.set <tool> off`; a live drag records the final
   values at mouse-up, never mouse moves. Selections record by element
-  index. *Applies from: H.* [ref, bridge probe 2026-11-16]
+  index. *Applies from: H.* [ref]
 - **UIC-225** Every command has a **class**: undoable, UI, side effect or
   quiet. Only undoable commands make undo steps. Queries are quiet. The
   registry test fails if a command has no class. *Applies from: H.* [ref]
@@ -978,8 +1013,7 @@ layout stages (section 14); **M** = macros; **P** = Python and kits.
   Replay (hold for Replay Repeat), Options (save to file, store, record UI
   commands: Automatic (default), Always, Never). Only top-level lines are
   recorded (a script is one line); queries and quiet commands never; Undo
-  removes the undone lines from the recording. *Applies from: M.* [ref,
-  bridge probe 2026-11-16]
+  removes the undone lines from the recording. *Applies from: M.* [ref]
 - **UIC-235** Macro files use the reference's `.lxm` text format
   (`#LXMacro#` first line, `#` comments). Stored macros are files in the
   user Macros folder (DEV-2, approved 11-16); shipped and kit macros are
@@ -1038,10 +1072,40 @@ Added 2026-11-16. *Applies from: now.*
 
 ---
 
+## 18. User Guide
+
+The User Guide is the HTML manual at operandi3d.org/guide/. Full rules:
+[docs/guide/RULES.md](guide/RULES.md). These are the rules builders cite.
+(Section 17 is reserved for the UI map names, UIC-260..285.)
+
+- **UIC-300** **No page, no merge.** A branch that adds or changes anything
+  a user can see or do ships its guide page (new or updated) in the same
+  branch, or says "no docs needed" in its merge note. [OP]
+- **UIC-301** **Help id = command name.** Every tool, command, panel and
+  preference uses its command-registry name as its help id. Guide pages list
+  the help ids they cover; the app only ever opens
+  `/guide/<version>/go/<help-id>`. [OP]
+- **UIC-302** **Help > User Guide opens the guide for the running version**
+  (test builds open `/guide/test/`). F1 help mode (UIC-06) opens the clicked
+  control's page by its help id. [OP]
+- **UIC-303** **UI names in the guide are spelled exactly as on screen**, in
+  bold, using the approved UI map names. If the guide and the app disagree,
+  one of them is a bug. [OP]
+- **UIC-304** **Screenshots come only from Operandi**, made by the scripted
+  shot list (default Steel theme, fixed window size, 2x, CC0 scenes), and
+  are remade each release. [OP]
+- **UIC-305** **Clean room.** Guide pages are written only from Operandi's
+  own app, code and behaviour-only specs. They never name, quote,
+  paraphrase or show other applications or their makers. [OP]
+
+Added 2026-11-23. *Applies from: when the guide skeleton merges.*
+
+---
+
 ## Rule index
 
 1 General UIC-01..07 · 2 Menus/layouts UIC-10..19 · 3 Tabs/buttons
 UIC-20..27 · 4 Lists/trees UIC-30..42 · 5 Fields UIC-50..59 · 6 Popovers
-UIC-60..66 · 7 Viewports/windows UIC-70..76 · 8 Dialogs UIC-80..99 · 9 Property
-panels UIC-100..126 · 10 Tree lists UIC-130..157 · 11 Commands UIC-160..165 · 12 Rendering UIC-170..174 · 13 Popovers vs floating windows UIC-180..187 · 14 Layouts UIC-190..219 · 15 Command history and macros UIC-220..239 · 16 Future doors UIC-240..259. Gaps in numbering are left for
+UIC-60..66 · 7 Viewports/windows UIC-70..77 · 8 Dialogs UIC-80..99 · 9 Property
+panels UIC-100..126 · 10 Tree lists UIC-130..157 · 11 Commands UIC-160..165 · 12 Rendering UIC-170..174 · 13 Popovers vs floating windows UIC-180..187 · 14 Layouts UIC-190..219 · 15 Command history and macros UIC-220..239 · 16 Future doors UIC-240..259 · 18 User Guide UIC-300..305. Gaps in numbering are left for
 later rules in the same topic; never renumber an existing rule.

@@ -224,6 +224,10 @@ impl Operandi {
         self.history.ui_source = source;
     }
     fn menu_action_inner(&mut self, ctx: &Context, action: Action) {
+        // What's This? on: the entry's page instead (help_mode.rs).
+        if self.help_mode_takes_menu(&action) {
+            return;
+        }
         // About only shows information, so it is always allowed.
         if action == Action::About {
             self.show_about = true;

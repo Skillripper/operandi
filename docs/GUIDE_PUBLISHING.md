@@ -16,7 +16,9 @@ operandi3d.org/guide/ goes to latest/ (test/ until the first release has a
 guide). Help > User Guide in the app opens /guide/<its version>/, or
 /guide/test/ in a test build. Every help id in a page header gets a
 redirect at /guide/<version>/go/<help-id>/; an id no page claims lands on
-the guide's search.
+the guide's search. A version folder that isn't published yet (a release
+build before its tag) gets guide/404.html (`tools/guide_404.py`), which
+sends it to the same page in latest/, or test/ before the first release.
 
 Build it locally with `scripts/guide-build.sh` (needs `brew install mdbook`).
 

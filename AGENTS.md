@@ -233,9 +233,16 @@ debug builds.
     saved: menu, toolbox, pie and form JSON in `operandi-app/assets/forms`,
     `TOOL_IDS` (a choice list's display order), and enums whose order is
     serialised or shown.
-- UI work follows the UI conventions bible, [docs/UI_BIBLE.md](docs/UI_BIBLE.md).
-  Cite its rule numbers (UIC-nn) in code comments, PRs and reviews when you
-  follow or break a rule. Departures need the maintainer's OK.
+- **UI work follows the UI conventions bible, [docs/UI_BIBLE.md](docs/UI_BIBLE.md).**
+  Before you build or change anything a user sees or touches (a panel,
+  menu, button, field, dialog, list, tool behaviour, shortcut), read the
+  bible's section for it. Cite its rule numbers (UIC-nn) in code comments,
+  PRs and reviews when you follow or break a rule. Departures need the
+  maintainer's OK; never renumber a rule.
+- **No guide page, no merge (UIC-300).** A branch that adds or changes
+  anything a user can see or do ships its User Guide page (new or updated,
+  in `docs/guide/`) in the same branch, or says "no docs needed" in its
+  merge note. Rules: [docs/guide/RULES.md](docs/guide/RULES.md).
 - New icons come only from the icon studio (rendered); see "Icons" below.
 - Safe Rust; any `unsafe` needs a written safety reason. Ordinary user errors
   return errors, not panics.
@@ -277,6 +284,11 @@ so the whole set shares one camera, light rig and set of materials. Read
   only with the maintainer's OK.
 - Never draw from screenshots or other applications' icons, and never use
   image generation for final artwork.
+- **Any icon not made with the studio is a placeholder.** A contributor
+  (or their agent) may add one so a feature has a button, but must say
+  "placeholder icon: <name>" in the pull request. The maintainer replaces
+  it with a studio icon so the set keeps one consistent look. Don't spend
+  effort polishing a placeholder.
 
 **The old flat generator** (`tools/operandi-icons`) is deprecated: don't
 add icons to it. It only keeps the existing SVGs, which stay in the app as
@@ -332,6 +344,9 @@ language.
 - Commit on your branch when a tool is done or the maintainer asks. Don't commit:
   `target/`, `development/`, `.docx` files, user scenes (`*.opscene` outside
   `fixtures/`), anything from Modo, or secrets.
+- Commit with a sign-off (`git commit -s`), as every contributor must
+  (DCO; see "Signing off your work" in CONTRIBUTING.md). The sign-off is
+  the human's name, never the AI tool's.
 - AI-assisted commits end the commit message with a `Co-Authored-By` line
   for the AI tool used, for example
   `Co-Authored-By: Claude <noreply@anthropic.com>`. Say which tool you used

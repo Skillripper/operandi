@@ -1,5 +1,28 @@
 # Milestone progress ledger
 
+- **Mini Properties resize (2026-11-24, branch mini-properties-resize,
+  UIC-66 amended with the maintainer's OK):** the bottom-right corner drags
+  to resize it; it keeps its top-left corner while you drag and opens at
+  that size until quit (not saved across launches yet). Guide: Tool
+  Properties page, "Mini Properties".
+
+- **Bug reports #6, #7, #8 (2026-11-24, branch fix-bug-reports-batch1):**
+  #6 Texture Locator (Shader Tree and Environment) Position, Rotation,
+  Size, Falloff and Real World Size are one row per axis (UIC-114), so Y
+  and Z no longer run off the panel. #7 Mesh Stack op ids start at 1 (0
+  is Source Item's "(none)"); older saves give an op 0 a fresh id and
+  move its Select by Previous links with it. #8 Mini Properties grows to
+  its rows (up to 480 pt) instead of staying as short as it first opened.
+  #5 was already fixed on main.
+
+- **Help mode, What's This? (2026-11-24, branch help-mode, UIC-06):** F1
+  or Help ▸ What's This? (`operandi.help.whatsThis`), question-mark
+  pointer; the next click opens /guide/<version>/go/<help-id>/ for the
+  button, menu entry, tool's Tool Properties, panel or 3D view, and does
+  nothing else; Esc or right-click leaves. Provisional: floating palettes
+  in their own OS windows and the in-window menu bar (Linux, Windows)
+  still act on the click.
+
 - **LXO export label (2026-11-24, branch lxo-export-label, Jason's
   choice):** File ▸ Export's "Modo Scene (LXO)…" is now "LXO Scene…", and
   the format's name in the export file dialog is "LXO Scene". The command
@@ -99,6 +122,18 @@
   (OPERANDI_BLESS_GUIDE=1 rewrites it). New QA harness settings for the
   shots: OPERANDI_QA_PRIMITIVE_HEIGHT (height drag), OPERANDI_QA_FIELDS
   (type into Tool Properties), OPERANDI_QA_CLICKS (clicks at world points).
+- **Scripting guide pages (2026-11-23, branch scripting-guide):**
+  User Guide section Scripting and the test bridge: overview, Python
+  scripting (switch, Script Console, Run Script, mesh data, animation,
+  undo, limits), Python reference (written from operandi.py, the
+  registry's script-askable queries and the operandi.python.* commands by
+  guide_python_tests.rs; bless with OPERANDI_BLESS_GUIDE=1), Kits and
+  extensions (scripts on menus via operandi.form.add, kit items kept,
+  the two Rust register hooks, what isn't built). Every ```python block
+  in those pages runs in the app as a test (python feature). Fix found on
+  the way: in the app a script couldn't run any command without a
+  headless form (tools, select.*, operandi.form.*, command.list): the
+  query check refused them first (operandi-python answer_editor).
 
 - **Help > User Guide (2026-11-23, branch guide-help-menu):** Help >
   Documentation is now User Guide and always lit; it opens
@@ -4685,3 +4720,8 @@ Design: docs/MATERIALX_GRAPHS.md (stages 1-5).
 - Sculpt tab, Multiresolution section: Add Level (Catmull-Clark; the first makes the mesh multiresolution with its shape as the base), Level Down / Level Up, Delete Higher Levels, Apply Multiresolution, and a "Level 2 of 3 · polygons" read-out. Each is one undo step and a registry command (`operandi.multires.*`, also `operandi.multires.query` JSON for MCP).
 - Every brush sculpts at any level (the item's mesh holds the level you're at). Detail is stored per level in surface frames, so detail sculpted high follows changes made lower down. Attenuate now works on a level above the base (fades its detail). Saves as native version 64 (detail packed like points); damaged detail is refused on load.
 - Provisional: no behaviour spec; MR-Q01..Q08 (detail flows up only, maps beyond UVs stay on the base, locks cleared on stepping, topology edits stop stepping until Apply).
+
+## 2026-11-24 — 3D mouse on signed Mac builds (branch spacemouse-signed)
+
+- Bug: on signed (notarized) Mac builds with 3DxWare installed, Preferences said "SpaceNavigator found but could not be opened: hidapi error: hid_open_path: failed". The hardened runtime only loads libraries signed by Apple or by us, so 3Dconnexion's client framework wouldn't load, Operandi fell back to raw USB, and 3DxWare holds the device. Dev builds (ad-hoc, no hardened runtime) were fine. Fix: release-macos.sh signs the app with assets/macos/operandi.entitlements (`com.apple.security.cs.disable-library-validation`).
+- When it still fails, Preferences says what to do: with 3DxWare, why the driver couldn't be reached (reopen Operandi or reinstall 3DxWare); without it on macOS, check Input Monitoring and quit other apps using the device. The raw error follows; hover the Device row for the full text.

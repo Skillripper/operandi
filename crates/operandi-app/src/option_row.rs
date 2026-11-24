@@ -39,6 +39,29 @@ pub(crate) fn fill<R>(ui: &mut Ui, add: impl FnOnce(&mut Ui) -> R) -> R {
     .inner
 }
 
+/// A vector as one row per component (UIC-114): "Position X", then just
+/// the axis ("Y", "Z"), each with its own field filling the field column.
+/// `add` draws component `k`'s field. Every row shows `tip` on hover.
+pub(crate) fn vector(
+    ui: &mut Ui,
+    label: &str,
+    axes: &[&str],
+    tip: &str,
+    mut add: impl FnMut(&mut Ui, usize),
+) {
+    for (k, axis) in axes.iter().enumerate() {
+        let shown = if k == 0 {
+            format!("{label} {axis}")
+        } else {
+            (*axis).to_owned()
+        };
+        let response = field_row(ui, &shown, |ui| add(ui, k)).response;
+        if !tip.is_empty() {
+            response.on_hover_text(tip);
+        }
+    }
+}
+
 /// `row` with its control filling the field column (see `fill`).
 pub(crate) fn field_row<R>(
     ui: &mut Ui,

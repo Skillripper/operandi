@@ -1,4 +1,4 @@
-<!-- help-ids: viewport.split, viewport.maximize, viewport.detach, operandi.viewport.close ; template: panel ; since: 0.1.0 -->
+<!-- help-ids: Interface, 3D View, Toolbox, operandi.help.whatsThis, viewport.split, viewport.maximize, viewport.detach, operandi.viewport.close ; template: panel ; since: 0.1.0 -->
 # Interface
 
 The Operandi window has the same parts every time you open it: tools on
@@ -110,6 +110,17 @@ both.
 **View > Tear Off View** puts the view under the pointer in its own window,
 and **View > Close View** removes it. Press **Numpad 0** (or **Alt+0**) to
 fill the window with the view under the pointer, and again to go back.
+
+### Get help on anything
+
+1. Press **F1**, or choose **Help > What's This?**. The pointer turns into
+   a question mark.
+2. Click a button, a menu entry, a panel or the 3D view. Its page in this
+   guide opens in your web browser, and the click does nothing else.
+
+Press **Esc** or right-click to stop without opening anything.
+**Help > User Guide** opens the start of this guide. Rest the pointer on
+a button to see its tooltip first: often that is all you need.
 
 ## Related
 

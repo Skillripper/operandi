@@ -121,6 +121,7 @@ fn uic210_converted_menus_paint_as_the_old_ones() {
         rows(&menu(&a, &ctx, "Help")),
         vec![
             ("User Guide".to_owned(), true, None, false),
+            ("What's This?  [F1] ".to_owned(), true, None, false),
             ("Report Bug or Idea…".to_owned(), true, None, false),
             ("Check for Updates".to_owned(), true, None, false),
         ]
@@ -264,16 +265,16 @@ fn lay83_control_and_form_properties_edit_the_users_copy_and_revert() {
     let root = data_root();
     let (mut a, _ctx) = app(&root);
     let shipped = form(&a, "menu.help");
-    a.execute("operandi.form.select form:menu.help index:1");
-    a.execute("operandi.form.set attr:label value:{Tell Us} index:1");
-    a.execute("operandi.form.set attr:tooltip value:{Opens an issue} index:1");
-    a.execute("operandi.form.set attr:width value:wide index:1");
-    a.execute("operandi.form.set attr:level value:advanced index:1");
+    a.execute("operandi.form.select form:menu.help index:2");
+    a.execute("operandi.form.set attr:label value:{Tell Us} index:2");
+    a.execute("operandi.form.set attr:tooltip value:{Opens an issue} index:2");
+    a.execute("operandi.form.set attr:width value:wide index:2");
+    a.execute("operandi.form.set attr:level value:advanced index:2");
     a.execute("operandi.form.set attr:label value:{Help!}");
     let f = form(&a, "menu.help");
-    assert_eq!(f.controls[1].label, "Tell Us");
-    assert_eq!(f.controls[1].tooltip, "Opens an issue");
-    assert_eq!(f.controls[1].width, cf::Width::Wide);
+    assert_eq!(f.controls[2].label, "Tell Us");
+    assert_eq!(f.controls[2].tooltip, "Opens an issue");
+    assert_eq!(f.controls[2].width, cf::Width::Wide);
     assert_eq!(f.label, "Help!");
     assert!(a.forms.is_changed("menu.help"));
     // LAY-87: the user's copy sits over the shipped file.
@@ -358,14 +359,14 @@ fn lay83_reorder_moves_a_control_and_the_selection_follows() {
     a.execute("operandi.form.select form:menu.help index:0");
     a.execute("operandi.form.move from:0 to:1");
     let f = form(&a, "menu.help");
-    assert_eq!(f.controls[0].label, "Report Bug or Idea…");
+    assert_eq!(f.controls[0].label, "What's This?");
     assert_eq!(f.controls[1].label, "User Guide");
     assert_eq!(a.form_editor.selected, Some(("menu.help".into(), Some(1))));
     a.execute("operandi.form.move from:0 to:9");
     assert!(a.status.contains("controls"), "{}", a.status);
     a.execute("operandi.form.delete index:0");
-    // User Guide and Check for Updates are left.
-    assert_eq!(form(&a, "menu.help").controls.len(), 2);
+    // User Guide, Report Bug and Check for Updates are left.
+    assert_eq!(form(&a, "menu.help").controls.len(), 3);
 }
 
 #[test]
@@ -397,7 +398,7 @@ fn lay83_drag_in_the_tree_reorders() {
     frames(&mut a, &ctx, 1);
     assert_eq!(
         form(&a, "menu.help").controls[0].label,
-        "Report Bug or Idea…",
+        "What's This?",
         "{}",
         a.status
     );

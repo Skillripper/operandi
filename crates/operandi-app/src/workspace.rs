@@ -362,6 +362,7 @@ impl Operandi {
         name: &str,
     ) {
         use panel_registry::PanelKind;
+        self.help_region(area, crate::help_mode::panel_help_id(kind));
         // UIC-20 / D-12: only a drawn list may take scene-list focus.
         if kind != PanelKind::Properties && !matches!(kind, PanelKind::Missing(_)) {
             let first_list = self.visible_scene_lists.is_empty();
