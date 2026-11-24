@@ -3,7 +3,7 @@
 Operandi is a free, open-source 3D polygon modeler written in Rust (egui and
 wgpu), with rendering by [Cycles](https://www.cycles-renderer.org). If you've used
 Modo, it should feel familiar, but Operandi is its own program, written
-from scratch with no Modo code and no reverse engineering. [docs/ABOUT.md](docs/ABOUT.md) tells the story.
+from scratch. [docs/ABOUT.md](docs/ABOUT.md) tells the story.
 
 macOS on Apple silicon comes first; Windows and Linux builds exist but
 aren't validated yet. Operandi is pre-release: [docs/STATUS.md](docs/STATUS.md)

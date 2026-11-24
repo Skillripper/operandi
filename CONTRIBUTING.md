@@ -10,9 +10,9 @@ app on macOS, Windows or Linux.
 
 ## Modo: what we can't accept (read this first)
 
-Operandi is an homage to Modo, built without reverse engineering it (see
-[docs/ABOUT.md](docs/ABOUT.md)). Knowing Modo well, using it, reading its
-public documentation and recreating how its tools behave are all fine.
+Operandi is an homage to Modo (see [docs/ABOUT.md](docs/ABOUT.md)). Knowing
+Modo well, using it, reading its public documentation and recreating how
+its tools behave are all fine.
 What we can't take:
 
 - **Anything from reverse engineering Modo.** No decompiling, disassembly,
