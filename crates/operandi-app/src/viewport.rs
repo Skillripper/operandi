@@ -3117,17 +3117,10 @@ impl Operandi {
                 let s = s_at(l.params.position);
                 for axis in 0..3 {
                     let direction = [DVec3::X, DVec3::Y, DVec3::Z][axis];
-                    if let Some((b, _)) = self.camera.project(
-                        l.params.position + direction * self.camera.distance * 0.1,
-                        r,
-                    ) && center.distance(b) > 5.
+                    if let Some((_, arrow)) =
+                        self.handle_arrow(l.params.position, direction, 72. * s, r)
                     {
-                        out.push((
-                            axis,
-                            center,
-                            center + (b - center).normalized() * 72. * s,
-                            ["X", "Y", "Z"][axis].into(),
-                        ));
+                        out.push((axis, center, center + arrow, ["X", "Y", "Z"][axis].into()));
                     }
                 }
             }
@@ -3188,22 +3181,17 @@ impl Operandi {
             let mut out = Vec::new();
             for axis in 0..3 {
                 let direction = self.handle_axis(axis);
-                if let Some((unit, _)) = self
-                    .camera
-                    .project(center + direction * self.camera.distance * 0.1, r)
-                    && unit.distance(origin) > 1.
-                {
-                    let screen = (unit - origin).normalized();
+                if let Some((_, arrow)) = self.handle_arrow(center, direction, 72. * s, r) {
                     out.push((
                         axis,
                         origin,
-                        origin + screen * 72. * s,
+                        origin + arrow,
                         format!("Move {}", ["X", "Y", "Z"][axis]),
                     ));
                     out.push((
                         6 + axis,
-                        origin + screen * 30. * s,
-                        origin + screen * 44. * s,
+                        origin + arrow * (30. / 72.),
+                        origin + arrow * (44. / 72.),
                         format!("Scale {}", ["X", "Y", "Z"][axis]),
                     ));
                 }
@@ -3354,31 +3342,26 @@ impl Operandi {
                 continue;
             }
             let direction = self.handle_axis(axis);
-            let length = self.camera.distance * 0.1;
-            if let (Some((a, _)), Some((b, _))) = (
-                self.camera.project(origin, r),
-                self.camera.project(origin + direction * length, r),
-            ) && a.distance(b) > 5.
-            {
+            if let Some((a, arrow)) = self.handle_arrow(origin, direction, 72. * s, r) {
                 // ACS-Q-HANDLE1: the box-centre tools' arms start about
                 // 25 px out from the centre. The Bevels' arrows start on the
                 // selection (2026-11-23): set off, an edge's arrows floated
                 // beside the edge and read as pointing the wrong way.
+                // The gap shortens with the arrow, as part of the same 3D line.
                 let gap = if operandi_core::handle_pick(l.tool)
                     == operandi_core::HandlePick::BoxCentre
                     && card.anchor != HandleAnchor::PolygonStage
                     && card.axes != HandleAxes::SelectionNormal
                 {
-                    25. * s
+                    25. / 72.
                 } else {
                     0.
                 };
-                let dir = (b - a).normalized();
-                let a = a + dir * gap;
+                let a = a + arrow * gap;
                 out.push((
                     axis,
                     a,
-                    a + dir * 72. * s,
+                    a + arrow,
                     if l.tool == Tool::Chamfer {
                         "Offset".into()
                     } else if l.tool.is_smooth_shift() {
@@ -3650,6 +3633,45 @@ impl Operandi {
     /// Handle Scale: Standard times `handle_zoom_at(center)`.
     pub(super) fn handle_scale_at(&self, center: DVec3) -> f32 {
         self.handle_preferences.scale * self.handle_zoom_at(center)
+    }
+    /// A handle arrow along `direction` from `origin`, drawn in perspective
+    /// (tester's request, 2026-11-24): it has a fixed length in the scene,
+    /// chosen so it is `pixels` long on screen when seen side-on at
+    /// `origin` (so still constant at any zoom, PH-04), and it shortens as
+    /// it turns toward the camera. Before, every arrow was stretched to
+    /// `pixels` along its on-screen direction, so one pointing nearly at
+    /// the camera was drawn full length along an unstable direction and
+    /// swung around as the view turned. Returns the arrow's on-screen
+    /// start and full vector, or `None` when it points so nearly at the
+    /// camera that it would be a stub too short to see or grab, or its
+    /// tip is behind the camera. Drags don't use this length; they measure
+    /// along the axis themselves (`update_handle`).
+    pub(super) fn handle_arrow(
+        &self,
+        origin: DVec3,
+        direction: DVec3,
+        pixels: f32,
+        r: Rect,
+    ) -> Option<(Pos2, Vec2)> {
+        /// Shorter than this share of its side-on length, an arrow hides.
+        const SHORTEST: f32 = 0.1;
+        let direction = direction.try_normalize()?;
+        let (a, _) = self.camera.project(origin, r)?;
+        // Pixels per scene unit at the origin's depth, measured across the
+        // view where nothing is foreshortened.
+        let probe = self.camera.distance * 0.01;
+        let (side, _) = self
+            .camera
+            .project(origin + self.camera.basis().1 * probe, r)?;
+        let per_unit = a.distance(side) as f64 / probe;
+        if !per_unit.is_finite() || per_unit <= 0. {
+            return None;
+        }
+        let (b, _) = self
+            .camera
+            .project(origin + direction * (pixels as f64 / per_unit), r)?;
+        let v = b - a;
+        (v.length() >= pixels * SHORTEST).then_some((a, v))
     }
     /// The live transform handle's frame before the drag's delta: where
     /// the handle sits at `delta = 0` and the axes a unit of `delta` moves

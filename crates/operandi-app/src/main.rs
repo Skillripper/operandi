@@ -4004,6 +4004,8 @@ mod file_chooser_tests;
 #[cfg(test)]
 mod file_error_tests;
 #[cfg(test)]
+mod handle_arrow_tests;
+#[cfg(test)]
 mod handle_style_menu_tests;
 #[cfg(test)]
 mod handle_tips_tests;
