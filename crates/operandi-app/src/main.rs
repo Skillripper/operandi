@@ -26,10 +26,13 @@ mod command_history_ui;
 #[cfg(test)]
 #[path = "create_tools/contour_tests.rs"]
 mod contour_tests;
+#[path = "items/item_transform_ui.rs"]
 mod item_transform_ui;
 #[cfg(test)]
 mod mesh_paint_tests;
+#[path = "items/mesh_stack_ui.rs"]
 mod mesh_stack_ui;
+#[path = "items/meshblend_ui.rs"]
 mod meshblend_ui;
 mod node_edit_ui;
 #[cfg(test)]
@@ -107,6 +110,7 @@ mod command_registry_tests;
 mod cone_panel;
 #[path = "create_tools/contour_ui.rs"]
 mod contour_ui;
+#[path = "items/create_utility.rs"]
 mod create_utility;
 #[cfg(test)]
 mod ctrl_constrain_tests;
@@ -130,6 +134,7 @@ mod drill_dialog;
 mod drop_action_ui;
 #[path = "input_devices/drop_keys.rs"]
 mod drop_keys;
+#[path = "items/duplicate_item_rows.rs"]
 mod duplicate_item_rows;
 #[path = "duplication/duplicate_panel.rs"]
 mod duplicate_panel;
@@ -178,6 +183,7 @@ mod gpu_scene;
 mod gradient_ui;
 #[path = "graphics/grid.rs"]
 mod grid;
+#[path = "items/groups_ui.rs"]
 mod groups_ui;
 #[cfg(test)]
 #[path = "commands/guide_menus_tests.rs"]
@@ -214,9 +220,13 @@ mod input;
 mod input_map_editor;
 #[path = "files/interchange_ui.rs"]
 mod interchange_ui;
+#[path = "items/item_common_ui.rs"]
 mod item_common_ui;
+#[path = "items/item_extras_ui.rs"]
 mod item_extras_ui;
+#[path = "items/item_list_ui.rs"]
 mod item_list_ui;
+#[path = "items/items_tree.rs"]
 mod items_tree;
 #[path = "input_devices/key_toggles.rs"]
 mod key_toggles;
@@ -343,9 +353,12 @@ mod render_item_ui;
 mod render_preferences;
 #[path = "controls/rendered_icons.rs"]
 mod rendered_icons;
+#[path = "items/replica_rows.rs"]
 mod replica_rows;
 #[cfg(test)]
+#[path = "items/replica_safety_tests.rs"]
 mod replica_safety_tests;
+#[path = "items/replicator_ui.rs"]
 mod replicator_ui;
 #[path = "files/report_bug_dialog.rs"]
 mod report_bug_dialog;
@@ -398,6 +411,7 @@ mod solid_sketch_ui;
 #[path = "input_devices/space_mouse/mod.rs"]
 mod space_mouse;
 mod spike_panel;
+#[path = "items/statistics_ui.rs"]
 mod statistics_ui;
 #[path = "graphics/subd_gpu.rs"]
 mod subd_gpu;
@@ -3922,6 +3936,7 @@ mod primitive_panel;
 mod render_ui;
 #[path = "anim/timeline.rs"]
 mod timeline;
+#[path = "items/vertex_normal_ui.rs"]
 mod vertex_normal_ui;
 mod view_display;
 mod view_display_ui;
@@ -4094,6 +4109,7 @@ mod command_names_tests;
 #[cfg(test)]
 mod component_transform_tests;
 #[cfg(test)]
+#[path = "items/create_utility_tests.rs"]
 mod create_utility_tests;
 #[cfg(test)]
 #[path = "deformers/deform_tab_tests.rs"]
@@ -4166,6 +4182,7 @@ mod input_focus_tests;
 #[cfg(test)]
 mod inset_shift_tests;
 #[cfg(test)]
+#[path = "items/item_list_header_tests.rs"]
 mod item_list_header_tests;
 #[cfg(test)]
 #[path = "input_devices/key_toggles_tests.rs"]
@@ -4225,6 +4242,7 @@ mod render_outputs_save_tests;
 #[cfg(test)]
 mod reset_tool_tests;
 #[cfg(test)]
+#[path = "items/scene_panel_tests.rs"]
 mod scene_panel_tests;
 #[cfg(test)]
 #[path = "files/scenes_tests.rs"]
@@ -4304,6 +4322,7 @@ mod falloff_batch6_tests;
 #[path = "deformers/falloff_panel_tests.rs"]
 mod falloff_panel_tests;
 #[cfg(test)]
+#[path = "items/mesh_stack_tests.rs"]
 mod mesh_stack_tests;
 #[cfg(test)]
 mod snap_service_tests;
@@ -4399,6 +4418,7 @@ mod flip_basic_tests;
 #[path = "graphics/gl_count_tests.rs"]
 mod gl_count_tests;
 #[cfg(test)]
+#[path = "items/statistics_ui_tests.rs"]
 mod statistics_ui_tests;
 #[cfg(test)]
 mod subdivision_tests;
@@ -4435,6 +4455,7 @@ mod vertex_panel_tests;
 #[cfg(test)]
 mod add_loop_slide_options_tests;
 #[cfg(test)]
+#[path = "items/group_eye_tests.rs"]
 mod group_eye_tests;
 #[cfg(test)]
 #[path = "files/journal_tests.rs"]

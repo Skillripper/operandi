@@ -1281,5 +1281,5 @@ mod tests {
 }
 
 #[cfg(test)]
-#[path = "items_rig_tests.rs"]
+#[path = "../rigging/items_rig_tests.rs"]
 mod rig_tests;
