@@ -277,7 +277,7 @@ impl Operandi {
             self.status = match attr {
                 "mode" => format!("{:?}", o.mode).to_ascii_lowercase(),
                 "inset" | "offset" | "width" => format!("{} m", p.chamfer.offset),
-                "mitering" => format!("{} m", o.support),
+                "mitering" | "miteringoffset" => format!("{} m", o.support),
                 "level" => (p.chamfer.segments / 2).to_string(),
                 "segments" => p.chamfer.segments.to_string(),
                 "shape" => format!("{:?}", o.shape).to_ascii_lowercase(),
@@ -315,10 +315,10 @@ impl Operandi {
                     p.chamfer.offset = numeric::parse_quantity(value, numeric::Quantity::Distance)?
                 }
                 // Mitering: the second handle's edge on each side (2026-11-23).
-                "mitering" if bevel => {
+                "mitering" | "miteringoffset" if bevel => {
                     let d = numeric::parse_quantity(value, numeric::Quantity::Distance)?;
                     if d.is_nan() || d < 0. {
-                        return Err("Mitering is a distance of 0 or more".into());
+                        return Err("Mitering Offset is a distance of 0 or more".into());
                     }
                     o.support = d;
                 }

@@ -3376,7 +3376,7 @@ impl Operandi {
                         "Weight".into()
                     } else if l.tool == Tool::EdgeBevel {
                         if axis == 1 {
-                            "Mitering"
+                            "Mitering Offset"
                         } else if l.params.edge_bevel.mode == operandi_core::EdgeBevelMode::Width {
                             "Width"
                         } else {

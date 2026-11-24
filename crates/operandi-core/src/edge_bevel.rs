@@ -240,7 +240,9 @@ pub fn edge_bevel_with(
     }
     let support = settings.options.support;
     if !support.is_finite() || support < 0. {
-        return Err(format!("{what}: Mitering must be a distance of 0 or more"));
+        return Err(format!(
+            "{what}: Mitering Offset must be a distance of 0 or more"
+        ));
     }
     if width == 0. && support > 0. && !settings.chamfer {
         // No bevel, only the inset: an edge on each side of each selected
@@ -410,7 +412,7 @@ fn add_support_edges(
         return Ok(bevel);
     }
     let cut = crate::slice_cut::cut(mesh, &cuts, &inner, &chords)
-        .map_err(|e| format!("{what}: Mitering: {e}"))?;
+        .map_err(|e| format!("{what}: Mitering Offset: {e}"))?;
     // The rows split some of the bevel's own edges (where a strip's end
     // lies along a side edge, as at the open ends of three sides of a
     // square). The strips and the selection name the pieces instead: the

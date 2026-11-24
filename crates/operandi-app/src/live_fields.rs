@@ -1614,11 +1614,13 @@ fn edge_bevel_form(p: &Parameters, f: &mut Form, bevel: bool) {
         // Mitering, the second handle (2026-11-23): the drag-layer spec
         // gives Edge Bevel's second handle as Mitering; this is the
         // tester's reading of it (an edge added on each side), live
-        // instead of the greyed EBC-Q03 placeholder.
+        // instead of the greyed EBC-Q03 placeholder. Labelled Mitering
+        // Offset (the tester, 2026-11-24) so it isn't taken for the
+        // Corner Pattern's mitering.
         f.field(
             dist(
                 "ebc_mitering",
-                "Mitering",
+                "Mitering Offset",
                 |p| p.edge_bevel.support,
                 |p, v| p.edge_bevel.support = v.max(0.),
             )
