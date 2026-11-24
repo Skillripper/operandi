@@ -15,34 +15,6 @@
       "divider": ""
     },
     {
-      "form": {
-        "style": "horizontal",
-        "icons": "icon",
-        "controls": [
-          {
-            "command": "Move",
-            "label": "Move",
-            "icon": "move"
-          },
-          {
-            "command": "Rotate",
-            "label": "Rotate",
-            "icon": "rotate"
-          },
-          {
-            "command": "Scale",
-            "label": "Scale",
-            "icon": "scale"
-          },
-          {
-            "command": "Transform",
-            "label": "Transform",
-            "icon": "transform"
-          }
-        ]
-      }
-    },
-    {
       "divider": ""
     },
     {

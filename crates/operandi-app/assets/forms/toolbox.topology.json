@@ -103,7 +103,8 @@
     {
       "command": "Triple",
       "label": "Convert to Triangles",
-      "look": "flat"
+      "look": "flat",
+      "icon": "triple"
     },
     {
       "command": "Quadruple",

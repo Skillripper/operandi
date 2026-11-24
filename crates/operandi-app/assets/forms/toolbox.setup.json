@@ -5,32 +5,21 @@
   "exported": true,
   "controls": [
     {
-      "divider": "Transform",
-      "id": "setup-transform"
-    },
-    {
       "form": {
         "style": "horizontal",
+        "icons": "both",
         "controls": [
           {
-            "command": "Move",
-            "label": "Move",
-            "icon": "move"
+            "command": "Action Center origin",
+            "label": "World",
+            "icon": "action-world",
+            "tooltip": "World · transform about the world origin (Action Center origin){andBinding}"
           },
           {
-            "command": "Rotate",
-            "label": "Rotate",
-            "icon": "rotate"
-          },
-          {
-            "command": "Scale",
-            "label": "Scale",
-            "icon": "scale"
-          },
-          {
-            "command": "Transform",
-            "label": "Transform",
-            "icon": "transform"
+            "command": "Action Center local",
+            "label": "Local",
+            "icon": "action-local",
+            "tooltip": "Local · transform each item about its own centre and axes (Action Center local){andBinding}"
           }
         ]
       }
@@ -42,88 +31,75 @@
     {
       "form": {
         "style": "horizontal",
+        "icons": "icon",
         "controls": [
           {
             "command": "item.create camera",
             "label": "Camera",
-            "icon": "camera",
-            "look": "centered"
+            "icon": "camera"
           },
           {
             "command": "item.create mesh",
             "label": "Mesh",
-            "icon": "tree-mesh",
-            "look": "centered"
-          }
-        ]
-      }
-    },
-    {
-      "form": {
-        "style": "menu",
-        "controls": [
-          {
-            "command": "item.create light.point",
-            "label": "Point Light",
-            "icon": "tree-light"
+            "icon": "tree-mesh"
           },
           {
-            "command": "item.create light.spot",
-            "label": "Spot Light",
-            "icon": "light-spot"
+            "form": {
+              "style": "hold",
+              "controls": [
+                {
+                  "command": "item.create light.point",
+                  "label": "Point Light",
+                  "icon": "tree-light"
+                },
+                {
+                  "command": "item.create light.spot",
+                  "label": "Spot Light",
+                  "icon": "light-spot"
+                },
+                {
+                  "command": "item.create light.area",
+                  "label": "Area Light",
+                  "icon": "light-area"
+                },
+                {
+                  "command": "item.create light.directional",
+                  "label": "Directional Light",
+                  "icon": "light-directional"
+                },
+                {
+                  "command": "item.create light.cylinder",
+                  "label": "Cylinder Light",
+                  "icon": "light-cylinder"
+                },
+                {
+                  "command": "item.create light.dome",
+                  "label": "Dome Light",
+                  "icon": "light-dome"
+                },
+                {
+                  "command": "item.create light.photometric",
+                  "label": "Photometric Light",
+                  "icon": "light-photometric"
+                },
+                {
+                  "command": "item.create light.portal",
+                  "label": "Portal Light",
+                  "icon": "light-portal"
+                }
+              ]
+            },
+            "tooltip": "Light · add a point light{binding}\nRight-click or hold: pick the kind of light"
           },
-          {
-            "command": "item.create light.area",
-            "label": "Area Light",
-            "icon": "light-area"
-          },
-          {
-            "command": "item.create light.directional",
-            "label": "Directional Light",
-            "icon": "light-directional"
-          },
-          {
-            "command": "item.create light.cylinder",
-            "label": "Cylinder Light",
-            "icon": "light-cylinder"
-          },
-          {
-            "command": "item.create light.dome",
-            "label": "Dome Light",
-            "icon": "light-dome"
-          },
-          {
-            "command": "item.create light.photometric",
-            "label": "Photometric Light",
-            "icon": "light-photometric"
-          },
-          {
-            "command": "item.create light.portal",
-            "label": "Portal Light",
-            "icon": "light-portal"
-          }
-        ]
-      },
-      "id": "setup-lights",
-      "label": "Light",
-      "icon": "tree-light",
-      "tooltip": "Light · add a light of the kind you pick"
-    },
-    {
-      "form": {
-        "style": "horizontal",
-        "controls": [
           {
             "command": "item.create backdrop",
             "label": "Backdrop",
-            "icon": "backdrop",
-            "look": "centered"
+            "icon": "backdrop"
           },
           {
             "command": "item.create environment",
             "label": "Environment",
-            "icon": "environment",
-            "look": "centered"
+            "icon": "environment"
           }
         ]
       }
@@ -135,26 +111,25 @@
     {
       "form": {
         "style": "horizontal",
+        "icons": "icon",
         "controls": [
           {
             "command": "Duplicate Item",
             "label": "Duplicate",
-            "icon": "duplicate-item",
-            "look": "centered"
+            "icon": "duplicate-item"
           },
           {
             "command": "Duplicate Hierarchy",
             "label": "Duplicate Hierarchy",
-            "icon": "duplicate-hierarchy",
-            "look": "centered"
+            "icon": "duplicate-hierarchy"
+          },
+          {
+            "command": "Instance",
+            "label": "Instance",
+            "icon": "instance-clone"
           }
         ]
       }
-    },
-    {
-      "command": "Instance",
-      "label": "Instance",
-      "icon": "instance-clone"
     },
     {
       "divider": "Draw",
@@ -163,6 +138,7 @@
     {
       "form": {
         "style": "horizontal",
+        "icons": "icon",
         "controls": [
           {
             "command": "Curve",
@@ -200,45 +176,35 @@
     {
       "form": {
         "style": "horizontal",
+        "icons": "icon",
         "controls": [
           {
             "command": "operandi.rig.parent",
             "label": "Parent",
-            "icon": "hierarchy",
-            "look": "centered"
+            "icon": "hierarchy"
           },
           {
             "command": "operandi.rig.unparent",
             "label": "Unparent",
-            "icon": "unparent",
-            "look": "centered"
-          }
-        ]
-      }
-    },
-    {
-      "form": {
-        "style": "horizontal",
-        "controls": [
+            "icon": "unparent"
+          },
           {
             "command": "operandi.rig.insert",
             "label": "Insert",
-            "icon": "rig-insert",
-            "look": "centered"
+            "icon": "rig-insert"
           },
           {
             "command": "operandi.rig.extract",
             "label": "Extract",
-            "icon": "rig-extract",
-            "look": "centered"
+            "icon": "rig-extract"
+          },
+          {
+            "command": "Parent to Group Locator",
+            "label": "Parent to Group Locator",
+            "icon": "parent-group-locator"
           }
         ]
       }
-    },
-    {
-      "command": "Parent to Group Locator",
-      "label": "Parent to Group Locator",
-      "icon": "parent-group-locator"
     },
     {
       "divider": "Align",
@@ -247,16 +213,19 @@
     {
       "form": {
         "style": "horizontal",
+        "icons": "both",
         "controls": [
           {
             "command": "Quick Align",
             "label": "Quick Align",
-            "icon": "quick-align"
+            "icon": "quick-align",
+            "noShortcut": true
           },
           {
             "command": "Ground Align",
             "label": "Ground Align",
-            "icon": "ground-align"
+            "icon": "ground-align",
+            "noShortcut": true
           }
         ]
       }
@@ -268,6 +237,7 @@
     {
       "form": {
         "style": "horizontal",
+        "icons": "icon",
         "controls": [
           {
             "command": "Mirror",
@@ -278,9 +248,20 @@
             "command": "Instance Mirror",
             "label": "Instance Mirror",
             "icon": "instance-mirror"
+          },
+          {
+            "command": "Replica Mirror",
+            "label": "Replica Mirror",
+            "icon": "replica-mirror",
+            "tooltip": "Replica Mirror{binding} · a mirrored Replicator of the selected items{andBinding}"
           }
         ]
       }
+    },
+    {
+      "command": "mirror.clone.create",
+      "label": "Mirror Operation",
+      "tooltip": "Mirror Operation · adds a Mirror mesh operation to the selected mesh (mirror.clone.create)"
     },
     {
       "divider": "Measure",
@@ -289,6 +270,7 @@
     {
       "form": {
         "style": "horizontal",
+        "icons": "icon",
         "controls": [
           {
             "command": "Ruler",

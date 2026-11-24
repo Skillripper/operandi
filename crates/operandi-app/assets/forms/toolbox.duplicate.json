@@ -394,16 +394,17 @@
           {
             "command": "Duplicate Item",
             "label": "Duplicate",
-            "look": "centered",
-            "tooltip": "Duplicate{binding} · a copy of the selected item in place, named Name (2); its children stay behind"
+            "tooltip": "Duplicate{binding} · a copy of the selected item in place, named Name (2); its children stay behind",
+            "icon": "duplicate-item"
           },
           {
             "command": "Duplicate Hierarchy",
             "label": "Duplicate Hierarchy",
-            "look": "centered",
-            "tooltip": "Duplicate Hierarchy{binding} · a copy of each selected item with all its children, links kept"
+            "tooltip": "Duplicate Hierarchy{binding} · a copy of each selected item with all its children, links kept",
+            "icon": "duplicate-hierarchy"
           }
-        ]
+        ],
+        "icons": "both"
       }
     }
   ]

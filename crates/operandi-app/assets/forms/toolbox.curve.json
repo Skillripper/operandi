@@ -42,11 +42,13 @@
     },
     {
       "command": "Tube",
-      "label": "Tube"
+      "label": "Tube",
+      "icon": "tube"
     },
     {
       "command": "Draw Patch",
-      "label": "Patch"
+      "label": "Patch",
+      "icon": "draw-patch"
     },
     {
       "divider": ""

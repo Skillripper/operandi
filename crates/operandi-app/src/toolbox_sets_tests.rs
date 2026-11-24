@@ -67,7 +67,7 @@ fn the_new_tabs_hold_their_planned_buttons() {
         (
             Category::Setup,
             &[
-                "Move",
+                "Action Center origin",
                 "item.create camera",
                 "Duplicate Item",
                 "Bezier Curve",
@@ -208,4 +208,58 @@ fn a_saved_tab_outside_its_set_opens_the_sets_first_tab() {
     a.apply_layout_doc(&doc).unwrap();
     assert_eq!(a.layouts.tool_set, ToolSet::Game);
     assert_eq!(a.category, Category::GameVertexMap);
+}
+
+/// Jason, 2026-11-24: the toolbox's shared top row holds Move, Rotate,
+/// Scale and Transform; no toolbox form repeats them (they ran the same
+/// tools, so the UV form's copy went too).
+#[test]
+fn no_toolbox_form_repeats_the_shared_transform_row() {
+    fn lines(v: &serde_json::Value, out: &mut Vec<String>) {
+        match v {
+            serde_json::Value::Object(m) => {
+                if let Some(serde_json::Value::String(s)) = m.get("command") {
+                    out.push(s.clone());
+                }
+                m.values().for_each(|v| lines(v, out));
+            }
+            serde_json::Value::Array(a) => a.iter().for_each(|v| lines(v, out)),
+            _ => {}
+        }
+    }
+    let mut checked = 0;
+    for (file, text) in crate::toolbox_form::SHIPPED_FORMS {
+        if !file.starts_with("toolbox.") {
+            continue;
+        }
+        let form: serde_json::Value = serde_json::from_str(text).unwrap();
+        let mut all = Vec::new();
+        lines(&form, &mut all);
+        for top in ["Move", "Rotate", "Scale", "Transform"] {
+            assert!(
+                !all.iter().any(|l| l.trim().eq_ignore_ascii_case(top)),
+                "{file} repeats {top}"
+            );
+        }
+        checked += 1;
+    }
+    assert!(checked >= 15, "{checked} toolbox forms");
+    // Drawn: the UV and Setup sets show the top row only.
+    let ctx = Context::default();
+    let mut a = box_app();
+    for set in ["uv", "setup", "animation"] {
+        a.execute(&format!("operandi.toolbox.set {set}"));
+        shows(&mut a, &ctx);
+        assert!(a.toolbox_rects.contains_key("Move"), "{set}: top row");
+        for top in ["Move", "Rotate", "Scale", "Transform"] {
+            assert!(!a.form_rects.contains_key(top), "{set}: form repeats {top}");
+        }
+    }
+    assert!(a.form_rects.contains_key("Action Center origin"), "World");
+    a.execute("operandi.toolbox.set setup");
+    shows(&mut a, &ctx);
+    assert!(
+        a.form_rects.contains_key("Action Center local"),
+        "Setup's Local"
+    );
 }
