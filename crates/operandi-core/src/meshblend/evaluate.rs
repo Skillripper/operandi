@@ -2,8 +2,10 @@
 //! and source meshes in, mesh and where each polygon came from out. The
 //! MeshBlend op calls it; nothing else about it depends on the Mesh Stack.
 //!
-//! 1. Each enabled source becomes its smooth Catmull-Clark surface at its
-//!    Subdivision level, or its cage at 0 or with Keep cage points (SB-20..23).
+//! 1. Each enabled source is read as the viewport shows it: its subdivision
+//!    polygons as their smooth surface at its Subdivision level, its plain
+//!    polygons as they are; its cage at 0 or with Keep cage points
+//!    (SB-20..23, MB-Q06).
 //! 2. Pre-flight (ST-06, SB-70): open, non-manifold, inside-out,
 //!    self-crossing or empty sources are left out with one plain line;
 //!    the rest still builds.
@@ -26,7 +28,7 @@
 use super::recipe::{Recipe, Role};
 use crate::boolean::{Tri, guarded, manifold_solid, self_intersection};
 use crate::cone::PolygonRepresentation;
-use crate::subdivision::{SubdivisionSettings, subdivide};
+use crate::subdivision::SubdivisionSettings;
 use crate::{Face, Mesh, Result};
 use glam::DVec3;
 use std::collections::{BTreeMap, HashMap};
@@ -67,19 +69,40 @@ pub struct Blend {
     pub notes: Vec<Note>,
 }
 
-/// SB-20 / SB-21: the source's smooth surface at `level` (0 = the cage).
+/// Every polygon of `mesh` as a Catmull-Clark surface at `level` (0 = the
+/// cage). The B0 corpus reads its plain boxes this way.
 pub fn smooth(mesh: &Mesh, level: u8) -> Result<Mesh> {
     if level == 0 {
         return Ok(mesh.clone());
     }
     let mut m = mesh.clone();
     m.attributes.representations = vec![PolygonRepresentation::CatmullClark; m.faces.len()];
+    surface(&m, level)
+}
+
+/// SB-20 / SB-23 (provisional reading MB-Q06): the source as the viewport
+/// shows it. Its subdivision polygons become their smooth surface at
+/// `level`; its plain polygons stay as they are, so a plain cube blends as
+/// a cube. Smoothed polygons come back with smooth shading on.
+pub fn source_surface(mesh: &Mesh, level: u8) -> Result<Mesh> {
+    if level == 0 || !crate::subdivision::has_smooth(mesh) {
+        return Ok(mesh.clone());
+    }
+    surface(mesh, level)
+}
+
+fn surface(mesh: &Mesh, level: u8) -> Result<Mesh> {
     let settings = SubdivisionSettings {
         subdivision_level: level,
         catmull_clark_level: level,
         ..Default::default()
     };
-    let mut out = subdivide(&m, &settings)?;
+    let (mut out, from) = crate::subdivision::display_surface(mesh, &settings)?;
+    for (f, &src) in out.faces.iter_mut().zip(&from) {
+        if crate::subdivision::is_smooth_polygon(mesh, src) {
+            f.smooth = true;
+        }
+    }
     out.attributes.representations.clear();
     Ok(out)
 }
@@ -212,7 +235,7 @@ pub fn evaluate(recipe: &Recipe, inputs: &[Input]) -> Result<Blend> {
             continue;
         };
         let level = if s.keep_cage { 0 } else { s.subdivision };
-        let surface = match smooth(&input.mesh, level) {
+        let surface = match source_surface(&input.mesh, level) {
             Ok(m) => m,
             Err(e) => {
                 notes.push(Note {

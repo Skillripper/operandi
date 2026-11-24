@@ -7,7 +7,8 @@
   Subdivision / Keep Cage Points / In Result and the strip settings for
   B2; evaluator (`meshblend/evaluate.rs`) is a plain function; eight
   undoable `meshblend.*` commands; Properties rows per source with Add and
-  Convert. Sharp joins only. Bad sources are left out with a red line on
+  Convert. Sharp joins only. Sources blend as the viewport shows them
+  (Tab polygons smooth, plain polygons as they are, MB-Q06). Bad sources are left out with a red line on
   the op row (new `OpStatus::Noted`). Provisional: MB-Q01..Q05.
 
 - **MeshBlend B0 strip spike (2026-11-24, branch claude/project-thread-20fok5):**

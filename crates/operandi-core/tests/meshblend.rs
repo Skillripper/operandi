@@ -25,8 +25,19 @@ use operandi_core::meshblend::{MeshBlendCommand, Recipe, Role, recipe_of};
 use operandi_core::meshblend_spike::check;
 use operandi_core::{Command, Editor, Mesh, persistence};
 
+/// A subdivision-surface box (Tab on), so MeshBlend reads it smooth.
 fn boxed(centre: [f64; 3]) -> Mesh {
-    operandi_core::meshblend_spike::corpus::boxed(centre, [1., 1., 1.], [2, 2, 2], false)
+    smooth(operandi_core::meshblend_spike::corpus::boxed(
+        centre,
+        [1., 1., 1.],
+        [2, 2, 2],
+        false,
+    ))
+}
+fn smooth(mut m: Mesh) -> Mesh {
+    m.attributes.representations =
+        vec![operandi_core::PolygonRepresentation::CatmullClark; m.faces.len()];
+    m
 }
 
 fn mesh(e: &mut Editor, m: Mesh) -> u64 {
@@ -188,7 +199,9 @@ fn an_open_source_is_left_out_with_a_reason() {
     let mut e = Editor::default();
     let open = mesh(
         &mut e,
-        operandi_core::meshblend_spike::corpus::boxed([0.; 3], [1.; 3], [2; 3], true),
+        smooth(operandi_core::meshblend_spike::corpus::boxed(
+            [0.; 3], [1.; 3], [2; 3], true,
+        )),
     );
     let b = mesh(&mut e, boxed([0.5, 0., 0.5]));
     e.scene.select_item(Some(open));
@@ -465,4 +478,44 @@ fn random_sequences_stay_valid() {
             assert_eq!(*live.mesh, *fresh.mesh, "seed {seed}");
         }
     }
+}
+
+#[test]
+fn plain_polygons_blend_as_they_are() {
+    // MB-Q06: a plain cube and cylinder (Tab off) blend as the viewport
+    // shows them, not as smoothed blobs (Jason's QA, 2026-11-24).
+    let mut e = Editor::default();
+    let cube = mesh(
+        &mut e,
+        operandi_core::meshblend_spike::corpus::boxed([0.; 3], [1.; 3], [1; 3], false),
+    );
+    let cyl = mesh(
+        &mut e,
+        operandi_core::meshblend_spike::corpus::cylinder([0.3, 0.5, 0.3], 0.3, 0.8, 24, 1),
+    );
+    e.scene.select_item(Some(cube));
+    e.scene.toggle_item(cyl);
+    run(&mut e, MeshBlendCommand::New).unwrap();
+    let blend = e.scene.selection.item.unwrap();
+    let out = result(&e, blend);
+    assert_eq!(out.statuses, [OpStatus::Ok]);
+    let r = closed(&out.mesh);
+    // The whole cube is there: the corners stay sharp.
+    let (lo, hi) = out.mesh.vertices.iter().fold(
+        (DVec3::splat(f64::MAX), DVec3::splat(f64::MIN)),
+        |(lo, hi), p| (lo.min(*p), hi.max(*p)),
+    );
+    assert!(
+        (lo - DVec3::new(-0.5, -0.5, -0.5)).abs().max_element() < 1e-9,
+        "{lo}"
+    );
+    assert!((hi.y - 1.3).abs() < 1e-9, "{hi}");
+    // The cube plus the part of the cylinder outside it (above, and a
+    // little past one side): more than the part above, less than all of it.
+    let disc = std::f64::consts::PI * 0.09;
+    assert!(
+        r.volume > 1.0 + 0.9 * disc * 0.8 && r.volume < 1.0 + disc * 1.6,
+        "{}",
+        r.volume
+    );
 }

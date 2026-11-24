@@ -4,8 +4,10 @@
 **MeshBlend** builds a live boolean of ordinary meshes. The meshes stay
 editable, and the result rebuilds whenever you move or change one of them.
 
-Each mesh is read as its smooth subdivision surface, so a box with a few
-segments blends as a rounded block. The result lives on its own item, the
+Each mesh is used the way the viewport shows it. A mesh with subdivision
+on (Tab) blends as its smooth surface, so a box with a few segments blends
+as a rounded block; a plain mesh blends as it is, sharp corners and all.
+The result lives on its own item, the
 **MeshBlend Item**: a mesh whose **Mesh Operations** list starts with a
 **MeshBlend** operation. The source meshes are never changed.
 
@@ -46,8 +48,8 @@ Each source has its own section.
 | **Role** | Primary, Subtractive Trim or Intersect Trim. | Primary |
 | **Acts on** | For a Trim: which Primaries it changes. | All Primaries |
 | **In Result** | Off leaves the source out of the result without changing its role. | On |
-| **Subdivision** | How finely the smooth surface becomes polygons, 0 to 3. At 0 the mesh is used as it is. Each step makes about four times as many polygons. | 2 |
-| **Keep Cage Points** | Uses the mesh's own points instead of its smooth surface, for hard, angular shapes. | Off |
+| **Subdivision** | For a mesh with subdivision on: how finely its smooth surface becomes polygons, 0 to 3. At 0 the mesh is used as it is. Each step makes about four times as many polygons. | 2 |
+| **Keep Cage Points** | Uses the mesh's own points instead of its smooth surface, even with subdivision on. | Off |
 | **Take Out of MeshBlend** | Removes the source. It's an ordinary mesh again. | |
 
 Below the sources:
