@@ -386,6 +386,8 @@ mod mesh_stack_selops;
 mod mesh_stack_stress;
 #[path = "mesh_stack_tools.rs"]
 mod mesh_stack_tools;
+#[path = "meshblend_spike.rs"]
+mod meshblend_spike;
 #[path = "mid_tool_undo.rs"]
 mod mid_tool_undo;
 #[path = "mode_availability.rs"]
