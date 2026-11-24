@@ -111,6 +111,7 @@ mod curve_hands_on;
 mod curve_tab;
 mod cut_dialogs;
 mod defaults_preferences;
+#[path = "deformers/deform_panel.rs"]
 mod deform_panel;
 mod detents;
 mod detriangulate_dialog;
@@ -137,6 +138,7 @@ mod environment_gpu;
 mod environment_preset_ui;
 mod environment_ui;
 mod exr_multilayer;
+#[path = "deformers/falloff_panel.rs"]
 mod falloff_panel;
 mod field_handoff;
 mod file_chooser;
@@ -4042,6 +4044,7 @@ mod component_transform_tests;
 #[cfg(test)]
 mod create_utility_tests;
 #[cfg(test)]
+#[path = "deformers/deform_tab_tests.rs"]
 mod deform_tab_tests;
 #[cfg(test)]
 mod drag_anywhere_tests;
@@ -4195,6 +4198,7 @@ mod toolbox_form_tests;
 #[cfg(test)]
 mod toolbox_sets_tests;
 #[cfg(test)]
+#[path = "deformers/tweak_tests.rs"]
 mod tweak_tests;
 #[cfg(test)]
 mod twist_bevel_tests;
@@ -4205,6 +4209,7 @@ mod uv_editing_tests;
 #[cfg(test)]
 mod viewport_transparency_capture_tests;
 #[cfg(test)]
+#[path = "deformers/weights_distortion_tests.rs"]
 mod weights_distortion_tests;
 mod workbench;
 #[cfg(test)]
@@ -4216,16 +4221,22 @@ mod background_ui_tests;
 #[path = "commands/doors_tests.rs"]
 mod doors_tests;
 #[cfg(test)]
+#[path = "deformers/falloff_batch2_tests.rs"]
 mod falloff_batch2_tests;
 #[cfg(test)]
+#[path = "deformers/falloff_batch3_tests.rs"]
 mod falloff_batch3_tests;
 #[cfg(test)]
+#[path = "deformers/falloff_batch4_tests.rs"]
 mod falloff_batch4_tests;
 #[cfg(test)]
+#[path = "deformers/falloff_batch5_tests.rs"]
 mod falloff_batch5_tests;
 #[cfg(test)]
+#[path = "deformers/falloff_batch6_tests.rs"]
 mod falloff_batch6_tests;
 #[cfg(test)]
+#[path = "deformers/falloff_panel_tests.rs"]
 mod falloff_panel_tests;
 #[cfg(test)]
 mod mesh_stack_tests;
@@ -4234,6 +4245,7 @@ mod snap_service_tests;
 #[cfg(test)]
 mod snapping_tests;
 #[cfg(test)]
+#[path = "deformers/soft_move_falloff_tests.rs"]
 mod soft_move_falloff_tests;
 #[cfg(test)]
 #[path = "controls/tree_list_tests.rs"]
@@ -4263,6 +4275,7 @@ mod bridge_recovery_save_tests;
 mod thicken_shell_live_tests;
 
 #[cfg(test)]
+#[path = "deformers/surface_tool_states_live_tests.rs"]
 mod surface_tool_states_live_tests;
 
 #[cfg(test)]
