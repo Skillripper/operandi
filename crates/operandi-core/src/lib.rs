@@ -159,6 +159,7 @@ pub mod diagonal_redirect;
 pub mod edge_zip;
 pub mod editor_color;
 pub mod fix_black_dots;
+#[path = "duplication/merge_instance.rs"]
 pub mod merge_instance;
 pub mod mesh_paint;
 pub mod plane_item;
@@ -305,11 +306,17 @@ pub mod skin_weights;
 pub mod time_tick;
 pub use boolean::{BooleanOp, BooleanOptions, BooleanProblem, DriveMesh};
 pub use drill::{DrillAxis, DrillKind, DrillOp, DrillOptions};
+#[path = "duplication/duplicate.rs"]
 pub mod duplicate;
+#[path = "duplication/duplicate_copier.rs"]
 pub mod duplicate_copier;
+#[path = "duplication/duplicate_hierarchy.rs"]
 mod duplicate_hierarchy;
+#[path = "duplication/duplicate_items.rs"]
 pub mod duplicate_items;
+#[path = "duplication/duplicate_sweep.rs"]
 pub mod duplicate_sweep;
+#[path = "duplication/duplicate_transform.rs"]
 pub mod duplicate_transform;
 pub use duplicate::{
     Array, Circle, CloneLine, Copies, DuplicateParameters, Lathe, Mirror, MirrorMode, RadialArray,
@@ -357,6 +364,7 @@ pub mod mesh_slot;
 pub mod node_graph_reader;
 pub mod packed_mesh;
 pub use mesh_slot::{MeshSlot, MeshView};
+#[path = "duplication/mesh_instance.rs"]
 pub mod mesh_instance;
 pub use packed_mesh::{MeshRead, PackedMesh};
 #[path = "commands/document_state.rs"]
@@ -374,6 +382,7 @@ pub mod project;
 pub mod project_paths;
 pub use primitive_uv::*;
 pub use project::Project;
+#[path = "duplication/radial.rs"]
 pub mod radial;
 pub use radial::*;
 pub mod active_task;
@@ -549,6 +558,7 @@ pub mod guides;
 pub mod reduction;
 pub mod remesh;
 pub mod remesh_voxel;
+#[path = "duplication/replicator.rs"]
 pub mod replicator;
 pub mod vertex_normals;
 pub use remesh::{CountMode, OctreeMode, OctreeOptions, RemeshOp, RetopoOptions, VoxelOptions};
