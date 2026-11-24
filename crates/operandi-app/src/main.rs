@@ -381,6 +381,7 @@ mod pen_interactive_ui;
 mod picking;
 #[path = "menus/pie_menu.rs"]
 mod pie_menu;
+#[path = "uv/planar_texture_ui.rs"]
 mod planar_texture_ui;
 #[cfg(test)]
 mod plane_handles_tests;
@@ -654,11 +655,17 @@ mod units_preferences;
 mod update_check;
 #[path = "files/update_check_ui.rs"]
 mod update_check_ui;
+#[path = "uv/uv_checker.rs"]
 mod uv_checker;
+#[path = "uv/uv_dialogs.rs"]
 mod uv_dialogs;
+#[path = "uv/uv_edit_ui.rs"]
 mod uv_edit_ui;
+#[path = "uv/uv_editor.rs"]
 mod uv_editor;
+#[path = "uv/uv_ops_ui.rs"]
 mod uv_ops_ui;
+#[path = "uv/uv_tool_forms.rs"]
 mod uv_tool_forms;
 mod uv_view;
 #[path = "controls/value_display.rs"]
@@ -4492,8 +4499,10 @@ mod tweak_tests;
 #[path = "polygons/twist_bevel_tests.rs"]
 mod twist_bevel_tests;
 #[cfg(test)]
+#[path = "uv/uv_dialogs_tests.rs"]
 mod uv_dialogs_tests;
 #[cfg(test)]
+#[path = "uv/uv_editing_tests.rs"]
 mod uv_editing_tests;
 #[cfg(test)]
 #[path = "render/viewport_transparency_capture_tests.rs"]
