@@ -375,7 +375,7 @@ impl Operandi {
                 Item::Property(_) => {}
                 Item::Missing(id) => {
                     ui.label(RichText::new(format!("Missing form {id}")).color(theme::error()))
-                        .on_hover_text("No form has this id; it shows nothing (UIC-221)");
+                        .on_hover_text("No form has this id; it shows nothing");
                 }
             }
         }
@@ -423,6 +423,7 @@ impl Operandi {
     /// The tooltip a form button running `line` shows.
     pub(super) fn form_button_tooltip(&self, control: &Control, line: &str) -> Option<String> {
         self.button_tooltip(control, line)
+            .map(|tip| crate::ui_text::without_spec_codes(&tip))
     }
 
     fn form_button(&mut self, ui: &mut Ui, control: &Control, icons: IconMode, place: Place) {
@@ -500,7 +501,7 @@ impl Operandi {
                     self.form_rects.insert(line.to_owned(), response.rect);
                     self.run_shown_variant(ui, control, line, &response);
                     if let Some(tip) = self.button_tooltip(control, line) {
-                        response.on_hover_text(tip);
+                        response.on_hover_text(crate::ui_text::without_spec_codes(&tip));
                     }
                     return;
                 }
@@ -616,7 +617,7 @@ impl Operandi {
             self.run_form_line(ui, control, line);
         }
         if let Some(tip) = self.button_tooltip(control, line) {
-            response.on_hover_text(tip);
+            response.on_hover_text(crate::ui_text::without_spec_codes(&tip));
         }
     }
 
@@ -630,7 +631,9 @@ impl Operandi {
             _ => &control.tooltip,
         };
         if tooltip.is_empty() {
-            return self.line_tooltip(line);
+            return self
+                .line_tooltip(line)
+                .or_else(|| self.help_tooltip(control, line));
         }
         Some(if tooltip.contains("{variants}") {
             // The MB tooltip ends at the variant list.
@@ -639,6 +642,30 @@ impl Operandi {
         } else {
             self.form_tooltip(tooltip, keys)
         })
+    }
+
+    /// A button with no tooltip of its own and no tool behind it (Jason,
+    /// 2026-11-24: Setup's and Animation's rows showed none): its label,
+    /// what its command does (the registry's help) and its shortcut, in the
+    /// "Label · what it does · key" form the written tooltips use.
+    fn help_tooltip(&self, control: &Control, line: &str) -> Option<String> {
+        let label = shown_label(control, line, None);
+        let help = self
+            .commands
+            .find_line(line)
+            .map(|(command, _)| command.entry.help.trim().trim_end_matches('.'))
+            .filter(|help| !help.is_empty());
+        let binding = self.shortcut(control.shortcut.as_deref().unwrap_or(line));
+        let mut tip = label.to_owned();
+        if let Some(help) = help {
+            tip.push_str(" · ");
+            tip.push_str(help);
+        }
+        if !binding.trim().is_empty() {
+            tip.push_str(" · ");
+            tip.push_str(binding.trim());
+        }
+        Some(tip)
     }
 
     /// Tests: the label and tooltip the button running `line` in form
@@ -833,10 +860,10 @@ impl Operandi {
                 .unwrap_or_else(|| label_of(face).to_owned())
         };
         let names: Vec<&str> = (0..controls.len()).map(label_of).collect();
-        let response = response.on_hover_text(format!(
+        let response = response.on_hover_text(crate::ui_text::without_spec_codes(&format!(
             "{face_tip} · hold or right-click for {}",
             names.join(", ")
-        ));
+        )));
         if open {
             let mut picked = None;
             let area = egui::Area::new(Id::new(("form-flyout-list", key)))
@@ -1007,7 +1034,7 @@ impl Operandi {
         } else {
             self.form_tooltip(tooltip, line)
         };
-        response.on_hover_text(tip);
+        response.on_hover_text(crate::ui_text::without_spec_codes(&tip));
     }
 
     /// A tooltip with `{shortcut}` replaced by the line's binding (the
@@ -1128,8 +1155,25 @@ impl Operandi {
         if let Some(line) = run {
             self.execute(&line);
         }
-        if !tooltip.is_empty() {
-            response.on_hover_text(tooltip);
+        if tooltip.is_empty() {
+            // No tooltip of its own: the menu's name and what it offers.
+            let names: Vec<&str> = controls
+                .iter()
+                .filter_map(|c| {
+                    let line = c.command.as_deref()?;
+                    Some(if c.label.is_empty() {
+                        line
+                    } else {
+                        c.label.as_str()
+                    })
+                })
+                .collect();
+            response.on_hover_text(crate::ui_text::without_spec_codes(&format!(
+                "{label} · pick one: {}",
+                names.join(", ")
+            )));
+        } else {
+            response.on_hover_text(crate::ui_text::without_spec_codes(tooltip));
         }
     }
 

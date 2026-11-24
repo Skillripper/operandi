@@ -368,6 +368,7 @@ mod typography;
 #[cfg(test)]
 mod ui_inventory;
 mod ui_preferences;
+mod ui_text;
 mod unavailable;
 mod undo_autosave;
 mod units_preferences;

@@ -12,25 +12,25 @@
       "command": "operandi.topology.tool \"Topology Pen\"",
       "label": "Topology Pen",
       "icon": "topology-pen",
-      "tooltip": "Topology Pen · with Constrain to Background on (TB-11) · operandi.topology.tool"
+      "tooltip": "Topology Pen · with Constrain to Background on · operandi.topology.tool"
     },
     {
       "command": "operandi.topology.tool \"tool.set prim.pen on\"",
       "label": "Pen",
       "icon": "pen",
-      "tooltip": "Pen · with Constrain to Background on (TB-11) · operandi.topology.tool"
+      "tooltip": "Pen · with Constrain to Background on · operandi.topology.tool"
     },
     {
       "command": "operandi.topology.tool \"Sketch\"",
       "label": "Topology Sketch",
       "icon": "sketch",
-      "tooltip": "Topology Sketch · with Constrain to Background on (TB-11) · operandi.topology.tool"
+      "tooltip": "Topology Sketch · with Constrain to Background on · operandi.topology.tool"
     },
     {
       "command": "operandi.topology.tool \"Bridge\"",
       "label": "Bridge",
       "icon": "bridge",
-      "tooltip": "Bridge · with Constrain to Background on (TB-11) · operandi.topology.tool"
+      "tooltip": "Bridge · with Constrain to Background on · operandi.topology.tool"
     },
     {
       "divider": ""
@@ -38,20 +38,20 @@
     {
       "command": "operandi.topology.tool \"Element Move\"",
       "label": "Topology Tweak",
-      "tooltip": "Topology Tweak · with Constrain to Background on (TB-11) · operandi.topology.tool",
+      "tooltip": "Topology Tweak · with Constrain to Background on · operandi.topology.tool",
       "icon": "element-move"
     },
     {
       "command": "operandi.topology.tool \"Slide\"",
       "label": "Edge Slide",
       "icon": "edge-slide",
-      "tooltip": "Edge Slide · with Constrain to Background on (TB-11) · operandi.topology.tool"
+      "tooltip": "Edge Slide · with Constrain to Background on · operandi.topology.tool"
     },
     {
       "command": "operandi.topology.tool \"Smooth\"",
       "label": "Smooth",
       "icon": "smooth",
-      "tooltip": "Smooth · with Constrain to Background on (TB-11) · operandi.topology.tool"
+      "tooltip": "Smooth · with Constrain to Background on · operandi.topology.tool"
     },
     {
       "divider": ""
@@ -60,18 +60,18 @@
       "command": "operandi.topology.tool \"Edge Slice\"",
       "label": "Edge Slice",
       "icon": "edge-slice",
-      "tooltip": "Edge Slice · with Constrain to Background on (TB-11) · operandi.topology.tool"
+      "tooltip": "Edge Slice · with Constrain to Background on · operandi.topology.tool"
     },
     {
       "command": "operandi.topology.tool \"Loop Slice\"",
       "label": "Loop Slice",
       "icon": "loop-slice",
-      "tooltip": "Loop Slice · with Constrain to Background on (TB-11) · operandi.topology.tool"
+      "tooltip": "Loop Slice · with Constrain to Background on · operandi.topology.tool"
     },
     {
       "command": "operandi.topology.tool \"Add Loop\"",
       "label": "Add Loop",
-      "tooltip": "Add Loop · with Constrain to Background on (TB-11) · operandi.topology.tool",
+      "tooltip": "Add Loop · with Constrain to Background on · operandi.topology.tool",
       "icon": "loop-cut"
     },
     {
