@@ -61,9 +61,9 @@ fn old_no_handles(tool: Tool) -> bool {
             | Tool::LinearAlign
             | Tool::Bend
             | Tool::SymmetryTool
-            // No handle drawn (ACS-Q-HANDLE1).
+            // No handle drawn (ACS-Q-HANDLE1). Vertex Bevel has its Inset
+            // arrow now (2026-11-23), so every Bevel shows a gizmo.
             | Tool::EdgeRelax
-            | Tool::VertexBevel
             // Contour draws its own line (contour_ui.rs).
             | Tool::Contour
     ) || tool == Tool::VertexCreate
@@ -148,9 +148,11 @@ fn old_anchor(tool: Tool) -> Option<HandleAnchor> {
         Tool::EdgeSlide => HandleAnchor::EdgeRail,
         Tool::EdgeBevel | Tool::EdgeChamfer => HandleAnchor::Edge,
         Tool::EdgeCrease => HandleAnchor::Edge,
-        Tool::VertexExtrude | Tool::VertexMerge | Tool::VertexTear | Tool::VertexSlide => {
-            HandleAnchor::Vertex
-        }
+        Tool::VertexBevel
+        | Tool::VertexExtrude
+        | Tool::VertexMerge
+        | Tool::VertexTear
+        | Tool::VertexSlide => HandleAnchor::Vertex,
         Tool::Chamfer => HandleAnchor::ChamferStrip,
         Tool::Box => HandleAnchor::Position,
         Tool::Bevel | Tool::TwistBevel | Tool::Extrude | Tool::SmoothShift | Tool::Thicken => {

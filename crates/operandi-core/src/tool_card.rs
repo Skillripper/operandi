@@ -531,12 +531,14 @@ pub fn card(tool: Tool) -> ToolCard {
         Tool::VertexCreate => {
             c(tool, F::Create, Modes::VERTEX).layers(Unused, NO_FALLOFF, Built, Snap::Placement)
         }
-        // Vertex Bevel's plain drag is its own gesture; no handle is drawn
-        // (ACS-Q-HANDLE1).
+        // Vertex Bevel's plain drag off the handle is still its own gesture
+        // (left/right sets the Inset). Its Inset arrow sits on the handle
+        // point along its rail, as Vertex Merge's does (2026-11-23: every
+        // Bevel shows a gizmo when picked; ACS-Q-HANDLE1 had none).
         Tool::VertexBevel => c(tool, F::Vertex, Modes::VERTEX)
             .takes(Takes::Points)
             .layers(Unused, FALLOFF, ViaSelection, Snap::None)
-            .handles(K::None, At::None, Ax::VertexRail)
+            .handles(K::Single, At::Vertex, Ax::VertexRail)
             .multi_mesh(),
         Tool::VertexExtrude => c(tool, F::Vertex, Modes::VERTEX)
             .takes(Takes::Points)
