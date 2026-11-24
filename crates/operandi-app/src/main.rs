@@ -125,6 +125,7 @@ mod deform_panel;
 mod detents;
 mod detriangulate_dialog;
 mod dialog_place;
+#[path = "materials/display_shading.rs"]
 mod display_shading;
 #[cfg(test)]
 mod drag_undo_guard_tests;
@@ -144,6 +145,7 @@ mod duplicate_view;
 #[path = "edges/edge_panel.rs"]
 mod edge_panel;
 mod edit_panel;
+#[path = "materials/editor_color_ui.rs"]
 mod editor_color_ui;
 #[path = "create_tools/ellipsoid_panel.rs"]
 mod ellipsoid_panel;
@@ -180,6 +182,7 @@ mod gpu_chunks;
 mod gpu_memory;
 #[path = "graphics/gpu_scene.rs"]
 mod gpu_scene;
+#[path = "materials/gradient_ui.rs"]
 mod gradient_ui;
 #[path = "graphics/grid.rs"]
 mod grid;
@@ -249,6 +252,7 @@ mod material_gpu;
 #[cfg(test)]
 #[path = "graphics/material_gpu_tests.rs"]
 mod material_gpu_tests;
+#[path = "materials/material_layout.rs"]
 mod material_layout;
 #[path = "commands/mcp.rs"]
 mod mcp;
@@ -315,6 +319,7 @@ mod plane_handles_tests;
 mod plane_teapot_tests;
 mod poly_haul_drag;
 mod polygon_align;
+#[path = "materials/polygon_material_dialog.rs"]
 mod polygon_material_dialog;
 mod polygon_part_dialog;
 mod polygon_unify_dialog;
@@ -389,6 +394,7 @@ mod session_draw;
 #[path = "graphics/session_draw_tests.rs"]
 mod session_draw_tests;
 mod set_position_dialog;
+#[path = "materials/shading_panel.rs"]
 mod shading_panel;
 #[path = "create_tools/shape_panel.rs"]
 mod shape_panel;
@@ -4257,6 +4263,7 @@ mod selection_ui_tests;
 #[cfg(test)]
 mod shader_layer_menu_tests;
 #[cfg(test)]
+#[path = "materials/shading_panel_tests.rs"]
 mod shading_panel_tests;
 #[cfg(test)]
 mod slice_tools_tests;
@@ -4387,6 +4394,7 @@ mod cone_numeric_repeat_history_tests;
 #[cfg(test)]
 mod polygon_align_tests;
 #[cfg(test)]
+#[path = "materials/polygon_material_tests.rs"]
 mod polygon_material_tests;
 #[cfg(test)]
 mod polygon_part_dialog_tests;
@@ -4464,6 +4472,7 @@ mod journal_tests;
 #[path = "input_devices/look_around_tests.rs"]
 mod look_around_tests;
 #[cfg(test)]
+#[path = "materials/material_editing_tests.rs"]
 mod material_editing_tests;
 #[cfg(test)]
 #[path = "input_devices/nav_lock_hide_tests.rs"]
