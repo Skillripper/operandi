@@ -256,3 +256,45 @@ fn posing_a_skinned_million_points() {
         e.scene.item(mesh).unwrap().mesh.faces.len(),
     );
 }
+
+/// What the per-polygon allocations cost at 1M polygons (follow-up
+/// question): each `Face` owns its own point list and a material name.
+/// Times building, copying (a polygon edit's copy-on-write of the list)
+/// and freeing them, against the same polygons as one flat index list with
+/// offsets, and the bytes each layout takes.
+#[test]
+#[ignore = "opt-in timings; run in release with --nocapture"]
+fn per_polygon_allocations() {
+    let mesh = grid(1000);
+    let faces: &Vec<Face> = &mesh.faces;
+    let n = faces.len();
+    line("faces_1m_build", best(5, || grid(1000).faces.len()), n);
+    line("faces_1m_copy", best(5, || faces.clone()), n);
+    line(
+        "faces_1m_copy_and_free",
+        best(5, || drop(std::hint::black_box(faces.clone()))),
+        n,
+    );
+    let flat = || {
+        let mut offsets = Vec::with_capacity(n + 1);
+        let mut indices = Vec::with_capacity(n * 4);
+        offsets.push(0u32);
+        for f in faces.iter() {
+            indices.extend_from_slice(&f.vertices);
+            offsets.push(indices.len() as u32);
+        }
+        (offsets, indices, vec![0u16; n], vec![false; n])
+    };
+    let layout = flat();
+    line("flat_1m_build_from_faces", best(5, flat), n);
+    line("flat_1m_copy", best(5, || layout.clone()), n);
+    let face_bytes = n * std::mem::size_of::<Face>()
+        + faces
+            .iter()
+            .map(|f| f.vertices.capacity() * 4)
+            .sum::<usize>();
+    let flat_bytes = layout.0.len() * 4 + layout.1.len() * 4 + layout.2.len() * 2 + layout.3.len();
+    println!(
+        "BENCH layout_bytes faces={face_bytes} (+ one heap block per polygon) flat={flat_bytes}"
+    );
+}
