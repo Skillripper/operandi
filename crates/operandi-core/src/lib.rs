@@ -1,4 +1,5 @@
 //! Portable modeling state. No window, graphics, or platform API dependencies.
+#[path = "transforms/action_center.rs"]
 pub mod action_center;
 pub mod bake;
 #[path = "sculpting/brush_engine.rs"]
@@ -33,7 +34,9 @@ pub mod uv_atlas;
 pub mod uv_box;
 pub mod uv_charts;
 pub use action_center::*;
+#[path = "transforms/align_tools.rs"]
 pub mod align_tools;
+#[path = "transforms/angle_snap.rs"]
 pub mod angle_snap;
 #[path = "curve_tools/pen.rs"]
 pub mod pen;
@@ -124,6 +127,7 @@ pub mod editor;
 pub use command_record::{CommandClass, CommandRecord, RecordLog, Source, StepRecords};
 #[path = "commands/history_settings.rs"]
 mod history_settings;
+#[path = "transforms/units.rs"]
 pub mod units;
 #[path = "commands/user_defaults.rs"]
 pub mod user_defaults;
@@ -132,6 +136,7 @@ pub use history_settings::*;
 mod flip;
 #[path = "polygons/flip_it.rs"]
 mod flip_it;
+#[path = "transforms/freeze.rs"]
 pub mod freeze;
 #[path = "geometry/fxhash.rs"]
 pub mod fxhash;
@@ -282,8 +287,10 @@ pub mod command_names;
 pub mod command_registry;
 #[path = "commands/command_runtime.rs"]
 pub mod command_runtime;
+#[path = "transforms/set_position.rs"]
 mod set_position;
 pub use set_position::*;
+#[path = "transforms/absolute_scaling.rs"]
 mod absolute_scaling;
 pub use absolute_scaling::*;
 #[path = "polygons/polygon_subdivide.rs"]
@@ -528,6 +535,7 @@ pub mod persistence;
 pub mod preset;
 #[path = "primitives/primitive.rs"]
 pub mod primitive;
+#[path = "transforms/transform_repeat.rs"]
 pub mod transform_repeat;
 #[path = "commands/undo_memory.rs"]
 mod undo_memory;
@@ -550,7 +558,9 @@ pub mod backdrop;
 pub mod last_mesh;
 #[path = "selections/multi_active.rs"]
 pub mod multi_active;
+#[path = "transforms/multi_tools.rs"]
 pub mod multi_tools;
+#[path = "transforms/multi_transform.rs"]
 pub mod multi_transform;
 pub use multi_active::ComponentSelection;
 #[path = "scene_items/scene.rs"]
@@ -598,6 +608,7 @@ pub use deform_finish::{
 pub use topology_pen::{PenEdit, PenMode, TopologyPenOptions};
 #[path = "tools/haul.rs"]
 pub mod haul;
+#[path = "transforms/pivot_service.rs"]
 pub mod pivot_service;
 #[path = "tools/tool_preset.rs"]
 pub mod tool_preset;
@@ -636,10 +647,15 @@ pub mod sculpt_blender;
 // The rest stays under `sculpt::` (its `Stroke` would clash with egui's in
 // the app's glob imports).
 pub use sculpt::{SculptBrush, SculptEdit, SculptItemEdit, SculptSettings};
+#[path = "transforms/symmetrize_tool.rs"]
 pub mod symmetrize_tool;
+#[path = "transforms/symmetry.rs"]
 pub mod symmetry;
+#[path = "transforms/symmetry_fix.rs"]
 pub mod symmetry_fix;
+#[path = "transforms/symmetry_sides.rs"]
 pub mod symmetry_sides;
+#[path = "transforms/symmetry_support.rs"]
 pub mod symmetry_support;
 #[path = "tools/tool_card.rs"]
 pub mod tool_card;
