@@ -627,6 +627,36 @@ used in the app; `primitive_add` always starts from the Reset values.
 - **`deformer.selectBaseMesh`** — Edit Base Mesh on or off: direct tools then edit the mesh's Base Mesh, with the stack's result drawn as a ghost.
   - `item` (integer): Item id; default the active item.
   - `select` (boolean): Default true.
+- **`meshblend.new`** — Make a MeshBlend Item: a new mesh whose Mesh Stack blends the selected meshes (all Primaries, unioned) as smooth surfaces. The new item is selected. No arguments.
+- **`meshblend.addSource`** — Add a mesh to a MeshBlend Item with a role. A Trim acts on the Primaries in of, or on every Primary when of is left out.
+  - `item` (integer): Item id; default the active item.
+  - `source` (integer, required): The mesh item to add.
+  - `role` (string): primary (default), subtract or intersect.
+  - `of` (array): For a Trim: the Primary mesh ids it acts on.
+- **`meshblend.role`** — Change a MeshBlend source's role (primary, subtract or intersect). A new Trim acts on every Primary until Trim or Untrim changes that.
+  - `item` (integer): Item id; default the active item.
+  - `source` (integer, required): The source mesh.
+  - `role` (string, required): primary, subtract or intersect.
+- **`meshblend.trim`** — Relate Trims to Primaries: each Trim in source then acts on each Primary in of.
+  - `item` (integer): Item id; default the active item.
+  - `source` (array, required): The Trim mesh id, or a list of them.
+  - `of` (array, required): The Primary mesh id, or a list of them.
+- **`meshblend.untrim`** — Remove relationships: each Trim in source stops acting on each Primary in of.
+  - `item` (integer): Item id; default the active item.
+  - `source` (array, required): The Trim mesh id, or a list of them.
+  - `of` (array, required): The Primary mesh id, or a list of them.
+- **`meshblend.clearRole`** — Take a source out of a MeshBlend Item; it is an ordinary mesh again.
+  - `item` (integer): Item id; default the active item.
+  - `source` (integer, required): The source mesh.
+- **`meshblend.source`** — Set a MeshBlend source's settings: enabled (in the result or not), subdivision (0-3, how finely its smooth surface becomes polygons) and keepCage (use the cage's points).
+  - `item` (integer): Item id; default the active item.
+  - `source` (integer, required): The source mesh.
+  - `enabled` (boolean): In the result or not.
+  - `subdivision` (integer): 0 to 3; 0 uses the cage as it is.
+  - `keepCage` (boolean): Use the cage's points instead of the smooth surface.
+- **`meshblend.convert`** — Freeze a MeshBlend Item's result into an ordinary mesh: in place, or as a new mesh item with duplicate.
+  - `item` (integer): Item id; default the active item.
+  - `duplicate` (boolean): Make a new mesh item; default false.
 - **`selop.indexcreate`** — Give the selected mesh operation a Select by Index of the polygons selected on its Base Mesh. No arguments.
 - **`selop.selection`** — Edit a mesh operation's Select by Index from the polygons selected on its Base Mesh.
   - `mode` (string): set (default), clear, add or remove; or 0 to 3.

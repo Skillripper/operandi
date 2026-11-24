@@ -15,6 +15,7 @@ mod item_transform_ui;
 #[cfg(test)]
 mod mesh_paint_tests;
 mod mesh_stack_ui;
+mod meshblend_ui;
 mod node_edit_ui;
 #[cfg(test)]
 mod node_edit_ui_tests;

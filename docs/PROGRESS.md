@@ -1,5 +1,15 @@
 # Milestone progress ledger
 
+- **MeshBlend B1 (2026-11-24, branch claude/project-thread-20fok5):**
+  Geometry > New MeshBlend makes a MeshBlend Item (a mesh whose stack
+  starts with the `meshblend.item` op) from the selected meshes. Recipe
+  (`meshblend/recipe.rs`) holds sources, roles, relationships, per-source
+  Subdivision / Keep Cage Points / In Result and the strip settings for
+  B2; evaluator (`meshblend/evaluate.rs`) is a plain function; eight
+  undoable `meshblend.*` commands; Properties rows per source with Add and
+  Convert. Sharp joins only. Bad sources are left out with a red line on
+  the op row (new `OpStatus::Noted`). Provisional: MB-Q01..Q05.
+
 - **MeshBlend B0 strip spike (2026-11-24, branch claude/project-thread-20fok5):**
   no UI. `meshblend_spike/` in core: a 25-scene corpus (BLD-C01..C27
   inputs plus FAILURES cases), the ST-10 topology gate and ST-09

@@ -13,6 +13,11 @@
       "label": "Vertex Normal Tools..."
     },
     {
+      "command": "meshblend.new",
+      "label": "New MeshBlend",
+      "tooltip": "New MeshBlend · a live, rebuilt-as-you-edit boolean of the selected meshes, read as smooth surfaces · meshblend.new"
+    },
+    {
       "form": "menu.geometry.draw"
     },
     {

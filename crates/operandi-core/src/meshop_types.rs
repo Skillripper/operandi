@@ -135,6 +135,16 @@ impl Linked {
     }
 }
 
+/// A line an op that ran wants shown with its row: a problem (red badge)
+/// or a hint, about one of its linked items (0 = the op itself). MeshBlend
+/// uses it for sources it left out (SB-70).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct OpNote {
+    pub item: u64,
+    pub text: String,
+    pub problem: bool,
+}
+
 /// What an op reads when it runs.
 pub struct OpContext<'a> {
     /// The result of the op below (or the Base Mesh).
@@ -149,8 +159,14 @@ pub struct OpContext<'a> {
     /// The scene time the stack is evaluated at (AR-02). Only ops that
     /// say [`OpDef::uses_time`] are re-run when it changes.
     pub time: crate::time_tick::Tick,
+    /// Lines for the op's row ([`OpContext::note`]).
+    pub notes: std::cell::RefCell<Vec<OpNote>>,
 }
 impl OpContext<'_> {
+    /// Adds a line to show with the op's row; the op still counts as run.
+    pub fn note(&self, note: OpNote) {
+        self.notes.borrow_mut().push(note);
+    }
     /// The chosen polygons, or empty for the whole mesh.
     pub fn chosen(&self) -> Result<Vec<u32>> {
         Ok(self.selection.map(<[u32]>::to_vec).unwrap_or_default())

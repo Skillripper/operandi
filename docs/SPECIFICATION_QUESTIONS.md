@@ -9761,3 +9761,13 @@ Built without a behaviour spec (Jason approved the feature; none of this was obs
 - MR-Q06 Topology changes (any tool adding or removing polygons) while the mesh is multiresolution leave the detail unable to follow: stepping and Add Level refuse with a reason, the read-out says "polygons changed", Apply Multiresolution keeps the mesh as it is; undo restores.
 - MR-Q07 Attenuate (SCT-43) fades the current level's detail toward the smoothed level below (the level with no detail of its own); greyed at level 0 and on plain meshes. Its Amount (25 %) is the share of the remaining detail removed per full-weight dab.
 - MR-Q08 Command names are Operandi's own (`operandi.multires.*`) until the name map has the reference's; Convert to Multiresolution and Background to Multiresolution on the painting Utilities tab stay greyed (their behaviour is unknown). Render uses the level you are at (no separate render level). No sculpt layers, no default shortcuts for stepping.
+
+## MeshBlend B1 (2026-11-24, branch claude/project-thread-20fok5, provisional)
+
+Spec meshblend-2026-11-24. Readings where the spec is silent:
+
+- MB-Q01 A Trim added or switched to with no Primary named acts on every Primary of the item (SB-11 sets the relationship by pick order; scripts and the panel's Add rows have no second pick). Untrim narrows it.
+- MB-Q02 Keep Cage Points uses the cage at Subdivision 0 (SB-22 says the result sits on the cage; how strips then meet it is B2's question).
+- MB-Q03 Duplicate and Convert makes the frozen copy but doesn't hide the MeshBlend Item or its sources (SB-53 says it hides them); Convert to Mesh is the existing Freeze of the item's whole stack.
+- MB-Q04 When the polygons rebuilt from provenance break a mesh rule, the result falls back to the engine's triangles for that rebuild (seen once in random sequences); the cause is open.
+- MB-Q05 A rebuild that fails shows the failure on the op's row and passes the (empty) Base Mesh through, as every Mesh Stack op does; ST-04's "keep the last good result" isn't built yet.

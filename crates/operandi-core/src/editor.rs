@@ -1667,6 +1667,8 @@ pub enum Command {
     /// Mesh Stack (mesh_stack_editor.rs): add an op of this type to the
     /// selected mesh (`meshop.create`).
     MeshOpCreate(String),
+    /// MeshBlend recipe edits (meshblend/commands.rs).
+    MeshBlend(crate::meshblend::MeshBlendCommand),
     /// Delete ops (`item.delete item:<op>`).
     MeshOpDelete(Vec<crate::mesh_stack_editor::OpRef>),
     /// Move an op to a position in evaluation order (`item.parent`).
@@ -2150,6 +2152,7 @@ impl Editor {
         }
         match cmd {
             Command::MeshOpCreate(t) => self.meshop_create(&t),
+            Command::MeshBlend(c) => self.meshblend(c),
             Command::MeshOpDelete(ops) => self.meshop_delete(&ops),
             Command::MeshOpMove { op, position } => self.meshop_move(op, position),
             Command::MeshOpEnable { op, on } => self.meshop_enable(op, on),
@@ -3025,6 +3028,7 @@ impl Editor {
             | Command::SelectUvIslands(_)
             | Command::Boolean(_)
             | Command::MeshOpCreate(_)
+            | Command::MeshBlend(_)
             | Command::MeshOpDelete(_)
             | Command::MeshOpMove { .. }
             | Command::MeshOpEnable { .. }

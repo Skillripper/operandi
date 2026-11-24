@@ -263,6 +263,8 @@ pub(crate) fn op_icon(id: &str) -> Option<crate::icons::Icon> {
         "radial.array.item" => "radial-array",
         "linear.clone.item" => "clone",
         "boolean.meshop.item" | "solidDrill.meshop.item" | "axisDrill.meshop.item" => "boolean",
+        // Its own studio icon comes with the full MeshBlend Item (B1b).
+        "meshblend.item" => "boolean",
         "pmodel.meshmerge" | "pmodel.mergePolygons.item" => "merge",
         "poly.extrude.item" => "extrude",
         "symmetrize.meshop.item" => "symmetry",
@@ -468,6 +470,17 @@ impl Operandi {
             if let Some(OpStatus::Failed(reason)) = status {
                 row.tint = Some(theme::error());
                 row.tip = Some(format!("Failed, passed through: {reason}"));
+            } else if let Some(OpStatus::Noted(notes)) = status {
+                if notes.iter().any(|n| n.problem) {
+                    row.tint = Some(theme::error());
+                }
+                row.tip = Some(
+                    notes
+                        .iter()
+                        .map(|n| n.text.as_str())
+                        .collect::<Vec<_>>()
+                        .join("\n"),
+                );
             } else if op.kind.takes_selection() && op.selection.is_some() {
                 row.tip = Some("Works on its Select by Index".into());
             }
@@ -661,6 +674,7 @@ impl Operandi {
         let mut selop_edit = None;
         let mut selop_open: Option<egui::Rect> = None;
         let mut dragged = false;
+        let mut blend_commands = Vec::new();
         rows::scope(ui, "mesh-op-properties", |ui| {
             rows::section(ui, &op.kind.label(), false, |ui| {
                 // The form comes from the op's type (KIT-4: kits describe
@@ -803,6 +817,11 @@ impl Operandi {
                     dragged |= response.dragged();
                 }
             });
+            if def.id() == operandi_core::meshblend::MESHBLEND_OP {
+                let status = evaluated.and_then(|e| e.statuses.get(index));
+                blend_commands =
+                    crate::meshblend_ui::sections(ui, &self.editor.scene, item, status);
+            }
             if op.kind.takes_selection() {
                 rows::section(ui, "Selection", false, |ui| {
                     let text = op
@@ -843,6 +862,9 @@ impl Operandi {
                 });
             }
         });
+        for c in blend_commands {
+            self.run(c);
+        }
         if let Some(edit) = index_edit {
             self.run(Command::MeshOpIndex { op: r, edit });
         }
