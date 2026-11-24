@@ -169,5 +169,6 @@
 - [Reference]()
     - [CAD export (STEP and IGES)](reference/cad-export.md)
     - [Keyboard shortcuts](reference/keyboard-shortcuts.md)
+    - [Opening LXO scenes](reference/lxo-scenes.md)
     - [Commands]()
 - [Glossary]()

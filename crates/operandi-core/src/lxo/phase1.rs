@@ -33,19 +33,58 @@ fn err(category: &'static str, detail: &str) -> Error {
 }
 
 #[derive(Clone, Debug)]
-enum Value {
+pub(super) enum Value {
     Number(f64),
     Text(String),
 }
 
 #[derive(Default)]
-struct RawItem {
-    kind: String,
-    name: String,
-    visible_name: Option<String>,
-    channels: BTreeMap<String, Value>,
+pub(super) struct RawItem {
+    pub(super) id: u32,
+    pub(super) kind: String,
+    pub(super) name: String,
+    pub(super) visible_name: Option<String>,
+    pub(super) channels: BTreeMap<String, Value>,
     /// (graph, target reference, ordinal)
-    links: Vec<(String, u32, u32)>,
+    pub(super) links: Vec<(String, u32, u32)>,
+}
+
+impl RawItem {
+    /// The name shown for the item: its own, else its display name.
+    pub(super) fn label(&self) -> String {
+        if self.name.is_empty() {
+            self.visible_name.clone().unwrap_or_default()
+        } else {
+            self.name.clone()
+        }
+    }
+    /// The first item its `graph` link points at.
+    pub(super) fn link(&self, graph: &str) -> Option<u32> {
+        self.links
+            .iter()
+            .find(|(g, _, _)| g == graph)
+            .map(|(_, t, _)| *t)
+    }
+}
+
+/// A channel link (`CLNK`, LXA-70), stored on the driving item: the
+/// driving item and channel, the driven item and channel, and the two
+/// order indices.
+#[derive(Clone, Debug)]
+pub(super) struct ChannelLink {
+    pub(super) graph: String,
+    pub(super) from: u32,
+    pub(super) from_channel: String,
+    pub(super) to: u32,
+    pub(super) to_channel: String,
+}
+
+/// Everything besides geometry that the animation and rig import read.
+#[derive(Default)]
+pub(super) struct Extras {
+    pub(super) envelopes: BTreeMap<u32, super::envelope::Envelope>,
+    pub(super) actions: super::actions::Actions,
+    pub(super) clinks: Vec<ChannelLink>,
 }
 
 #[derive(Default)]
@@ -63,11 +102,15 @@ struct Layer {
     point_uvs: BTreeMap<String, BTreeMap<u32, DVec2>>,
     corner_uvs: BTreeMap<String, BTreeMap<(u32, usize), DVec2>>,
     creases: BTreeMap<(u32, u32), f64>,
+    /// Weight maps (`VMAP WGHT`, LXA-62) and morph maps (`VMAP MORF`,
+    /// LXA-90, offsets with Z negated like the points).
+    weights: BTreeMap<String, BTreeMap<u32, f64>>,
+    morphs: BTreeMap<String, BTreeMap<u32, DVec3>>,
 }
 
 /// A channel value: the type's low 4 bits give the kind (1 integer, 2
 /// float, 3 string); the high bits are ignored.
-fn value(r: &mut Reader<'_>, kind: u16, c: &mut Control<'_>) -> Result<Option<Value>> {
+pub(super) fn value(r: &mut Reader<'_>, kind: u16, c: &mut Control<'_>) -> Result<Option<Value>> {
     Ok(match kind & 0xf {
         1 => Some(Value::Number(r.u32()? as i32 as f64)),
         2 => Some(Value::Number(r.f32()?)),
@@ -81,11 +124,71 @@ fn value(r: &mut Reader<'_>, kind: u16, c: &mut Control<'_>) -> Result<Option<Va
 /// `preset`: the file is a mesh preset (`LXPM`), whose layers may have no
 /// mesh item; each such layer then imports as a mesh of its own.
 pub(super) fn read(chunks: &[Chunk<'_>], c: &mut Control<'_>, preset: bool) -> Result<Candidate> {
+    let (layers, items, extras, report) = gather(chunks, c)?;
+    scene(layers, items, extras, report, c, preset)
+}
+
+/// Every keyed channel's curve as the file holds it, by item label and
+/// Modo channel name (transform keys under the item they move), whether
+/// or not Operandi has the channel. For tests and diagnostics.
+pub(super) fn keyed_curves(
+    chunks: &[Chunk<'_>],
+    c: &mut Control<'_>,
+) -> Result<Vec<(String, String, crate::anim_curve::Curve)>> {
+    let (_, items, extras, _) = gather(chunks, c)?;
+    let fps = items
+        .values()
+        .find(|i| i.kind == "scene")
+        .and_then(|s| {
+            number(s, "fps").or_else(|| {
+                extras
+                    .actions
+                    .setup
+                    .records
+                    .get(&s.id)
+                    .and_then(|m| m.get("fps"))
+                    .and_then(|r| match r.value {
+                        Some(Value::Number(n)) => Some(n),
+                        _ => None,
+                    })
+            })
+        })
+        .unwrap_or(24.);
+    let rate = crate::time_tick::FrameRate::from_f64(fps);
+    let mut out = Vec::new();
+    for (id, records) in &extras.actions.scene.records {
+        for (channel, r) in records {
+            let Some(env) = r.envelope.and_then(|e| extras.envelopes.get(&e)) else {
+                continue;
+            };
+            let Some(item) = items.get(id) else {
+                continue;
+            };
+            let owner = match item.kind.as_str() {
+                "translation" | "rotation" | "scale" => item
+                    .link("xfrmCore")
+                    .and_then(|o| items.get(&o))
+                    .unwrap_or(item),
+                _ => item,
+            };
+            let interpolation = super::envelope::Interpolation::of_type(r.ty);
+            let (curve, _) = super::envelope::to_curve(env, interpolation, rate);
+            out.push((owner.label(), channel.clone(), curve));
+        }
+    }
+    Ok(out)
+}
+
+type Gathered = (Vec<Layer>, BTreeMap<u32, RawItem>, Extras, Report);
+
+/// Reads the chunks into layers, items and the animation and rig records.
+fn gather(chunks: &[Chunk<'_>], c: &mut Control<'_>) -> Result<Gathered> {
     let mut report = Report::default();
     let mut names: Vec<String> = Vec::new();
     let mut tags: Vec<String> = Vec::new();
     let mut layers: Vec<Layer> = Vec::new();
     let mut items: BTreeMap<u32, RawItem> = BTreeMap::new();
+    let mut extras = Extras::default();
     let mut skipped_chunks: BTreeMap<String, usize> = BTreeMap::new();
     let mut skipped_types = 0usize;
     // Records inside chunks that are read but not used (item records,
@@ -173,6 +276,7 @@ pub(super) fn read(chunks: &[Chunk<'_>], c: &mut Control<'_>, preset: bool) -> R
                 let name = r.string(c)?;
                 let id = r.u32()?;
                 let mut item = RawItem {
+                    id,
                     kind,
                     name,
                     ..Default::default()
@@ -187,6 +291,19 @@ pub(super) fn read(chunks: &[Chunk<'_>], c: &mut Control<'_>, preset: bool) -> R
                             let ordinal = s.u32()?;
                             item.links.push((graph, target, ordinal));
                         }
+                        b"CLNK" => {
+                            let graph = s.string(c)?;
+                            let from_channel = s.string(c)?;
+                            let to = s.u32()?;
+                            let to_channel = s.string(c)?;
+                            extras.clinks.push(ChannelLink {
+                                graph,
+                                from: id,
+                                from_channel,
+                                to,
+                                to_channel,
+                            });
+                        }
                         b"CHAN" => {
                             let index = s.vx()? as usize;
                             let kind = s.u16()?;
@@ -195,6 +312,13 @@ pub(super) fn read(chunks: &[Chunk<'_>], c: &mut Control<'_>, preset: bool) -> R
                             {
                                 item.channels.insert(name.clone(), v);
                             }
+                        }
+                        // A string channel (an expression, a weight
+                        // map's name): its name, then its text.
+                        b"CHNS" => {
+                            let name = s.string(c)?;
+                            let text = s.string(c)?;
+                            item.channels.insert(name, Value::Text(text));
                         }
                         b"CHNV" => {
                             let base = s.string(c)?;
@@ -223,6 +347,11 @@ pub(super) fn read(chunks: &[Chunk<'_>], c: &mut Control<'_>, preset: bool) -> R
                     );
                 }
             }
+            b"ENVL" => {
+                let env = super::envelope::read(ch, c)?;
+                extras.envelopes.insert(env.index, env);
+            }
+            b"ACTN" => super::actions::read(ch, &names, &mut extras.actions, c)?,
             other => {
                 *skipped_chunks
                     .entry(String::from_utf8_lossy(other).into_owned())
@@ -249,7 +378,7 @@ pub(super) fn read(chunks: &[Chunk<'_>], c: &mut Control<'_>, preset: bool) -> R
             skipped_types,
         );
     }
-    scene(layers, items, report, c, preset)
+    Ok((layers, items, extras, report))
 }
 
 fn geometry(
@@ -361,7 +490,16 @@ fn geometry(
             let dimension = r.u16()? as usize;
             let name = r.string(c)?;
             let uv = &kind == b"TXUV" && dimension == 2;
-            if !uv {
+            let point_map = &ch.id == b"VMAP";
+            let weight = point_map && &kind == b"WGHT" && dimension == 1;
+            let morph = point_map && &kind == b"MORF" && dimension == 3;
+            if weight {
+                layer.weights.entry(name.clone()).or_default();
+            }
+            if morph {
+                layer.morphs.entry(name.clone()).or_default();
+            }
+            if !uv && !weight && !morph {
                 skip(format!(
                     "{}.{}",
                     String::from_utf8_lossy(&ch.id),
@@ -382,6 +520,20 @@ fn geometry(
                 let mut values = Vec::with_capacity(dimension);
                 for _ in 0..dimension {
                     values.push(r.f32()?);
+                }
+                if weight {
+                    c.charge(48)?;
+                    layer.weights.get_mut(&name).unwrap().insert(v, values[0]);
+                    continue;
+                }
+                if morph {
+                    c.charge(64)?;
+                    layer
+                        .morphs
+                        .get_mut(&name)
+                        .unwrap()
+                        .insert(v, DVec3::new(values[0], values[1], -values[2]));
+                    continue;
                 }
                 if !uv {
                     continue;
@@ -428,14 +580,14 @@ fn geometry(
     Ok(())
 }
 
-fn number(item: &RawItem, key: &str) -> Option<f64> {
+pub(super) fn number(item: &RawItem, key: &str) -> Option<f64> {
     match item.channels.get(key) {
         Some(Value::Number(n)) => Some(*n),
         _ => None,
     }
 }
 
-fn text<'a>(item: &'a RawItem, key: &str) -> Option<&'a str> {
+pub(super) fn text<'a>(item: &'a RawItem, key: &str) -> Option<&'a str> {
     match item.channels.get(key) {
         Some(Value::Text(t)) => Some(t),
         _ => None,
@@ -450,8 +602,10 @@ fn pivot_note(mesh: &str, pivot: DVec3) -> Option<String> {
 /// Item kinds imported as scene items. Modo's locators and group
 /// locators become Group Locators, Operandi's one transform-only item
 /// (provisional, LXO-AN-Q01); a mesh instance becomes a Mesh Instance.
-fn scene_kind(kind: &str) -> bool {
+pub(super) fn scene_kind(kind: &str) -> bool {
     matches!(kind, "mesh" | "locator" | "groupLocator" | "meshInst")
+        || kind == "camera"
+        || super::cameras_lights::light_kind(kind).is_some()
 }
 
 /// An item's transform from its stack of transform items. Each of
@@ -541,6 +695,7 @@ fn rotation_order(word: &str) -> Option<crate::scene::RotationOrder> {
 fn scene(
     layers: Vec<Layer>,
     items: BTreeMap<u32, RawItem>,
+    extras: Extras,
     mut report: Report,
     c: &mut Control<'_>,
     preset: bool,
@@ -584,12 +739,19 @@ fn scene(
     let skipped: BTreeSet<&str> = items
         .values()
         .map(|i| i.kind.as_str())
-        .filter(|k| !scene_kind(k) && !matches!(*k, "translation" | "rotation" | "scale" | "shear"))
+        .filter(|k| {
+            !scene_kind(k)
+                && !matches!(*k, "translation" | "rotation" | "scale" | "shear")
+                && !super::cameras_lights::handled(k)
+                && !super::rig_import::handled(k)
+        })
         .collect();
     for kind in skipped {
         report.omit(format!("{kind} items (not modelling)"));
     }
     let mut scene = Scene::default();
+    // Joints, IK goals and the skins' weight-map names (LXA-60/61/80).
+    let rig_plan = super::rig_import::plan(&items, &extras);
     let imported: Vec<u32> = items
         .iter()
         .filter(|(_, i)| scene_kind(&i.kind))
@@ -628,8 +790,15 @@ fn scene(
                     .map(|(_, target, _)| u64::from(*target) + 1)
             })
             .flatten();
-        let locator = matches!(item.kind.as_str(), "locator" | "groupLocator")
-            .then_some(crate::locator::LocatorKind::Group);
+        let locator = matches!(item.kind.as_str(), "locator" | "groupLocator").then(|| {
+            if rig_plan.joints.contains(&id) {
+                crate::locator::LocatorKind::Joint
+            } else if rig_plan.goals.contains(&id) {
+                crate::locator::LocatorKind::IkGoal
+            } else {
+                crate::locator::LocatorKind::Group
+            }
+        });
         locators += usize::from(locator.is_some());
         let layer = by_item.remove(&id).unwrap_or_default();
         let name = if item.name.is_empty() {
@@ -641,7 +810,8 @@ fn scene(
         };
         let mesh = if item.kind == "mesh" {
             report.notes.extend(pivot_note(&name, layer.pivot));
-            let (mesh, notes) = build_mesh(layer, &name)?;
+            let renames = rig_plan.map_names.get(&id);
+            let (mesh, notes) = build_mesh(layer, &name, renames)?;
             report.notes.extend(notes);
             mesh
         } else {
@@ -657,8 +827,8 @@ fn scene(
             source_display_name: item.visible_name.clone(),
             subdivision: None,
             backdrop: None,
-            camera: None,
-            light: None,
+            camera: (item.kind == "camera").then(|| super::cameras_lights::camera(item)),
+            light: super::cameras_lights::light(item, &items),
             texture: None,
             locator,
             environment: None,
@@ -687,7 +857,7 @@ fn scene(
             layer.name.clone()
         };
         report.notes.extend(pivot_note(&name, layer.pivot));
-        let (mesh, note) = build_mesh(layer, &name)?;
+        let (mesh, note) = build_mesh(layer, &name, None)?;
         report.notes.extend(note);
         scene.items.push(Item {
             id: next,
@@ -719,9 +889,11 @@ fn scene(
             mesh: mesh.into(),
         });
     }
-    if locators > 0 {
+    let joints = rig_plan.joints.len() + rig_plan.goals.len();
+    if locators > joints {
         report.notes.push(format!(
-            "{locators} locators and group locators imported as Group Locators"
+            "{} locators and group locators imported as Group Locators",
+            locators - joints
         ));
     }
     scene.sync_instances(None);
@@ -740,6 +912,11 @@ fn scene(
         }
     }
     scene.next_id = scene.items.iter().map(|i| i.id).max().unwrap_or(0) + 1;
+    // Rig pieces, then keys and the scene's time (they key piece channels
+    // too), then what needs the setup pose (spec lxo-import-anim-rig).
+    let pieces = super::rig_import::pieces(&mut scene, &items, &extras, &rig_plan, &mut report)?;
+    super::anim_import::apply(&mut scene, &items, &extras, &pieces, &mut report)?;
+    super::rig_import::finish(&mut scene, &rig_plan, &mut report);
     let first = scene
         .items
         .iter()
@@ -791,12 +968,23 @@ fn scene(
 }
 
 /// Builds one layer's mesh, with notes on what was dropped or marked.
-fn build_mesh(layer: Layer, name: &str) -> Result<(Mesh, Vec<String>)> {
+fn build_mesh(
+    layer: Layer,
+    name: &str,
+    renames: Option<&BTreeMap<String, String>>,
+) -> Result<(Mesh, Vec<String>)> {
     let mut mesh = Mesh {
         vertices: layer.points,
         faces: layer.faces.into(),
         ..Default::default()
     };
+    // Weight maps (a skin's under its joints' names, LXA-61) and morph
+    // maps as relative morphs (LXA-90).
+    for (map, values) in layer.weights {
+        let map = renames.and_then(|r| r.get(&map)).cloned().unwrap_or(map);
+        mesh.attributes.point_weights.insert(map, values);
+    }
+    mesh.attributes.relative_morphs = layer.morphs;
     // Every mesh carries a "Texture" UV map, empty when the file has none.
     let mut maps: BTreeSet<String> = layer.point_uvs.keys().cloned().collect();
     maps.extend(layer.corner_uvs.keys().cloned());

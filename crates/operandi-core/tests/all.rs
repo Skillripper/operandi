@@ -323,6 +323,9 @@ mod loop_slice_surface_probe;
 mod loop_symmetry;
 #[path = "lxo.rs"]
 mod lxo;
+#[cfg(operandi_specs)]
+#[path = "lxo_anim_rig_spec.rs"]
+mod lxo_anim_rig_spec;
 #[path = "lxo_animation.rs"]
 mod lxo_animation;
 #[path = "lxo_budget_preflight.rs"]
