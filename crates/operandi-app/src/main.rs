@@ -125,7 +125,9 @@ mod drill_dialog;
 mod drop_action_ui;
 mod drop_keys;
 mod duplicate_item_rows;
+#[path = "duplication/duplicate_panel.rs"]
 mod duplicate_panel;
+#[path = "duplication/duplicate_transform_panel.rs"]
 mod duplicate_transform_panel;
 mod duplicate_view;
 mod edge_panel;
@@ -4069,6 +4071,7 @@ mod drop_keys_tests;
 #[cfg(test)]
 mod drop_lag_tests;
 #[cfg(test)]
+#[path = "duplication/duplicate_tools_tests.rs"]
 mod duplicate_tools_tests;
 #[cfg(test)]
 mod edge_tab_tests;
