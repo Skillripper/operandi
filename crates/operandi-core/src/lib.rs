@@ -57,6 +57,7 @@ pub mod curves;
 pub mod dicer;
 #[path = "meshops/generator_ops.rs"]
 pub mod generator_ops;
+#[path = "scene_items/item_merge.rs"]
 pub mod item_merge;
 #[path = "curve_tools/patch.rs"]
 pub mod patch;
@@ -76,6 +77,7 @@ pub use text::{TextJustification, TextLocation, TextParameters};
 pub mod unit_insert;
 pub use pen::*;
 pub use unit_insert::UnitShape;
+#[path = "scene_items/background_constraint.rs"]
 pub mod background_constraint;
 #[path = "render/camera_light.rs"]
 pub mod camera_light;
@@ -89,13 +91,21 @@ pub mod drop_action;
 pub mod environment;
 #[path = "render/environment_channels.rs"]
 mod environment_channels;
+#[path = "scene_items/item_common.rs"]
 pub mod item_common;
+#[path = "scene_items/item_common_channels.rs"]
 pub mod item_common_channels;
+#[path = "scene_items/item_delete.rs"]
 pub mod item_delete;
+#[path = "scene_items/item_extras.rs"]
 pub mod item_extras;
+#[path = "scene_items/item_groups.rs"]
 pub mod item_groups;
+#[path = "scene_items/item_list.rs"]
 pub mod item_list;
+#[path = "scene_items/item_target.rs"]
 pub mod item_target;
+#[path = "scene_items/item_transform_ops.rs"]
 pub mod item_transform_ops;
 #[path = "render/locator.rs"]
 pub mod locator;
@@ -375,6 +385,7 @@ pub mod ik_commands;
 pub mod ik_joint;
 #[path = "rigging/ik_switch.rs"]
 pub mod ik_switch;
+#[path = "scene_items/kit_item.rs"]
 pub mod kit_item;
 #[path = "meshops/mesh_stack.rs"]
 pub mod mesh_stack;
@@ -408,6 +419,7 @@ pub mod rig_list;
 pub mod rig_schematic;
 #[path = "rigging/rig_user_set.rs"]
 pub mod rig_user_set;
+#[path = "scene_items/scene_time.rs"]
 pub mod scene_time;
 #[path = "meshops/script_mesh.rs"]
 pub mod script_mesh;
@@ -445,6 +457,7 @@ pub use duplicate::{
 pub mod edge_insert;
 pub mod path_slice;
 pub use axis_slice::{AxisSlice, AxisSliceMode, axis_slice_bounds, axis_slice_planes};
+#[path = "scene_items/profile.rs"]
 pub mod profile;
 pub use profile::{ProfilePick, ProfilePoint, ProfileShape};
 pub mod slice;
@@ -505,7 +518,9 @@ pub mod transform_repeat;
 mod undo_memory;
 pub use primitive::*;
 pub mod primitive_uv;
+#[path = "scene_items/project.rs"]
 pub mod project;
+#[path = "scene_items/project_paths.rs"]
 pub mod project_paths;
 pub use primitive_uv::*;
 pub use project::Project;
@@ -515,11 +530,13 @@ pub use radial::*;
 pub mod active_task;
 #[path = "render/backdrop.rs"]
 pub mod backdrop;
+#[path = "scene_items/last_mesh.rs"]
 pub mod last_mesh;
 pub mod multi_active;
 pub mod multi_tools;
 pub mod multi_transform;
 pub use multi_active::ComponentSelection;
+#[path = "scene_items/scene.rs"]
 pub mod scene;
 pub use active_task::ActiveTask;
 pub mod selection;
@@ -560,6 +577,7 @@ pub mod pivot_service;
 pub mod tool_preset;
 mod tool_reset;
 pub use tool_preset::{PresetRow, PresetSession};
+#[path = "scene_items/scene_index.rs"]
 pub mod scene_index;
 #[path = "geometry/shared.rs"]
 pub mod shared;
@@ -677,9 +695,11 @@ mod bevel_weld;
 #[path = "polygons/correspondence.rs"]
 pub mod correspondence;
 pub use correspondence::*;
+#[path = "scene_items/identity.rs"]
 pub mod identity;
 pub use identity::*;
 
+#[path = "scene_items/identity_editor.rs"]
 mod identity_editor;
 
 #[path = "polygons/live_extrude.rs"]
@@ -711,6 +731,7 @@ mod bridge_editor;
 #[path = "curve_tools/pen_interactive.rs"]
 pub mod pen_interactive;
 pub use pen_interactive::*;
+#[path = "scene_items/guides.rs"]
 pub mod guides;
 #[path = "polygons/reduction.rs"]
 pub mod reduction;
@@ -749,6 +770,8 @@ pub use solid_sketch_editor::{SketchEdit, SketchSession};
 pub mod solid_sketch_store;
 #[path = "curve_tools/solid_sketch_symmetry.rs"]
 pub mod solid_sketch_symmetry;
+#[path = "scene_items/statistics.rs"]
 pub mod statistics;
+#[path = "scene_items/statistics_edit.rs"]
 pub mod statistics_edit;
 pub use sketch_extrude::*;

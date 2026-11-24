@@ -3,8 +3,10 @@ use crate::*;
 #[test]
 fn history_queries_do_not_consume_identity_or_stage_marks() {
     let mut editor = Editor {
-        scene: serde_json::from_str(include_str!("../../../docs/i2/expectations/graphs/G0.json"))
-            .unwrap(),
+        scene: serde_json::from_str(include_str!(
+            "../../../../docs/i2/expectations/graphs/G0.json"
+        ))
+        .unwrap(),
         ..Default::default()
     };
     editor.synchronize_identities().unwrap();
