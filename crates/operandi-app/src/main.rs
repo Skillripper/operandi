@@ -62,6 +62,7 @@ mod bind_dialog_ui;
 mod boolean_dialog;
 #[path = "controls/branding.rs"]
 mod branding;
+#[path = "edges/bridge_panel.rs"]
 mod bridge_panel;
 mod bug_report;
 mod bug_report_capture;
@@ -130,6 +131,7 @@ mod duplicate_panel;
 #[path = "duplication/duplicate_transform_panel.rs"]
 mod duplicate_transform_panel;
 mod duplicate_view;
+#[path = "edges/edge_panel.rs"]
 mod edge_panel;
 mod edit_panel;
 mod editor_color_ui;
@@ -454,6 +456,7 @@ mod uv_view;
 #[path = "controls/value_display.rs"]
 mod value_display;
 mod value_presets;
+#[path = "edges/vertex_panel.rs"]
 mod vertex_panel;
 mod viewport_preferences;
 mod weld_drag;
@@ -4074,6 +4077,7 @@ mod drop_lag_tests;
 #[path = "duplication/duplicate_tools_tests.rs"]
 mod duplicate_tools_tests;
 #[cfg(test)]
+#[path = "edges/edge_tab_tests.rs"]
 mod edge_tab_tests;
 #[cfg(test)]
 mod empty_expand_tests;
@@ -4341,6 +4345,7 @@ mod subdivision_tests;
 mod polygon_remove_tests;
 
 #[cfg(test)]
+#[path = "edges/edge_loop_delete_tests.rs"]
 mod edge_loop_delete_tests;
 
 #[cfg(test)]
@@ -4362,6 +4367,7 @@ mod set_position_tests;
 mod flatten_ngons_ui_tests;
 
 #[cfg(test)]
+#[path = "edges/vertex_panel_tests.rs"]
 mod vertex_panel_tests;
 
 #[cfg(test)]
