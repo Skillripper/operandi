@@ -167,13 +167,45 @@ fn every_pattern_fills_the_inner_corner() {
             let what = format!("{corner:?}, level {level}");
             let biggest = *fill.last().unwrap();
             if corner == CornerPattern::None {
-                assert_eq!(fill, vec![3 * n + 1], "{what}: one polygon");
+                assert_eq!(fill, vec![3 * n], "{what}: one polygon");
             } else {
-                assert!(biggest <= 5, "{what}: a {biggest}-sided polygon is left");
+                assert!(biggest <= 4, "{what}: a {biggest}-sided polygon is left");
                 assert!(fill.len() >= 3 * n, "{what}: only {} polygons", fill.len());
             }
             assert!(!seen.contains(&fill), "{what} fills like another pattern");
             seen.push(fill);
         }
+    }
+}
+
+/// The two top strips are mitred: their sides (0.3 from their edges in the
+/// top) meet at one point, and both of the top's split lines end there,
+/// as in the tester's Blender and Maya pictures.
+#[test]
+fn the_top_strips_meet_at_one_mitre_point() {
+    let m = l_shape();
+    let settings = EdgeBevelSettings {
+        width: 0.3,
+        rows: 4,
+        depth: 100.,
+        chamfer: false,
+        options: Default::default(),
+    };
+    let out = edge_bevel_with(&m, &l_edges(), &settings, None).unwrap();
+    let mm = &out.mesh;
+    let find = |p: DVec3| {
+        mm.vertices
+            .iter()
+            .position(|&q| q.distance(p) < 1e-9)
+            .unwrap_or_else(|| panic!("no point at {p}")) as u32
+    };
+    let mitre = find(DVec3::new(-0.3, 1., 0.3));
+    let key = |a: u32, b: u32| (a.min(b), a.max(b));
+    let edges = mm.edges();
+    for from in [DVec3::new(-1., 1., 0.), DVec3::new(0., 1., 1.)] {
+        assert!(
+            edges.binary_search(&key(find(from), mitre)).is_ok(),
+            "the split line from {from} doesn't end at the mitre point"
+        );
     }
 }

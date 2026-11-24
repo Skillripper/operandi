@@ -214,8 +214,11 @@ pub fn offscreen(environment: app_environment::AppEnvironment) -> Result<()> {
     }
     // OPERANDI_QA_SELECT: "edges:0,3", "points:2" or "polygons:0", the
     // active mesh's edges (in `Mesh::edges` order), points or polygons by
-    // number (use with OPERANDI_QA_KEEP_SELECTION).
-    if let Ok(spec) = std::env::var("OPERANDI_QA_SELECT") {
+    // number (use with OPERANDI_QA_KEEP_SELECTION). A JSON value is the
+    // MCP-select form, read at frame 4 below.
+    if let Ok(spec) = std::env::var("OPERANDI_QA_SELECT")
+        && !spec.trim_start().starts_with('{')
+    {
         let (kind, list) = spec.split_once(':').ok_or("QA select is kind:numbers")?;
         let numbers: Vec<usize> = list
             .split(',')
@@ -439,6 +442,7 @@ pub fn offscreen(environment: app_environment::AppEnvironment) -> Result<()> {
         // pictures).
         if frame == 4
             && let Ok(arguments) = std::env::var("OPERANDI_QA_SELECT")
+            && arguments.trim_start().starts_with('{')
         {
             let arguments: serde_json::Value = serde_json::from_str(&arguments)
                 .map_err(|e| format!("QA select must be JSON: {e}"))?;

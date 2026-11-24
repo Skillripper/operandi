@@ -298,6 +298,54 @@ fn crossing(a: DVec3, b: DVec3, line: &[DVec3]) -> Option<(usize, f64, f64)> {
     best
 }
 
+/// Going around a point, the polygons between one selected edge `a` and the
+/// next selected edge `b`: `face_a` holds `a`, `face_b` holds `b`, and
+/// `between` lists the unselected edges crossed on the way, in order.
+struct Gap {
+    face_a: usize,
+    a: u32,
+    between: Vec<u32>,
+    face_b: usize,
+    b: u32,
+}
+
+/// Every [`Gap`] around point `v` from its polygon corners (none across an
+/// open border, where the walk can't go round).
+fn gaps_around(v: u32, fan: &[Corner], is_sel: &dyn Fn(u32, u32) -> bool) -> Vec<Gap> {
+    let mut gaps = Vec::new();
+    for start in fan
+        .iter()
+        .filter(|c| is_sel(v, c.prev) && !is_sel(v, c.next))
+    {
+        let mut between = vec![start.next];
+        let mut at = start.next;
+        let mut end = None;
+        for _ in 0..fan.len() {
+            let Some(c) = fan.iter().find(|c| c.prev == at) else {
+                break;
+            };
+            if is_sel(v, c.next) {
+                end = Some((c.face, c.next));
+                break;
+            }
+            between.push(c.next);
+            at = c.next;
+        }
+        if let Some((face_b, b)) = end
+            && b != start.prev
+        {
+            gaps.push(Gap {
+                face_a: start.face,
+                a: start.prev,
+                between,
+                face_b,
+                b,
+            });
+        }
+    }
+    gaps
+}
+
 fn newell(mesh: &Mesh, face: usize) -> DVec3 {
     let r = &mesh.faces[face].vertices;
     let mut n = DVec3::ZERO;
@@ -550,6 +598,87 @@ pub(crate) fn general(
     // (tester's report, 2026-11-24); see `crossing` below.
     let mut across: BTreeMap<u32, Vec<u32>> = BTreeMap::new();
     let strips_at = |v: u32| selected.iter().filter(|&&(a, b)| a == v || b == v).count();
+    // Mitred meeting points (Edge Bevel; the tester's L-shape, 2026-11-24).
+    // Going around a point, where two or more unselected edges lie between
+    // two selected edges (a corner whose surrounding polygons are split),
+    // the two strips' sides meet at one point: each side its strip's width
+    // from its edge in its own outer polygon, where they cross. Every edge
+    // between them ends there, as a real bevel's corner does. (One
+    // unselected edge between them still slides along it, Loop Slide.)
+    // Before, each such edge took its own slid point, so the two strips
+    // never met and their corner was left as a hole closed by one polygon.
+    if !chamfer {
+        for &v in &touched {
+            if strips_at(v) < 2 {
+                continue;
+            }
+            for gap in gaps_around(v, &corners[&v], &is_sel) {
+                let Gap {
+                    face_a,
+                    a,
+                    between,
+                    face_b,
+                    b,
+                } = gap;
+                if between.len() < 2 {
+                    continue;
+                }
+                let side = |face: usize, o: u32, toward: u32| -> Option<(DVec3, DVec3)> {
+                    let u = (p(o) - p(v)).try_normalize()?;
+                    let mut w = newell(mesh, face).cross(u).try_normalize()?;
+                    if w.dot(p(toward) - p(v)) < 0. {
+                        w = -w;
+                    }
+                    Some((p(v) + w * width * weight(v) * factor_of(v, o), u))
+                };
+                let (Some((a1, u1)), Some((a2, u2))) = (
+                    side(face_a, a, between[0]),
+                    side(face_b, b, between[between.len() - 1]),
+                ) else {
+                    continue;
+                };
+                let bb = u1.dot(u2);
+                let denom = 1. - bb * bb;
+                if denom < 1e-9 {
+                    continue;
+                }
+                let r = a1 - a2;
+                let (c, f) = (u1.dot(r), u2.dot(r));
+                let (t1, t2) = ((bb * f - c) / denom, (f - bb * c) / denom);
+                let q = (a1 + u1 * t1 + a2 + u2 * t2) / 2.;
+                // In the frame of the first polygon between (for UVs).
+                let (s1, s2) = (between[0], between[1]);
+                let Some(middle) = corners[&v]
+                    .iter()
+                    .find(|c| (c.prev == s1 && c.next == s2) || (c.prev == s2 && c.next == s1))
+                    .map(|c| c.face)
+                else {
+                    continue;
+                };
+                let (ea, eb, x) = (p(s1) - p(v), p(s2) - p(v), q - p(v));
+                let (aa, ab, b2) = (ea.dot(ea), ea.dot(eb), eb.dot(eb));
+                let det = aa * b2 - ab * ab;
+                if det.abs() < 1e-18 {
+                    continue;
+                }
+                let id = push(&mut out, q)?;
+                defs.insert(
+                    id,
+                    Def::Inside {
+                        face: middle,
+                        v,
+                        a: s1,
+                        b: s2,
+                        ta: (x.dot(ea) * b2 - x.dot(eb) * ab) / det,
+                        tb: (x.dot(eb) * aa - x.dot(ea) * ab) / det,
+                    },
+                );
+                for &s in &between {
+                    on_edge.insert((v, s), id);
+                }
+            }
+        }
+    }
     for &v in &touched {
         let fan = &corners[&v];
         for c in fan {
@@ -821,6 +950,8 @@ pub(crate) fn general(
                 (true, false) => cycle.push(on_edge[&(v, c.next)]),
                 (false, true) => cycle.push(on_edge[&(v, c.prev)]),
                 (false, false) => match (on_edge.get(&(v, c.prev)), on_edge.get(&(v, c.next))) {
+                    // Both edges end at one mitred meeting point.
+                    (Some(&a), Some(&b)) if a == b => cycle.push(a),
                     (Some(&a), Some(&b)) => {
                         cycle.push(a);
                         cycle.extend(between(a, b));
