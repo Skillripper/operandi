@@ -77,6 +77,14 @@ pub struct EdgeBevelOptions {
     /// edges this far beyond the bevel on each side, in the neighbouring
     /// polygons' planes; 0 adds none. Edge Chamfer ignores it.
     pub support: f64,
+    /// Edge Bevel's Loop Slide (a tester's request, 2026-11-24; on by
+    /// default). Where an unbevelled edge runs between two bevelled edges
+    /// into a point (an inset's diagonal between two rim edges), on: the
+    /// new point slides along that edge, so it stays straight and the edge
+    /// flow is kept. Off: the new point goes where the two strips' sides
+    /// meet, an even width from both, and that edge bends to it. Edge
+    /// Chamfer ignores it.
+    pub loop_slide: bool,
 }
 impl Default for EdgeBevelOptions {
     fn default() -> Self {
@@ -90,6 +98,7 @@ impl Default for EdgeBevelOptions {
             use_material: false,
             material: "Default".into(),
             support: 0.,
+            loop_slide: true,
         }
     }
 }

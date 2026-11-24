@@ -1686,6 +1686,19 @@ fn edge_bevel_form(p: &Parameters, f: &mut Form, bevel: bool) {
         .enabled_if(round && p.chamfer.segments >= 2, depth_why)
         .tip("100% is the full round profile; lower values flatten it toward a straight chamfer"),
     );
+    if bevel {
+        // A tester's request (2026-11-24), on by default: a bevel follows
+        // the edges around it.
+        f.field(
+            check(
+                "edge_bevel_loop_slide",
+                "Loop Slide",
+                |p| p.edge_bevel.loop_slide,
+                |p, on| p.edge_bevel.loop_slide = on,
+            )
+            .tip("On: where an unbevelled edge runs between two bevelled edges, the new point slides along it, keeping the edge flow. Off: the point goes an even width from both edges and that edge bends to reach it"),
+        );
+    }
     if !bevel {
         f.field(
             check(

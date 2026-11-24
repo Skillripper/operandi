@@ -460,6 +460,77 @@ pub(crate) fn general(
                 .any(|s| !is_sel(v, s) && partner(v, s).is_none() && !slide_ok(v, s))
         })
     };
+    // Loop Slide off (Edge Bevel): where unselected (v, s) runs between two
+    // selected edges, the point where the strips' two sides meet, each side
+    // its strip's width from its edge in its own polygon (the midpoint of
+    // the sides' closest approach when the polygons aren't flat together).
+    // `None` when (v, s) doesn't run between two selected edges, or the
+    // sides are parallel or meet far away; the point then slides as usual.
+    let even_point = |v: u32, s: u32| -> Option<(DVec3, Def)> {
+        let sides: Vec<(usize, u32)> = corners[&v]
+            .iter()
+            .filter_map(|c| {
+                if c.prev == s && is_sel(v, c.next) {
+                    Some((c.face, c.next))
+                } else if c.next == s && is_sel(v, c.prev) {
+                    Some((c.face, c.prev))
+                } else {
+                    None
+                }
+            })
+            .collect();
+        let [(f1, o1), (f2, o2)] = sides[..] else {
+            return None;
+        };
+        if o1 == o2 {
+            return None;
+        }
+        let toward = p(s) - p(v);
+        let side = |face: usize, o: u32| -> Option<(DVec3, DVec3, f64)> {
+            let u = (p(o) - p(v)).try_normalize()?;
+            let mut w = newell(mesh, face).cross(u).try_normalize()?;
+            if w.dot(toward) < 0. {
+                w = -w;
+            }
+            let d = width * weight(v) * factor_of(v, o);
+            Some((p(v) + w * d, u, d))
+        };
+        let ((a1, u1, d1), (a2, u2, d2)) = (side(f1, o1)?, side(f2, o2)?);
+        let b = u1.dot(u2);
+        let denom = 1. - b * b;
+        if denom < 1e-9 {
+            return None;
+        }
+        let r = a1 - a2;
+        let (c, f) = (u1.dot(r), u2.dot(r));
+        let (t1, t2) = ((b * f - c) / denom, (f - b * c) / denom);
+        let q = (a1 + u1 * t1 + a2 + u2 * t2) / 2.;
+        if q.distance(p(v)) > 20. * d1.max(d2) {
+            return None;
+        }
+        // The point in polygon f1's frame (for UVs): v + ta·(o1 − v) + tb·(s − v).
+        let (ea, eb, x) = (p(o1) - p(v), toward, q - p(v));
+        let (aa, ab, bb) = (ea.dot(ea), ea.dot(eb), eb.dot(eb));
+        let det = aa * bb - ab * ab;
+        if det.abs() < 1e-18 {
+            return None;
+        }
+        let (ta, tb) = (
+            (x.dot(ea) * bb - x.dot(eb) * ab) / det,
+            (x.dot(eb) * aa - x.dot(ea) * ab) / det,
+        );
+        Some((
+            q,
+            Def::Inside {
+                face: f1,
+                v,
+                a: o1,
+                b: s,
+                ta,
+                tb,
+            },
+        ))
+    };
     let mut out = mesh.clone();
     let mut defs: BTreeMap<u32, Def> = BTreeMap::new();
     let push = |out: &mut Mesh, q: DVec3| -> Result<u32> {
@@ -489,6 +560,18 @@ pub(crate) fn general(
                 let along = p(s) - p(v);
                 let len = along.length();
                 let dir = along / len;
+                // Loop Slide off: an unbevelled edge between two bevelled
+                // ones ends where the two strips' sides meet instead of
+                // sliding along it, so the width is even and it bends.
+                if !chamfer
+                    && !options.loop_slide
+                    && let Some((q, def)) = even_point(v, s)
+                {
+                    let id = push(&mut out, q)?;
+                    defs.insert(id, def);
+                    on_edge.insert((v, s), id);
+                    continue;
+                }
                 let partner = partner(v, s);
                 let distance = match partner {
                     // Chamfer keeps the strip parallel to the selected edge
@@ -498,11 +581,6 @@ pub(crate) fn general(
                         width * weight(v) * factor_of(v, o) / dir.cross(axis).length().max(1e-9)
                     }
                     Some(o) => width * weight(v) * factor_of(v, o),
-                    // Sliding the end point along an edge away from the
-                    // strips is only allowed where the polygons it slides
-                    // over face the strip's way (the measured grid cases,
-                    // UVN-T-01 / EBC-B3-06; EBC-Q11). At a sharp fold the
-                    // point stays put instead (N08).
                     // An Edge Bevel strip's single end whose extra edges lie
                     // across its end profile (the cap side): decided once
                     // the profile exists.
@@ -510,6 +588,11 @@ pub(crate) fn general(
                         across.entry(v).or_default().push(s);
                         continue;
                     }
+                    // Sliding the end point along an edge away from the
+                    // strips is only allowed where the polygons it slides
+                    // over face the strip's way (the measured grid cases,
+                    // UVN-T-01 / EBC-B3-06; EBC-Q11). At a sharp fold the
+                    // point stays put instead (N08).
                     None if (chamfer && !fan_ends) || keep_end(v) => {
                         kept.insert(v);
                         continue;

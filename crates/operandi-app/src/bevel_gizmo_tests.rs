@@ -194,6 +194,33 @@ fn edge_bevel_mitering_field_and_script_attribute() {
     );
 }
 
+/// Edge Bevel's Loop Slide checkbox (2026-11-24): on by default, in the
+/// panel and set by script; a bad value changes nothing.
+#[test]
+fn edge_bevel_loop_slide_checkbox_and_script_attribute() {
+    let probe = box_app();
+    let [e1, e2] = two_edges(&probe);
+    let mut a = live(Mode::Edge, Tool::EdgeBevel, |a| {
+        a.editor.scene.selection.edges = vec![e1, e2];
+    });
+    let on = |a: &Operandi| a.editor.live.as_ref().unwrap().params.edge_bevel.loop_slide;
+    assert!(on(&a), "on by default");
+    a.execute("tool.attr edge.bevel loopSlide ?");
+    assert_eq!(a.status, "1");
+    a.fields.insert("chamfer_offset".into(), "0.2 m".into());
+    assert!(a.confirm_fields(), "{}", a.status);
+    let sliding = mesh(&a).vertices.clone();
+    a.execute("tool.attr edge.bevel loopSlide off");
+    assert!(!on(&a));
+    // On a box the third edge is square to both bevelled edges, so sliding
+    // along it and an even width land on the same point: nothing changes.
+    // (core tests/edge_bevel_loop_slide.rs covers where they differ.)
+    assert_eq!(mesh(&a).vertices, sliding);
+    a.execute("tool.attr edge.bevel loopSlide maybe");
+    assert!(a.status.contains("true"), "{}", a.status);
+    assert!(!on(&a), "a bad value changes nothing");
+}
+
 /// Like Polygon Bevel's extrude and inset, Edge Bevel's bevel and Mitering
 /// handles combine (2026-11-23): dragging one keeps what the other did, in
 /// either order, and the handles then ride on the new bevel instead of

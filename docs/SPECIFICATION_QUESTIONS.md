@@ -9765,3 +9765,28 @@ Built without a behaviour spec (Jason approved the feature; none of this was obs
 - MR-Q06 Topology changes (any tool adding or removing polygons) while the mesh is multiresolution leave the detail unable to follow: stepping and Add Level refuse with a reason, the read-out says "polygons changed", Apply Multiresolution keeps the mesh as it is; undo restores.
 - MR-Q07 Attenuate (SCT-43) fades the current level's detail toward the smoothed level below (the level with no detail of its own); greyed at level 0 and on plain meshes. Its Amount (25 %) is the share of the remaining detail removed per full-weight dab.
 - MR-Q08 Command names are Operandi's own (`operandi.multires.*`) until the name map has the reference's; Convert to Multiresolution and Background to Multiresolution on the painting Utilities tab stay greyed (their behaviour is unknown). Render uses the level you are at (no separate render level). No sculpt layers, no default shortcuts for stepping.
+
+## Edge Bevel: corners with extra edges, Loop Slide (2026-11-24, branch bevel-gizmos-mitering, proposed)
+
+A Windows tester's reports, built from their screenshots (Operandi and
+Blender); no Modo material.
+
+- **EBC-Q-CAP1 (changes N08 for one case, needs the maintainer's OK).**
+  Edge Bevel on a strip's single end where more polygons meet than the
+  strip's two sides and one end polygon (a pointed shape whose top was
+  split into triangles; the diagonal runs into the bevelled corner). The
+  diagonal has no strip side and can't slide (90° fold), so N08 kept the
+  old point and the top polygons spiked back to it. *Built:* those edges
+  now end where they cross the end's profile, the polygons between share
+  it, and the point goes. When any of them misses the profile (concave
+  corners, where keeping the point is right), N08 holds. Edge Chamfer
+  unchanged.
+- **EBC-Q-LS1 (new option, needs the maintainer's OK).** Loop Slide,
+  Edge Bevel only, on by default: where an unbevelled edge runs between two
+  bevelled edges into a point (an inset's diagonal between two rim edges),
+  on slides the new point along it (today's result); off puts it where the
+  two strips' sides meet, an even width from both, and the edge bends.
+  *Built:* the panel checkbox and `tool.attr edge.bevel loopSlide`.
+- **EBC-Q-CP1 (planned, not built).** A corner pattern choice where
+  bevelled strips meet, split into outer and inner corners, as the tester
+  asked; today's fill is the EBC-J-05 quad patch.

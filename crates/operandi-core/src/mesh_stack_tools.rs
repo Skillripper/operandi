@@ -665,8 +665,9 @@ impl TypedOp for EdgeChamferOp {
                 },
                 use_material: self.use_mat,
                 material: self.mat_name.clone(),
-                // Edge Chamfer has no Mitering (support edges).
+                // Edge Chamfer has no Mitering (support edges) or Loop Slide.
                 support: 0.,
+                loop_slide: true,
             },
         };
         let r = crate::edge_bevel::edge_bevel_with(ctx.input, &chosen_edges(ctx), &settings, None)?;

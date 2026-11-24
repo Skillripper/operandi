@@ -283,6 +283,7 @@ impl Operandi {
                 "shape" => format!("{:?}", o.shape).to_ascii_lowercase(),
                 "depth" => format!("{} %", p.chamfer.depth),
                 "parallel" => (o.parallel as u8).to_string(),
+                "loopslide" => (o.loop_slide as u8).to_string(),
                 "stopatedge" => (o.stop_at_edge as u8).to_string(),
                 "autoweld" => (o.auto_weld as u8).to_string(),
                 "edgeend" => match o.edge_end {
@@ -346,6 +347,7 @@ impl Operandi {
                 // Script units: 0–1, or a value with % (map percent).
                 "depth" => p.chamfer.depth = operandi_core::command_names::script_percent(value)?,
                 "parallel" if !bevel => o.parallel = flag()?,
+                "loopslide" if bevel => o.loop_slide = flag()?,
                 "stopatedge" if !bevel => o.stop_at_edge = flag()?,
                 "autoweld" if !bevel => o.auto_weld = flag()?,
                 "edgeend" if !bevel => {
