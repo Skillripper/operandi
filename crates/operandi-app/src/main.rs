@@ -259,6 +259,7 @@ mod item_list_ui;
 mod items_tree;
 #[path = "input_devices/key_toggles.rs"]
 mod key_toggles;
+#[path = "selections/lasso.rs"]
 mod lasso;
 mod layout;
 mod layout_keys;
@@ -302,6 +303,7 @@ mod monkey_tests;
 #[path = "input_devices/mouse_rule_tests.rs"]
 mod mouse_rule_tests;
 #[cfg(test)]
+#[path = "selections/multi_active_tests.rs"]
 mod multi_active_tests;
 #[path = "sculpting/multires_ui.rs"]
 mod multires_ui;
@@ -438,10 +440,13 @@ mod sculpt_ui;
 #[cfg(test)]
 #[path = "sculpting/sculpt_ui_tests.rs"]
 mod sculpt_ui_tests;
+#[path = "selections/select_panel.rs"]
 mod select_panel;
+#[path = "selections/select_tools_ui.rs"]
 mod select_tools_ui;
 mod selection_normals;
 mod selection_preferences;
+#[path = "selections/selection_set_dialog.rs"]
 mod selection_set_dialog;
 #[path = "graphics/session_draw.rs"]
 mod session_draw;
@@ -4300,6 +4305,7 @@ mod item_list_header_tests;
 #[path = "input_devices/key_toggles_tests.rs"]
 mod key_toggles_tests;
 #[cfg(test)]
+#[path = "selections/lasso_ui_tests.rs"]
 mod lasso_ui_tests;
 #[cfg(test)]
 mod layout_keys_tests;
@@ -4371,8 +4377,10 @@ mod scenes_tests;
 #[path = "anim/scrub_tests.rs"]
 mod scrub_tests;
 #[cfg(test)]
+#[path = "selections/select_tab_tests.rs"]
 mod select_tab_tests;
 #[cfg(test)]
+#[path = "selections/selection_ui_tests.rs"]
 mod selection_ui_tests;
 #[cfg(test)]
 #[path = "nodes/shader_layer_menu_tests.rs"]
