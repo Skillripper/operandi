@@ -29,6 +29,7 @@ mod contour_tests;
 #[path = "items/item_transform_ui.rs"]
 mod item_transform_ui;
 #[cfg(test)]
+#[path = "painting_ui/mesh_paint_tests.rs"]
 mod mesh_paint_tests;
 #[path = "items/mesh_stack_ui.rs"]
 mod mesh_stack_ui;
@@ -270,6 +271,7 @@ mod mcp;
 mod menu_forms;
 mod mesh_cleanup_dialog;
 mod mesh_items_preferences;
+#[path = "painting_ui/mesh_paint_ui.rs"]
 mod mesh_paint_ui;
 mod mini_properties;
 #[path = "menus/modeling_menu.rs"]
@@ -453,50 +455,73 @@ mod usd_render_tests;
 // Pen-tablet input is read only on macOS; elsewhere the code is unused.
 mod bake_dialogs;
 #[cfg(all(test, not(feature = "painting")))]
+#[path = "painting_ui/no_painting_tests.rs"]
 mod no_painting_tests;
 #[cfg(feature = "painting")]
+#[path = "painting_ui/painting.rs"]
 mod painting;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_autocreate_tests.rs"]
 mod painting_autocreate_tests;
 #[cfg(feature = "painting")]
+#[path = "painting_ui/painting_brush.rs"]
 mod painting_brush;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_brush_tests.rs"]
 mod painting_brush_tests;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_highlight_tests.rs"]
 mod painting_highlight_tests;
 #[cfg(feature = "painting")]
+#[path = "painting_ui/painting_inks.rs"]
 mod painting_inks;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_inks_tests.rs"]
 mod painting_inks_tests;
 #[cfg(feature = "painting")]
+#[path = "painting_ui/painting_layout.rs"]
 mod painting_layout;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_layout_tests.rs"]
 mod painting_layout_tests;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_polish_tests.rs"]
 mod painting_polish_tests;
 #[cfg(feature = "painting")]
+#[path = "painting_ui/painting_prefs.rs"]
 mod painting_prefs;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_prefs_tests.rs"]
 mod painting_prefs_tests;
 #[cfg(feature = "painting")]
+#[path = "painting_ui/painting_sculpt.rs"]
 mod painting_sculpt;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_sculpt_tests.rs"]
 mod painting_sculpt_tests;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_speed_tests.rs"]
 mod painting_speed_tests;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_starter_tests.rs"]
 mod painting_starter_tests;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_subd_tests.rs"]
 mod painting_subd_tests;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_tabs_tests.rs"]
 mod painting_tabs_tests;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_tests.rs"]
 mod painting_tests;
 #[cfg(feature = "painting")]
+#[path = "painting_ui/painting_uv.rs"]
 mod painting_uv;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_uv_tests.rs"]
 mod painting_uv_tests;
 #[cfg(feature = "painting")]
+#[path = "painting_ui/painting_viewer.rs"]
 mod painting_viewer;
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 #[path = "input_devices/tablet.rs"]
