@@ -108,8 +108,8 @@ impl OpDef for MeshBlendOp {
 
 /// The op's table entry. The strip settings use the generic op form; the
 /// sources are drawn by the MeshBlend panel section (meshblend_ui.rs), and
-/// what isn't built yet (relative width, output modes, per-strip
-/// overrides) stays hidden (UIC-117).
+/// what isn't built yet (relative width, per-strip overrides) stays
+/// hidden (UIC-117).
 pub(crate) fn entries() -> Vec<Arc<dyn OpDef>> {
     let hidden = |key: &'static str| Field::new(key, key, FieldKind::Hidden);
     vec![Arc::new(MeshBlendOp {
@@ -124,7 +124,11 @@ pub(crate) fn entries() -> Vec<Arc<dyn OpDef>> {
                 FieldKind::Count { min: 1, max: 16 },
             ),
             Field::new("designMode", "Design Mode", FieldKind::Check),
-            hidden("output"),
+            Field::new(
+                "output",
+                "Output",
+                FieldKind::Choice(super::recipe::OUTPUTS.iter().map(|&o| o.into()).collect()),
+            ),
             hidden("strips"),
         ],
     })]

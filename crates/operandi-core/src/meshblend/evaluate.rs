@@ -377,13 +377,14 @@ pub fn evaluate(recipe: &Recipe, inputs: &[Input]) -> Result<Blend> {
     } else {
         None
     };
-    let (mesh, origin) = match stripped {
+    let (mut mesh, mut origin) = match stripped {
         Some(done) => done,
         None => match rebuild(&prepared, &offsets, &engine, false) {
             Ok(built) if built.0.validate().is_ok() => built,
             _ => rebuild(&prepared, &offsets, &engine, true)?,
         },
     };
+    output_mode(recipe.output, &prepared, &mut mesh, &mut origin)?;
     Ok(Blend {
         mesh,
         origin,
@@ -543,7 +544,9 @@ fn with_strips(
             }
         }
         flip_edges(&mut mesh, &origin, &kind);
-        pair_triangles(&mut mesh, &mut origin, &kind);
+        if recipe.output >= 2 {
+            pair_triangles(&mut mesh, &mut origin, &kind);
+        }
         if mesh.validate().is_err() {
             continue;
         }
@@ -760,4 +763,95 @@ fn quad_quality(pos: &[DVec3], q: &[u32]) -> Option<f64> {
         worst = worst.min(s);
     }
     (worst > 0.1).then_some(worst)
+}
+
+/// SB-50 output modes on the finished result. Draft (0) has no strips at
+/// all; Closed (1) and Closed, clean (2, triangle pairs as quads) are set
+/// while the strips are built. Here: parts per patch (3: each area the
+/// strips bound, plus one part for every strip) or per source (4: named
+/// after the source, plus the strips), and Strips only (5: just the strip
+/// and corner polygons, an open band).
+fn output_mode(
+    output: u32,
+    prepared: &[Prepared],
+    mesh: &mut Mesh,
+    origin: &mut Vec<Origin>,
+) -> Result<()> {
+    let strip = |o: &Origin| o.polygon == u32::MAX;
+    match output {
+        3 => {
+            // Areas joined through shared edges that no strip polygon has.
+            let n = mesh.faces.len();
+            let mut patch = vec![usize::MAX; n];
+            let mut by_edge: std::collections::HashMap<(u32, u32), Vec<usize>> =
+                std::collections::HashMap::new();
+            for (f, face) in mesh.faces.iter().enumerate() {
+                if strip(&origin[f]) {
+                    continue;
+                }
+                let v = &face.vertices;
+                for k in 0..v.len() {
+                    by_edge
+                        .entry(crate::topology::edge_key(v[k], v[(k + 1) % v.len()]))
+                        .or_default()
+                        .push(f);
+                }
+            }
+            let mut count = 0;
+            for seed in 0..n {
+                if strip(&origin[seed]) || patch[seed] != usize::MAX {
+                    continue;
+                }
+                count += 1;
+                patch[seed] = count;
+                let mut stack = vec![seed];
+                while let Some(f) = stack.pop() {
+                    let v = mesh.faces[f].vertices.clone();
+                    for k in 0..v.len() {
+                        let e = crate::topology::edge_key(v[k], v[(k + 1) % v.len()]);
+                        for &g in &by_edge[&e] {
+                            if patch[g] == usize::MAX {
+                                patch[g] = count;
+                                stack.push(g);
+                            }
+                        }
+                    }
+                }
+            }
+            for (f, face) in mesh.faces.iter_mut().enumerate() {
+                face.part = Some(if strip(&origin[f]) {
+                    "Strips".into()
+                } else {
+                    format!("Patch {}", patch[f])
+                });
+            }
+        }
+        4 => {
+            for (f, face) in mesh.faces.iter_mut().enumerate() {
+                face.part = Some(if strip(&origin[f]) {
+                    "Strips".into()
+                } else {
+                    prepared
+                        .iter()
+                        .find(|p| p.item == origin[f].item)
+                        .map_or_else(|| "Source".into(), |p| p.name.clone())
+                });
+            }
+        }
+        5 => {
+            let keep: Vec<bool> = origin.iter().map(strip).collect();
+            let faces: Vec<_> = mesh
+                .faces
+                .iter()
+                .zip(&keep)
+                .filter(|(_, k)| **k)
+                .map(|(f, _)| f.clone())
+                .collect();
+            mesh.faces = faces.into();
+            origin.retain(strip);
+            *mesh = crate::mesh_cleanup::remove_unreferenced(mesh, None)?.mesh;
+        }
+        _ => {}
+    }
+    Ok(())
 }

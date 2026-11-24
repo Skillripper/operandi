@@ -213,3 +213,59 @@ fn the_cut_faces_beside_strips_have_few_slivers() {
     // shared with the next face can't take new points yet).
     assert!(n * 2 <= tris.max(1), "{n} slivers of {tris} triangles");
 }
+
+#[test]
+fn output_modes() {
+    let with = |output: u32| {
+        let mut r = recipe(&[1, 2], 0.1);
+        r.output = output;
+        evaluate(&r, &two_boxes()).unwrap()
+    };
+    // Draft: no strips.
+    assert_eq!(strips(&with(0)), 0);
+    // Closed keeps the triangles Closed, clean pairs into quads.
+    let (closed, clean) = (with(1), with(2));
+    let tris = |b: &operandi_core::meshblend::Blend| {
+        b.mesh
+            .faces
+            .iter()
+            .filter(|f| f.vertices.len() == 3)
+            .count()
+    };
+    assert!(strips(&closed) > 0);
+    assert!(
+        tris(&clean) < tris(&closed),
+        "{} vs {}",
+        tris(&clean),
+        tris(&closed)
+    );
+    assert!(check::st10(&closed.mesh, 0.1, None).passes());
+    // Parts per source: every polygon in exactly one part, named after
+    // its source or Strips (BLD-C06).
+    let per_source = with(4);
+    let parts: std::collections::BTreeSet<_> = per_source
+        .mesh
+        .faces
+        .iter()
+        .map(|f| f.part.clone().expect("every polygon has a part"))
+        .collect();
+    assert_eq!(
+        parts.into_iter().collect::<Vec<_>>(),
+        ["Mesh 1", "Mesh 2", "Strips"]
+    );
+    // Parts per patch: the two sides of the strip are two patches.
+    let per_patch = with(3);
+    let patches: std::collections::BTreeSet<_> = per_patch
+        .mesh
+        .faces
+        .iter()
+        .filter_map(|f| f.part.clone())
+        .collect();
+    assert!(
+        patches.contains("Strips") && patches.contains("Patch 1") && patches.contains("Patch 2")
+    );
+    // Strips only: just the band, open at both edges.
+    let only = with(5);
+    assert!(only.origin.iter().all(|o| o.polygon == u32::MAX));
+    assert!(check::st10(&only.mesh, 0.1, None).open_edges > 0);
+}

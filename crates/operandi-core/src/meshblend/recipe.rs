@@ -106,7 +106,8 @@ impl BlendSource {
     }
 }
 
-/// Output modes (SB-50). B1 builds Closed; the others are saved for B2.
+/// Output modes (SB-50), the `output` value's names. New MeshBlends use
+/// Closed, clean (provisional MB-Q07).
 pub const OUTPUTS: [&str; 6] = [
     "Draft",
     "Closed",
@@ -150,7 +151,7 @@ impl Default for Recipe {
             strip_width: 0.02,
             strip_profile: 1.,
             strip_rows: 3,
-            output: 1,
+            output: 2,
             design_mode: false,
             strips: Vec::new(),
         }
