@@ -221,6 +221,61 @@ fn edge_bevel_loop_slide_checkbox_and_script_attribute() {
     assert!(!on(&a), "a bad value changes nothing");
 }
 
+/// Edge Bevel's Corner Pattern dropdown (2026-11-24): Patch by default, set
+/// by script, and each other pattern fills the corner where the box's
+/// three edges meet differently.
+#[test]
+fn edge_bevel_corner_pattern_field_and_script_attribute() {
+    let probe = box_app();
+    let [e1, e2] = two_edges(&probe);
+    let shared = if e1.0 == e2.0 || e1.0 == e2.1 {
+        e1.0
+    } else {
+        e1.1
+    };
+    let third = mesh(&probe)
+        .edges()
+        .into_iter()
+        .find(|&(a, b)| (a == shared || b == shared) && (a, b) != e1 && (a, b) != e2)
+        .unwrap();
+    let mut a = live(Mode::Edge, Tool::EdgeBevel, |a| {
+        a.editor.scene.selection.edges = vec![e1, e2, third];
+    });
+    let corner = |a: &Operandi| a.editor.live.as_ref().unwrap().params.edge_bevel.corner;
+    assert_eq!(corner(&a), operandi_core::CornerPattern::Patch);
+    a.fields.insert("chamfer_offset".into(), "0.2 m".into());
+    a.fields.insert("chamfer_segments".into(), "2".into());
+    assert!(a.confirm_fields(), "{}", a.status);
+    a.execute("tool.attr edge.bevel level 2");
+    // Each fill's polygons by their number of sides (Patch's 12 quads and
+    // Uniform's 12 triangles have the same count).
+    let shapes = |a: &Operandi| {
+        let mut s: Vec<usize> = mesh(a).faces.iter().map(|f| f.vertices.len()).collect();
+        s.sort_unstable();
+        s
+    };
+    let mut seen = vec![shapes(&a)];
+    for (word, want) in [
+        ("uniform", operandi_core::CornerPattern::Uniform),
+        ("radial", operandi_core::CornerPattern::Radial),
+        ("none", operandi_core::CornerPattern::None),
+    ] {
+        a.execute(&format!("tool.attr edge.bevel cornerPattern {word}"));
+        assert_eq!(corner(&a), want, "{}", a.status);
+        a.execute("tool.attr edge.bevel cornerPattern ?");
+        assert_eq!(a.status, word);
+        let faces = shapes(&a);
+        assert!(
+            !seen.contains(&faces),
+            "{word} fills the corner its own way"
+        );
+        seen.push(faces);
+    }
+    a.execute("tool.attr edge.bevel cornerPattern spiral");
+    assert!(a.status.contains("Corner Pattern"), "{}", a.status);
+    assert_eq!(corner(&a), operandi_core::CornerPattern::None);
+}
+
 /// Like Polygon Bevel's extrude and inset, Edge Bevel's bevel and Mitering
 /// handles combine (2026-11-23): dragging one keeps what the other did, in
 /// either order, and the handles then ride on the new bevel instead of

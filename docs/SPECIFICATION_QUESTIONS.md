@@ -9787,6 +9787,9 @@ Blender); no Modo material.
   on slides the new point along it (today's result); off puts it where the
   two strips' sides meet, an even width from both, and the edge bends.
   *Built:* the panel checkbox and `tool.attr edge.bevel loopSlide`.
-- **EBC-Q-CP1 (planned, not built).** A corner pattern choice where
-  bevelled strips meet, split into outer and inner corners, as the tester
-  asked; today's fill is the EBC-J-05 quad patch.
+- **EBC-Q-CP1 (new option, needs the maintainer's OK).** Corner Pattern,
+  Edge Bevel only, one dropdown for every corner where rounded strips meet:
+  Patch (the EBC-J-05 grid, the default), Uniform (triangles from each
+  profile segment to one centre point), Radial (rings around that centre)
+  and None (one polygon). The centre is the Patch grids' shared corner.
+  *Built:* the panel dropdown and `tool.attr edge.bevel cornerPattern`.

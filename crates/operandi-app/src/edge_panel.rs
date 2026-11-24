@@ -284,6 +284,7 @@ impl Operandi {
                 "depth" => format!("{} %", p.chamfer.depth),
                 "parallel" => (o.parallel as u8).to_string(),
                 "loopslide" => (o.loop_slide as u8).to_string(),
+                "cornerpattern" => format!("{:?}", o.corner).to_ascii_lowercase(),
                 "stopatedge" => (o.stop_at_edge as u8).to_string(),
                 "autoweld" => (o.auto_weld as u8).to_string(),
                 "edgeend" => match o.edge_end {
@@ -348,6 +349,15 @@ impl Operandi {
                 "depth" => p.chamfer.depth = operandi_core::command_names::script_percent(value)?,
                 "parallel" if !bevel => o.parallel = flag()?,
                 "loopslide" if bevel => o.loop_slide = flag()?,
+                "cornerpattern" if bevel => {
+                    o.corner = match value.to_ascii_lowercase().as_str() {
+                        "patch" => operandi_core::CornerPattern::Patch,
+                        "uniform" => operandi_core::CornerPattern::Uniform,
+                        "radial" => operandi_core::CornerPattern::Radial,
+                        "none" => operandi_core::CornerPattern::None,
+                        _ => return Err("Corner Pattern: patch, uniform, radial or none".into()),
+                    }
+                }
                 "stopatedge" if !bevel => o.stop_at_edge = flag()?,
                 "autoweld" if !bevel => o.auto_weld = flag()?,
                 "edgeend" if !bevel => {

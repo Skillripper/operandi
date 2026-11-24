@@ -202,8 +202,8 @@ pub use edge_crease::edge_crease_geometry;
 pub mod edge_bevel;
 mod edge_bevel_junctions;
 pub use edge_bevel::{
-    EdgeBevelMode, EdgeBevelOptions, EdgeBevelPreset, EdgeBevelResult, EdgeBevelSettings,
-    EdgeBevelShape, EdgeEnd, edge_bevel_geometry, edge_bevel_with,
+    CornerPattern, EdgeBevelMode, EdgeBevelOptions, EdgeBevelPreset, EdgeBevelResult,
+    EdgeBevelSettings, EdgeBevelShape, EdgeEnd, edge_bevel_geometry, edge_bevel_with,
 };
 pub mod edge_commands;
 pub mod edge_relax;

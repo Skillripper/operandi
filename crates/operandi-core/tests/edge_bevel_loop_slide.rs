@@ -9,7 +9,7 @@ use operandi_core::*;
 
 /// Outer top corners 0–3, hole rim 4–7 (an uneven inset, so the diagonals
 /// aren't the corners' bisectors), hole floor 8–11, box bottom 12–15.
-fn hole() -> Mesh {
+pub(crate) fn hole() -> Mesh {
     let o = [[-1., -1.], [1., -1.], [1., 1.], [-1., 1.]];
     let i = [[-0.4, -0.2], [0.6, -0.2], [0.6, 0.5], [-0.4, 0.5]];
     let mut points = Vec::new();

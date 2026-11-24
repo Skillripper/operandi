@@ -1585,7 +1585,7 @@ pub(super) fn interpolation(key: &str) -> tf::Field<Parameters> {
 /// Edge Bevel / Edge Chamfer properties (EBC-D-01/02). Options the specs
 /// haven't measured are shown greyed out at their Reset values.
 fn edge_bevel_form(p: &Parameters, f: &mut Form, bevel: bool) {
-    use operandi_core::{EdgeBevelMode, EdgeBevelShape, EdgeEnd};
+    use operandi_core::{CornerPattern, EdgeBevelMode, EdgeBevelShape, EdgeEnd};
     f.field(
         pick(
             "edge-bevel-mode",
@@ -1697,6 +1697,24 @@ fn edge_bevel_form(p: &Parameters, f: &mut Form, bevel: bool) {
                 |p, on| p.edge_bevel.loop_slide = on,
             )
             .tip("On: where an unbevelled edge runs between two bevelled edges, the new point slides along it, keeping the edge flow. Off: the point goes an even width from both edges and that edge bends to reach it"),
+        )
+        // How corners where rounded strips meet are filled (a tester's
+        // request, 2026-11-24; EBC-Q-CP1).
+        .field(
+            pick(
+                "edge-bevel-corner",
+                "Corner Pattern",
+                &[
+                    (CornerPattern::Patch, "Patch"),
+                    (CornerPattern::Uniform, "Uniform"),
+                    (CornerPattern::Radial, "Radial"),
+                    (CornerPattern::None, "None"),
+                ],
+                |p| p.edge_bevel.corner,
+                |p, c| p.edge_bevel.corner = c,
+            )
+            .enabled_if(round && p.chamfer.segments >= 2, "Corner Pattern fills corners of rounded strips: use Round with Round Level 1 or more")
+            .tip("Where bevelled strips meet. Patch: a grid of quads, the rows bending around the corner. Uniform: straight lines to one centre point. Radial: rings around a centre point. None: one polygon closes the corner"),
         );
     }
     if !bevel {

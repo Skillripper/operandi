@@ -21,7 +21,7 @@
 //!   at an interior point). Openings on an open border stay open.
 use crate::corner_uv::{UvRows, corner_uv, lerp, records_from_uvs};
 use crate::edge_bevel::{
-    EdgeBevelMode, EdgeBevelResult, EdgeBevelSettings, EdgeBevelShape, EdgeEnd,
+    CornerPattern, EdgeBevelMode, EdgeBevelResult, EdgeBevelSettings, EdgeBevelShape, EdgeEnd,
 };
 use crate::topology::edge_key;
 use crate::{Face, Mesh, Result};
@@ -946,6 +946,20 @@ pub(crate) fn general(
                     .enumerate()
                     .all(|(i, id)| is_row(&defs, id) == (i % n != 0))
                 {
+                    // Corner Pattern (EBC-Q-CP1): Edge Bevel's other fills
+                    // for a Round corner; Patch is the measured one below.
+                    if !chamfer && !square && options.corner != CornerPattern::Patch {
+                        corner_fill(
+                            &ring,
+                            n,
+                            options.corner,
+                            &mut out,
+                            &mut defs,
+                            &mut new_faces,
+                            &homes,
+                        )?;
+                        continue;
+                    }
                     // Square keeps the corner sharp: the patch meets at the
                     // original point (Depth ignored, EBS-03).
                     let center = square.then_some((v, 1.));
@@ -1217,6 +1231,89 @@ fn flat_opening(out: &Mesh, ring: &[u32], new_faces: &mut [(Vec<u32>, Vec<usize>
         }
     }
     false
+}
+
+/// Corner Pattern (a tester's request, 2026-11-24; EBC-Q-CP1): fill the
+/// opening `ring` where strips of `n` rows meet (laid out as for
+/// [`corner_patch`]) with one of the patterns besides Patch.
+/// * Uniform: a triangle from each profile segment to one centre point.
+/// * Radial: rings between the opening and the centre (`n / 2` of them,
+///   at least one), quads between rings, triangles to the centre.
+/// * None: the opening as one polygon.
+///
+/// The centre is where [`corner_patch`]'s grids meet with even rows: the
+/// mean of the parallelograms A + B − C of each strip corner C and the two
+/// profile points A, B half a profile away, so it lies on the rounded
+/// surface the strips describe.
+fn corner_fill(
+    ring: &[u32],
+    n: usize,
+    pattern: CornerPattern,
+    out: &mut Mesh,
+    defs: &mut BTreeMap<u32, Def>,
+    new_faces: &mut Vec<(Vec<u32>, Vec<usize>)>,
+    homes: &[usize],
+) -> Result<()> {
+    let len = ring.len();
+    if pattern == CornerPattern::None {
+        new_faces.push((ring.to_vec(), homes.to_vec()));
+        return Ok(());
+    }
+    let k = len / n;
+    let m = (n / 2).max(1);
+    let r = |i: isize| ring[i.rem_euclid(len as isize) as usize];
+    let mut sum: BTreeMap<u32, f64> = BTreeMap::new();
+    for i in 0..k {
+        let corner = (i * n) as isize;
+        for (id, w) in [
+            (r(corner + m as isize), 1.),
+            (r(corner - m as isize), 1.),
+            (r(corner), -1.),
+        ] {
+            *sum.entry(id).or_default() += w / k as f64;
+        }
+    }
+    let mut make = |out: &mut Mesh, comb: Comb| -> Result<u32> {
+        let position = comb
+            .iter()
+            .map(|&(id, w)| out.vertices[id as usize] * w)
+            .sum::<DVec3>();
+        let id = u32::try_from(out.vertices.len()).map_err(|_| "Mesh point budget exceeded")?;
+        out.vertices.push(position);
+        defs.insert(id, Def::Blend(comb));
+        Ok(id)
+    };
+    let centre_comb: Comb = sum.into_iter().filter(|&(_, w)| w != 0.).collect();
+    let centre = make(out, centre_comb.clone())?;
+    // Uniform is Radial with no rings.
+    let rings = if pattern == CornerPattern::Radial {
+        m
+    } else {
+        0
+    };
+    let mut outer: Vec<u32> = ring.to_vec();
+    for level in 1..=rings {
+        let t = level as f64 / (rings + 1) as f64;
+        let mut inner = Vec::with_capacity(len);
+        for &id in ring {
+            let mut comb: Comb = centre_comb.iter().map(|&(c, w)| (c, w * t)).collect();
+            match comb.iter_mut().find(|(c, _)| *c == id) {
+                Some((_, w)) => *w += 1. - t,
+                None => comb.push((id, 1. - t)),
+            }
+            inner.push(make(out, comb)?);
+        }
+        for i in 0..len {
+            let j = (i + 1) % len;
+            new_faces.push((vec![outer[i], outer[j], inner[j], inner[i]], homes.to_vec()));
+        }
+        outer = inner;
+    }
+    for i in 0..len {
+        let j = (i + 1) % len;
+        new_faces.push((vec![outer[i], outer[j], centre], homes.to_vec()));
+    }
+    Ok(())
 }
 
 /// EBC-J-05 / EBC-B3-04: fill the opening `ring` where strips of `n` rows

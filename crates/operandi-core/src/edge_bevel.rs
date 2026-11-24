@@ -51,6 +51,24 @@ pub enum EdgeEnd {
     TriangleFan,
 }
 
+/// Edge Bevel's Corner Pattern (a tester's request, 2026-11-24; proposal,
+/// EBC-Q-CP1): how the opening is filled where strips of two or more rows
+/// meet at a point.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum CornerPattern {
+    /// EBC-J-05: a grid of quads per strip corner, each strip's rows bending
+    /// around into the next (the measured fill).
+    #[default]
+    Patch,
+    /// Straight lines from every profile point to one centre point: an
+    /// even fan, like slices of a pie.
+    Uniform,
+    /// Rings around one pole point, one per row pair, closed by a fan.
+    Radial,
+    /// No fill pattern: one polygon closes the opening.
+    None,
+}
+
 /// The options of Edge Bevel and Edge Chamfer besides width, rows and Depth.
 /// Defaults are the values after Reset (EBC-D-01/02).
 #[derive(Clone, Debug, PartialEq)]
@@ -85,6 +103,9 @@ pub struct EdgeBevelOptions {
     /// meet, an even width from both, and that edge bends to it. Edge
     /// Chamfer ignores it.
     pub loop_slide: bool,
+    /// Edge Bevel: how corners where strips meet are filled (Patch, the
+    /// measured fill, by default). Edge Chamfer ignores it.
+    pub corner: CornerPattern,
 }
 impl Default for EdgeBevelOptions {
     fn default() -> Self {
@@ -99,6 +120,7 @@ impl Default for EdgeBevelOptions {
             material: "Default".into(),
             support: 0.,
             loop_slide: true,
+            corner: CornerPattern::Patch,
         }
     }
 }

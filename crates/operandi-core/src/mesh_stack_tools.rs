@@ -668,6 +668,7 @@ impl TypedOp for EdgeChamferOp {
                 // Edge Chamfer has no Mitering (support edges) or Loop Slide.
                 support: 0.,
                 loop_slide: true,
+                corner: crate::edge_bevel::CornerPattern::Patch,
             },
         };
         let r = crate::edge_bevel::edge_bevel_with(ctx.input, &chosen_edges(ctx), &settings, None)?;
