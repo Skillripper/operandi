@@ -166,11 +166,11 @@ fn every_pattern_fills_the_inner_corner() {
             fill.sort_unstable();
             let what = format!("{corner:?}, level {level}");
             let biggest = *fill.last().unwrap();
+            assert!(biggest <= 4, "{what}: a {biggest}-sided polygon is left");
+            assert!(fill.len() >= 3 * n, "{what}: only {} polygons", fill.len());
             if corner == CornerPattern::None {
-                assert_eq!(fill, vec![3 * n], "{what}: one polygon");
-            } else {
-                assert!(biggest <= 4, "{what}: a {biggest}-sided polygon is left");
-                assert!(fill.len() >= 3 * n, "{what}: only {} polygons", fill.len());
+                // An even grid under a rounded outline: all quads.
+                assert!(fill.iter().all(|&s| s == 4), "{what}: {fill:?}");
             }
             let mut at: Vec<[i64; 3]> = out
                 .mesh
@@ -188,7 +188,10 @@ fn every_pattern_fills_the_inner_corner() {
                     .mesh
                     .vertices
                     .iter()
-                    .position(|p| p.distance(DVec3::new(-0.3, 1., 0.3)) < 1e-9)
+                    .position(|p| {
+                        let r = 0.3 * (1. - std::f64::consts::FRAC_1_SQRT_2);
+                        p.distance(DVec3::new(-r, 1., r)) < 1e-9
+                    })
                     .unwrap() as u32;
                 let corner_point = DVec3::new(0., 1., 0.);
                 let triangles: Vec<&Face> = out
@@ -212,9 +215,10 @@ fn every_pattern_fills_the_inner_corner() {
     }
 }
 
-/// The two top strips are mitred: their sides (0.3 from their edges in the
-/// top) meet at one point, and both of the top's split lines end there,
-/// as in the tester's Blender and Maya pictures.
+/// The two top strips meet at one top point, the middle of the rounded
+/// outline between where they would slide along the two split lines (0.3
+/// from the corner), just inside the old corner, and both split lines end
+/// there, as in the tester's Maya pictures.
 #[test]
 fn the_top_strips_meet_at_one_mitre_point() {
     let m = l_shape();
@@ -233,7 +237,8 @@ fn the_top_strips_meet_at_one_mitre_point() {
             .position(|&q| q.distance(p) < 1e-9)
             .unwrap_or_else(|| panic!("no point at {p}")) as u32
     };
-    let mitre = find(DVec3::new(-0.3, 1., 0.3));
+    let r = 0.3 * (1. - std::f64::consts::FRAC_1_SQRT_2);
+    let mitre = find(DVec3::new(-r, 1., r));
     let key = |a: u32, b: u32| (a.min(b), a.max(b));
     let edges = mm.edges();
     for from in [DVec3::new(-1., 1., 0.), DVec3::new(0., 1., 1.)] {

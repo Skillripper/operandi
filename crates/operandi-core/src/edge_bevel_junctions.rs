@@ -607,7 +607,9 @@ pub(crate) fn general(
     // unselected edge between them still slides along it, Loop Slide.)
     // Before, each such edge took its own slid point, so the two strips
     // never met and their corner was left as a hole closed by one polygon.
-    if !chamfer {
+    // Corner Pattern None keeps the two slid points instead and rounds the
+    // outline between them (below).
+    if !chamfer && options.corner != CornerPattern::None {
         for &v in &touched {
             if strips_at(v) < 2 {
                 continue;
@@ -623,29 +625,27 @@ pub(crate) fn general(
                 if between.len() < 2 {
                     continue;
                 }
-                let side = |face: usize, o: u32, toward: u32| -> Option<(DVec3, DVec3)> {
-                    let u = (p(o) - p(v)).try_normalize()?;
-                    let mut w = newell(mesh, face).cross(u).try_normalize()?;
-                    if w.dot(p(toward) - p(v)) < 0. {
-                        w = -w;
-                    }
-                    Some((p(v) + w * width * weight(v) * factor_of(v, o), u))
+                // Where each strip's side would slide along the outer split
+                // line, and the middle of the rounded outline between those
+                // two points around the old point: the corner's top point.
+                // (Corner Pattern None keeps that whole rounded outline; the
+                // other patterns close it to this one point. The two sides'
+                // crossing lay far behind the corner and pinched the corner
+                // into a thin wedge; the tester's Maya pictures put the top
+                // point just inside the old corner.)
+                let _ = (face_a, face_b);
+                let slid = |o: u32, s: u32| -> Option<DVec3> {
+                    let dir = (p(s) - p(v)).try_normalize()?;
+                    Some(p(v) + dir * width * weight(v) * factor_of(v, o))
                 };
-                let (Some((a1, u1)), Some((a2, u2))) = (
-                    side(face_a, a, between[0]),
-                    side(face_b, b, between[between.len() - 1]),
-                ) else {
+                let (Some(qa), Some(qb)) =
+                    (slid(a, between[0]), slid(b, between[between.len() - 1]))
+                else {
                     continue;
                 };
-                let bb = u1.dot(u2);
-                let denom = 1. - bb * bb;
-                if denom < 1e-9 {
+                let Some(&q) = profile(p(v), qa, qb, 2, depth, false).first() else {
                     continue;
-                }
-                let r = a1 - a2;
-                let (c, f) = (u1.dot(r), u2.dot(r));
-                let (t1, t2) = ((bb * f - c) / denom, (f - bb * c) / denom);
-                let q = (a1 + u1 * t1 + a2 + u2 * t2) / 2.;
+                };
                 // In the frame of the first polygon between (for UVs).
                 let (s1, s2) = (between[0], between[1]);
                 let Some(middle) = corners[&v]
@@ -795,6 +795,51 @@ pub(crate) fn general(
     // points with the profile rows between them, shared by pair.
     let mut row_cache: BTreeMap<(u32, u32), Vec<u32>> = BTreeMap::new();
     let mut ends: BTreeMap<(u32, u32, u32), Vec<u32>> = BTreeMap::new();
+    // Corner Pattern None (the tester's Maya picture, 2026-11-24): where two
+    // split lines run into a point between two strips, the outline between
+    // their two slid points is rounded around the old point, one segment
+    // per row, so the corner can be an even grid: the rows wrap across and
+    // the third strip's lines run straight up to that rounded outline. The
+    // polygon between the split lines takes the rounded points.
+    if !chamfer && !square && options.corner == CornerPattern::None && rows >= 2 {
+        for &v in &touched {
+            if strips_at(v) < 2 {
+                continue;
+            }
+            for gap in gaps_around(v, &corners[&v], &is_sel) {
+                if gap.between.len() != 2 {
+                    continue;
+                }
+                let (Some(&a), Some(&b)) = (
+                    on_edge.get(&(v, gap.between[0])),
+                    on_edge.get(&(v, gap.between[1])),
+                ) else {
+                    continue;
+                };
+                if a == b || row_cache.contains_key(&(a, b)) || row_cache.contains_key(&(b, a)) {
+                    continue;
+                }
+                let (pa, pb) = (out.vertices[a as usize], out.vertices[b as usize]);
+                let mut ids = Vec::new();
+                for (k, q) in profile(p(v), pa, pb, rows, depth, false)
+                    .into_iter()
+                    .enumerate()
+                {
+                    let id = push(&mut out, q)?;
+                    defs.insert(
+                        id,
+                        Def::Row {
+                            first: a,
+                            last: b,
+                            t: (k + 1) as f64 / rows as f64,
+                        },
+                    );
+                    ids.push(id);
+                }
+                row_cache.insert((a, b), ids);
+            }
+        }
+    }
     for &(x, y) in selected {
         let f1 = face_of[&(x, y)];
         let f2 = face_of[&(y, x)];
@@ -1101,10 +1146,10 @@ pub(crate) fn general(
                 // Corner Pattern (EBC-Q-CP1): Edge Bevel's other fills for a
                 // Round corner; Patch is the measured one below.
                 let three = layout_ring.len() == 3 * n && stand_ins.is_empty();
-                if !chamfer && !square && options.corner == CornerPattern::None {
-                    // Provisional until the rounded outline is built: one
-                    // polygon.
-                    new_faces.push((ring.clone(), homes.clone()));
+                let four = layout_ring.len() == 4 * n && stand_ins.is_empty();
+                if !chamfer && !square && options.corner == CornerPattern::None && four {
+                    // None with its rounded outline: an even n × n grid.
+                    corner_grid(&layout_ring, n, &mut out, &mut defs, &mut new_faces, &homes)?;
                 } else if !chamfer
                     && !square
                     && three
@@ -1479,6 +1524,89 @@ fn corner_layout(ring: &[u32], n: usize, is_row: impl Fn(&u32) -> bool) -> Optio
         corners += 1;
     }
     (corners >= 3).then_some((turned, runs))
+}
+
+/// Corner Pattern None (the tester's Maya picture, 2026-11-24): fill a
+/// four-sided opening (four strip corners, each side `n` segments: the
+/// rounded outline and three strip ends) with an even `n` × `n` grid of
+/// quads, a Coons patch of its four sides. Rows run from one side to the
+/// opposite one, so a strip's rows wrap across the corner into the strip
+/// opposite, and the lines between run straight up to the outline.
+// The grid is indexed by row and line together.
+#[allow(clippy::needless_range_loop)]
+fn corner_grid(
+    ring: &[u32],
+    n: usize,
+    out: &mut Mesh,
+    defs: &mut BTreeMap<u32, Def>,
+    new_faces: &mut Vec<(Vec<u32>, Vec<usize>)>,
+    homes: &[usize],
+) -> Result<()> {
+    let len = ring.len();
+    let at = |c: usize, t: usize| ring[(c * n + t) % len];
+    // Sides in the opening's order: top 0 → 1, right 1 → 2, bottom 2 → 3,
+    // left 3 → 0. Grid (i, j): i from the top side down, j left to right.
+    let top = |j: usize| at(0, j);
+    let right = |i: usize| at(1, i);
+    let bottom = |j: usize| at(2, n - j);
+    let left = |i: usize| at(3, n - i);
+    let (c00, c0n, cn0, cnn) = (at(0, 0), at(1, 0), at(3, 0), at(2, 0));
+    let mut grid = vec![vec![u32::MAX; n + 1]; n + 1];
+    for i in 0..=n {
+        for j in 0..=n {
+            grid[i][j] = if i == 0 {
+                top(j)
+            } else if i == n {
+                bottom(j)
+            } else if j == 0 {
+                left(i)
+            } else if j == n {
+                right(i)
+            } else {
+                let (s, t) = (j as f64 / n as f64, i as f64 / n as f64);
+                let parts = [
+                    (top(j), 1. - t),
+                    (bottom(j), t),
+                    (left(i), 1. - s),
+                    (right(i), s),
+                    (c00, -(1. - s) * (1. - t)),
+                    (c0n, -s * (1. - t)),
+                    (cn0, -(1. - s) * t),
+                    (cnn, -s * t),
+                ];
+                let mut sum: BTreeMap<u32, f64> = BTreeMap::new();
+                for (id, w) in parts {
+                    *sum.entry(id).or_default() += w;
+                }
+                let comb: Comb = sum.into_iter().filter(|&(_, w)| w.abs() > 1e-15).collect();
+                let position = comb
+                    .iter()
+                    .map(|&(id, w)| out.vertices[id as usize] * w)
+                    .sum::<DVec3>();
+                let id =
+                    u32::try_from(out.vertices.len()).map_err(|_| "Mesh point budget exceeded")?;
+                out.vertices.push(position);
+                defs.insert(id, Def::Blend(comb));
+                id
+            };
+        }
+    }
+    // Wound as the opening runs: along the top (j up), down the right
+    // (i up), back along the bottom, up the left.
+    for i in 0..n {
+        for j in 0..n {
+            new_faces.push((
+                vec![
+                    grid[i][j],
+                    grid[i][j + 1],
+                    grid[i + 1][j + 1],
+                    grid[i + 1][j],
+                ],
+                homes.to_vec(),
+            ));
+        }
+    }
+    Ok(())
 }
 
 /// Corner Pattern Radial and Uniform (the tester's Maya pictures,
