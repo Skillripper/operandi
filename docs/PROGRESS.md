@@ -1,5 +1,14 @@
 # Milestone progress ledger
 
+- **Bug reports #6, #7, #8 (2026-11-24, branch fix-bug-reports-batch1):**
+  #6 Texture Locator (Shader Tree and Environment) Position, Rotation,
+  Size, Falloff and Real World Size are one row per axis (UIC-114), so Y
+  and Z no longer run off the panel. #7 Mesh Stack op ids start at 1 (0
+  is Source Item's "(none)"); older saves give an op 0 a fresh id and
+  move its Select by Previous links with it. #8 Mini Properties grows to
+  its rows (up to 480 pt) instead of staying as short as it first opened.
+  #5 was already fixed on main.
+
 - **Help mode, What's This? (2026-11-24, branch help-mode, UIC-06):** F1
   or Help ▸ What's This? (`operandi.help.whatsThis`), question-mark
   pointer; the next click opens /guide/<version>/go/<help-id>/ for the

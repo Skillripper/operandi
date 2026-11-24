@@ -152,6 +152,12 @@ impl Operandi {
     pub(super) fn mini_properties_window(&mut self, ctx: &Context) -> Option<Rect> {
         let MiniProperties { at, moved } = self.mini_properties?;
         let tool = self.mini_shows_tool();
+        // Issue #8: an Area's content gets last frame's size as its room,
+        // so a scroll area sized from the room could only shrink: once
+        // the pop-over was short (two rows, say, before an item was
+        // picked) it stayed short. The rows ask for their own height, up
+        // to MAX_HEIGHT and what fits on screen, and scroll past that.
+        let rows_height = MAX_HEIGHT.min((ctx.content_rect().height() - 60.).max(120.));
         let shown = egui::Area::new(Id::new("mini-properties"))
             .order(egui::Order::Foreground)
             .constrain_to(ctx.content_rect())
@@ -169,7 +175,8 @@ impl Operandi {
                         let action = crate::snapping::popover_header(ui, true);
                         ScrollArea::vertical()
                             .id_salt("mini-properties-rows")
-                            .max_height(MAX_HEIGHT)
+                            .max_height(rows_height)
+                            .min_scrolled_height(rows_height)
                             .show(ui, |ui| {
                                 ui.spacing_mut().item_spacing.y =
                                     crate::form::layout::panel::ROW_GAP;

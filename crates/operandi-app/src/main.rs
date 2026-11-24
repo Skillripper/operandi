@@ -4040,6 +4040,8 @@ mod light_view_tests;
 #[cfg(test)]
 mod link_button_tests;
 #[cfg(test)]
+mod mini_properties_tests;
+#[cfg(test)]
 mod number_field_tests;
 #[cfg(test)]
 mod numeric_tab_tests;
