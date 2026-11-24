@@ -87,6 +87,9 @@ pub struct BlendSource {
     #[serde(default, rename = "keepCage")]
     pub keep_cage: bool,
 }
+fn twenty_percent() -> f64 {
+    0.2
+}
 fn yes() -> bool {
     true
 }
@@ -128,6 +131,10 @@ pub struct Recipe {
     /// Strip Width (Q05: crease to each band edge, on the surface).
     #[serde(rename = "stripWidth")]
     pub strip_width: f64,
+    /// Strip Width with relative units: a fraction (0.2 = 20 %) of the
+    /// sources' average cage edge length (SB-31b, MB-Q08).
+    #[serde(rename = "stripWidthRel", default = "twenty_percent")]
+    pub strip_width_rel: f64,
     /// Strip Profile as a fraction (1.0 = 100 %, round).
     #[serde(rename = "stripProfile")]
     pub strip_profile: f64,
@@ -149,6 +156,7 @@ impl Default for Recipe {
             sources: Vec::new(),
             width_units: 0,
             strip_width: 0.02,
+            strip_width_rel: 0.2,
             strip_profile: 1.,
             strip_rows: 3,
             output: 2,
@@ -175,6 +183,9 @@ impl Recipe {
         }
         if !self.strip_width.is_finite() || self.strip_width < 0. {
             return Err("MeshBlend Strip Width must be zero or more".into());
+        }
+        if !self.strip_width_rel.is_finite() || self.strip_width_rel < 0. {
+            return Err("MeshBlend relative Strip Width must be zero or more".into());
         }
         if !self.strip_profile.is_finite() || !(0. ..=2.).contains(&self.strip_profile) {
             return Err("MeshBlend Strip Profile must be 0% to 200%".into());

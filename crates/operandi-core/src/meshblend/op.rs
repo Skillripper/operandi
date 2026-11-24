@@ -59,6 +59,15 @@ impl OpDef for MeshBlendOp {
             })
             .unwrap_or_default()
     }
+    /// Only the width in the chosen units applies (UIC-117).
+    fn field_enabled(&self, key: &str, values: &serde_json::Value) -> bool {
+        let relative = values["widthUnits"].as_u64() == Some(1);
+        match key {
+            "stripWidth" => !relative,
+            "stripWidthRel" => relative,
+            _ => true,
+        }
+    }
     fn run(&self, ctx: &OpContext, values: &serde_json::Value) -> Result<Mesh> {
         let recipe: Recipe = serde_json::from_value(values.clone()).map_err(|e| e.to_string())?;
         if recipe.sources.is_empty() {
@@ -115,8 +124,13 @@ pub(crate) fn entries() -> Vec<Arc<dyn OpDef>> {
     vec![Arc::new(MeshBlendOp {
         fields: vec![
             hidden("sources"),
-            hidden("widthUnits"),
+            Field::new(
+                "widthUnits",
+                "Width Units",
+                FieldKind::Choice(vec!["Distance".into(), "Percent of Polygon Size".into()]),
+            ),
             Field::new("stripWidth", "Strip Width", FieldKind::Distance),
+            Field::new("stripWidthRel", "Strip Width %", FieldKind::Percent),
             Field::new("stripProfile", "Strip Profile", FieldKind::Percent),
             Field::new(
                 "stripRows",

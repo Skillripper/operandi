@@ -372,8 +372,13 @@ pub fn evaluate(recipe: &Recipe, inputs: &[Input]) -> Result<Blend> {
     // Polygons rebuilt from provenance; if a region came back in a shape
     // the mesh rules refuse, fall back to the engine's triangles, which
     // are always closed and consistently wound (ST-10 before swap-in).
-    let stripped = if recipe.strip_width > 0. && recipe.output != 0 && !engine.tris.is_empty() {
-        with_strips(recipe, &prepared, &offsets, &engine, &mut notes)
+    let width = if recipe.width_units == 1 {
+        recipe.strip_width_rel * average_cage_edge(recipe, inputs)
+    } else {
+        recipe.strip_width
+    };
+    let stripped = if width > 0. && recipe.output != 0 && !engine.tris.is_empty() {
+        with_strips(recipe, width, &prepared, &offsets, &engine, &mut notes)
     } else {
         None
     };
@@ -459,6 +464,7 @@ fn rebuild(
 /// with a note (ST-04). Design Mode (ST-16) makes narrow flat strips.
 fn with_strips(
     recipe: &Recipe,
+    width: f64,
     prepared: &[Prepared],
     offsets: &[u32],
     engine: &Tri,
@@ -480,13 +486,9 @@ fn with_strips(
         names: prepared.iter().map(|p| p.name.clone()).collect(),
     };
     let (width, profile, rows) = if recipe.design_mode {
-        (recipe.strip_width * 0.1, 0., 1)
+        (width * 0.1, 0., 1)
     } else {
-        (
-            recipe.strip_width,
-            recipe.strip_profile * 100.,
-            recipe.strip_rows,
-        )
+        (width, recipe.strip_profile * 100., recipe.strip_rows)
     };
     // ST-11 / SB-72: a strip changes the volume by at most its band's
     // cross-section along the joins (about width² per unit of join length).
@@ -854,4 +856,20 @@ fn output_mode(
         _ => {}
     }
     Ok(())
+}
+
+/// SB-31b (provisional MB-Q08): the average edge length of the enabled
+/// sources' cages, which relative Strip Width is a share of.
+fn average_cage_edge(recipe: &Recipe, inputs: &[Input]) -> f64 {
+    let (mut total, mut count) = (0., 0usize);
+    for s in recipe.sources.iter().filter(|s| s.enabled) {
+        let Some(i) = inputs.iter().find(|i| i.item == s.item) else {
+            continue;
+        };
+        for (a, b) in i.mesh.edges().iter() {
+            total += i.mesh.vertices[*a as usize].distance(i.mesh.vertices[*b as usize]);
+            count += 1;
+        }
+    }
+    if count == 0 { 0. } else { total / count as f64 }
 }

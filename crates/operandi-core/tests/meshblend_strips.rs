@@ -269,3 +269,16 @@ fn output_modes() {
     assert!(only.origin.iter().all(|o| o.polygon == u32::MAX));
     assert!(check::st10(&only.mesh, 0.1, None).open_edges > 0);
 }
+
+#[test]
+fn relative_width_follows_the_polygon_size() {
+    // Boxes of 2 segments: cage edges 0.5 long, so 20 % is a 0.1 strip,
+    // the same as the absolute 0.1 width.
+    let mut r = recipe(&[1, 2], 0.5);
+    r.width_units = 1;
+    r.strip_width_rel = 0.2;
+    let rel = evaluate(&r, &two_boxes()).unwrap();
+    let abs = evaluate(&recipe(&[1, 2], 0.1), &two_boxes()).unwrap();
+    assert_eq!(rel.mesh.faces.len(), abs.mesh.faces.len());
+    assert!((check::volume(&rel.mesh) - check::volume(&abs.mesh)).abs() < 1e-9);
+}
