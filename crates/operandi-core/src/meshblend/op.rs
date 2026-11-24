@@ -81,12 +81,16 @@ impl OpDef for MeshBlendOp {
             .unwrap_or_default()
     }
     /// Only the width in the chosen units applies (UIC-117).
-    fn field_enabled(&self, key: &str, values: &serde_json::Value) -> bool {
+    fn field_unavailable(&self, key: &str, values: &serde_json::Value) -> Option<String> {
         let relative = values["widthUnits"].as_u64() == Some(1);
         match key {
-            "stripWidth" => !relative,
-            "stripWidthRel" => relative,
-            _ => true,
+            "stripWidth" if relative => {
+                Some("Width Units is Percent of Polygon Size: Strip Width % applies".into())
+            }
+            "stripWidthRel" if !relative => {
+                Some("Width Units is Distance: Strip Width applies".into())
+            }
+            _ => None,
         }
     }
     fn run(&self, ctx: &OpContext, values: &serde_json::Value) -> Result<Mesh> {

@@ -689,9 +689,9 @@ impl Operandi {
                     let value = values.get(key).cloned().unwrap_or_default();
                     let default = defaults.get(key).cloned().unwrap_or_default();
                     let tip = format!("{label} ({key})");
-                    let enabled = def.field_enabled(key, &values);
+                    let why = def.field_unavailable(key, &values);
                     let response = ui
-                        .add_enabled_ui(enabled, |ui| match &f.kind {
+                        .gated_ui(why.as_deref(), |ui| match &f.kind {
                             FieldKind::Check => {
                                 let mut on = value.as_bool().unwrap_or(false);
                                 let d = default.as_bool().unwrap_or(false);

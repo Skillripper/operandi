@@ -10,6 +10,7 @@
 //! Strip settings are left out until strips exist (B2; UIC-117: features
 //! not built yet are left out, not greyed).
 use crate::form::{Unit, rows};
+use crate::unavailable::Gate;
 use eframe::egui::Ui;
 use operandi_core::Command;
 use operandi_core::mesh_stack::OpStatus;
@@ -181,7 +182,11 @@ pub(crate) fn sections(
                 {
                     out.push(strip(blend, &s.id, Some(own), None, None));
                 }
-                ui.add_enabled_ui(on, |ui| {
+                let why = crate::unavailable::unless(
+                    on,
+                    "Tick Override Defaults to give this strip its own settings",
+                );
+                ui.gated_ui(why, |ui| {
                     let mut w = over.and_then(|o| o.width).unwrap_or(recipe.strip_width);
                     let r = rows::number_d(
                         ui,

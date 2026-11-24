@@ -244,11 +244,12 @@ pub trait OpDef: Send + Sync {
     fn uses_time(&self) -> bool {
         false
     }
-    /// Whether the value `key` applies with these values; a value that
-    /// doesn't is drawn greyed (UIC-117: greyed, never hidden).
-    fn field_enabled(&self, key: &str, values: &serde_json::Value) -> bool {
+    /// Why the value `key` doesn't apply with these values, if it doesn't;
+    /// it is then drawn greyed with that reason (UIC-117: greyed, never
+    /// hidden).
+    fn field_unavailable(&self, key: &str, values: &serde_json::Value) -> Option<String> {
         let _ = (key, values);
-        true
+        None
     }
     /// The op on `ctx.input`. Values were read by [`OpDef::read`]; still
     /// re-check anything a script could have set out of range (SAFE-10).

@@ -5,7 +5,7 @@
   constrained Delaunay + seeded points, kept only if ST-10 passes), then
   edge flips and pairing; output modes (SB-50; Closed, clean is the new
   default, MB-Q07); Width Units with Strip Width % (MB-Q08; greyed rows via
-  `OpDef::field_enabled`); stable strip ids (ST-07) listed in Properties
+  `OpDef::field_unavailable`); stable strip ids (ST-07) listed in Properties
   with per-strip Width/Profile overrides and `meshblend.strip` (MB-Q09).
   Not yet: tapering width, viewport strip picking, curved-face re-meshing.
 
