@@ -263,8 +263,6 @@ mod i2_live_history;
 mod i2_origin_active_save_confirmation;
 #[path = "i2_review_fixes.rs"]
 mod i2_review_fixes;
-#[path = "icon_studio.rs"]
-mod icon_studio;
 #[path = "identity_positions.rs"]
 mod identity_positions;
 #[path = "ik_body.rs"]
@@ -327,6 +325,9 @@ mod loop_slice_surface_probe;
 mod loop_symmetry;
 #[path = "lxo.rs"]
 mod lxo;
+#[cfg(operandi_specs)]
+#[path = "lxo_anim_rig_spec.rs"]
+mod lxo_anim_rig_spec;
 #[path = "lxo_animation.rs"]
 mod lxo_animation;
 #[path = "lxo_budget_preflight.rs"]
@@ -390,6 +391,10 @@ mod mesh_stack_selops;
 mod mesh_stack_stress;
 #[path = "mesh_stack_tools.rs"]
 mod mesh_stack_tools;
+#[path = "meshblend.rs"]
+mod meshblend;
+#[path = "meshblend_spike.rs"]
+mod meshblend_spike;
 #[path = "mid_tool_undo.rs"]
 mod mid_tool_undo;
 #[path = "mode_availability.rs"]

@@ -260,6 +260,7 @@ impl Editor {
         let stack_command = matches!(
             &cmd,
             Command::MeshOpCreate(_)
+                | Command::MeshBlend(_)
                 | Command::MeshOpDelete(_)
                 | Command::MeshOpMove { .. }
                 | Command::MeshOpEnable { .. }

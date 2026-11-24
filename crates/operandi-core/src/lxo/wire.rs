@@ -81,6 +81,16 @@ impl<'a> Reader<'a> {
             .map_err(|_| self.error("invalid_utf8", "ENCO=2 requires strict UTF-8"))?;
         Ok(text.to_owned())
     }
+    /// Text a file may hold in another encoding (string channels, action
+    /// and channel-link records): UTF-8, else read as Windows-1252. The
+    /// flag says it wasn't UTF-8, for the import report.
+    pub fn text(&mut self, control: &mut Control<'_>) -> Result<(String, bool)> {
+        let bytes = self.string_bytes(control)?;
+        Ok(match std::str::from_utf8(bytes) {
+            Ok(text) => (text.to_owned(), false),
+            Err(_) => (windows_1252(bytes), true),
+        })
+    }
     /// A name (display text). Strict UTF-8, except that where
     /// `control.ansi_names` is set (LXO-LEG-Q05) one that isn't UTF-8 is
     /// decoded as Windows-1252 and recorded for a note.

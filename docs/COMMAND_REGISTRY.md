@@ -4,7 +4,8 @@ Branch `command-registry`. UI conventions bible section 11 (UIC-160..164).
 
 ## What it is
 
-`crates/operandi-core/src/command_registry.rs` is one table of every
+`crates/operandi-core/src/command_registry.rs` (the rows live in
+`command_registry/commands/`, one file per area) is one table of every
 command Operandi's command line accepts: 338 entries (99 script commands
 such as `poly.flip` or `tool.set`, and 239 plain action phrases such as
 `Grow` or `Top View`, which are the Input Map's names). Each entry has:

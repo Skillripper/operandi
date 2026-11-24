@@ -311,6 +311,9 @@ pub fn command_for(
 /// `Ok(None)` when it already ran the command.
 pub fn built_in(e: &mut Editor, name: &str, a: &Map<String, Value>) -> Result<Option<Command>> {
     let active = |e: &Editor| e.scene.selection.item.ok_or("No active item");
+    if let Some(cmd) = crate::meshblend::commands::parse(name, a)? {
+        return Ok(Some(Command::MeshBlend(cmd)));
+    }
     if let Some(cmd) = crate::mesh_stack_editor::script_command(e, name, a)? {
         return Ok(Some(cmd));
     }

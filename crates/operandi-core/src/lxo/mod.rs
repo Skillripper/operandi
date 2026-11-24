@@ -2,14 +2,20 @@
 //! spec (`phase1.rs`, lxo-import-phase1-2026-11-05); Modo 8–10 files (format
 //! 4.x, lxo-legacy-import-2026-11-03) are read by `decode`/`convert`.
 //! Original Rust implementation; no runtime, SDK, third-party parser or GPU API.
+mod actions;
+mod anim_import;
+mod cameras_lights;
 mod convert;
 mod decode;
+mod envelope;
 pub mod export;
 mod lxe;
 mod metadata;
 mod phase1;
 pub mod preset_items;
 mod q001;
+mod rig_import;
+mod user_channels;
 pub(crate) mod wire;
 use crate::Scene;
 /// A channel value as the readers store it.
@@ -310,6 +316,21 @@ fn source_reserve(bytes: usize) -> Result<usize> {
 }
 /// The refusal for a file over `Limits::input_bytes`.
 pub(crate) const INPUT_TOO_BIG: &str = "Input exceeds the LXO size limit";
+/// Every keyed channel's curve in a Modo 16/17 scene file as Operandi
+/// would import it, by item name and Modo channel name (spec
+/// lxo-import-anim-rig LXA-10..21), including channels Operandi has no
+/// equivalent for. For tests and diagnostics.
+pub fn keyed_curves(bytes: &[u8]) -> Result<Vec<(String, String, crate::anim_curve::Curve)>> {
+    let mut progress = |_: &str| true;
+    let mut control = Control::new(&mut progress);
+    if bytes.len() < 12 || &bytes[..4] != b"FORM" {
+        return Err(Error::new("wrong_form_type", 0, "Expected FORM container"));
+    }
+    let mut r = Reader::new(bytes, 0);
+    r.take(12)?;
+    let chunks = r.chunks(false, &mut control)?;
+    phase1::keyed_curves(&chunks, &mut control)
+}
 pub fn parse(bytes: &[u8], control: &mut Control<'_>) -> Result<Candidate> {
     control.check("framing")?;
     if bytes.len() > control.limits.input_bytes {

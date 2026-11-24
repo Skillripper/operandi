@@ -339,8 +339,15 @@ impl Curve {
             | Behavior::OffsetRepeatSmooth
             | Behavior::Oscillate
             | Behavior::OscillateSmooth => {
-                let cycles = ((ts - f0) / span).floor();
-                let local = ts - f0 - cycles * span;
+                let mut cycles = ((ts - f0) / span).floor();
+                let mut local = ts - f0 - cycles * span;
+                // Before the first key, a time a whole number of spans
+                // away lands on the end of the earlier cycle, not the start
+                // of the next (lxo-import-anim-rig LXA-20, measured).
+                if before && local <= 0. {
+                    cycles -= 1.;
+                    local = span;
+                }
                 let oscillate = matches!(behavior, Behavior::Oscillate | Behavior::OscillateSmooth);
                 let local = if oscillate && (cycles as i64).rem_euclid(2) == 1 {
                     span - local
@@ -414,7 +421,7 @@ impl Curve {
 
     /// The slopes (value per second) leaving key `i` and arriving at key
     /// `i + 1`, after the no-overshoot limit.
-    fn segment_slopes(&self, i: usize) -> (f64, f64) {
+    pub(crate) fn segment_slopes(&self, i: usize) -> (f64, f64) {
         let keys = &self.keys;
         let (a, b) = (&keys[i], &keys[i + 1]);
         let d = (b.value - a.value) / (b.time - a.time).seconds();

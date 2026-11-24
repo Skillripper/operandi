@@ -45,6 +45,9 @@ Contributor docs:
   change follows (rules UIC-nn).
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and
   [docs/CODEMAP.md](docs/CODEMAP.md): where the code is.
+- [Code map](https://operandi3d.org/architecture): an interactive map of
+  every module and file, with a plain-English line for each and what uses
+  what.
 - [docs/STATUS.md](docs/STATUS.md): what's built.
 
 Found a bug or have an idea? Use **Help > Report Bug or Idea…** in the app. Security problems go through

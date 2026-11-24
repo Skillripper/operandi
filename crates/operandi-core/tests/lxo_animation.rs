@@ -448,3 +448,146 @@ fn a_mesh_instance_shows_its_source_mesh() {
     // Counted once, as the source mesh.
     assert_eq!(c.report.meshes, 1);
 }
+
+// --- keys, cameras and lights (lxo-import-anim-rig LXA-10..53) -------------
+
+/// An ENVL float curve: (seconds, value) keys with automatic Smooth Flat
+/// handles of the given slopes.
+fn envelope(f: &mut File, index: u32, keys: &[(f64, f64, f64)]) {
+    let mut d = Vec::new();
+    vx(&mut d, index);
+    u32(&mut d, 0);
+    let sub = |d: &mut Vec<u8>, id: &[u8; 4], body: &[u8]| {
+        d.extend_from_slice(id);
+        u16(d, body.len() as u16);
+        d.extend_from_slice(body);
+    };
+    sub(&mut d, b"PRE ", &1u16.to_be_bytes());
+    sub(&mut d, b"POST", &1u16.to_be_bytes());
+    for (i, &(t, v, slope)) in keys.iter().enumerate() {
+        let gap = |j: Option<usize>| j.map_or(0., |j: usize| (keys[j].0 - t).abs());
+        let w_in = gap(i.checked_sub(1)) / 3. * (1. + slope * slope).sqrt();
+        let w_out = gap((i + 1 < keys.len()).then_some(i + 1)) / 3. * (1. + slope * slope).sqrt();
+        let mut k = Vec::new();
+        f32(&mut k, t);
+        f32(&mut k, v);
+        sub(&mut d, b"KEY ", &k);
+        let mut k = Vec::new();
+        u16(&mut k, 64);
+        u16(&mut k, 0);
+        f32(&mut k, slope);
+        f32(&mut k, w_in);
+        f32(&mut k, v);
+        sub(&mut d, b"TANI", &k);
+        let mut k = Vec::new();
+        u32(&mut k, 0);
+        u16(&mut k, 64);
+        u16(&mut k, 0);
+        f32(&mut k, slope);
+        f32(&mut k, w_out);
+        f32(&mut k, 0.);
+        sub(&mut d, b"TANO", &k);
+    }
+    f.chunk(b"ENVL", &d);
+}
+
+/// A keyed ACTN.CHAN record: name index, keyed float type, envelope.
+fn keyed(index: u32, env: u32, rest: f64) -> ([u8; 4], Vec<u8>) {
+    let mut d = Vec::new();
+    vx(&mut d, index);
+    u16(&mut d, 18);
+    vx(&mut d, env);
+    f32(&mut d, rest);
+    (*b"CHAN", d)
+}
+
+fn owner(id: u32) -> ([u8; 4], Vec<u8>) {
+    let mut d = Vec::new();
+    u32(&mut d, id);
+    (*b"ITEM", d)
+}
+
+fn float_channel(index: u32, v: f64) -> ([u8; 4], Vec<u8>) {
+    let mut d = Vec::new();
+    vx(&mut d, index);
+    u16(&mut d, 2);
+    f32(&mut d, v);
+    (*b"CHAN", d)
+}
+
+#[test]
+fn a_keyed_mesh_imports_with_its_curve_and_the_frame_rate() {
+    // CHNM: type, order, visible, pos.Y, fps, sceneE, radiance.
+    let mut f = File::new(
+        &["Default"],
+        &[
+            "type", "order", "visible", "pos.Y", "fps", "sceneE", "radiance",
+        ],
+    );
+    f.layer(0, "Box", 1);
+    f.points(&QUAD);
+    f.polygons(b"FACE", &[&[0, 3, 2, 1]]);
+    f.item("mesh", "Box", 1, &[]);
+    transform(&mut f, 10, "translation", 1, 0, [0., 0., 0.], &[]);
+    f.item(
+        "scene",
+        "",
+        20,
+        &[float_channel(4, 25.), float_channel(5, 2.)],
+    );
+    f.item("pointLight", "Lamp", 30, &[float_channel(6, 2.)]);
+    f.item("lightMaterial", "", 31, &[link("parent", 30)]);
+    envelope(&mut f, 0, &[(0., 0., 0.), (1., 2., 0.)]);
+    envelope(&mut f, 1, &[(0., 2., 0.), (2., 4., 0.)]);
+    f.action(
+        "scene",
+        1,
+        &[owner(10), keyed(3, 0, 0.), owner(30), keyed(6, 1, 3.)],
+    );
+    let c = import(&f.bytes()).unwrap();
+    let s = &c.scene;
+    assert_eq!(s.time.rate, operandi_core::time_tick::FrameRate::FPS_25);
+    assert_eq!(s.time.end, s.time.rate.tick_of(50));
+    let b = s.items.iter().find(|i| i.name == "Box").unwrap();
+    assert_eq!(b.mesh.faces.len(), 1, "the keyed mesh keeps its polygon");
+    let key = operandi_core::animation::ChannelKey::new(b.id, "pos.Y");
+    let curve = &s.animation.channels[&key].curve;
+    let half = curve.value_at(operandi_core::time_tick::Tick::from_seconds(0.5));
+    assert!((half - 1.).abs() < 1e-6, "{half}");
+    let lamp = s.items.iter().find(|i| i.name == "Lamp").unwrap();
+    assert!(lamp.light.is_some());
+    let key = operandi_core::animation::ChannelKey::new(lamp.id, "intensity");
+    assert_eq!(s.animation.channels[&key].rest, 3.);
+    assert!(
+        c.report.summary().contains("2 key curves imported"),
+        "{}",
+        c.report.summary()
+    );
+}
+
+#[test]
+fn text_that_isnt_utf8_is_read_as_windows_1252_with_a_note() {
+    // A string channel (an image path) and an action's text value saved
+    // in a Latin encoding: "café" with é as the single byte 0xE9.
+    let mut f = File::new(&["Default"], &["type", "order", "visible"]);
+    f.layer(0, "Box", 1);
+    f.points(&QUAD);
+    f.polygons(b"FACE", &[&[0, 3, 2, 1]]);
+    let mut chns = Vec::new();
+    text(&mut chns, "filename");
+    chns.extend_from_slice(b"caf\xe9.png\0\0");
+    f.item("mesh", "Box", 1, &[(*b"CHNS", chns)]);
+    let mut value = Vec::new();
+    vx(&mut value, VISIBLE);
+    u16(&mut value, 3);
+    vx(&mut value, 0);
+    value.extend_from_slice(b"caf\xe9\0\0");
+    f.action("edit", 0, &[owner(1), (*b"CHAN", value)]);
+    let c = import(&f.bytes()).unwrap_or_else(|e| panic!("{e}"));
+    assert_eq!(c.scene.items.iter().filter(|i| i.is_mesh()).count(), 1);
+    assert!(
+        c.report.summary().contains("2 text records weren't UTF-8"),
+        "{}",
+        c.report.summary()
+    );
+}

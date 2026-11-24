@@ -17,6 +17,7 @@ mod item_transform_ui;
 #[cfg(test)]
 mod mesh_paint_tests;
 mod mesh_stack_ui;
+mod meshblend_ui;
 mod node_edit_ui;
 #[cfg(test)]
 mod node_edit_ui_tests;
@@ -134,7 +135,6 @@ mod help_mode;
 #[cfg(test)]
 mod help_mode_tests;
 mod i2_route;
-mod icon_studio_cli;
 mod icons;
 mod image_decode;
 mod image_viewer;
@@ -259,6 +259,7 @@ mod resource_write;
 mod rig_tab_tests;
 #[cfg(test)]
 mod rig_ui_tests;
+mod rig_user_channels_ui;
 mod scale_offset_dialog;
 mod scenes;
 mod schematic_ui;
@@ -3846,10 +3847,6 @@ fn main() -> eframe::Result {
     // Operandi's own matcap renders (matcap_render.rs): no window opens.
     if args.first().map(String::as_str) == Some("--render-matcap") {
         std::process::exit(matcap_render::command(&args[1..]));
-    }
-    // UI icons rendered from 3D scenes (icon_studio_cli.rs): no window opens.
-    if args.first().map(String::as_str) == Some("--icon-studio") {
-        std::process::exit(icon_studio_cli::command(&args[1..]));
     }
     #[cfg(feature = "qa")]
     if qa::offscreen_requested() {

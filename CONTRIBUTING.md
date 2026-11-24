@@ -157,6 +157,9 @@ contribute.
    workflow (operation, live preview, panel, shortcut, command) and a test
    for each criterion. [AGENTS.md](AGENTS.md) has the details, including the
    fast-drag rules every interactive tool follows.
+   To find your way around first, the
+   [code map](https://operandi3d.org/architecture) shows every module and
+   file with a one-line description and what connects to what.
 4. Interface work follows the project's UI conventions,
    [docs/UI_BIBLE.md](docs/UI_BIBLE.md). Read the section for what you're
    changing before you start, and mention the rule numbers (UIC-nn) when

@@ -322,6 +322,10 @@ impl Operandi {
             ui.weak("Select an item");
             return;
         };
+        // RG-53 rig user channels (imported rig controls) first.
+        if self.rig_user_channel_rows(ui) {
+            ui.separator();
+        }
         let idle = self.editor.live.is_none();
         ui.gated_ui(
             crate::unavailable::unless(idle, crate::unavailable::TOOL_ACTIVE),
