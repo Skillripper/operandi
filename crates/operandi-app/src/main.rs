@@ -23,6 +23,7 @@ mod command_history;
 #[path = "commands/command_history_ui.rs"]
 mod command_history_ui;
 #[cfg(test)]
+#[path = "create_tools/contour_tests.rs"]
 mod contour_tests;
 mod item_transform_ui;
 #[cfg(test)]
@@ -97,12 +98,16 @@ mod command_registry_gaps;
 #[cfg(test)]
 #[path = "commands/command_registry_tests.rs"]
 mod command_registry_tests;
+#[path = "create_tools/cone_panel.rs"]
 mod cone_panel;
+#[path = "create_tools/contour_ui.rs"]
 mod contour_ui;
 mod create_utility;
 #[cfg(test)]
 mod ctrl_constrain_tests;
+#[path = "create_tools/curve_hands_on.rs"]
 mod curve_hands_on;
+#[path = "create_tools/curve_tab.rs"]
 mod curve_tab;
 mod cut_dialogs;
 mod defaults_preferences;
@@ -113,6 +118,7 @@ mod dialog_place;
 mod display_shading;
 #[cfg(test)]
 mod drag_undo_guard_tests;
+#[path = "create_tools/draw_tools.rs"]
 mod draw_tools;
 mod drill_dialog;
 mod drop_action_ui;
@@ -124,6 +130,7 @@ mod duplicate_view;
 mod edge_panel;
 mod edit_panel;
 mod editor_color_ui;
+#[path = "create_tools/ellipsoid_panel.rs"]
 mod ellipsoid_panel;
 mod empty_expand;
 mod environment_gpu;
@@ -243,11 +250,13 @@ mod panel_maximize_tests;
 mod panel_registry;
 mod panels;
 #[cfg(test)]
+#[path = "create_tools/patch_safety_tests.rs"]
 mod patch_safety_tests;
 mod path_slice_panel;
 mod path_slice_view;
 mod path_tool_panel;
 mod path_tool_view;
+#[path = "create_tools/pen_interactive_ui.rs"]
 mod pen_interactive_ui;
 mod picking;
 mod pie_menu;
@@ -255,6 +264,7 @@ mod planar_texture_ui;
 #[cfg(test)]
 mod plane_handles_tests;
 #[cfg(test)]
+#[path = "create_tools/plane_teapot_tests.rs"]
 mod plane_teapot_tests;
 mod poly_haul_drag;
 mod polygon_align;
@@ -271,6 +281,7 @@ mod preferences_tier2_tests;
 mod prefs_checkbox_tests;
 mod prefs_commands;
 mod prefs_file;
+#[path = "create_tools/primitive_input.rs"]
 mod primitive_input;
 mod profile_browser;
 mod project_files;
@@ -322,6 +333,7 @@ mod session_draw;
 mod session_draw_tests;
 mod set_position_dialog;
 mod shading_panel;
+#[path = "create_tools/shape_panel.rs"]
 mod shape_panel;
 #[cfg(test)]
 mod shifted_key_tests;
@@ -336,6 +348,7 @@ mod smooth_shift_panel;
 mod snap_kinds;
 mod snap_service;
 mod snapping;
+#[path = "create_tools/solid_sketch_ui.rs"]
 mod solid_sketch_ui;
 mod space_mouse;
 mod spike_panel;
@@ -3833,6 +3846,7 @@ mod form_editor;
 #[cfg(test)]
 mod form_editor_tests;
 mod graph_editor;
+#[path = "create_tools/guides_ui.rs"]
 mod guides_ui;
 mod matcap_render;
 mod materialx_ui;
@@ -3849,6 +3863,7 @@ mod preset_thumbs;
 mod preset_ui;
 mod preview;
 mod preview_ui;
+#[path = "create_tools/primitive_panel.rs"]
 mod primitive_panel;
 mod render_ui;
 #[path = "anim/timeline.rs"]
@@ -4035,8 +4050,10 @@ mod drag_patch_tests;
 #[cfg(test)]
 mod draw_depth_tests;
 #[cfg(test)]
+#[path = "create_tools/draw_point_mode_tests.rs"]
 mod draw_point_mode_tests;
 #[cfg(test)]
+#[path = "create_tools/draw_tools_tests.rs"]
 mod draw_tools_tests;
 #[cfg(test)]
 mod drawing_equivalence_tests;
@@ -4114,6 +4131,7 @@ mod online_library_tests;
 #[cfg(test)]
 mod path_slice_tools_tests;
 #[cfg(test)]
+#[path = "create_tools/pen_ui_tests.rs"]
 mod pen_ui_tests;
 #[cfg(test)]
 mod perf_drags_tests;
@@ -4128,8 +4146,10 @@ mod preset_drop_tests;
 #[cfg(test)]
 mod preset_ui_tests;
 #[cfg(test)]
+#[path = "create_tools/primitive_modifier_tests.rs"]
 mod primitive_modifier_tests;
 #[cfg(test)]
+#[path = "create_tools/primitive_ui_tests.rs"]
 mod primitive_ui_tests;
 #[cfg(test)]
 mod render_item_ui_tests;
@@ -4261,6 +4281,7 @@ mod new_scene_empty_mesh_tests;
 mod cone_new_document_retention_tests;
 
 #[cfg(test)]
+#[path = "create_tools/cone_numeric_repeat_history_tests.rs"]
 mod cone_numeric_repeat_history_tests;
 
 #[cfg(test)]
@@ -4310,8 +4331,10 @@ mod edge_loop_delete_tests;
 mod polygon_collapse_tests;
 
 #[cfg(test)]
+#[path = "create_tools/pen_interactive_tests.rs"]
 mod pen_interactive_tests;
 #[cfg(test)]
+#[path = "create_tools/solid_sketch_ui_tests.rs"]
 mod solid_sketch_ui_tests;
 
 #[cfg(test)]
