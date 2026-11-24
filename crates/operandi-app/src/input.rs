@@ -604,6 +604,9 @@ pub const ACTIONS: &[(&str, &str)] = &[
     // free in the global map, the shortcuts spec and every shipped
     // layout's keys (UIC-201). Ctrl+Shift+N off macOS.
     ("Node View", "Cmd+Shift+N"),
+    // Help > What's This? (UIC-06, help_mode.rs): F1 is free in the
+    // factory map and every shipped layout's keys.
+    (crate::help_mode::ACTION, "F1"),
     // UI build mode (Jason, 2026-11-20): not in the shortcuts spec (v1.1),
     // where Ctrl+Shift+L is free; "Ctrl" is the real Control key on macOS.
     ("UI Build Mode", "Ctrl+Shift+L"),

@@ -137,6 +137,7 @@ These are the keys Operandi starts with. You can change any of them in the **Inp
 | Layout Switcher | **Control+Shift+Tab** |
 | Toggle Palettes | **` (backtick)** |
 | Node View | **Ctrl+Shift+N** |
+| What's This? | **F1** |
 | UI Build Mode | **Control+Shift+L** |
 | Back One Frame | **Shift+Left Arrow** |
 | Forward One Frame | **Shift+Right Arrow** |
