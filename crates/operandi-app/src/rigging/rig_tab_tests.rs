@@ -24,7 +24,7 @@ fn uic221_every_rig_tab_button_names_a_command() {
     crate::anim_switch::set_for_test(true);
     let a = crate::tests::box_app();
     let form: serde_json::Value =
-        serde_json::from_str(include_str!("../assets/forms/toolbox.rig.json")).unwrap();
+        serde_json::from_str(include_str!("../../assets/forms/toolbox.rig.json")).unwrap();
     let mut all = Vec::new();
     lines(&form, &mut all);
     assert!(all.len() > 30, "{}", all.len());

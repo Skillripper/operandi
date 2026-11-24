@@ -77,6 +77,7 @@ mod backdrop_ui;
 mod background_ui;
 #[path = "polygons/bevel_panel.rs"]
 mod bevel_panel;
+#[path = "rigging/bind_dialog_ui.rs"]
 mod bind_dialog_ui;
 mod boolean_dialog;
 #[path = "controls/branding.rs"]
@@ -102,6 +103,7 @@ mod channel_links_ui;
 mod channel_panel_ui;
 #[path = "anim/channel_row.rs"]
 mod channel_row;
+#[path = "rigging/character_rig_ui.rs"]
 mod character_rig_ui;
 #[path = "anim/clip_picker.rs"]
 mod clip_picker;
@@ -361,6 +363,7 @@ mod polygon_material_dialog;
 mod polygon_part_dialog;
 #[path = "polygons/polygon_unify_dialog.rs"]
 mod polygon_unify_dialog;
+#[path = "rigging/pose_tool_ui.rs"]
 mod pose_tool_ui;
 mod preferences;
 #[cfg(test)]
@@ -413,13 +416,17 @@ mod report_bug_dialog;
 #[path = "files/resource_write.rs"]
 mod resource_write;
 #[cfg(test)]
+#[path = "rigging/rig_tab_tests.rs"]
 mod rig_tab_tests;
 #[cfg(test)]
+#[path = "rigging/rig_ui_tests.rs"]
 mod rig_ui_tests;
+#[path = "rigging/rig_user_channels_ui.rs"]
 mod rig_user_channels_ui;
 mod scale_offset_dialog;
 #[path = "files/scenes.rs"]
 mod scenes;
+#[path = "rigging/schematic_ui.rs"]
 mod schematic_ui;
 #[path = "anim/scrub.rs"]
 mod scrub;
@@ -446,7 +453,9 @@ mod shape_panel;
 mod shifted_key_tests;
 mod side_tabs;
 #[cfg(test)]
+#[path = "rigging/skeleton_tool_tests.rs"]
 mod skeleton_tool_tests;
+#[path = "rigging/skeleton_tool_ui.rs"]
 mod skeleton_tool_ui;
 mod slice_view;
 #[cfg(test)]
