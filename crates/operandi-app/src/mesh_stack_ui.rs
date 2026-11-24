@@ -675,6 +675,7 @@ impl Operandi {
         let mut selop_open: Option<egui::Rect> = None;
         let mut dragged = false;
         let mut blend_commands = Vec::new();
+        let mut blend_dragged = false;
         rows::scope(ui, "mesh-op-properties", |ui| {
             rows::section(ui, &op.kind.label(), false, |ui| {
                 // The form comes from the op's type (KIT-4: kits describe
@@ -827,7 +828,7 @@ impl Operandi {
             });
             if def.id() == operandi_core::meshblend::MESHBLEND_OP {
                 let status = evaluated.and_then(|e| e.statuses.get(index));
-                blend_commands =
+                (blend_commands, blend_dragged) =
                     crate::meshblend_ui::sections(ui, &self.editor.scene, item, status);
             }
             if op.kind.takes_selection() {
@@ -870,8 +871,19 @@ impl Operandi {
                 });
             }
         });
-        for c in blend_commands {
-            self.run(c);
+        if !blend_commands.is_empty() {
+            // One undo step per drag, as for the form's own fields.
+            let dragging = blend_dragged || ui.input(|i| i.pointer.any_down());
+            let gesture = match self.mesh_stack_gesture {
+                Some(g) if dragging => g,
+                _ => crate::colour_field::next_gesture(),
+            };
+            self.mesh_stack_gesture = dragging.then_some(gesture);
+            let previous = self.editor.undo_fold.replace(gesture);
+            for c in blend_commands {
+                self.run(c);
+            }
+            self.editor.undo_fold = previous;
         }
         if let Some(edit) = index_edit {
             self.run(Command::MeshOpIndex { op: r, edit });

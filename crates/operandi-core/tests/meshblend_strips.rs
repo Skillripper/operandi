@@ -282,3 +282,52 @@ fn relative_width_follows_the_polygon_size() {
     assert_eq!(rel.mesh.faces.len(), abs.mesh.faces.len());
     assert!((check::volume(&rel.mesh) - check::volume(&abs.mesh)).abs() < 1e-9);
 }
+
+#[test]
+fn strips_have_stable_ids_and_their_own_settings() {
+    // A post through a plate: two joins (under and over the plate),
+    // numbered from the lowest (ST-07).
+    let inputs = vec![
+        input(
+            4,
+            corpus::boxed([0., 0., 0.], [2., 0.4, 2.], [8, 2, 8], false),
+        ),
+        input(9, corpus::cylinder([0., 0.4, 0.], 0.5, 1.0, 16, 4)),
+    ];
+    let base = evaluate(&recipe(&[4, 9], 0.05), &inputs).unwrap();
+    let ids: Vec<&str> = base.strips.iter().map(|s| s.id.as_str()).collect();
+    assert_eq!(ids.len(), 2, "{:?}", base.notes);
+    assert!(ids.contains(&"4-9-0") && ids.contains(&"4-9-1"), "{ids:?}");
+    // Moving the post a little keeps the ids.
+    let mut moved = inputs.clone();
+    for p in &mut moved[1].mesh.vertices {
+        p.x += 0.01;
+    }
+    let again = evaluate(&recipe(&[4, 9], 0.05), &moved).unwrap();
+    let ids2: Vec<&str> = again.strips.iter().map(|s| s.id.as_str()).collect();
+    assert_eq!(ids, ids2);
+    // A wider strip on the upper join only.
+    let mut r = recipe(&[4, 9], 0.05);
+    r.strips
+        .push(operandi_core::meshblend::recipe::StripOverride {
+            id: "4-9-1".into(),
+            enabled: true,
+            width: Some(0.15),
+            profile: None,
+        });
+    let wide = evaluate(&r, &inputs).unwrap();
+    assert!(
+        check::st10(&wide.mesh, 0.05, None).passes(),
+        "{:?}",
+        wide.notes
+    );
+    let (vb, vw) = (check::volume(&base.mesh), check::volume(&wide.mesh));
+    assert!(vw > vb + 1e-4, "{vw} vs {vb}");
+    // Off again (Override Defaults unticked): back to the base result.
+    r.strips[0].enabled = false;
+    let off = evaluate(&r, &inputs).unwrap();
+    assert_eq!(
+        check::fingerprint(&off.mesh),
+        check::fingerprint(&base.mesh)
+    );
+}

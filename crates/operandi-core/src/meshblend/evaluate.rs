@@ -67,6 +67,8 @@ pub struct Blend {
     /// Per polygon of `mesh`.
     pub origin: Vec<Origin>,
     pub notes: Vec<Note>,
+    /// The strips laid (empty with sharp joins), for the panel's list.
+    pub strips: Vec<super::strips::StripInfo>,
 }
 
 /// Every polygon of `mesh` as a Catmull-Clark surface at `level` (0 = the
@@ -382,8 +384,12 @@ pub fn evaluate(recipe: &Recipe, inputs: &[Input]) -> Result<Blend> {
     } else {
         None
     };
+    let mut strips = Vec::new();
     let (mut mesh, mut origin) = match stripped {
-        Some(done) => done,
+        Some((m, o, s)) => {
+            strips = s;
+            (m, o)
+        }
         None => match rebuild(&prepared, &offsets, &engine, false) {
             Ok(built) if built.0.validate().is_ok() => built,
             _ => rebuild(&prepared, &offsets, &engine, true)?,
@@ -394,6 +400,7 @@ pub fn evaluate(recipe: &Recipe, inputs: &[Input]) -> Result<Blend> {
         mesh,
         origin,
         notes,
+        strips,
     })
 }
 
@@ -469,7 +476,7 @@ fn with_strips(
     offsets: &[u32],
     engine: &Tri,
     notes: &mut Vec<Note>,
-) -> Option<(Mesh, Vec<Origin>)> {
+) -> Option<(Mesh, Vec<Origin>, Vec<super::strips::StripInfo>)> {
     let joined = super::strips::Joined {
         pos: engine.pos.clone(),
         tris: engine.tris.clone(),
@@ -484,6 +491,7 @@ fn with_strips(
             .map(|&g| g - offsets[offsets.partition_point(|&o| o <= g) - 1])
             .collect(),
         names: prepared.iter().map(|p| p.name.clone()).collect(),
+        items: prepared.iter().map(|p| p.item).collect(),
     };
     let (width, profile, rows) = if recipe.design_mode {
         (width * 0.1, 0., 1)
@@ -517,15 +525,32 @@ fn with_strips(
         .fold(f64::INFINITY, f64::min)
         * 0.4;
     for tries in 0..4 {
-        let w = width / f64::from(1u32 << tries);
-        if w > room {
+        let scale = 1. / f64::from(1u32 << tries);
+        let w = width * scale;
+        // The widest strip, overrides included, has to fit.
+        let widest = recipe
+            .strips
+            .iter()
+            .filter(|o| o.enabled)
+            .filter_map(|o| o.width)
+            .fold(w, |a, ow| a.max(ow * scale));
+        if widest > room {
             continue;
         }
-        let built = super::strips::build(&joined, w, profile, rows);
+        let built = super::strips::build_with(&joined, rows, |info| {
+            let o = recipe.strip_override(&info.id);
+            super::strips::StripParams {
+                width: o.and_then(|o| o.width).map_or(w, |ow| ow * scale),
+                profile: o
+                    .and_then(|o| o.profile)
+                    .map_or(profile, |p| if recipe.design_mode { 0. } else { p * 100. }),
+            }
+        });
         let report = super::check::st10(&built.mesh, w, Some(&built.kind));
         let bulge = (profile / 100.).max(1.);
         if !report.passes()
-            || (report.volume - sharp_volume).abs() > 0.6 * join_length * w * w * bulge + 1e-9
+            || (report.volume - sharp_volume).abs()
+                > 0.6 * join_length * widest * widest * bulge + 1e-9
         {
             continue;
         }
@@ -564,7 +589,7 @@ fn with_strips(
             });
         }
         let origin = origin.into_iter().map(|(o, _)| o).collect();
-        return Some((mesh, origin));
+        return Some((mesh, origin, built.strips));
     }
     notes.push(Note {
         item: 0,

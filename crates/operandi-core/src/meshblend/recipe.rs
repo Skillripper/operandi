@@ -109,6 +109,21 @@ impl BlendSource {
     }
 }
 
+/// One strip's own settings (SB-36): used while `enabled` ("Override
+/// Defaults" on). Width is always a distance (provisional MB-Q09).
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StripOverride {
+    pub id: String,
+    #[serde(default = "yes")]
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub width: Option<f64>,
+    /// Profile as a fraction (1.0 = 100 %).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile: Option<f64>,
+}
+
 /// Output modes (SB-50), the `output` value's names. New MeshBlends use
 /// Closed, clean (provisional MB-Q07).
 pub const OUTPUTS: [&str; 6] = [
@@ -146,9 +161,10 @@ pub struct Recipe {
     /// Narrow sharp strips for speed and diagnosis (ST-16).
     #[serde(rename = "designMode")]
     pub design_mode: bool,
-    /// Per-strip overrides by stable strip id (ST-07); filled in B3.
+    /// Per-strip overrides by stable strip id (ST-07, SB-36). An override
+    /// whose strip is gone is kept and applies again if the strip returns.
     #[serde(default)]
-    pub strips: Vec<serde_json::Value>,
+    pub strips: Vec<StripOverride>,
 }
 impl Default for Recipe {
     fn default() -> Self {
@@ -193,12 +209,27 @@ impl Recipe {
         if !(1..=16).contains(&self.strip_rows) {
             return Err("MeshBlend Strip Rows must be 1 to 16".into());
         }
+        for o in &self.strips {
+            if o.width.is_some_and(|w| !w.is_finite() || w < 0.)
+                || o.profile
+                    .is_some_and(|p| !p.is_finite() || !(0. ..=2.).contains(&p))
+            {
+                return Err(format!(
+                    "MeshBlend strip {} has a setting out of range",
+                    o.id
+                ));
+            }
+        }
         if self.width_units > 1 || self.output as usize >= OUTPUTS.len() {
             return Err("MeshBlend has a setting out of range".into());
         }
         Ok(())
     }
 
+    /// The enabled override for strip `id`, if any.
+    pub fn strip_override(&self, id: &str) -> Option<&StripOverride> {
+        self.strips.iter().find(|o| o.id == id && o.enabled)
+    }
     pub fn source(&self, item: u64) -> Option<&BlendSource> {
         self.sources.iter().find(|s| s.item == item)
     }

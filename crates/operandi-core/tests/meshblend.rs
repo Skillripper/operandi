@@ -519,3 +519,19 @@ fn plain_polygons_blend_as_they_are() {
         r.volume
     );
 }
+
+#[test]
+fn a_strip_override_is_one_undo_step_and_saves() {
+    let (mut e, _a, _b, blend) = two_boxes();
+    let before = recipe(&e, blend);
+    let args = serde_json::json!({"id": format!("{_a}-{_b}-0"), "width": 0.2, "profile": 50});
+    operandi_core::command_exec::run(&mut e, "meshblend.strip", args.as_object().unwrap()).unwrap();
+    let r = recipe(&e, blend);
+    assert_eq!(r.strips.len(), 1);
+    assert_eq!(r.strips[0].width, Some(0.2));
+    assert_eq!(r.strips[0].profile, Some(0.5));
+    let bytes = persistence::encode(&e.scene).unwrap();
+    assert_eq!(persistence::decode(&bytes).unwrap(), e.scene);
+    e.dispatch(Command::Undo).unwrap();
+    assert_eq!(recipe(&e, blend), before);
+}

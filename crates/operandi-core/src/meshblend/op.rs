@@ -12,6 +12,27 @@ use crate::meshop_types::{Field, FieldKind, OpContext, OpDef, OpNote};
 use crate::{Mesh, Result};
 use std::sync::Arc;
 
+/// The strips each recipe last made, for the panel's strip list (keyed by
+/// a hash of the op's values; a cache, never saved).
+static STRIPS: std::sync::LazyLock<
+    std::sync::Mutex<std::collections::HashMap<u64, Vec<super::strips::StripInfo>>>,
+> = std::sync::LazyLock::new(Default::default);
+
+fn values_key(values: &serde_json::Value) -> u64 {
+    use std::hash::{Hash, Hasher};
+    let mut h = std::collections::hash_map::DefaultHasher::new();
+    values.to_string().hash(&mut h);
+    h.finish()
+}
+
+/// The strips the MeshBlend op with these values made when it last ran.
+pub fn last_strips(values: &serde_json::Value) -> Vec<super::strips::StripInfo> {
+    STRIPS
+        .lock()
+        .map(|m| m.get(&values_key(values)).cloned().unwrap_or_default())
+        .unwrap_or_default()
+}
+
 /// The saved type id.
 pub const MESHBLEND_OP: &str = "meshblend.item";
 
@@ -101,6 +122,12 @@ impl OpDef for MeshBlendOp {
             .map(|l| l.item)
             .collect();
         let blend = evaluate(&recipe, &inputs)?;
+        if let Ok(mut m) = STRIPS.lock() {
+            if m.len() > 256 {
+                m.clear();
+            }
+            m.insert(values_key(values), blend.strips.clone());
+        }
         for n in blend.notes {
             if n.problem && failed.contains(&n.item) {
                 continue;
