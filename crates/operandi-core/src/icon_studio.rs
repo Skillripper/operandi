@@ -1061,10 +1061,132 @@ pub enum Sample {
     PolyReduct,
     /// Create vertex: a new point on a surface.
     VertexCreate,
+    /// Transform: move, rotate and scale handles together.
+    TransformGizmo,
+    /// UV Project: a cube projected onto the UV square.
+    UvProject,
+    /// Project from View: lines from the eye onto the UV square.
+    UvProjectView,
+    /// Unwrap: a cube unfolded into a cross.
+    UvUnwrap,
+    /// Relax: an island with its grid evened out.
+    UvRelax,
+    /// Pelt: an island stretched to the corners.
+    UvPelt,
+    /// Island Align: islands against one edge.
+    UvIslandAlign,
+    /// Quick Align: an island laid straight.
+    UvQuickAlign,
+    /// Orient: an island turning to the axes.
+    UvOrient,
+    /// To Origin: an island moved to the corner.
+    UvToOrigin,
+    /// Texel Density: a checker on an island.
+    UvTexelDensity,
+    /// Split: an island cut in two.
+    UvSplit,
+    /// Sew: two islands stitched together.
+    UvSew,
+    /// Move and Sew: an island moved to its partner.
+    UvMoveSew,
+    /// Select Border: an island's outline selected.
+    UvSelectBorder,
+    /// Rectangle: an island squared off.
+    UvRectangle,
+    /// Atlas: many islands in the square.
+    UvAtlas,
+    /// Pack: islands packed tight.
+    UvPack,
+    /// Fit: an island filling the square.
+    UvFit,
+    /// Flip U: an island flipped across.
+    UvFlipU,
+    /// Flip V: an island flipped up and down.
+    UvFlipV,
+    /// Mirror U: an island mirrored across a line.
+    UvMirrorU,
+    /// Mirror V: an island mirrored up and down.
+    UvMirrorV,
+    /// Align Up: islands against the top.
+    UvAlignUp,
+    /// Align Down: islands against the bottom.
+    UvAlignDown,
+    /// Align Left: islands against the left.
+    UvAlignLeft,
+    /// Align Right: islands against the right.
+    UvAlignRight,
+    /// UV Seam: a cube with a dashed seam.
+    UvSeamDialog,
+    /// Add Seam: a seam and a plus.
+    UvSeamAdd,
+    /// Clear Seam: a seam and a cross.
+    UvSeamClear,
+    /// Select Seam: a seam and a pointer.
+    UvSeamSelect,
+    /// Seam Marker: a seam and a marker pen.
+    UvSeamMarker,
+    /// Delete Map: an island crossed out.
+    UvDeleteMap,
+    /// Unwrap Tool: a seamed cube and its unfolded cross.
+    UvUnwrapTool,
+    /// Unwrap and Relax: an unfolded cross with an even grid.
+    UvUnwrapRelax,
+    /// Quick U: an island laid along U.
+    UvQuickU,
+    /// Quick V: an island laid along V.
+    UvQuickV,
+    /// Island U Center: islands on the middle line.
+    UvIslandUCenter,
+    /// Island U Max: islands against the right.
+    UvIslandUMax,
+    /// Island V Min: islands against the bottom.
+    UvIslandVMin,
+    /// Island V Center: islands on the middle line.
+    UvIslandVCenter,
+    /// Island V Max: islands against the top.
+    UvIslandVMax,
+    /// UV symmetry off.
+    UvSymOff,
+    /// UV symmetry in U.
+    UvSymU,
+    /// UV symmetry in V.
+    UvSymV,
+    /// UV symmetry centre.
+    UvSymCenter,
+    /// UV Symmetrize: one half copied to the other.
+    UvSymmetrize,
+    /// UV brush: a brush ring over an island.
+    UvBrush,
+    /// Error UVs: an island with a warning sign.
+    UvErrors,
+    /// Unmapped: an empty dashed island outline.
+    UvUnmapped,
+    /// Copy UVs: an island and its copy.
+    UvCopy,
+    /// Cut UVs: an island lifted out of its outline.
+    UvCut,
+    /// Paste UVs: an island dropped in.
+    UvPaste,
+    /// Delete UVs: a selected island crossed out.
+    UvDelete,
+    /// Set Value: an island with a slider.
+    UvSetValue,
+    /// Rotate: an island with a turn arrow.
+    UvRotate,
+    /// Select Tile: one of four tiles selected.
+    UvSelectTile,
+    /// Tile left.
+    UvTileLeft,
+    /// Tile right.
+    UvTileRight,
+    /// Tile up.
+    UvTileUp,
+    /// Tile down.
+    UvTileDown,
 }
 
 impl Sample {
-    pub const ALL: [Sample; 386] = [
+    pub const ALL: [Sample; 447] = [
         Sample::Cube,
         Sample::SelectedFace,
         Sample::Sphere,
@@ -1451,6 +1573,67 @@ impl Sample {
         Sample::FlattenNgons,
         Sample::PolyReduct,
         Sample::VertexCreate,
+        Sample::TransformGizmo,
+        Sample::UvProject,
+        Sample::UvProjectView,
+        Sample::UvUnwrap,
+        Sample::UvRelax,
+        Sample::UvPelt,
+        Sample::UvIslandAlign,
+        Sample::UvQuickAlign,
+        Sample::UvOrient,
+        Sample::UvToOrigin,
+        Sample::UvTexelDensity,
+        Sample::UvSplit,
+        Sample::UvSew,
+        Sample::UvMoveSew,
+        Sample::UvSelectBorder,
+        Sample::UvRectangle,
+        Sample::UvAtlas,
+        Sample::UvPack,
+        Sample::UvFit,
+        Sample::UvFlipU,
+        Sample::UvFlipV,
+        Sample::UvMirrorU,
+        Sample::UvMirrorV,
+        Sample::UvAlignUp,
+        Sample::UvAlignDown,
+        Sample::UvAlignLeft,
+        Sample::UvAlignRight,
+        Sample::UvSeamDialog,
+        Sample::UvSeamAdd,
+        Sample::UvSeamClear,
+        Sample::UvSeamSelect,
+        Sample::UvSeamMarker,
+        Sample::UvDeleteMap,
+        Sample::UvUnwrapTool,
+        Sample::UvUnwrapRelax,
+        Sample::UvQuickU,
+        Sample::UvQuickV,
+        Sample::UvIslandUCenter,
+        Sample::UvIslandUMax,
+        Sample::UvIslandVMin,
+        Sample::UvIslandVCenter,
+        Sample::UvIslandVMax,
+        Sample::UvSymOff,
+        Sample::UvSymU,
+        Sample::UvSymV,
+        Sample::UvSymCenter,
+        Sample::UvSymmetrize,
+        Sample::UvBrush,
+        Sample::UvErrors,
+        Sample::UvUnmapped,
+        Sample::UvCopy,
+        Sample::UvCut,
+        Sample::UvPaste,
+        Sample::UvDelete,
+        Sample::UvSetValue,
+        Sample::UvRotate,
+        Sample::UvSelectTile,
+        Sample::UvTileLeft,
+        Sample::UvTileRight,
+        Sample::UvTileUp,
+        Sample::UvTileDown,
     ];
 
     /// File stem and icon slug.
@@ -1842,6 +2025,67 @@ impl Sample {
             Sample::FlattenNgons => "flatten-ngons",
             Sample::PolyReduct => "poly-reduct",
             Sample::VertexCreate => "vertex-create",
+            Sample::TransformGizmo => "transform",
+            Sample::UvProject => "uv-project",
+            Sample::UvProjectView => "uv-project-view",
+            Sample::UvUnwrap => "uv-unwrap",
+            Sample::UvRelax => "uv-relax",
+            Sample::UvPelt => "uv-pelt",
+            Sample::UvIslandAlign => "uv-island-align",
+            Sample::UvQuickAlign => "uv-quick-align",
+            Sample::UvOrient => "uv-orient",
+            Sample::UvToOrigin => "uv-to-origin",
+            Sample::UvTexelDensity => "uv-texel-density",
+            Sample::UvSplit => "uv-split",
+            Sample::UvSew => "uv-sew",
+            Sample::UvMoveSew => "uv-move-sew",
+            Sample::UvSelectBorder => "uv-select-border",
+            Sample::UvRectangle => "uv-rectangle",
+            Sample::UvAtlas => "uv-atlas",
+            Sample::UvPack => "uv-pack",
+            Sample::UvFit => "uv-fit",
+            Sample::UvFlipU => "uv-flip-u",
+            Sample::UvFlipV => "uv-flip-v",
+            Sample::UvMirrorU => "uv-mirror-u",
+            Sample::UvMirrorV => "uv-mirror-v",
+            Sample::UvAlignUp => "uv-align-up",
+            Sample::UvAlignDown => "uv-align-down",
+            Sample::UvAlignLeft => "uv-align-left",
+            Sample::UvAlignRight => "uv-align-right",
+            Sample::UvSeamDialog => "uv-seam",
+            Sample::UvSeamAdd => "uv-seam-add",
+            Sample::UvSeamClear => "uv-seam-clear",
+            Sample::UvSeamSelect => "uv-seam-select",
+            Sample::UvSeamMarker => "uv-seam-marker",
+            Sample::UvDeleteMap => "uv-delete-map",
+            Sample::UvUnwrapTool => "uv-unwrap-tool",
+            Sample::UvUnwrapRelax => "uv-unwrap-relax",
+            Sample::UvQuickU => "uv-quick-u",
+            Sample::UvQuickV => "uv-quick-v",
+            Sample::UvIslandUCenter => "uv-island-u-center",
+            Sample::UvIslandUMax => "uv-island-u-max",
+            Sample::UvIslandVMin => "uv-island-v-min",
+            Sample::UvIslandVCenter => "uv-island-v-center",
+            Sample::UvIslandVMax => "uv-island-v-max",
+            Sample::UvSymOff => "uv-sym-off",
+            Sample::UvSymU => "uv-sym-u",
+            Sample::UvSymV => "uv-sym-v",
+            Sample::UvSymCenter => "uv-sym-center",
+            Sample::UvSymmetrize => "uv-symmetrize",
+            Sample::UvBrush => "uv-brush",
+            Sample::UvErrors => "uv-errors",
+            Sample::UvUnmapped => "uv-unmapped",
+            Sample::UvCopy => "uv-copy",
+            Sample::UvCut => "uv-cut",
+            Sample::UvPaste => "uv-paste",
+            Sample::UvDelete => "uv-delete",
+            Sample::UvSetValue => "uv-set-value",
+            Sample::UvRotate => "uv-rotate",
+            Sample::UvSelectTile => "uv-select-tile",
+            Sample::UvTileLeft => "uv-tile-left",
+            Sample::UvTileRight => "uv-tile-right",
+            Sample::UvTileUp => "uv-tile-up",
+            Sample::UvTileDown => "uv-tile-down",
         }
     }
 
@@ -3444,6 +3688,99 @@ fn faceted_ball(c: DVec3, r: f64, sides: u32, bands: u32, tag: &str) -> Result<M
         })
         .collect();
     Ok(deformed(revolve(&profile, sides, false, tag)?, |v| c + v))
+}
+
+/// The UV 0-1 square in the symbol plane: a Clay tile with an Ink rim.
+fn uv_square() -> Result<Vec<Mesh>> {
+    let h = 0.55;
+    Ok(vec![
+        image_tile(0., 0., h, CLAY)?,
+        bar(-h, -h, h, -h, 0.04, 0.08, "Ink")?,
+        bar(h, -h, h, h, 0.04, 0.08, "Ink")?,
+        bar(h, h, -h, h, 0.04, 0.08, "Ink")?,
+        bar(-h, h, -h, -h, 0.04, 0.08, "Ink")?,
+    ])
+}
+
+/// A UV island: a pentagon `s` across centred on (cx, cy).
+fn island(cx: f64, cy: f64, s: f64, tag: &str) -> Result<Mesh> {
+    let pts: Vec<(f64, f64)> = [
+        (-0.5, -0.4),
+        (0.4, -0.5),
+        (0.5, 0.2),
+        (0.0, 0.5),
+        (-0.5, 0.25),
+    ]
+    .iter()
+    .map(|&(x, y)| (cx + x * s, cy + y * s))
+    .collect();
+    let m = slab(&pts, 0.1, tag)?;
+    Ok(deformed(m, |v| v + DVec3::Z * 0.03))
+}
+
+/// A cyan arrow in the symbol plane, raised over the square.
+fn uv_arrow(x0: f64, y0: f64, x1: f64, y1: f64) -> Result<Mesh> {
+    arrow(
+        DVec3::new(x0, y0, 0.1),
+        DVec3::new(x1, y1, 0.1),
+        0.045,
+        "New",
+    )
+}
+
+/// A dashed line in the symbol plane.
+fn uv_dashed(x0: f64, y0: f64, x1: f64, y1: f64, tag: &str) -> Result<Vec<Mesh>> {
+    (0..5)
+        .map(|k| {
+            let (t0, t1) = (f64::from(k * 2) / 9., f64::from(k * 2 + 1) / 9.);
+            bar(
+                x0 + (x1 - x0) * t0,
+                y0 + (y1 - y0) * t0,
+                x0 + (x1 - x0) * t1,
+                y0 + (y1 - y0) * t1,
+                0.04,
+                0.14,
+                tag,
+            )
+        })
+        .collect()
+}
+
+/// A bold Ink cross over (cx, cy) in the symbol plane.
+fn uv_cross(cx: f64, cy: f64, s: f64) -> Result<Vec<Mesh>> {
+    Ok(vec![
+        bar(cx - s, cy - s, cx + s, cy + s, 0.08, 0.3, "Ink")?,
+        bar(cx - s, cy + s, cx + s, cy - s, 0.08, 0.3, "Ink")?,
+    ])
+}
+
+/// A cube with a dashed orange seam down its top-right edge.
+fn seam_cube(c: DVec3, size: f64) -> Result<Vec<Mesh>> {
+    let h = size * 0.5 + 0.01;
+    let mut parts = vec![cube_at(c, size, CLAY)?];
+    for k in 0..4 {
+        let (t0, t1) = (-1. + 0.5 * f64::from(k), -0.75 + 0.5 * f64::from(k));
+        parts.push(tube(
+            &[c + DVec3::new(h, h, h * t0), c + DVec3::new(h, h, h * t1)],
+            0.045,
+            8,
+            "Selected",
+        )?);
+        parts.push(tube(
+            &[c + DVec3::new(h, h * -t0, h), c + DVec3::new(h, h * -t1, h)],
+            0.045,
+            8,
+            "Selected",
+        )?);
+    }
+    Ok(parts)
+}
+
+/// `parts` on the UV square, in the symbol frame.
+fn on_uv(parts: Vec<Mesh>) -> Result<Mesh> {
+    let mut all = uv_square()?;
+    all.extend(parts);
+    symbol(all)
 }
 
 /// The geometry of a sample, inside the icon box.
@@ -8604,6 +8941,631 @@ fn sample_mesh(sample: Sample) -> Result<Mesh> {
             parts.push(ball(DVec3::new(0., 0.14, 0.), 0.1, "New")?);
             parts.extend(plus(DVec3::new(0.3, 0.3, -0.3), 0.3, "New")?);
             merge(parts)?
+        }
+        Sample::TransformGizmo => {
+            let mut parts = vec![ball(DVec3::ZERO, 0.1, CLAY)?];
+            for (a, tag) in [
+                (DVec3::X, "Axis X"),
+                (DVec3::Y, "Axis Y"),
+                (DVec3::Z, "Axis Z"),
+            ] {
+                parts.push(arrow(a * 0.1, a * 0.62, 0.045, tag)?);
+                parts.push(block(a * 0.4, 0.09, tag)?);
+            }
+            let ring: Vec<DVec3> = (0..=40)
+                .map(|k| {
+                    let t = std::f64::consts::TAU * f64::from(k) / 40.;
+                    DVec3::new(0.32 * t.cos(), 0., 0.32 * t.sin())
+                })
+                .collect();
+            parts.push(tube(&ring, 0.025, 8, "Axis Y")?);
+            merge(parts)?
+        }
+        Sample::UvProject => merge(vec![
+            cube_at(flat(-0.32, 0.25), 0.36, CLAY)?,
+            arrow(flat(-0.1, 0.04), flat(0.08, -0.12), 0.05, "New")?,
+            deformed(on_uv(vec![island(0., 0., 0.6, "New")?])?, |v| {
+                v * 0.5 + flat(0.3, -0.3)
+            }),
+        ])?,
+        Sample::UvProjectView => {
+            let eye = flat(-0.45, 0.35) + toward(0.2);
+            let mut parts = vec![deformed(on_uv(vec![island(0., 0., 0.6, "New")?])?, |v| {
+                v * 0.6 + flat(0.2, -0.15)
+            })];
+            for c in [
+                flat(-0.1, 0.18),
+                flat(0.5, 0.18),
+                flat(-0.1, -0.48),
+                flat(0.5, -0.48),
+            ] {
+                parts.push(tube(&[eye, c], 0.02, 6, "Ink")?);
+            }
+            parts.push(ball(eye, 0.09, "Selected")?);
+            merge(parts)?
+        }
+        Sample::UvUnwrap => {
+            let cross = [
+                (0., 0.),
+                (-0.3, 0.),
+                (0.3, 0.),
+                (0.6, 0.),
+                (0., 0.3),
+                (0., -0.3),
+            ];
+            let parts = cross
+                .iter()
+                .map(|&(x, y)| {
+                    slab(
+                        &[
+                            (x - 0.13, y - 0.13),
+                            (x + 0.13, y - 0.13),
+                            (x + 0.13, y + 0.13),
+                            (x - 0.13, y + 0.13),
+                        ],
+                        0.08,
+                        "New",
+                    )
+                })
+                .collect::<Result<Vec<_>>>()?;
+            merge(vec![
+                deformed(symbol(parts)?, |v| v + flat(-0.1, -0.1)),
+                cube_at(flat(-0.42, 0.42), 0.22, CLAY)?,
+            ])?
+        }
+        Sample::UvRelax => {
+            let mut parts = vec![island(0., 0., 0.9, "New")?];
+            for k in 0..3 {
+                let t = -0.2 + 0.2 * f64::from(k);
+                parts.push(bar(
+                    t - 0.05 * (k as f64 - 1.),
+                    -0.35,
+                    t,
+                    0.35,
+                    0.03,
+                    0.16,
+                    "Ink",
+                )?);
+                parts.push(bar(
+                    -0.4,
+                    t,
+                    0.4,
+                    t + 0.04 * (k as f64 - 1.),
+                    0.03,
+                    0.16,
+                    "Ink",
+                )?);
+            }
+            on_uv(parts)?
+        }
+        Sample::UvPelt => {
+            let mut parts = vec![island(0., 0., 0.55, "New")?];
+            for (x, y, cx, cy) in [
+                (-0.25, -0.2, -0.5, -0.5),
+                (0.22, -0.25, 0.5, -0.5),
+                (0.25, 0.1, 0.5, 0.5),
+                (-0.25, 0.12, -0.5, 0.5),
+            ] {
+                parts.push(bar(x, y, cx, cy, 0.03, 0.16, "Ink")?);
+                parts.push(deformed(
+                    ball(DVec3::new(cx, cy, 0.), 0.06, "Selected")?,
+                    |v| v + DVec3::Z * 0.05,
+                ));
+            }
+            on_uv(parts)?
+        }
+        Sample::UvIslandAlign => on_uv(vec![
+            bar(-0.42, -0.45, -0.42, 0.45, 0.05, 0.16, "Selected")?,
+            island(-0.2, 0.22, 0.4, "New")?,
+            island(-0.15, -0.2, 0.5, "New")?,
+        ])?,
+        Sample::UvQuickAlign => on_uv(vec![
+            slab(
+                &[(-0.35, -0.12), (0.35, -0.12), (0.35, 0.12), (-0.35, 0.12)],
+                0.1,
+                "New",
+            )?,
+            bar(-0.45, -0.3, 0.45, -0.3, 0.04, 0.16, "Selected")?,
+            uv_arrow(0.0, 0.42, 0.0, 0.2)?,
+        ])?,
+        Sample::UvOrient => {
+            let mut parts = vec![island(0., 0., 0.6, "New")?];
+            parts.extend(
+                symbol_arc(0., 0., 0.42, "Ink")?
+                    .into_iter()
+                    .map(|m| deformed(m, |v| v + DVec3::Z * 0.1)),
+            );
+            on_uv(parts)?
+        }
+        Sample::UvToOrigin => on_uv(vec![
+            island(0.2, 0.2, 0.4, "New")?,
+            uv_arrow(0.05, 0.05, -0.3, -0.3)?,
+            deformed(ball(DVec3::new(-0.5, -0.5, 0.), 0.08, "Selected")?, |v| {
+                v + DVec3::Z * 0.06
+            }),
+        ])?,
+        Sample::UvTexelDensity => {
+            let mut parts = vec![island(0., 0., 0.9, "New")?];
+            for i in 0..4 {
+                for j in 0..4 {
+                    if (i + j) % 2 == 0 {
+                        let (x, y) = (-0.3 + 0.15 * f64::from(i), -0.3 + 0.15 * f64::from(j));
+                        parts.push(deformed(
+                            slab(
+                                &[(x, y), (x + 0.15, y), (x + 0.15, y + 0.15), (x, y + 0.15)],
+                                0.06,
+                                "Ink",
+                            )?,
+                            |v| v + DVec3::Z * 0.09,
+                        ));
+                    }
+                }
+            }
+            on_uv(parts)?
+        }
+        Sample::UvSplit => on_uv(vec![
+            slab(
+                &[(-0.45, -0.3), (-0.06, -0.3), (-0.06, 0.3), (-0.45, 0.3)],
+                0.1,
+                "New",
+            )?,
+            slab(
+                &[(0.06, -0.3), (0.45, -0.3), (0.45, 0.3), (0.06, 0.3)],
+                0.1,
+                "Selected",
+            )?,
+        ])?,
+        Sample::UvSew => {
+            let mut parts = vec![
+                slab(
+                    &[(-0.45, -0.3), (-0.02, -0.3), (-0.02, 0.3), (-0.45, 0.3)],
+                    0.1,
+                    "New",
+                )?,
+                slab(
+                    &[(0.02, -0.3), (0.45, -0.3), (0.45, 0.3), (0.02, 0.3)],
+                    0.1,
+                    "New",
+                )?,
+            ];
+            for k in 0..4 {
+                let y = -0.22 + 0.15 * f64::from(k);
+                parts.push(bar(-0.1, y - 0.05, 0.1, y + 0.05, 0.03, 0.2, "Ink")?);
+            }
+            on_uv(parts)?
+        }
+        Sample::UvMoveSew => on_uv(vec![
+            slab(
+                &[(-0.45, -0.3), (-0.08, -0.3), (-0.08, 0.3), (-0.45, 0.3)],
+                0.1,
+                "New",
+            )?,
+            slab(
+                &[(0.18, -0.3), (0.45, -0.3), (0.45, 0.3), (0.18, 0.3)],
+                0.1,
+                "Selected",
+            )?,
+            uv_arrow(0.15, 0.0, -0.05, 0.0)?,
+        ])?,
+        Sample::UvSelectBorder => {
+            let pts = [
+                (-0.5, -0.4),
+                (0.4, -0.5),
+                (0.5, 0.2),
+                (0.0, 0.5),
+                (-0.5, 0.25),
+                (-0.5, -0.4),
+            ];
+            let mut parts = vec![island(0., 0., 0.8, "New")?];
+            for w in pts.windows(2) {
+                parts.push(bar(
+                    w[0].0 * 0.8,
+                    w[0].1 * 0.8,
+                    w[1].0 * 0.8,
+                    w[1].1 * 0.8,
+                    0.06,
+                    0.16,
+                    "Selected",
+                )?);
+            }
+            on_uv(parts)?
+        }
+        Sample::UvRectangle => on_uv(vec![
+            island(-0.22, 0.2, 0.36, CLAY)?,
+            uv_arrow(-0.1, 0.05, 0.05, -0.08)?,
+            slab(
+                &[(0.0, -0.45), (0.45, -0.45), (0.45, -0.12), (0.0, -0.12)],
+                0.1,
+                "New",
+            )?,
+        ])?,
+        Sample::UvAtlas => {
+            let mut parts = Vec::new();
+            for (x, y, s, tag) in [
+                (-0.3, 0.3, 0.4, "New"),
+                (0.25, 0.3, 0.35, "Selected"),
+                (-0.3, -0.25, 0.35, "Axis Y"),
+                (0.25, -0.25, 0.45, "Axis X"),
+                (0.0, 0.02, 0.2, "Axis Z"),
+            ] {
+                parts.push(island(x, y, s, tag)?);
+            }
+            on_uv(parts)?
+        }
+        Sample::UvPack => on_uv(vec![
+            island(-0.22, 0.2, 0.4, "New")?,
+            island(0.22, 0.2, 0.4, "New")?,
+            island(-0.22, -0.22, 0.4, "New")?,
+            island(0.22, -0.22, 0.4, "New")?,
+        ])?,
+        Sample::UvFit => on_uv(vec![
+            slab(
+                &[(-0.48, -0.48), (0.48, -0.48), (0.48, 0.48), (-0.48, 0.48)],
+                0.06,
+                "New",
+            )?,
+            uv_arrow(0.1, 0.1, 0.4, 0.4)?,
+            uv_arrow(-0.1, -0.1, -0.4, -0.4)?,
+        ])?,
+        Sample::UvFlipU | Sample::UvFlipV => {
+            let u = sample == Sample::UvFlipU;
+            let mut parts = vec![island(0., 0., 0.6, "New")?];
+            let (a, b) = if u {
+                ((-0.4, -0.38), (0.4, -0.38))
+            } else {
+                ((-0.38, -0.4), (-0.38, 0.4))
+            };
+            parts.push(two_way(
+                DVec3::new(a.0, a.1, 0.1),
+                DVec3::new(b.0, b.1, 0.1),
+                0.045,
+                "Ink",
+            )?);
+            on_uv(parts)?
+        }
+        Sample::UvMirrorU | Sample::UvMirrorV => {
+            let u = sample == Sample::UvMirrorU;
+            let mut parts = if u {
+                uv_dashed(0., -0.5, 0., 0.5, "Ink")?
+            } else {
+                uv_dashed(-0.5, 0., 0.5, 0., "Ink")?
+            };
+            if u {
+                parts.push(island(-0.25, 0., 0.35, "Selected")?);
+                parts.push(deformed(island(-0.25, 0., 0.35, "New")?, |v| {
+                    DVec3::new(-v.x, v.y, v.z)
+                }));
+            } else {
+                parts.push(island(0., 0.25, 0.35, "Selected")?);
+                parts.push(deformed(island(0., 0.25, 0.35, "New")?, |v| {
+                    DVec3::new(v.x, -v.y, v.z)
+                }));
+            }
+            on_uv(parts)?
+        }
+        Sample::UvAlignUp | Sample::UvAlignDown | Sample::UvAlignLeft | Sample::UvAlignRight => {
+            let (lx0, ly0, lx1, ly1, a0, a1): (f64, f64, f64, f64, (f64, f64), (f64, f64)) =
+                match sample {
+                    Sample::UvAlignUp => (-0.45, 0.42, 0.45, 0.42, (0.0, 0.0), (0.0, 0.25)),
+                    Sample::UvAlignDown => (-0.45, -0.42, 0.45, -0.42, (0.0, 0.0), (0.0, -0.25)),
+                    Sample::UvAlignLeft => (-0.42, -0.45, -0.42, 0.45, (0.0, 0.0), (-0.25, 0.0)),
+                    _ => (0.42, -0.45, 0.42, 0.45, (0.0, 0.0), (0.25, 0.0)),
+                };
+            let along_u = ly0 == ly1;
+            let off = |k: f64| {
+                if along_u {
+                    (k, ly0 - 0.2 * ly0.signum())
+                } else {
+                    (lx0 - 0.2 * lx0.signum(), k)
+                }
+            };
+            let (p, q) = (off(-0.22), off(0.22));
+            on_uv(vec![
+                bar(lx0, ly0, lx1, ly1, 0.05, 0.16, "Selected")?,
+                island(p.0, p.1, 0.3, "New")?,
+                island(q.0, q.1, 0.3, "New")?,
+                uv_arrow(a0.0, a0.1, a1.0 * 0.6, a1.1 * 0.6)?,
+            ])?
+        }
+        Sample::UvSeamDialog
+        | Sample::UvSeamAdd
+        | Sample::UvSeamClear
+        | Sample::UvSeamSelect
+        | Sample::UvSeamMarker => {
+            let mut parts = seam_cube(flat(-0.08, 0.0), 0.62)?;
+            let badge = flat(0.4, -0.4) + toward(0.35);
+            match sample {
+                Sample::UvSeamAdd => parts.extend(plus(badge, 0.3, "New")?),
+                Sample::UvSeamClear => {
+                    parts.push(strike(
+                        badge + flat(-0.14, -0.14),
+                        badge + flat(0.14, 0.14),
+                    )?);
+                    parts.push(strike(
+                        badge + flat(-0.14, 0.14),
+                        badge + flat(0.14, -0.14),
+                    )?);
+                }
+                Sample::UvSeamSelect => parts.push(deformed(
+                    revolve(&[(0., 0.), (0.1, -0.2), (0., -0.16)], 3, false, "Selected")?,
+                    move |v| badge + v,
+                )),
+                Sample::UvSeamMarker => {
+                    let d = flat(0.6, 0.8).normalize();
+                    parts.push(tube(&[badge, badge + d * 0.4], 0.07, 10, "Selected")?);
+                    parts.push(deformed(
+                        revolve(&[(0., 0.), (0.07, 0.12), (0., 0.12)], 12, false, "Ink")?,
+                        move |v| badge + glam::DQuat::from_rotation_arc(DVec3::Y, d) * v - d * 0.12,
+                    ));
+                }
+                _ => {}
+            }
+            merge(parts)?
+        }
+        Sample::UvDeleteMap => {
+            let mut parts = vec![island(0., 0., 0.6, "New")?];
+            parts.extend(uv_cross(0., 0., 0.3)?);
+            on_uv(parts)?
+        }
+        Sample::UvUnwrapTool | Sample::UvUnwrapRelax => {
+            let mut flaps = Vec::new();
+            for &(x, y) in &[(0., 0.), (-0.3, 0.), (0.3, 0.), (0., 0.3), (0., -0.3)] {
+                flaps.push(slab(
+                    &[
+                        (x - 0.13, y - 0.13),
+                        (x + 0.13, y - 0.13),
+                        (x + 0.13, y + 0.13),
+                        (x - 0.13, y + 0.13),
+                    ],
+                    0.08,
+                    "New",
+                )?);
+            }
+            if sample == Sample::UvUnwrapRelax {
+                for k in [-0.15, 0.0, 0.15] {
+                    flaps.push(bar(k, -0.42, k, 0.42, 0.025, 0.14, "Ink")?);
+                    flaps.push(bar(-0.42, k, 0.42, k, 0.025, 0.14, "Ink")?);
+                }
+            }
+            let mut parts = vec![deformed(symbol(flaps)?, |v| v + flat(0.1, -0.12))];
+            parts.extend(seam_cube(flat(-0.42, 0.42), 0.26)?);
+            merge(parts)?
+        }
+        Sample::UvQuickU | Sample::UvQuickV => {
+            let u = sample == Sample::UvQuickU;
+            let parts = if u {
+                vec![
+                    slab(
+                        &[(-0.4, -0.1), (0.4, -0.1), (0.4, 0.1), (-0.4, 0.1)],
+                        0.1,
+                        "New",
+                    )?,
+                    two_way(
+                        DVec3::new(-0.45, -0.3, 0.1),
+                        DVec3::new(0.45, -0.3, 0.1),
+                        0.045,
+                        "Ink",
+                    )?,
+                ]
+            } else {
+                vec![
+                    slab(
+                        &[(-0.1, -0.4), (0.1, -0.4), (0.1, 0.4), (-0.1, 0.4)],
+                        0.1,
+                        "New",
+                    )?,
+                    two_way(
+                        DVec3::new(-0.3, -0.45, 0.1),
+                        DVec3::new(-0.3, 0.45, 0.1),
+                        0.045,
+                        "Ink",
+                    )?,
+                ]
+            };
+            on_uv(parts)?
+        }
+        Sample::UvIslandUCenter | Sample::UvIslandUMax => {
+            let x = if sample == Sample::UvIslandUCenter {
+                0.0
+            } else {
+                0.42
+            };
+            let ix = if x == 0. { 0.0 } else { 0.2 };
+            on_uv(vec![
+                bar(x, -0.48, x, 0.48, 0.05, 0.18, "Selected")?,
+                island(ix, 0.22, 0.32, "New")?,
+                island(ix, -0.22, 0.32, "New")?,
+            ])?
+        }
+        Sample::UvIslandVMin | Sample::UvIslandVCenter | Sample::UvIslandVMax => {
+            let y: f64 = match sample {
+                Sample::UvIslandVMin => -0.42,
+                Sample::UvIslandVCenter => 0.0,
+                _ => 0.42,
+            };
+            let iy = if y == 0. { 0.0 } else { y - 0.2 * y.signum() };
+            on_uv(vec![
+                bar(-0.48, y, 0.48, y, 0.05, 0.18, "Selected")?,
+                island(-0.22, iy, 0.32, "New")?,
+                island(0.22, iy, 0.32, "New")?,
+            ])?
+        }
+        Sample::UvSymOff => {
+            let mut parts = vec![island(0., 0., 0.6, "New")?];
+            parts.extend(uv_dashed(0., -0.5, 0., 0.5, "Ink")?);
+            parts.extend(uv_cross(0.32, 0.32, 0.14)?);
+            on_uv(parts)?
+        }
+        Sample::UvSymU | Sample::UvSymV => {
+            let u = sample == Sample::UvSymU;
+            let mut parts = if u {
+                uv_dashed(0., -0.5, 0., 0.5, "Ink")?
+            } else {
+                uv_dashed(-0.5, 0., 0.5, 0., "Ink")?
+            };
+            let (x, y) = if u { (-0.25, 0.) } else { (0., 0.25) };
+            parts.push(island(x, y, 0.35, "New")?);
+            parts.push(deformed(island(x, y, 0.35, "New")?, move |v| {
+                if u {
+                    DVec3::new(-v.x, v.y, v.z)
+                } else {
+                    DVec3::new(v.x, -v.y, v.z)
+                }
+            }));
+            on_uv(parts)?
+        }
+        Sample::UvSymCenter => {
+            let mut parts = uv_dashed(0., -0.5, 0., 0.5, "Ink")?;
+            parts.extend(uv_dashed(-0.5, 0., 0.5, 0., "Ink")?);
+            parts.push(deformed(ball(DVec3::ZERO, 0.1, "Selected")?, |v| {
+                v + DVec3::Z * 0.1
+            }));
+            on_uv(parts)?
+        }
+        Sample::UvSymmetrize => {
+            let mut parts = uv_dashed(0., -0.5, 0., 0.5, "Ink")?;
+            parts.push(island(-0.25, 0., 0.35, "Selected")?);
+            parts.push(deformed(island(-0.25, 0., 0.35, "New")?, |v| {
+                DVec3::new(-v.x, v.y, v.z)
+            }));
+            parts.push(uv_arrow(-0.2, 0.36, 0.2, 0.36)?);
+            on_uv(parts)?
+        }
+        Sample::UvBrush => merge(vec![
+            on_uv(vec![island(0., 0., 0.8, "New")?])?,
+            deformed(brush_ring(0., 0., 0., 0.26)?, |v| {
+                symbol_frame() * DVec3::new(v.x, v.z, 0.12 + v.y)
+            }),
+        ])?,
+        Sample::UvErrors => {
+            let mut parts = vec![island(-0.15, -0.1, 0.6, "New")?];
+            parts.push(deformed(
+                slab(&[(0.05, -0.05), (0.5, -0.05), (0.275, 0.4)], 0.12, "Axis X")?,
+                |v| v + DVec3::Z * 0.1,
+            ));
+            parts.push(deformed(
+                bar(0.275, 0.08, 0.275, 0.27, 0.05, 0.1, "Ink")?,
+                |v| v + DVec3::Z * 0.17,
+            ));
+            parts.push(deformed(
+                slab(
+                    &[(0.25, 0.0), (0.3, 0.0), (0.3, 0.05), (0.25, 0.05)],
+                    0.1,
+                    "Ink",
+                )?,
+                |v| v + DVec3::Z * 0.17,
+            ));
+            on_uv(parts)?
+        }
+        Sample::UvUnmapped => {
+            let pts = [
+                (-0.5, -0.4),
+                (0.4, -0.5),
+                (0.5, 0.2),
+                (0.0, 0.5),
+                (-0.5, 0.25),
+                (-0.5, -0.4),
+            ];
+            let mut parts = Vec::new();
+            for w in pts.windows(2) {
+                let (a, b) = ((w[0].0 * 0.8, w[0].1 * 0.8), (w[1].0 * 0.8, w[1].1 * 0.8));
+                parts.push(bar(
+                    a.0,
+                    a.1,
+                    (a.0 + b.0) * 0.5,
+                    (a.1 + b.1) * 0.5,
+                    0.05,
+                    0.14,
+                    "Selected",
+                )?);
+            }
+            on_uv(parts)?
+        }
+        Sample::UvCopy => on_uv(vec![
+            island(-0.15, 0.15, 0.5, "Selected")?,
+            island(0.18, -0.18, 0.5, "New")?,
+        ])?,
+        Sample::UvCut => {
+            let pts = [
+                (-0.5, -0.4),
+                (0.4, -0.5),
+                (0.5, 0.2),
+                (0.0, 0.5),
+                (-0.5, 0.25),
+                (-0.5, -0.4),
+            ];
+            let mut parts = vec![island(0.22, 0.22, 0.4, "Selected")?];
+            for w in pts.windows(2) {
+                let (a, b) = (
+                    (-0.15 + w[0].0 * 0.5, -0.15 + w[0].1 * 0.5),
+                    (-0.15 + w[1].0 * 0.5, -0.15 + w[1].1 * 0.5),
+                );
+                parts.push(bar(
+                    a.0,
+                    a.1,
+                    (a.0 + b.0) * 0.5,
+                    (a.1 + b.1) * 0.5,
+                    0.035,
+                    0.12,
+                    "Ink",
+                )?);
+            }
+            on_uv(parts)?
+        }
+        Sample::UvPaste => on_uv(vec![
+            island(0., -0.12, 0.6, "New")?,
+            uv_arrow(0.0, 0.5, 0.0, 0.22)?,
+        ])?,
+        Sample::UvDelete => {
+            let mut parts = vec![island(0., 0., 0.6, "Selected")?];
+            parts.extend(uv_cross(0., 0., 0.28)?);
+            on_uv(parts)?
+        }
+        Sample::UvSetValue => on_uv(vec![
+            island(0., 0.12, 0.55, "New")?,
+            bar(-0.4, -0.35, 0.4, -0.35, 0.05, 0.14, "Ink")?,
+            deformed(ball(DVec3::new(0.1, -0.35, 0.), 0.08, "Selected")?, |v| {
+                v + DVec3::Z * 0.1
+            }),
+        ])?,
+        Sample::UvRotate => {
+            let mut parts = vec![island(0., 0., 0.55, "New")?];
+            parts.extend(
+                symbol_arc(0., 0., 0.4, "New")?
+                    .into_iter()
+                    .map(|m| deformed(m, |v| v + DVec3::Z * 0.1)),
+            );
+            on_uv(parts)?
+        }
+        Sample::UvSelectTile => {
+            let mut parts = Vec::new();
+            for (x, y, tag) in [
+                (-0.28, 0.28, CLAY),
+                (0.28, 0.28, "Selected"),
+                (-0.28, -0.28, CLAY),
+                (0.28, -0.28, CLAY),
+            ] {
+                parts.push(image_tile(x, y, 0.25, tag)?);
+            }
+            symbol(parts)?
+        }
+        Sample::UvTileLeft | Sample::UvTileRight | Sample::UvTileUp | Sample::UvTileDown => {
+            let (dx, dy) = match sample {
+                Sample::UvTileLeft => (-1., 0.),
+                Sample::UvTileRight => (1., 0.),
+                Sample::UvTileUp => (0., 1.),
+                _ => (0., -1.),
+            };
+            symbol(vec![
+                image_tile(-dx * 0.18, -dy * 0.18, 0.32, CLAY)?,
+                island(-dx * 0.18, -dy * 0.18, 0.35, "New")?,
+                arrow(
+                    DVec3::new(dx * 0.1, dy * 0.1, 0.1),
+                    DVec3::new(dx * 0.55, dy * 0.55, 0.1),
+                    0.06,
+                    "New",
+                )?,
+            ])?
         }
         Sample::LoopSlice => {
             let mut parts = vec![sample_mesh(Sample::Cube)?];
