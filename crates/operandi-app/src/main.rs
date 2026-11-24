@@ -34,18 +34,26 @@ mod mesh_paint_tests;
 mod mesh_stack_ui;
 #[path = "items/meshblend_ui.rs"]
 mod meshblend_ui;
+#[path = "nodes/node_edit_ui.rs"]
 mod node_edit_ui;
 #[cfg(test)]
+#[path = "nodes/node_edit_ui_tests.rs"]
 mod node_edit_ui_tests;
+#[path = "nodes/node_material_ui.rs"]
 mod node_material_ui;
 #[cfg(test)]
+#[path = "nodes/node_material_ui_tests.rs"]
 mod node_material_ui_tests;
 #[cfg(test)]
+#[path = "nodes/node_view_close_tests.rs"]
 mod node_view_close_tests;
+#[path = "nodes/node_view_open.rs"]
 mod node_view_open;
 #[cfg(test)]
+#[path = "nodes/node_view_open_tests.rs"]
 mod node_view_open_tests;
 #[cfg(test)]
+#[path = "nodes/node_view_panel_tests.rs"]
 mod node_view_panel_tests;
 #[path = "controls/popup_title.rs"]
 mod popup_title;
@@ -3924,13 +3932,16 @@ mod floating;
 mod form_editor;
 #[cfg(test)]
 mod form_editor_tests;
+#[path = "nodes/graph_editor.rs"]
 mod graph_editor;
 #[path = "create_tools/guides_ui.rs"]
 mod guides_ui;
 #[path = "graphics/matcap_render.rs"]
 mod matcap_render;
+#[path = "nodes/materialx_ui.rs"]
 mod materialx_ui;
 #[cfg(test)]
+#[path = "nodes/materialx_ui_tests.rs"]
 mod materialx_ui_tests;
 #[cfg(test)]
 #[path = "menus/menu_forms_tests.rs"]
@@ -4269,6 +4280,7 @@ mod select_tab_tests;
 #[cfg(test)]
 mod selection_ui_tests;
 #[cfg(test)]
+#[path = "nodes/shader_layer_menu_tests.rs"]
 mod shader_layer_menu_tests;
 #[cfg(test)]
 #[path = "materials/shading_panel_tests.rs"]

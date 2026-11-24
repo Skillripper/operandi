@@ -86,10 +86,12 @@ fn node_view_has_its_key_and_window_menu_entries() {
     assert!(taken.is_empty(), "{taken:?}");
     // Window ▸ Panels ▸ Node View runs the command (the only Window menu
     // entry for it); Layout ▸ Windows/Palettes lists it too.
-    assert!(!include_str!("../assets/forms/menu.window.json").contains("operandi.window.nodeView"));
     assert!(
-        include_str!("../assets/forms/menu.layout.palettes.json")
+        !include_str!("../../assets/forms/menu.window.json").contains("operandi.window.nodeView")
+    );
+    assert!(
+        include_str!("../../assets/forms/menu.layout.palettes.json")
             .contains("\"operandi.window.nodeView\"")
     );
-    assert!(include_str!("menu_forms.rs").contains("\"operandi.window.nodeView\".into()"));
+    assert!(include_str!("../menus/menu_forms.rs").contains("\"operandi.window.nodeView\".into()"));
 }
