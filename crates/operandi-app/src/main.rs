@@ -6,6 +6,8 @@ mod anim_switch;
 mod anim_ui;
 #[cfg(test)]
 mod anim_ui_tests;
+#[cfg(test)]
+mod animated_scene_frames_tests;
 mod collapse_line;
 mod command_history;
 mod command_history_ui;

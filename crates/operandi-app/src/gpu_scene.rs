@@ -1449,7 +1449,25 @@ pub struct Resident {
     /// version.
     gpu_materials: Option<(u64, u64, Arc<GpuMaterials>)>,
     gpu_generation: u64,
+    /// Polygons this frame may still rebuild for items whose placement
+    /// alone changed while nothing was live (`begin_frame`), and the frame
+    /// it was set for.
+    settle_budget: usize,
+    settle_pass: Option<u64>,
+    /// Whether an item kept its old geometry through a matrix this frame
+    /// because the budget ran out (the viewport asks for another frame).
+    deferred: bool,
 }
+
+/// Polygons a frame rebuilds, at most, for items that only moved
+/// (heavy-mesh-speed). Until then an item draws through a matrix from
+/// where it was built (exact but for f32 rounding; normals go through its
+/// inverse transpose), so a scene of hundreds of animated meshes settles
+/// over a second or two after playback or a scrub stops, the viewport
+/// staying responsive (about 50 ms a frame), instead of freezing for one
+/// long frame. An item over the budget on its own still rebuilds when it
+/// comes first.
+const SETTLE_POLYGONS: usize = 25_000;
 
 /// The vertex map the Vertex Map style shows: the first color map, else
 /// the first weight map (provisional: Operandi has no "selected map" yet).
@@ -1808,9 +1826,24 @@ impl Resident {
         };
         if let Some(entry) = self.items.get(&item.id)
             && entry.key == key
-            && let Some(d) = delta(matrix, entry.matrix, live)
         {
-            return (entry.geometry.clone(), entry.generation, None, d);
+            if let Some(d) = delta(matrix, entry.matrix, live) {
+                return (entry.geometry.clone(), entry.generation, None, d);
+            }
+            // Only its placement changed and nothing is live: rebuilt at
+            // its new place, within the frame's budget; past it, drawn
+            // through a matrix for now and rebuilt on a later frame.
+            if self.settle_pass.is_some() {
+                let faces = item.mesh.faces.len();
+                if faces > self.settle_budget
+                    && self.settle_budget < SETTLE_POLYGONS
+                    && let Some(d) = delta(matrix, entry.matrix, true)
+                {
+                    self.deferred = true;
+                    return (entry.geometry.clone(), entry.generation, None, d);
+                }
+                self.settle_budget = self.settle_budget.saturating_sub(faces);
+            }
         }
         // Points moved and/or the polygon selection changed, nothing else:
         // rewrite only the polygons near the moved points and those whose
@@ -1929,6 +1962,21 @@ impl Resident {
             },
         );
         (geometry, generation, None, glam::Mat4::IDENTITY)
+    }
+
+    /// Starts frame `pass` (egui's pass number): placement-only rebuilds get
+    /// a fresh budget. Several views drawing in one frame share it.
+    pub fn begin_frame(&mut self, pass: u64) {
+        if self.settle_pass != Some(pass) {
+            self.settle_pass = Some(pass);
+            self.settle_budget = SETTLE_POLYGONS;
+            self.deferred = false;
+        }
+    }
+    /// Whether an item still waits to be rebuilt at its new place (draw
+    /// another frame).
+    pub fn deferred(&self) -> bool {
+        self.deferred
     }
 
     /// How many times geometry has been fully built (speed guards and

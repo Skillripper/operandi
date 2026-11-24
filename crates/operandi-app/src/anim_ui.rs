@@ -191,6 +191,10 @@ pub(crate) struct AnimUi {
     owed: f64,
     pub(crate) job: Option<Job>,
     pub(crate) dialog: Option<AnimDialog>,
+    /// The scene time last frame, and whether it differs this frame (a
+    /// scrub): the viewport then draws moved items through a matrix.
+    seen_time: Option<operandi_core::time_tick::Tick>,
+    pub(crate) time_moved: bool,
     /// A playblast movie being encoded, and whether to open it.
     encoding: Option<(
         std::thread::JoinHandle<std::result::Result<PathBuf, String>>,
@@ -380,6 +384,12 @@ impl Operandi {
     /// TK-60/61/64: advance playback; no undo steps, and only the final
     /// time goes into the history when it stops.
     fn tick_playback(&mut self, ctx: &Context) {
+        let t = self.editor.scene.time.current;
+        self.anim_ui.time_moved = self
+            .anim_ui
+            .seen_time
+            .replace(t)
+            .is_some_and(|seen| seen != t);
         let Some(backwards) = self.editor.anim.playing else {
             if self.anim_ui.last_tick.take().is_some() {
                 let frame = self.editor.scene.time.current_frame();
