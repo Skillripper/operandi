@@ -7,7 +7,7 @@
 #   scripts/check-no-painting.sh <binary>   also looks inside a built app
 #                                           binary (or .app bundle)
 #
-# The test (crates/operandi-app/src/no_painting_tests.rs) finds no
+# The test (crates/operandi-app/src/painting_ui/no_painting_tests.rs) finds no
 # operandi.image.* / operandi.paint.* command and no painting menu entry.
 # The binary check finds none of painting's command names in the file.
 set -eu

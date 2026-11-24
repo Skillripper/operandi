@@ -62,7 +62,7 @@ builds) and `fixtures/` (original test scenes).
   `NumericSession`).
 - **Tool cards and the tool chain.** Every tool is a stack of shared layers
   (action centre, falloff, symmetry, snapping), then its own geometry.
-  `operandi-core/src/tool_card.rs` gives each tool one card: its family,
+  `operandi-core/src/tools/tool_card.rs` gives each tool one card: its family,
   starting modes, which layers it uses, its handle layout and anchor,
   multi-mesh and continue support. Shared code asks the card instead of
   keeping its own list of tools; the card's match has no wildcard, so a new

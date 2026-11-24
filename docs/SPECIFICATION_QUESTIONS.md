@@ -1409,7 +1409,7 @@ step; an existing material of that name is updated.
 ## Cameras and lights (CL-1, spec v0, 2026-11-04)
 
 Built from the docs-only v0 spec. Every value below lives in
-`crates/operandi-core/src/camera_light_defaults.rs`; change it there.
+`crates/operandi-core/src/render/camera_light_defaults.rs`; change it there.
 
 - CL-Q01 New-scene contents. Every *new* scene gets "Mesh 1", then
   "Camera", then "Directional Light"; the mesh stays selected. Opened and
@@ -1587,7 +1587,7 @@ Built on the spec's provisional answers unless noted.
   Material Group... and Set Smoothing Group... don't exist yet.
 - SP-16, SP-20 Not built in this slice: part export to OBJ/FBX, and the
   Select tab's Polygon Tag dropdown. The shared helpers it needs are in
-  `operandi-core/src/polygon_tags.rs` (`PolygonTagKind`,
+  `operandi-core/src/polygons/polygon_tags.rs` (`PolygonTagKind`,
   `Scene::polygon_tag_names`, `faces_with_tag`, `tag_target_faces`).
 - Set Material still refuses an empty selection (MAT-001); applying the
   shared "nothing selected = whole mesh" rule to it is a follow-up once
@@ -4386,7 +4386,7 @@ Built first from a coordinator brief, then cut back to the Planar behaviour
 spec (2026-11-09) on Jason's word "just do the modo way": there is no
 dedicated drag; a texture is placed with the ordinary Move / Rotate / Scale
 / Transform tools on its Texture Locator. Code: `operandi-core/src/
-planar_texture.rs`, `operandi-app/src/planar_texture_ui.rs`, the gizmo in
+planar_texture.rs`, `operandi-app/src/uv/planar_texture_ui.rs`, the gizmo in
 `camera_light_ui.rs`. Starting state for all: a mesh with a texture layer
 whose Texture Locator is Planar, Item mode.
 
@@ -7861,7 +7861,7 @@ hand-written (menu_forms.rs).
 
 Specs: `specifications/uv-2026-11-16` (BRIEF-TRANSFORM-PIPE-IN-UV,
 ADDENDUM-GENERAL-TOOLS-IN-UV, UVT-130..139). The three guesses the brief
-names are one constant each in `operandi-core/src/uv_pipe.rs`.
+names are one constant each in `operandi-core/src/uv/uv_pipe.rs`.
 
 - **UVT-Q11** Range in a UV view is in UV units (`RANGE_UNITS`; `Pixels`
   is built too: Range then reads as UV-view pixels). *Provisional.*

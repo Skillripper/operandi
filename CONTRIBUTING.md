@@ -108,7 +108,7 @@ from it stays apart:
 - It goes in its own module (a crate, folder or file of its own), never
   mixed into Operandi's own files. Today that is
   `crates/operandi-uv/`, `crates/operandi-core/src/sculpt_blender/`,
-  `crates/operandi-core/src/blender_principled.rs`,
+  `crates/operandi-core/src/materials/blender_principled.rs`,
   `crates/operandi-usd/bridge/blender/` and `crates/operandi-remesh/`
   (Blender's QuadriFlow glue; its bundled QuadriFlow, LEMON, pcg32 and
   Eigen files keep their own licences, listed in that crate's README).

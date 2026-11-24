@@ -18,7 +18,7 @@ No architecture review document with the numbered items is in the repo
 uses the numbers as given in the brief. Line numbers are on this branch.
 
 Scaffolding built now (cheap, nothing depends on it yet):
-`crates/operandi-core/src/scaffold.rs` — `ToolKind { Direct, Procedural,
+`crates/operandi-core/src/tools/scaffold.rs` — `ToolKind { Direct, Procedural,
 Schematic }` with `Tool::kind()` (all Direct), `Proficiency { Basic,
 Standard, Advanced }` defaulting to Standard with `shown_at`, and channel
 description types `ChannelId`, `ChannelType`, `ChannelValue`, `ChannelDef`.

@@ -37,8 +37,8 @@ only `--features cycles` ones:
 
 | Operandi file | Adapted from (Cycles, same commit) | Licence |
 |---|---|---|
-| `crates/operandi-core/src/cycles_noise.rs`, `shader_func.wgsl` | `util/hash.h`; `kernel/svm/noise.h` (Perlin noise, from Open Shading Language, © 2009-2010 Sony Pictures Imageworks Inc., et al.); `fractal_noise.h`, `noisetex.h`, `white_noise.h`, `checker.h`, `gradient.h`, `wave.h` | Apache-2.0 (`LICENSE`); `noise.h` BSD-3-Clause (`BSD-3-Clause-license.txt`) |
-| `crates/operandi-core/src/cycles_voronoi.rs`, `cycles_voronoi.wgsl` | `kernel/svm/voronoi.h` (after Inigo Quilez, © 2013); PCG hashes in `util/hash.h` | MIT (`MIT-license.txt`) and Apache-2.0 |
-| `crates/operandi-core/src/shader_func.rs`, `shader_func.wgsl` | `kernel/svm/math_util.h`, `color_util.h`, `hsv.h`, `map_range.h`, `mapping_util.h`, `fresnel.h`, `kernel/closure/bsdf_util.h`, `util/color.h`, `util/math_base.h`, `util/math_float3.h`, `util/transform.h` | Apache-2.0 |
+| `crates/operandi-core/src/materials/cycles_noise.rs`, `shader_func.wgsl` | `util/hash.h`; `kernel/svm/noise.h` (Perlin noise, from Open Shading Language, © 2009-2010 Sony Pictures Imageworks Inc., et al.); `fractal_noise.h`, `noisetex.h`, `white_noise.h`, `checker.h`, `gradient.h`, `wave.h` | Apache-2.0 (`LICENSE`); `noise.h` BSD-3-Clause (`BSD-3-Clause-license.txt`) |
+| `crates/operandi-core/src/materials/cycles_voronoi.rs`, `cycles_voronoi.wgsl` | `kernel/svm/voronoi.h` (after Inigo Quilez, © 2013); PCG hashes in `util/hash.h` | MIT (`MIT-license.txt`) and Apache-2.0 |
+| `crates/operandi-core/src/materials/shader_func.rs`, `shader_func.wgsl` | `kernel/svm/math_util.h`, `color_util.h`, `hsv.h`, `map_range.h`, `mapping_util.h`, `fresnel.h`, `kernel/closure/bsdf_util.h`, `util/color.h`, `util/math_base.h`, `util/math_float3.h`, `util/transform.h` | Apache-2.0 |
 
 Each file's header names its sources; the code is rewritten, not copied.

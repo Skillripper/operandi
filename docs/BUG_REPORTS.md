@@ -3,7 +3,7 @@
 User-initiated only: Operandi never sends anything by itself and holds no
 tokens. Every report is a GitHub issue form, pre-filled from the link, that
 opens in the user's browser; they read and edit it there and decide whether
-to submit. Code: `crates/operandi-app/src/bug_report.rs` (links, crash files,
+to submit. Code: `crates/operandi-app/src/files/bug_report.rs` (links, crash files,
 prompt) and `log_ring.rs` (recent log lines). Reports go to the public code repository,
 operandi3d/operandi (the one constant `REPORT_REPO_URL`).
 

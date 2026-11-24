@@ -1,7 +1,7 @@
 //! Gaps found making hero renders through the bridge: importing an OBJ
 //! into the open scene, and placing primitives at a world-space position.
 //! (Viewport shading and panels are app-only; their tests are in
-//! `crates/operandi-app/src/mcp.rs`.)
+//! `crates/operandi-app/src/commands/mcp.rs`.)
 use operandi_mcp::{Bridge, protocol};
 use serde_json::{Value, json};
 

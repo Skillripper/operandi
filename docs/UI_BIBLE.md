@@ -735,7 +735,7 @@ only.
 - **UIC-162** The command takes as arguments everything the UI would ask
   for. A dialog's fields are its arguments; the dialog opens only when
   they are missing (UIC-80). Command, tool and argument names follow the
-  name map (`operandi-core/src/command_names.rs`, the maintainer 2026-11-06). [OP]
+  name map (`operandi-core/src/commands/command_names.rs`, the maintainer 2026-11-06). [OP]
 - **UIC-163** Anything a panel shows can also be **asked for** by a query
   command, so scripts can read as well as change it. [OP]
 - **UIC-164** **Enforcement:** an automated test fails when a menu entry,

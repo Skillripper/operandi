@@ -41,7 +41,7 @@ panel files).
 
 ## Tests that hold it together
 
-In `crates/operandi-app/src/command_registry_tests.rs`:
+In `crates/operandi-app/src/commands/command_registry_tests.rs`:
 
 1. Every registry name (and each alias, and each example) is understood by
    the parser, and `help <name>` answers.
@@ -60,7 +60,7 @@ In `crates/operandi-app/src/command_registry_tests.rs`:
    Properties tabs, every Preferences page) and records each row and
    toolbox button the shared widgets draw, plus every menu entry. Each one
    must run a registered command or be listed in
-   `crates/operandi-app/src/command_registry_gaps.rs`. A new click-only
+   `crates/operandi-app/src/commands/command_registry_gaps.rs`. A new click-only
    control fails the test; so does a listed gap that has since got a
    command (the list only shrinks).
 
@@ -439,7 +439,7 @@ without `item:` set every selected item, as one step?
 
 ### How to add channels
 
-Channels live in `crates/operandi-core/src/channels.rs`. The dispatcher
+Channels live in `crates/operandi-core/src/anim/channels.rs`. The dispatcher
 (`find`, `get`, `set`, value parsing) never changes for a new channel:
 
 1. Write a table `static MY_KIND: &[Channel] = &[...]` (or add entries to
@@ -469,7 +469,7 @@ own for now** (provisional, to be matched to Modo's preference names).
 Percents are 0–1 at the command boundary.
 
 The window runs `pref.value` for every row edit on a page that has
-entries in `crates/operandi-app/src/prefs_commands.rs` (`PREFS`): after a
+entries in `crates/operandi-app/src/settings/prefs_commands.rs` (`PREFS`): after a
 page draws, each changed value is put back and set again through the
 command. Wired: the Remapping page (14 rows: `input.device`,
 `input.tooltipDelay`, `input.wheelAcceleration`, `input.wheelZoomAtCursor`,
@@ -656,7 +656,7 @@ Names from the registry thread:
   (`Entry::json`, built with `.headless(about, args)`).
   `command_exec::specs()` / `spec()` read them for MCP help, the
   `command_run` schema and docs/MCP_BRIDGE.md (now in registry order).
-- **Run-time registry** (`operandi-core/src/command_runtime.rs`):
+- **Run-time registry** (`operandi-core/src/commands/command_runtime.rs`):
   `Registry<H>` is built from `COMMANDS` at start-up. The host attaches
   handlers to built-in commands (`handle`, two different handlers for one
   command are refused) and adds its own window-only commands
@@ -668,7 +668,7 @@ Names from the registry thread:
   `Registry::command_for` like a built-in.
 - **The app runs through it.** `execute` (main.rs) calls
   `run_registered` right after the name rewrites. The old typed `match`
-  (about 170 phrases) is now handlers in `operandi-app/src/command_handlers.rs`;
+  (about 170 phrases) is now handlers in `operandi-app/src/commands/command_handlers.rs`;
   the benchmarks `operandi.bench.orbit` / `.drag` moved out of core's
   table and register from the app. `help` and `command.list` read the
   run-time registry.
