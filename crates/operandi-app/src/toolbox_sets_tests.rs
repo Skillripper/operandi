@@ -303,3 +303,54 @@ fn every_toolbox_form_icon_slug_resolves() {
     }
     assert!(checked > 100, "{checked} icons");
 }
+
+/// Jason, 2026-11-24: every toolbox button shows a tooltip. A control with
+/// none of its own falls back to its label, its command's help and its key.
+#[test]
+fn every_toolbox_form_button_has_hover_text() {
+    use crate::form::Proficiency;
+    use crate::form::command_form::{self as cf, Item};
+    crate::anim_switch::set_for_test(true);
+    let a = box_app();
+    let mut checked = 0;
+    let ids: Vec<String> = a
+        .forms
+        .ids()
+        .into_iter()
+        .filter(|id| id.starts_with("toolbox.") && *id != "toolbox.workbench")
+        .map(str::to_owned)
+        .collect();
+    for id in ids {
+        for item in cf::plan(&a.forms, &id, Proficiency::Advanced, &|_| true) {
+            let controls = match item {
+                Item::Button(c, _) => vec![*c],
+                Item::Row(cs, _, _) => cs,
+                _ => continue,
+            };
+            for c in controls {
+                let Some(line) = c.command.as_deref() else {
+                    continue;
+                };
+                let tip = a.form_button_tooltip(&c, line).unwrap_or_default();
+                assert!(!tip.trim().is_empty(), "{id}: {line} has no tooltip");
+                checked += 1;
+            }
+        }
+    }
+    assert!(checked > 300, "{checked} buttons");
+    // The fallback reads like the written ones: label, what it does, key.
+    let setup = cf::plan(&a.forms, "toolbox.setup", Proficiency::Advanced, &|_| true);
+    let parent = setup
+        .into_iter()
+        .flat_map(|i| match i {
+            Item::Row(cs, _, _) => cs,
+            Item::Button(c, _) => vec![*c],
+            _ => vec![],
+        })
+        .find(|c| c.command.as_deref() == Some("operandi.rig.parent"))
+        .unwrap();
+    let tip = a
+        .form_button_tooltip(&parent, "operandi.rig.parent")
+        .unwrap();
+    assert!(tip.starts_with("Parent · "), "{tip}");
+}
