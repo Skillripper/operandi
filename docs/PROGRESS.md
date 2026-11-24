@@ -1,5 +1,13 @@
 # Milestone progress ledger
 
+- **Help mode, What's This? (2026-11-24, branch help-mode, UIC-06):** F1
+  or Help ▸ What's This? (`operandi.help.whatsThis`), question-mark
+  pointer; the next click opens /guide/<version>/go/<help-id>/ for the
+  button, menu entry, tool's Tool Properties, panel or 3D view, and does
+  nothing else; Esc or right-click leaves. Provisional: floating palettes
+  in their own OS windows and the in-window menu bar (Linux, Windows)
+  still act on the click.
+
 - **LXO export label (2026-11-24, branch lxo-export-label, Jason's
   choice):** File ▸ Export's "Modo Scene (LXO)…" is now "LXO Scene…", and
   the format's name in the export file dialog is "LXO Scene". The command

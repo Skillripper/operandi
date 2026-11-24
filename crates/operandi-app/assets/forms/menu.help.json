@@ -5,6 +5,7 @@
   "style": "menu",
   "controls": [
     { "command": "operandi.help.documentation", "label": "User Guide" },
+    { "command": "operandi.help.whatsThis", "label": "What's This?", "shortcut": "What's This?" },
     { "command": "operandi.help.reportBug", "label": "Report Bug or Idea…" },
     { "command": "operandi.update.check", "label": "Check for Updates" }
   ]
