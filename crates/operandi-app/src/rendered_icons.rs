@@ -377,7 +377,6 @@ pub const RENDERED: &[(Icon, &str)] = &[
     (Icon::ToggleVertexNormals, "toggle-vertex-normals"),
     (Icon::TopologyPen, "topology-pen"),
     (Icon::TransferNormals, "transfer-normals"),
-    (Icon::Transform, "transform"),
     (Icon::Unbind, "unbind"),
     (Icon::UnifyTangents, "unify-tangents"),
     (Icon::Unparent, "unparent"),
@@ -388,6 +387,7 @@ pub const RENDERED: &[(Icon, &str)] = &[
     (Icon::UvAlignRight, "uv-align-right"),
     (Icon::UvAlignUp, "uv-align-up"),
     (Icon::UvAtlas, "uv-atlas"),
+    (Icon::UvBoxTransform, "uv-box-transform"),
     (Icon::UvBrush, "uv-brush"),
     (Icon::UvCopy, "uv-copy"),
     (Icon::UvCut, "uv-cut"),
@@ -6298,22 +6298,22 @@ static FILES: &[(&str, &str, u32, &[u8])] = &[
     ("light-outline", "transfer-normals", 48, include_bytes!("../assets/rendered-icons/light-outline/transfer-normals-48.png")),
     ("light-outline", "transfer-normals", 64, include_bytes!("../assets/rendered-icons/light-outline/transfer-normals-64.png")),
     ("light-outline", "transfer-normals", 128, include_bytes!("../assets/rendered-icons/light-outline/transfer-normals-128.png")),
-    ("dark-outline", "transform", 16, include_bytes!("../assets/rendered-icons/dark-outline/transform-16.png")),
-    ("dark-outline", "transform", 20, include_bytes!("../assets/rendered-icons/dark-outline/transform-20.png")),
-    ("dark-outline", "transform", 24, include_bytes!("../assets/rendered-icons/dark-outline/transform-24.png")),
-    ("dark-outline", "transform", 32, include_bytes!("../assets/rendered-icons/dark-outline/transform-32.png")),
-    ("dark-outline", "transform", 40, include_bytes!("../assets/rendered-icons/dark-outline/transform-40.png")),
-    ("dark-outline", "transform", 48, include_bytes!("../assets/rendered-icons/dark-outline/transform-48.png")),
-    ("dark-outline", "transform", 64, include_bytes!("../assets/rendered-icons/dark-outline/transform-64.png")),
-    ("dark-outline", "transform", 128, include_bytes!("../assets/rendered-icons/dark-outline/transform-128.png")),
-    ("light-outline", "transform", 16, include_bytes!("../assets/rendered-icons/light-outline/transform-16.png")),
-    ("light-outline", "transform", 20, include_bytes!("../assets/rendered-icons/light-outline/transform-20.png")),
-    ("light-outline", "transform", 24, include_bytes!("../assets/rendered-icons/light-outline/transform-24.png")),
-    ("light-outline", "transform", 32, include_bytes!("../assets/rendered-icons/light-outline/transform-32.png")),
-    ("light-outline", "transform", 40, include_bytes!("../assets/rendered-icons/light-outline/transform-40.png")),
-    ("light-outline", "transform", 48, include_bytes!("../assets/rendered-icons/light-outline/transform-48.png")),
-    ("light-outline", "transform", 64, include_bytes!("../assets/rendered-icons/light-outline/transform-64.png")),
-    ("light-outline", "transform", 128, include_bytes!("../assets/rendered-icons/light-outline/transform-128.png")),
+    ("dark-outline", "uv-box-transform", 16, include_bytes!("../assets/rendered-icons/dark-outline/uv-box-transform-16.png")),
+    ("dark-outline", "uv-box-transform", 20, include_bytes!("../assets/rendered-icons/dark-outline/uv-box-transform-20.png")),
+    ("dark-outline", "uv-box-transform", 24, include_bytes!("../assets/rendered-icons/dark-outline/uv-box-transform-24.png")),
+    ("dark-outline", "uv-box-transform", 32, include_bytes!("../assets/rendered-icons/dark-outline/uv-box-transform-32.png")),
+    ("dark-outline", "uv-box-transform", 40, include_bytes!("../assets/rendered-icons/dark-outline/uv-box-transform-40.png")),
+    ("dark-outline", "uv-box-transform", 48, include_bytes!("../assets/rendered-icons/dark-outline/uv-box-transform-48.png")),
+    ("dark-outline", "uv-box-transform", 64, include_bytes!("../assets/rendered-icons/dark-outline/uv-box-transform-64.png")),
+    ("dark-outline", "uv-box-transform", 128, include_bytes!("../assets/rendered-icons/dark-outline/uv-box-transform-128.png")),
+    ("light-outline", "uv-box-transform", 16, include_bytes!("../assets/rendered-icons/light-outline/uv-box-transform-16.png")),
+    ("light-outline", "uv-box-transform", 20, include_bytes!("../assets/rendered-icons/light-outline/uv-box-transform-20.png")),
+    ("light-outline", "uv-box-transform", 24, include_bytes!("../assets/rendered-icons/light-outline/uv-box-transform-24.png")),
+    ("light-outline", "uv-box-transform", 32, include_bytes!("../assets/rendered-icons/light-outline/uv-box-transform-32.png")),
+    ("light-outline", "uv-box-transform", 40, include_bytes!("../assets/rendered-icons/light-outline/uv-box-transform-40.png")),
+    ("light-outline", "uv-box-transform", 48, include_bytes!("../assets/rendered-icons/light-outline/uv-box-transform-48.png")),
+    ("light-outline", "uv-box-transform", 64, include_bytes!("../assets/rendered-icons/light-outline/uv-box-transform-64.png")),
+    ("light-outline", "uv-box-transform", 128, include_bytes!("../assets/rendered-icons/light-outline/uv-box-transform-128.png")),
     ("dark-outline", "unbind", 16, include_bytes!("../assets/rendered-icons/dark-outline/unbind-16.png")),
     ("dark-outline", "unbind", 20, include_bytes!("../assets/rendered-icons/dark-outline/unbind-20.png")),
     ("dark-outline", "unbind", 24, include_bytes!("../assets/rendered-icons/dark-outline/unbind-24.png")),
@@ -7896,6 +7896,24 @@ mod tests {
             }
         }
         assert!(rasterize(Icon::Move, IconSet::DarkOutline, 16).is_none());
+    }
+
+    /// Jason, 2026-11-24: the toolbox's shared top row (Transform, Move,
+    /// Rotate, Scale) keeps its own icons. A studio batch once rendered a
+    /// UV "Box Transform" scene under the slug "transform" and replaced the
+    /// Transform tool's icon everywhere; such a render takes its own slug.
+    #[test]
+    fn the_shared_transform_row_keeps_its_own_icons() {
+        for icon in [Icon::Transform, Icon::Move, Icon::Rotate, Icon::Scale] {
+            assert!(
+                slug(icon).is_none(),
+                "{icon:?} must not be replaced by a render"
+            );
+            for set in [IconSet::DarkOutline, IconSet::LightOutline] {
+                assert!(rasterize(icon, set, 32).is_none(), "{icon:?}");
+            }
+        }
+        assert_eq!(slug(Icon::UvBoxTransform), Some("uv-box-transform"));
     }
 
     #[test]
