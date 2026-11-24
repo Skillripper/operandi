@@ -1131,22 +1131,33 @@ struct VertexOut { @builtin(position) position: vec4<f32>, @location(0) color: v
             {
                 // Adjacent blocks go up as one write: a large patch was
                 // thousands of tiny writes a frame, which slowed long drags.
-                for range in merged(&patch.fill) {
+                let fill_ranges = merged(&patch.fill);
+                for range in &fill_ranges {
                     b.bounds = union(b.bounds, bounds_of(&geometry.fill[range.clone()]));
-                    let bytes = fill_bytes(&geometry.fill[range.clone()]);
-                    uploaded.set(uploaded.get() + bytes.len() as u64);
-                    b.fill
-                        .write(&self.fill_arena, queue, range.start as u32, &bytes);
                     b.programs |= geometry.fill[range.clone()].iter().any(|v| v.program != 0);
                 }
+                let sent = upload_ranges(
+                    &b.fill,
+                    &self.fill_arena,
+                    queue,
+                    &geometry.fill,
+                    &fill_ranges,
+                    FILL_STRIDE,
+                    fill_vertex,
+                );
+                uploaded.set(uploaded.get() + sent);
                 b.clear = geometry.clear;
                 b.cut = geometry.cut;
-                for range in merged(&patch.edges) {
-                    let bytes = edge_bytes(&geometry.edges[range.clone()]);
-                    uploaded.set(uploaded.get() + bytes.len() as u64);
-                    b.edges
-                        .write(&self.edge_arena, queue, range.start as u32, &bytes);
-                }
+                let sent = upload_ranges(
+                    &b.edges,
+                    &self.edge_arena,
+                    queue,
+                    &geometry.edges,
+                    &merged(&patch.edges),
+                    EDGE_STRIDE,
+                    edge_vertex,
+                );
+                uploaded.set(uploaded.get() + sent);
                 if patch.highlight {
                     b.highlight = new_highlight();
                     b.highlight_count = geometry.highlight.len() as u32;
@@ -2550,63 +2561,177 @@ const FILL_ATTRIBUTES: [wgpu::VertexAttribute; 8] = wgpu::vertex_attr_array![
     0 => Float32x3, 1 => Float32x3, 2 => Unorm8x4, 3 => Unorm8x4, 4 => Float32x2, 5 => Uint32,
     6 => Unorm8x4, 7 => Unorm8x4
 ];
+/// Vertices packed `stride` bytes each by `write` (`pack_into`).
+fn pack<T: Sync>(vertices: &[T], stride: u64, write: fn(&T, &mut Bytes)) -> Vec<u8> {
+    let mut bytes = vec![0u8; vertices.len() * stride as usize];
+    pack_into(&mut bytes, vertices, stride, write);
+    bytes
+}
+
+/// Fewer vertices than this are packed on one core: spreading them costs
+/// more than it saves.
+const PARALLEL_PACK: usize = 1 << 14;
+
+/// Packs `vertices` into `out`, `stride` bytes each, with `write` filling
+/// one vertex's bytes in order (`Bytes`). Big lists (a whole
+/// million-polygon mesh, or a drag that moves most of it) are packed on
+/// every core: each vertex's bytes depend only on that vertex, so the
+/// result is the same.
+fn pack_into<T: Sync>(out: &mut [u8], vertices: &[T], stride: u64, write: fn(&T, &mut Bytes)) {
+    use rayon::prelude::*;
+    const RUN: usize = 4096;
+    let stride = stride as usize;
+    debug_assert_eq!(out.len(), vertices.len() * stride);
+    let run = |out: &mut [u8], vertices: &[T]| {
+        for (out, v) in out.chunks_exact_mut(stride).zip(vertices) {
+            let mut b = Bytes { out, at: 0 };
+            write(v, &mut b);
+            debug_assert_eq!(b.at, stride, "a vertex filled its stride");
+        }
+    };
+    if vertices.len() < PARALLEL_PACK {
+        run(out, vertices);
+    } else {
+        out.par_chunks_mut(RUN * stride)
+            .zip(vertices.par_chunks(RUN))
+            .for_each(|(out, vertices)| run(out, vertices));
+    }
+}
+
+/// Uploads the vertices in each of `ranges` (indices into `vertices` and
+/// into `store`'s list alike), packing them straight into the queue's
+/// staging memory on every core: a drag that moves most of a big mesh
+/// sends hundreds of megabytes a frame, and building them in a list of
+/// our own first cost a fill and a copy of all of it. Returns the bytes
+/// sent.
+fn upload_ranges<T: Sync>(
+    store: &crate::gpu_arena::Store,
+    arena: &crate::gpu_arena::Arena,
+    queue: &wgpu::Queue,
+    vertices: &[T],
+    ranges: &[std::ops::Range<usize>],
+    stride: u64,
+    write: fn(&T, &mut Bytes),
+) -> u64 {
+    let mut views = Vec::new();
+    let mut sent = 0;
+    for r in ranges {
+        let before = views.len();
+        if store
+            .views(arena, queue, r.start as u32, r.len() as u32, &mut views)
+            .is_none()
+        {
+            // No staging memory: the old way for this range.
+            views.truncate(before);
+            store.write(
+                arena,
+                queue,
+                r.start as u32,
+                &pack(&vertices[r.clone()], stride, write),
+            );
+        } else {
+            for (_, v) in &mut views[before..] {
+                *v = (r.start as u32 + v.start)..(r.start as u32 + v.end);
+            }
+        }
+        sent += r.len() as u64 * stride;
+    }
+    pack_views(&mut views, vertices, stride, write);
+    sent
+}
+
+/// Packs each staging view's vertices (`.1`, indices into `vertices`) into
+/// it, the views shared out over every core when there are many vertices
+/// in all (each view is small: a mesh row's worth of moved polygons).
+fn pack_views<T: Sync>(
+    views: &mut [crate::gpu_arena::View],
+    vertices: &[T],
+    stride: u64,
+    write: fn(&T, &mut Bytes),
+) {
+    use rayon::prelude::*;
+    let total: usize = views.iter().map(|(_, r)| r.len()).sum();
+    let mut jobs: Vec<(&mut [u8], &[T])> = views
+        .iter_mut()
+        .map(|(view, r)| (view.as_mut(), &vertices[r.start as usize..r.end as usize]))
+        .collect();
+    if total < PARALLEL_PACK {
+        for (out, vs) in jobs {
+            pack_into(out, vs, stride, write);
+        }
+    } else {
+        jobs.par_iter_mut()
+            .for_each(|(out, vs)| pack_into(out, vs, stride, write));
+    }
+}
+
+/// One vertex's bytes, written front to back.
+struct Bytes<'a> {
+    out: &'a mut [u8],
+    at: usize,
+}
+impl Bytes<'_> {
+    fn put(&mut self, bytes: &[u8]) {
+        self.out[self.at..self.at + bytes.len()].copy_from_slice(bytes);
+        self.at += bytes.len();
+    }
+    fn f32s(&mut self, values: &[f32]) {
+        for f in values {
+            self.put(&f.to_le_bytes());
+        }
+    }
+}
+
 /// 52 bytes per fill corner: position, normal, then the color and the
 /// vertex-map color as RGBA8 (gamma-encoded, as the projected path's),
 /// then the UVs, the material program instance and the HT-5/HT-6 tints
 /// (gpu_scene.rs `Tint`).
 fn fill_bytes(vertices: &[crate::gpu_scene::WorldVertex]) -> Vec<u8> {
-    let mut bytes = Vec::with_capacity(vertices.len() * FILL_STRIDE as usize);
-    for v in vertices {
-        for f in v.position.iter().chain(&v.normal) {
-            bytes.extend_from_slice(&f.to_le_bytes());
-        }
-        bytes.extend_from_slice(&v.color.to_array());
-        bytes.extend_from_slice(&v.map.to_array());
-        for f in v.uv {
-            bytes.extend_from_slice(&f.to_le_bytes());
-        }
-        bytes.extend_from_slice(&v.program.to_le_bytes());
-        bytes.extend_from_slice(&v.tint.weight);
-        bytes.extend_from_slice(&v.tint.distortion);
-    }
-    bytes
+    pack(vertices, FILL_STRIDE, fill_vertex)
+}
+fn fill_vertex(v: &crate::gpu_scene::WorldVertex, b: &mut Bytes) {
+    b.f32s(&v.position);
+    b.f32s(&v.normal);
+    b.put(&v.color.to_array());
+    b.put(&v.map.to_array());
+    b.f32s(&v.uv);
+    b.put(&v.program.to_le_bytes());
+    b.put(&v.tint.weight);
+    b.put(&v.tint.distortion);
 }
 
 /// 60 bytes per stroke corner: both ends, (end, side, width), RGBA8, uses,
 /// then the two sides' normals as 16-bit signed normalized numbers (the
 /// first with the never-fade flag as its fourth).
 fn edge_bytes(vertices: &[crate::gpu_scene::EdgeVertex]) -> Vec<u8> {
+    pack(vertices, EDGE_STRIDE, edge_vertex)
+}
+fn edge_vertex(v: &crate::gpu_scene::EdgeVertex, b: &mut Bytes) {
     let snorm = |x: f32| ((x.clamp(-1., 1.) * 32767.).round() as i16).to_le_bytes();
-    let mut bytes = Vec::with_capacity(vertices.len() * EDGE_STRIDE as usize);
-    for v in vertices {
-        for f in v.a.iter().chain(&v.b).chain(&[v.end, v.side, v.width]) {
-            bytes.extend_from_slice(&f.to_le_bytes());
-        }
-        bytes.extend_from_slice(&v.color.to_array());
-        bytes.extend_from_slice(&v.uses.to_le_bytes());
-        let [n1, n2] = v.sides;
-        for x in n1
-            .into_iter()
-            .chain([if v.always { 1. } else { 0. }])
-            .chain(n2)
-            .chain([0.])
-        {
-            bytes.extend_from_slice(&snorm(x));
-        }
+    b.f32s(&v.a);
+    b.f32s(&v.b);
+    b.f32s(&[v.end, v.side, v.width]);
+    b.put(&v.color.to_array());
+    b.put(&v.uses.to_le_bytes());
+    let [n1, n2] = v.sides;
+    for x in n1
+        .into_iter()
+        .chain([if v.always { 1. } else { 0. }])
+        .chain(n2)
+        .chain([0.])
+    {
+        b.put(&snorm(x));
     }
-    bytes
 }
 
 /// 28 bytes per dot corner: center, corner, radius, RGBA8.
 fn dot_bytes(vertices: &[crate::gpu_scene::DotVertex]) -> Vec<u8> {
-    let mut bytes = Vec::with_capacity(vertices.len() * 28);
-    for v in vertices {
-        for f in v.center.iter().chain(&v.corner).chain(&[v.radius]) {
-            bytes.extend_from_slice(&f.to_le_bytes());
-        }
-        bytes.extend_from_slice(&v.color.to_array());
-    }
-    bytes
+    pack(vertices, DOT_STRIDE, |v, b| {
+        b.f32s(&v.center);
+        b.f32s(&v.corner);
+        b.f32s(&[v.radius]);
+        b.put(&v.color.to_array());
+    })
 }
 
 /// The resident-mesh shader, with the display styles' shading spliced in
@@ -3816,6 +3941,80 @@ struct WorldPipelines {
 #[cfg(test)]
 mod tests {
     use super::Look;
+
+    /// The packers write the layout they always did, on one core or many
+    /// (heavy-mesh-speed): checked against the byte-by-byte packing they
+    /// replaced, on lists either side of the parallel threshold.
+    #[test]
+    fn vertex_packing_is_unchanged_on_every_core() {
+        use crate::gpu_scene::{EdgeVertex, Tint, WorldVertex};
+        use eframe::egui::Color32;
+        let f = |k: usize, i: usize| ((k * 31 + i * 7) % 97) as f32 / 13. - 3.;
+        let c = |k: usize| Color32::from_rgba_premultiplied(k as u8, (k >> 3) as u8, 7, 255);
+        for n in [5, 40_000] {
+            let fill: Vec<WorldVertex> = (0..n)
+                .map(|k| WorldVertex {
+                    position: [f(k, 0), f(k, 1), f(k, 2)],
+                    normal: [f(k, 3), f(k, 4), f(k, 5)],
+                    color: c(k),
+                    map: c(k + 1),
+                    uv: [f(k, 6), f(k, 7)],
+                    program: k as u32,
+                    tint: Tint {
+                        weight: [k as u8, 1, 2, 3],
+                        distortion: [4, k as u8, 6, 7],
+                    },
+                })
+                .collect();
+            let mut old = Vec::new();
+            for v in &fill {
+                for x in v.position.iter().chain(&v.normal) {
+                    old.extend_from_slice(&x.to_le_bytes());
+                }
+                old.extend_from_slice(&v.color.to_array());
+                old.extend_from_slice(&v.map.to_array());
+                for x in v.uv {
+                    old.extend_from_slice(&x.to_le_bytes());
+                }
+                old.extend_from_slice(&v.program.to_le_bytes());
+                old.extend_from_slice(&v.tint.weight);
+                old.extend_from_slice(&v.tint.distortion);
+            }
+            assert_eq!(super::fill_bytes(&fill), old);
+            let edges: Vec<EdgeVertex> = (0..n)
+                .map(|k| EdgeVertex {
+                    a: [f(k, 0), f(k, 1), f(k, 2)],
+                    b: [f(k, 3), f(k, 4), f(k, 5)],
+                    end: (k % 2) as f32,
+                    side: f(k, 6),
+                    width: f(k, 7),
+                    color: c(k),
+                    uses: (1 + k % 2) as f32,
+                    sides: [[f(k, 8), f(k, 9), 0.5], [f(k, 10), -0.25, f(k, 11)]],
+                    always: k % 3 == 0,
+                })
+                .collect();
+            let snorm = |x: f32| ((x.clamp(-1., 1.) * 32767.).round() as i16).to_le_bytes();
+            let mut old = Vec::new();
+            for v in &edges {
+                for x in v.a.iter().chain(&v.b).chain(&[v.end, v.side, v.width]) {
+                    old.extend_from_slice(&x.to_le_bytes());
+                }
+                old.extend_from_slice(&v.color.to_array());
+                old.extend_from_slice(&v.uses.to_le_bytes());
+                let [n1, n2] = v.sides;
+                for x in n1
+                    .into_iter()
+                    .chain([if v.always { 1. } else { 0. }])
+                    .chain(n2)
+                    .chain([0.])
+                {
+                    old.extend_from_slice(&snorm(x));
+                }
+            }
+            assert_eq!(super::edge_bytes(&edges), old);
+        }
+    }
     use crate::view_display::ViewDisplay;
     use operandi_core::Mode;
 

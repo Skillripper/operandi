@@ -480,8 +480,11 @@ pub mod viewport {
             SCHEME.with(|s| s.set(self.0));
         }
     }
-    fn scheme() -> ViewScheme {
+    pub(super) fn scheme() -> ViewScheme {
         SCHEME.with(std::cell::Cell::get)
+    }
+    pub(super) fn set_scheme(scheme: ViewScheme) {
+        SCHEME.with(|s| s.set(scheme));
     }
     pub fn background() -> Color32 {
         color(match scheme() {
@@ -1040,6 +1043,33 @@ pub fn editor_color(c: operandi_core::EditorColor) -> Color32 {
         EditorColor::Grey => ColorId::TagGrey,
         EditorColor::DarkGrey => ColorId::TagDarkGrey,
     })
+}
+
+/// This thread's drawing colours: every override and the view scheme.
+/// Colours live per thread, so work spread over worker threads takes the
+/// drawing thread's with it (`Colours::apply`).
+#[derive(Clone)]
+pub struct Colours {
+    overrides: [Option<Color32>; COUNT],
+    scheme: viewport::ViewScheme,
+}
+pub fn colours() -> Colours {
+    Colours {
+        overrides: OVERRIDES.with(|o| std::array::from_fn(|i| o[i].get())),
+        scheme: viewport::scheme(),
+    }
+}
+impl Colours {
+    /// Draw with these colours on this thread. Leaves the colour
+    /// generation alone: these are another thread's colours, not a change.
+    pub fn apply(&self) {
+        OVERRIDES.with(|o| {
+            for (cell, value) in o.iter().zip(self.overrides) {
+                cell.set(value);
+            }
+        });
+        viewport::set_scheme(self.scheme);
+    }
 }
 
 /// The colour to draw `id` with now.

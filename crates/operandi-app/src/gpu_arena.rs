@@ -123,7 +123,41 @@ pub enum Store {
     Own(VertexChunks),
 }
 
+/// A staging write the caller fills: vertices `.1` (counted from the
+/// write's first) go into `.0` when it drops.
+pub type View = (wgpu::QueueWriteBufferView, std::ops::Range<u32>);
+
 impl Store {
+    /// Staging writes for `count` vertices from `first` on, pushed to
+    /// `out`, for the caller to pack straight into (no copy of its own).
+    /// `None` when the queue can't give one (write with `write` instead).
+    pub fn views(
+        &self,
+        arena: &Arena,
+        queue: &wgpu::Queue,
+        first: u32,
+        count: u32,
+        out: &mut Vec<View>,
+    ) -> Option<()> {
+        match self {
+            Store::Shared(slot) => {
+                debug_assert!(
+                    first + count <= slot.count,
+                    "a write outside the item's block"
+                );
+                let (buffer, _) = arena.chunks.get(slot.chunk as usize)?;
+                let size = wgpu::BufferSize::new(u64::from(count) * arena.stride)?;
+                let view = queue.write_buffer_with(
+                    buffer,
+                    u64::from(slot.first + first) * arena.stride,
+                    size,
+                )?;
+                out.push((view, 0..count));
+                Some(())
+            }
+            Store::Own(chunks) => chunks.views(queue, first, count, out),
+        }
+    }
     /// Upload `bytes` (`arena.stride` bytes a vertex).
     pub fn upload(
         arena: &mut Arena,

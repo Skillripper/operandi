@@ -6,6 +6,9 @@ license = "GPL-3.0-or-later"
 
 [dependencies]
 operandi-core = { path = "../operandi-core" }
+# Big meshes' GPU vertices are built and packed on every core; MIT OR
+# Apache-2.0, already in the tree (docs/DEPENDENCIES.md).
+rayon = "1.12"
 operandi-layout = { path = "../operandi-layout" }
 # MCP bridge (Window > MCP Bridge); only JSON in and out, no new third-party deps.
 operandi-mcp = { path = "../operandi-mcp" }

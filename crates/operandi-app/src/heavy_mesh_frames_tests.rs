@@ -76,8 +76,10 @@ fn uploaded(a: &Operandi) -> u64 {
 #[ignore = "opt-in whole-frame timings; run in release with --nocapture"]
 fn heavy_mesh_frames() {
     let side = 1000; // 1,000,000 quads
-    // OPERANDI_HEAVY_ONLY=pose: only the skinned posing (for a profiler).
-    if std::env::var("OPERANDI_HEAVY_ONLY").is_ok_and(|v| v == "pose") {
+    // OPERANDI_HEAVY_ONLY=<case> (pose, drag_1_polygon, drag_all_points):
+    // only that case, for a profiler.
+    let only = std::env::var("OPERANDI_HEAVY_ONLY").ok();
+    if only.as_deref() == Some("pose") {
         return posing(side);
     }
     let (b, mut a) = bench();
@@ -94,6 +96,9 @@ fn heavy_mesh_frames() {
         ("drag_1_polygon", Mode::Polygon),
         ("drag_all_points", Mode::Vertex),
     ] {
+        if only.as_deref().is_some_and(|o| o != label) {
+            continue;
+        }
         a.run(Command::Mode(mode));
         match mode {
             Mode::Vertex => a.editor.scene.selection.vertices = (0..points).collect(),
@@ -108,7 +113,9 @@ fn heavy_mesh_frames() {
         a.run(Command::Drop);
         b.frame(&mut a, vec![]);
     }
-    posing(side);
+    if only.is_none() {
+        posing(side);
+    }
 }
 
 /// The grid skinned to a two-joint arm along X; each frame turns the

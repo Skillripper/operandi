@@ -112,6 +112,29 @@ impl VertexChunks {
         }
     }
 
+    /// Staging writes for `count` vertices from `first` on, one per buffer
+    /// the stretch touches (`gpu_arena::Store::views`).
+    pub fn views(
+        &self,
+        queue: &wgpu::Queue,
+        first: u32,
+        count: u32,
+        out: &mut Vec<crate::gpu_arena::View>,
+    ) -> Option<()> {
+        let end = first + count;
+        for (buffer, r) in &self.parts {
+            let (a, b) = (first.max(r.start), end.min(r.end));
+            if a >= b {
+                continue;
+            }
+            let size = wgpu::BufferSize::new(u64::from(b - a) * self.stride)?;
+            let view =
+                queue.write_buffer_with(buffer, u64::from(a - r.start) * self.stride, size)?;
+            out.push((view, a - first..b - first));
+        }
+        Some(())
+    }
+
     /// Draw vertices `range` (clamped to the list), with the pipeline and
     /// bind groups already set; the list goes in vertex slot 0.
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>, range: Range<u32>) {

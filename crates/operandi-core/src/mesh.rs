@@ -198,12 +198,20 @@ impl crate::Shared<Mesh> {
             return false;
         }
         let around = new.point_faces();
-        let degenerate = moved.iter().flat_map(|&v| around.of(v)).any(|&f| {
-            let f = f as usize;
+        let around: &crate::topology_cache::PointFaces = &around;
+        let flat = |f: &u32| {
+            let f = *f as usize;
             !new.is_polyline(f)
                 && new.normal(f) == DVec3::ZERO
                 && !new.attributes.degenerate_faces.contains(&(f as u32))
-        });
+        };
+        // A whole-mesh drag moves every point: check them on every core.
+        let degenerate = if moved.len() >= 1 << 15 {
+            use rayon::prelude::*;
+            moved.par_iter().any(|&v| around.of(v).iter().any(flat))
+        } else {
+            moved.iter().flat_map(|&v| around.of(v)).any(flat)
+        };
         if degenerate {
             return false;
         }
