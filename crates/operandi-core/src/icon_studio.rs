@@ -941,10 +941,52 @@ pub enum Sample {
     ImageSetResolution,
     /// Flatten: stacked layers pressed into one.
     ImageFlatten,
+    /// Duplicate transform: a row of copies with a move handle.
+    DuplicateTransform,
+    /// Tack: a cube pinned onto a surface.
+    TackTool,
+    /// Solid Drill: a cyan shape drilled through a block.
+    SolidDrill,
+    /// Axis Drill: a drill shape through a block along an axis.
+    AxisDrill,
+    /// Curve Boolean: two loops and their union outline.
+    CurveBoolean,
+    /// Automatic Retopology: a ball with clean quad flow.
+    AutoRetopology,
+    /// Retopo Sketch: a stroke leaving a strip of quads.
+    RetopoSketch,
+    /// Retopo Edge Lock: a padlock on an edge.
+    RetopoEdgeLock,
+    /// Retopo Edge Flow: an edge loop with an arrow.
+    RetopoEdgeFlow,
+    /// Freeze curve: a curve turning into a polygon strip.
+    CurveFreeze,
+    /// Make Open Curve: a curve with free ends.
+    CurveMakeOpen,
+    /// Make Closed Curves: a closed loop.
+    CurveMakeClosed,
+    /// Make Curve Fill: a loop with a cyan face.
+    CurveMakeFill,
+    /// Edges to Curves: selected edges becoming a curve.
+    EdgesToCurves,
+    /// Open Curve Offset: a curve and its offset copy.
+    CurveOffsetOpen,
+    /// Curve Offset Trio: a curve and three offsets.
+    CurveOffsetTrio,
+    /// Closed Curve Offset: a loop and its offset.
+    CurveOffsetClosed,
+    /// Convert Curves: points changing style along a curve.
+    CurveConvert,
+    /// Bezier Tangent: a Bezier point with both handles.
+    BezierTangent,
+    /// Set Curves Color: a curve with colour swatches.
+    CurveColor,
+    /// Align Winding: two loops turning the same way.
+    CurveWinding,
 }
 
 impl Sample {
-    pub const ALL: [Sample; 326] = [
+    pub const ALL: [Sample; 347] = [
         Sample::Cube,
         Sample::SelectedFace,
         Sample::Sphere,
@@ -1271,6 +1313,27 @@ impl Sample {
         Sample::ImageExpandSeams,
         Sample::ImageSetResolution,
         Sample::ImageFlatten,
+        Sample::DuplicateTransform,
+        Sample::TackTool,
+        Sample::SolidDrill,
+        Sample::AxisDrill,
+        Sample::CurveBoolean,
+        Sample::AutoRetopology,
+        Sample::RetopoSketch,
+        Sample::RetopoEdgeLock,
+        Sample::RetopoEdgeFlow,
+        Sample::CurveFreeze,
+        Sample::CurveMakeOpen,
+        Sample::CurveMakeClosed,
+        Sample::CurveMakeFill,
+        Sample::EdgesToCurves,
+        Sample::CurveOffsetOpen,
+        Sample::CurveOffsetTrio,
+        Sample::CurveOffsetClosed,
+        Sample::CurveConvert,
+        Sample::BezierTangent,
+        Sample::CurveColor,
+        Sample::CurveWinding,
     ];
 
     /// File stem and icon slug.
@@ -1602,6 +1665,27 @@ impl Sample {
             Sample::ImageExpandSeams => "image-expand-seams",
             Sample::ImageSetResolution => "image-set-resolution",
             Sample::ImageFlatten => "image-flatten",
+            Sample::DuplicateTransform => "duplicate-transform",
+            Sample::TackTool => "tack-tool",
+            Sample::SolidDrill => "solid-drill",
+            Sample::AxisDrill => "axis-drill",
+            Sample::CurveBoolean => "curve-boolean",
+            Sample::AutoRetopology => "auto-retopology",
+            Sample::RetopoSketch => "retopo-sketch",
+            Sample::RetopoEdgeLock => "retopo-edge-lock",
+            Sample::RetopoEdgeFlow => "retopo-edge-flow",
+            Sample::CurveFreeze => "curve-freeze",
+            Sample::CurveMakeOpen => "curve-make-open",
+            Sample::CurveMakeClosed => "curve-make-closed",
+            Sample::CurveMakeFill => "curve-make-fill",
+            Sample::EdgesToCurves => "edges-to-curves",
+            Sample::CurveOffsetOpen => "curve-offset-open",
+            Sample::CurveOffsetTrio => "curve-offset-trio",
+            Sample::CurveOffsetClosed => "curve-offset-closed",
+            Sample::CurveConvert => "curve-convert",
+            Sample::BezierTangent => "bezier-tangent",
+            Sample::CurveColor => "curve-color",
+            Sample::CurveWinding => "curve-winding",
         }
     }
 
@@ -3099,6 +3183,65 @@ fn paint_stroke(points: &[(f64, f64)], radius: f64) -> Result<Mesh> {
         .map(|&(x, y)| DVec3::new(x, y, 0.02))
         .collect();
     tube(&through(&pts, 8), radius, 10, "Axis X")
+}
+
+/// Points round a circle of `r` about `c` in the picture's plane.
+fn circle_points(c: DVec3, r: f64, n: u32) -> Vec<DVec3> {
+    (0..=n)
+        .map(|k| {
+            let a = std::f64::consts::TAU * f64::from(k) / f64::from(n);
+            c + flat(r * a.cos(), r * a.sin())
+        })
+        .collect()
+}
+
+/// A flat ribbon `width` wide along `path`, facing the viewer: the
+/// polygon strip a frozen curve becomes.
+fn ribbon(path: &[DVec3], width: f64, tag: &str) -> Result<Mesh> {
+    let view = DVec3::ONE.normalize();
+    let mut mesh = Mesh::default();
+    for (i, &p) in path.iter().enumerate() {
+        let a = path[i.saturating_sub(1)];
+        let b = path[(i + 1).min(path.len() - 1)];
+        let side = (b - a).cross(view).normalize() * (width * 0.5);
+        mesh.vertices.push(p - side);
+        mesh.vertices.push(p + side);
+    }
+    // The side vector keeps one handedness along the path, so one test
+    // on the first quad orients them all.
+    let p: Vec<DVec3> = [0usize, 2, 1].iter().map(|&k| mesh.vertices[k]).collect();
+    let flip = (p[1] - p[0]).cross(p[2] - p[0]).dot(view) < 0.;
+    for i in 0..path.len() as u32 - 1 {
+        let (a, b) = (2 * i, 2 * i + 2);
+        let quad = vec![a, b, b + 1, a + 1];
+        let quad = if flip {
+            quad.into_iter().rev().collect()
+        } else {
+            quad
+        };
+        mesh.faces.push(polygon(quad, tag));
+    }
+    mesh.validate()?;
+    Ok(mesh)
+}
+
+/// A padlock standing at `c`: a Clay body and an Ink shackle.
+fn padlock(c: DVec3, size: f64) -> Result<Vec<Mesh>> {
+    let h = size * 0.5;
+    let arc: Vec<DVec3> = (0..=16)
+        .map(|k| {
+            let a = std::f64::consts::PI * f64::from(k) / 16.;
+            c + flat(h * 0.6 * a.cos(), h * 0.4 + h * 0.7 * a.sin())
+        })
+        .collect();
+    Ok(vec![
+        block_by(
+            c - DVec3::new(h, h * 0.6, h * 0.5),
+            c + DVec3::new(h, h * 0.4, h * 0.5),
+            "Selected",
+        )?,
+        tube(&arc, size * 0.09, 10, "Ink")?,
+    ])
 }
 
 /// The geometry of a sample, inside the icon box.
@@ -7430,6 +7573,336 @@ fn sample_mesh(sample: Sample) -> Result<Mesh> {
                 DVec3::new(0.3, -0.37, 0.3) + flat(0.32, 0.),
                 |n| if n == DVec3::Y { "Selected" } else { CLAY },
             )?);
+            merge(parts)?
+        }
+        Sample::DuplicateTransform => {
+            let mut parts = Vec::new();
+            for (k, x) in [-0.42, 0.0, 0.42].into_iter().enumerate() {
+                let c = flat(x, -0.1 - 0.0 * x);
+                parts.push(if k == 1 {
+                    cube_at(c, 0.28, "Selected")?
+                } else {
+                    block(c, 0.28, "New")?
+                });
+            }
+            let c = flat(0., -0.1) + DVec3::Y * 0.16;
+            parts.push(arrow(c, c + DVec3::Y * 0.42, 0.045, "Axis Y")?);
+            parts.push(arrow(c, c + DVec3::X * 0.36, 0.045, "Axis X")?);
+            parts.push(arrow(c, c + DVec3::Z * 0.36, 0.045, "Axis Z")?);
+            merge(parts)?
+        }
+        Sample::TackTool => merge(vec![
+            heightfield(8, 0.55, |_, _| 0., |_, _| CLAY)?,
+            cube_at(DVec3::new(0., 0.14, 0.), 0.28, "Selected")?,
+            tube(
+                &[DVec3::new(0., 0.05, 0.), DVec3::new(0., 0.55, 0.)],
+                0.025,
+                8,
+                "Ink",
+            )?,
+            ball(DVec3::new(0., 0.6, 0.), 0.1, "Axis X")?,
+        ])?,
+        Sample::SolidDrill | Sample::AxisDrill => {
+            let mut parts = vec![
+                box_by_normal(
+                    DVec3::new(-0.42, -0.36, -0.42),
+                    DVec3::new(0.42, -0.06, 0.42),
+                    |_| CLAY,
+                )?,
+                deformed(
+                    revolve(
+                        &[(0., -0.5), (0.18, -0.5), (0.18, 0.3), (0., 0.3)],
+                        6,
+                        false,
+                        "New",
+                    )?,
+                    |v| v + DVec3::new(0.05, 0., 0.05),
+                ),
+            ];
+            if sample == Sample::AxisDrill {
+                parts.push(arrow(
+                    DVec3::new(0.05, 0.32, 0.05),
+                    DVec3::new(0.05, 0.75, 0.05),
+                    0.05,
+                    "Axis Y",
+                )?);
+            }
+            merge(parts)?
+        }
+        Sample::CurveBoolean => {
+            let (ca, cb, r) = (flat(-0.18, 0.05), flat(0.18, -0.05), 0.34);
+            let a = circle_points(ca, r, 48);
+            let b = circle_points(cb, r, 48);
+            let outside = |pts: &[DVec3], c: DVec3| -> Vec<Vec<DVec3>> {
+                let mut runs: Vec<Vec<DVec3>> = vec![Vec::new()];
+                for &p in pts {
+                    if p.distance(c) > r {
+                        runs.last_mut().unwrap().push(p + toward(0.05));
+                    } else if !runs.last().unwrap().is_empty() {
+                        runs.push(Vec::new());
+                    }
+                }
+                runs.into_iter().filter(|r| r.len() > 1).collect()
+            };
+            let mut parts = vec![tube(&a, 0.03, 8, CLAY)?, tube(&b, 0.03, 8, CLAY)?];
+            for run in outside(&a, cb).into_iter().chain(outside(&b, ca)) {
+                parts.push(tube(&run, 0.05, 10, "Selected")?);
+            }
+            merge(parts)?
+        }
+        Sample::AutoRetopology => {
+            let mut parts = vec![ball(DVec3::ZERO, 0.42, CLAY)?];
+            for k in 1..5 {
+                let a = -std::f64::consts::FRAC_PI_2 + std::f64::consts::PI * f64::from(k) / 5.;
+                let (y, r) = (0.44 * a.sin(), 0.44 * a.cos());
+                let ring: Vec<DVec3> = (0..=16)
+                    .map(|j| {
+                        let t = -std::f64::consts::FRAC_PI_4
+                            + std::f64::consts::PI * f64::from(j) / 16.;
+                        DVec3::new(r * t.cos(), y, -r * t.sin())
+                    })
+                    .collect();
+                parts.push(tube(&ring, 0.02, 6, "New")?);
+            }
+            for j in 0..5 {
+                let t = -std::f64::consts::FRAC_PI_4 + std::f64::consts::PI * f64::from(j) / 4.;
+                let meridian: Vec<DVec3> = (0..=16)
+                    .map(|k| {
+                        let a = -std::f64::consts::FRAC_PI_2
+                            + std::f64::consts::PI * f64::from(k) / 16.;
+                        DVec3::new(
+                            0.44 * a.cos() * t.cos(),
+                            0.44 * a.sin(),
+                            -0.44 * a.cos() * t.sin(),
+                        )
+                    })
+                    .collect();
+                parts.push(tube(&meridian, 0.02, 6, "New")?);
+            }
+            merge(parts)?
+        }
+        Sample::RetopoSketch => {
+            let path = through(
+                &[
+                    DVec3::new(-0.45, 0.02, 0.2),
+                    DVec3::new(0., 0.02, -0.05),
+                    DVec3::new(0.45, 0.02, 0.15),
+                ],
+                6,
+            );
+            let mut parts = vec![heightfield(8, 0.55, |_, _| 0., |_, _| CLAY)?];
+            for w in path.windows(2).step_by(2) {
+                let mid = (w[0] + w[1]) * 0.5;
+                parts.push(block_by(
+                    mid - DVec3::new(0.06, 0.0, 0.1),
+                    mid + DVec3::new(0.06, 0.05, 0.1),
+                    "New",
+                )?);
+            }
+            parts.push(tube(
+                &path
+                    .iter()
+                    .map(|p| *p + DVec3::Y * 0.08)
+                    .collect::<Vec<_>>(),
+                0.03,
+                8,
+                "Selected",
+            )?);
+            merge(parts)?
+        }
+        Sample::RetopoEdgeLock => {
+            let mut parts = vec![
+                heightfield(8, 0.55, |_, _| 0., |_, _| CLAY)?,
+                tube(
+                    &[DVec3::new(-0.5, 0.03, 0.3), DVec3::new(0.5, 0.03, -0.3)],
+                    0.045,
+                    8,
+                    "Selected",
+                )?,
+            ];
+            parts.extend(padlock(DVec3::new(0., 0.3, 0.), 0.56)?);
+            merge(parts)?
+        }
+        Sample::RetopoEdgeFlow => {
+            let ring: Vec<DVec3> = (0..=40)
+                .map(|k| {
+                    let a = std::f64::consts::TAU * f64::from(k) / 40.;
+                    DVec3::new(0.36 * a.cos(), 0.03, 0.36 * a.sin())
+                })
+                .collect();
+            merge(vec![
+                heightfield(8, 0.55, |_, _| 0., |_, _| CLAY)?,
+                tube(&ring[..34], 0.045, 8, "New")?,
+                arrow(ring[32], ring[35] + (ring[35] - ring[33]), 0.05, "New")?,
+            ])?
+        }
+        Sample::CurveFreeze => {
+            let path = through(
+                &[
+                    flat(-0.6, -0.3),
+                    flat(-0.2, 0.2),
+                    flat(0.2, -0.1),
+                    flat(0.6, 0.35),
+                ],
+                10,
+            );
+            let n = path.len();
+            merge(vec![
+                tube(&path[..n / 2 + 1], 0.05, 10, "New")?,
+                ribbon(&path[n / 2..], 0.3, CLAY)?,
+            ])?
+        }
+        Sample::CurveMakeOpen => {
+            let path = through(
+                &[
+                    flat(-0.55, -0.3),
+                    flat(-0.2, 0.25),
+                    flat(0.2, -0.15),
+                    flat(0.55, 0.3),
+                ],
+                10,
+            );
+            merge(vec![
+                tube(&path, 0.05, 10, "New")?,
+                ball(path[0], 0.1, "Selected")?,
+                ball(*path.last().unwrap(), 0.1, "Selected")?,
+            ])?
+        }
+        Sample::CurveMakeClosed => {
+            let mut parts = vec![tube(
+                &circle_points(DVec3::ZERO, 0.45, 48),
+                0.05,
+                10,
+                "New",
+            )?];
+            for k in 0..4 {
+                let a = std::f64::consts::FRAC_PI_2 * f64::from(k) + 0.4;
+                parts.push(ball(flat(0.45 * a.cos(), 0.45 * a.sin()), 0.08, CLAY)?);
+            }
+            merge(parts)?
+        }
+        Sample::CurveMakeFill => {
+            let pts: Vec<(f64, f64)> = (0..32)
+                .map(|k| {
+                    let a = std::f64::consts::TAU * f64::from(k) / 32.;
+                    (0.42 * a.cos(), 0.42 * a.sin())
+                })
+                .collect();
+            merge(vec![
+                symbol(vec![slab(&pts, 0.04, "New")?])?,
+                tube(&circle_points(toward(0.05), 0.47, 48), 0.045, 10, CLAY)?,
+            ])?
+        }
+        Sample::EdgesToCurves => {
+            let edges = [
+                flat(-0.6, -0.1),
+                flat(-0.4, 0.25),
+                flat(-0.15, -0.05),
+                flat(-0.0, 0.3),
+            ];
+            let mut parts = vec![tube(&edges, 0.04, 8, "Selected")?];
+            for &e in &edges {
+                parts.push(ball(e, 0.06, "Selected")?);
+            }
+            parts.push(arrow(flat(0.0, 0.05), flat(0.2, -0.12), 0.045, "New")?);
+            parts.push(tube(
+                &through(
+                    &[
+                        flat(0.15, -0.45),
+                        flat(0.3, -0.15),
+                        flat(0.45, -0.4),
+                        flat(0.6, -0.05),
+                    ],
+                    10,
+                ),
+                0.05,
+                10,
+                "New",
+            )?);
+            merge(parts)?
+        }
+        Sample::CurveOffsetOpen | Sample::CurveOffsetTrio => {
+            let base = [
+                flat(-0.55, -0.4),
+                flat(-0.15, 0.05),
+                flat(0.2, -0.2),
+                flat(0.55, 0.2),
+            ];
+            let mut parts = vec![tube(&through(&base, 10), 0.05, 10, CLAY)?];
+            let offsets: &[f64] = if sample == Sample::CurveOffsetTrio {
+                &[0.18, 0.36, 0.54]
+            } else {
+                &[0.25]
+            };
+            for &d in offsets {
+                let shifted: Vec<DVec3> = base.iter().map(|p| *p + flat(-0.0, d)).collect();
+                parts.push(tube(&through(&shifted, 10), 0.045, 10, "New")?);
+            }
+            merge(parts)?
+        }
+        Sample::CurveOffsetClosed => merge(vec![
+            tube(&circle_points(DVec3::ZERO, 0.28, 40), 0.05, 10, CLAY)?,
+            tube(&circle_points(DVec3::ZERO, 0.5, 48), 0.045, 10, "New")?,
+        ])?,
+        Sample::CurveConvert => {
+            let path = through(
+                &[
+                    flat(-0.55, -0.3),
+                    flat(-0.2, 0.25),
+                    flat(0.2, -0.15),
+                    flat(0.55, 0.3),
+                ],
+                10,
+            );
+            merge(vec![
+                tube(&path, 0.045, 10, "New")?,
+                ball(flat(-0.55, -0.3), 0.09, CLAY)?,
+                ball(flat(-0.2, 0.25), 0.09, CLAY)?,
+                cube_at(flat(0.2, -0.15), 0.17, "Selected")?,
+                cube_at(flat(0.55, 0.3), 0.17, "Selected")?,
+            ])?
+        }
+        Sample::BezierTangent => {
+            let path = through(&[flat(-0.6, -0.3), flat(0., 0.1), flat(0.6, -0.25)], 12);
+            let k = flat(0., 0.1);
+            merge(
+                curve_parts(&path, &[k], &[(k, flat(0.34, 0.12))])?
+                    .into_iter()
+                    .chain([
+                        tube(
+                            &[k + toward(0.05), k - flat(0.34, 0.12) + toward(0.05)],
+                            0.03,
+                            8,
+                            "Selected",
+                        )?,
+                        ball(k - flat(0.34, 0.12), 0.07, "Selected")?,
+                    ])
+                    .collect(),
+            )?
+        }
+        Sample::CurveColor => {
+            let path = through(
+                &[
+                    flat(-0.6, 0.1),
+                    flat(-0.25, 0.45),
+                    flat(0.15, 0.2),
+                    flat(0.5, 0.45),
+                ],
+                10,
+            );
+            let mut parts = vec![tube(&path, 0.05, 10, "New")?];
+            for (k, tag) in ["Axis X", "Selected", "Axis Z"].into_iter().enumerate() {
+                parts.push(cube_at(flat(-0.3 + 0.3 * k as f64, -0.3), 0.22, tag)?);
+            }
+            merge(parts)?
+        }
+        Sample::CurveWinding => {
+            let mut parts = Vec::new();
+            for (cx, r) in [(-0.3, 0.26), (0.3, 0.26)] {
+                let pts = circle_points(flat(cx, 0.), r, 40);
+                parts.push(tube(&pts[..30], 0.045, 8, "New")?);
+                parts.push(arrow(pts[28], pts[31] + (pts[31] - pts[29]), 0.05, "New")?);
+            }
             merge(parts)?
         }
         Sample::LoopSlice => {
