@@ -133,7 +133,6 @@ mod help_mode;
 #[cfg(test)]
 mod help_mode_tests;
 mod i2_route;
-mod icon_studio_cli;
 mod icons;
 mod image_decode;
 mod image_viewer;
@@ -3846,10 +3845,6 @@ fn main() -> eframe::Result {
     if args.first().map(String::as_str) == Some("--render-matcap") {
         std::process::exit(matcap_render::command(&args[1..]));
     }
-    // UI icons rendered from 3D scenes (icon_studio_cli.rs): no window opens.
-    if args.first().map(String::as_str) == Some("--icon-studio") {
-        std::process::exit(icon_studio_cli::command(&args[1..]));
-    }
     #[cfg(feature = "qa")]
     if qa::offscreen_requested() {
         if let Err(e) = qa::offscreen(environment) {
@@ -4017,6 +4012,8 @@ mod handle_style_menu_tests;
 mod handle_tips_tests;
 #[cfg(test)]
 mod haul_tests;
+#[cfg(test)]
+mod heavy_mesh_frames_tests;
 #[cfg(test)]
 mod history_limit_more_tests;
 #[cfg(test)]

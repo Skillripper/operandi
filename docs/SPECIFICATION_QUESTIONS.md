@@ -9749,6 +9749,19 @@ From a real Modo 17.1 scene that wouldn't open (a user's file, never in the repo
 - LXO-AN-Q02 A transform stack with more than one item of a kind (a "Zero" rotation beside the core one): the `type core` item gives the value; others are left out, noted only when not identity. Shear items aren't read (noted when any shear is over 1e-6). Provisional.
 - LXO-AN-Q03 Polygon types other than FACE, SUBD and PSUB (B-spline curves, curves, text, bones…): the whole POLS chunk is skipped by name, its records unread (a BCRV record holds more than corner indices). Edge weights on edges no polygon has are dropped with a note; zero-area polygons and non-manifold edges are kept and marked as every importer does (`interchange::finish_mesh`). Provisional.
 
+## LXO import: animation, cameras, lights and rigs (2026-11-24, spec lxo-import-anim-rig-2026-11-24, branch claude/project-thread-ahtmlr, provisional)
+
+The spec's own defaults (Q-LXA-01..11) are used as written. Found while testing against its fixtures:
+
+- LXO-AR-Q01 LXA-72 scale constraint `offset`: the file stores 0 for no offset. Read as an offset added to a scale of 1 (Operandi offset = 1 + stored). Only 0 was seen.
+- LXO-AR-Q02 The spec's cases for `constraints.lxo` disagree with themselves about Dst_expr: its world matrices leave it unmoved, its modifier results move it by the Expression. The test follows the modifier results. Which is right?
+- LXO-AR-Q03 LXA-71 says a direct link copies the driver's value, but the spec's cases show a distance driving a rotation in display units (1 m gives 1°). A link between a rotation and another channel imports as an Expression `A * π/180` (or `180/π`). Angles other than transform rotations (cone angle, user channels) are not converted yet. Confirm in the spec.
+- LXO-AR-Q04 The spec's world matrices for `constraints.lxo` hold the targets where the edit layer pins them, not where their keys move them (the import drops those edits, LXA-03). The test pins those six targets to compare the constraint maths alone.
+- LXO-AR-Q05 Q-LXA-08: Operandi's two-bone solver bends `ik-and-stacked-constraints.lxo`'s chain to the side its setup pose bends; the spec's matrices have the knee on the other side. The end joint, bone lengths and chain plane agree. Does the solver's `plane`/`sense` setting pick the side?
+
+- LXO-AR-Q06 `HCRV` polygons (the path in `path-blend-shader.lxo`): read as per curve a count, a 4-byte flags word and that many point indices, imported as open Curve polylines with no end controls. The flags aren't decoded. Confirm the layout.
+- LXO-AR-Q07 Planar IK three bars imports as chain IK (Q-LXA-14): the end reaches the goal within the solver's tolerance (a few mm in `planar-ik.lxo`); `weightA` (the bend share) and `orient2/3` have no Operandi setting and are left out.
+
 ## Multiresolution sculpting (2026-11-23, branch claude/project-thread-0cmp4g, provisional)
 
 Built without a behaviour spec (Jason approved the feature; none of this was observed in the reference). Every answer below is Operandi's own provisional reading.

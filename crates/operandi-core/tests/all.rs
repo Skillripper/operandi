@@ -241,6 +241,10 @@ mod group_locators;
 mod group_material_extras;
 #[path = "haul.rs"]
 mod haul;
+#[path = "heavy_mesh_bench.rs"]
+mod heavy_mesh_bench;
+#[path = "heavy_mesh_parallel.rs"]
+mod heavy_mesh_parallel;
 #[path = "history_completion.rs"]
 mod history_completion;
 #[path = "i1_completion.rs"]
@@ -259,8 +263,6 @@ mod i2_live_history;
 mod i2_origin_active_save_confirmation;
 #[path = "i2_review_fixes.rs"]
 mod i2_review_fixes;
-#[path = "icon_studio.rs"]
-mod icon_studio;
 #[path = "identity_positions.rs"]
 mod identity_positions;
 #[path = "ik_body.rs"]
@@ -323,6 +325,9 @@ mod loop_slice_surface_probe;
 mod loop_symmetry;
 #[path = "lxo.rs"]
 mod lxo;
+#[cfg(operandi_specs)]
+#[path = "lxo_anim_rig_spec.rs"]
+mod lxo_anim_rig_spec;
 #[path = "lxo_animation.rs"]
 mod lxo_animation;
 #[path = "lxo_budget_preflight.rs"]

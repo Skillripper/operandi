@@ -1173,9 +1173,39 @@ fn rasterize(icon: Icon, pixels: u32) -> Result<ColorImage, String> {
     ))
 }
 
-/// Textures by icon, pixel size and, for rendered icons, outline set.
+type CacheKey = (Icon, u32, Option<crate::rendered_icons::IconSet>);
+
+/// Textures by icon, pixel size and, for rendered icons, outline set, each
+/// with the frame it was last drawn in.
+///
+/// Trimming only drops textures no control drew this frame or last. It used
+/// to clear everything once 64 were held: a big scene's screen (the Items
+/// list, the toolbox, the timeline) shows more than 64 at once, so every
+/// frame emptied the cache, freed the icons it had already drawn and loaded
+/// them again, and during playback every clickable icon flashed (Jason,
+/// 2026-11-24).
 #[derive(Clone, Default)]
-struct Cache(BTreeMap<(Icon, u32, Option<crate::rendered_icons::IconSet>), TextureHandle>);
+struct Cache(BTreeMap<CacheKey, (TextureHandle, u64)>);
+
+/// How many icon textures the cache keeps before it trims unused ones.
+const CACHE_TRIM_AT: usize = 512;
+
+impl Cache {
+    fn get(&mut self, key: &CacheKey, frame: u64) -> Option<TextureHandle> {
+        let (texture, used) = self.0.get_mut(key)?;
+        *used = frame;
+        Some(texture.clone())
+    }
+
+    fn insert(&mut self, key: CacheKey, texture: TextureHandle, frame: u64) {
+        if self.0.len() >= CACHE_TRIM_AT {
+            // Never a texture drawn this frame or the one before: freeing
+            // it blanks the control until the next frame loads it again.
+            self.0.retain(|_, (_, used)| *used + 1 >= frame);
+        }
+        self.0.insert(key, (texture, frame));
+    }
+}
 
 /// Rasterize at drawable resolution, with a bounded context-owned GPU cache.
 /// Original colors/alpha/gradients are preserved; active chrome never tints art.
@@ -1245,12 +1275,10 @@ fn texture(ui: &Ui, icon: Icon, pixels: u32) -> Option<TextureHandle> {
     let set = crate::rendered_icons::slug(icon).map(|_| crate::rendered_icons::current_set());
     let key = (icon, pixels, set);
     let id = Id::new("svg icon textures");
-    let cached = ui.ctx().data_mut(|data| {
-        data.get_temp_mut_or_default::<Cache>(id)
-            .0
-            .get(&key)
-            .cloned()
-    });
+    let frame = ui.ctx().cumulative_frame_nr();
+    let cached = ui
+        .ctx()
+        .data_mut(|data| data.get_temp_mut_or_default::<Cache>(id).get(&key, frame));
     let texture = match cached {
         Some(texture) => texture,
         None => {
@@ -1270,11 +1298,8 @@ fn texture(ui: &Ui, icon: Icon, pixels: u32) -> Option<TextureHandle> {
                 TextureOptions::LINEAR,
             );
             ui.ctx().data_mut(|data| {
-                let cache = &mut data.get_temp_mut_or_default::<Cache>(id).0;
-                if cache.len() >= 64 {
-                    cache.clear();
-                }
-                cache.insert(key, texture.clone());
+                data.get_temp_mut_or_default::<Cache>(id)
+                    .insert(key, texture.clone(), frame);
             });
             texture
         }
@@ -1311,6 +1336,47 @@ pub fn disclosure(ui: &Ui, rect: Rect, openness: f32) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A screen showing many icons (a big scene's Items list, the toolbox
+    /// and the timeline) loads each icon once, then repaints without
+    /// loading or freeing any icon texture: playback repaints every frame,
+    /// and a reload there makes every icon flash.
+    #[test]
+    fn many_icons_on_screen_are_not_reloaded_every_frame() {
+        let ctx = Context::default();
+        let icons: Vec<Icon> = Icon::ALL.iter().copied().take(300).collect();
+        assert!(
+            icons.len() > 2 * 64,
+            "enough icons to overflow the old cache"
+        );
+        let frame = |ctx: &Context| {
+            let input = RawInput {
+                screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(800., 600.))),
+                ..Default::default()
+            };
+            ctx.run(input, |ctx| {
+                CentralPanel::default().show(ctx, |ui| {
+                    for (i, &icon) in icons.iter().enumerate() {
+                        let at = pos2((i % 30) as f32 * 20., (i / 30) as f32 * 20.);
+                        // Two sizes, as the toolbox and the lists use.
+                        paint(ui, Rect::from_min_size(at, vec2(16., 16.)), icon);
+                        paint(ui, Rect::from_min_size(at, vec2(8., 8.)), icon);
+                    }
+                });
+            })
+        };
+        let first = frame(&ctx);
+        assert!(first.textures_delta.set.len() >= icons.len());
+        for n in 2..=5 {
+            let out = frame(&ctx);
+            assert!(
+                out.textures_delta.set.is_empty() && out.textures_delta.free.is_empty(),
+                "frame {n}: {} icon textures loaded and {} freed again",
+                out.textures_delta.set.len(),
+                out.textures_delta.free.len()
+            );
+        }
+    }
     #[test]
     fn icons_land_on_whole_device_pixels_at_fractional_scales() {
         // A 32-point toolbox icon at a fractional point position, at

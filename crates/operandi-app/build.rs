@@ -3,6 +3,9 @@
 //! bundle's Frameworks folder once scripts/bundle-dev.sh copies it there.
 //! Windows finds the DLLs next to Operandi.exe without any setting.
 //!
+//! Writes the rendered-icon table (rendered_icons.rs) from
+//! assets/rendered-icons/icons.txt, embedding just the PNGs it lists.
+//!
 //! Also stamps the git commit into OPERANDI_GIT_COMMIT for bug and crash
 //! reports (bug_report.rs): short hash, "+dirty" with uncommitted changes to
 //! tracked files, "unknown" outside a git checkout. OPERANDI_GIT_COMMIT_TIME
@@ -15,6 +18,7 @@ fn main() {
     find_private_specs();
     stamp_git_commit();
     embed_shipped_layouts();
+    embed_rendered_icons();
     set_windows_main_stack();
     println!("cargo:rerun-if-env-changed=DEP_OPERANDI_CYCLES_ROOT");
     println!("cargo:rerun-if-env-changed=DEP_OPERANDI_USD_ROOT");
@@ -127,4 +131,57 @@ fn embed_json_folder(folder: &str, list: &str) {
     out.push(']');
     let target = std::path::Path::new(&std::env::var("OUT_DIR").unwrap()).join(list);
     std::fs::write(target, out).expect("write the shipped files list");
+}
+
+/// The installed sizes per icon and set; `rendered_icons::PIXELS` matches
+/// (`installed_files_match_the_table` fails if they drift).
+const RENDERED_PIXELS: [u32; 8] = [16, 20, 24, 32, 40, 48, 64, 128];
+
+/// Turns assets/rendered-icons/icons.txt ("<slug> <Icon variant>" lines)
+/// into `RENDERED` and `FILES` for rendered_icons.rs, embedding each listed
+/// icon's PNGs at every size in both outline sets. The icon pictures stay
+/// files; only this small index is code.
+fn embed_rendered_icons() {
+    let dir = std::path::Path::new("assets/rendered-icons");
+    let index = dir.join("icons.txt");
+    println!("cargo:rerun-if-changed={}", index.display());
+    for set in ["dark-outline", "light-outline"] {
+        println!("cargo:rerun-if-changed={}", dir.join(set).display());
+    }
+    let text = std::fs::read_to_string(&index).expect("assets/rendered-icons/icons.txt");
+    let entries: Vec<(&str, &str)> = text
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty() && !l.starts_with('#'))
+        .map(|l| {
+            let mut words = l.split_whitespace();
+            let slug = words.next().unwrap();
+            let icon = words
+                .next()
+                .unwrap_or_else(|| panic!("icons.txt: no Icon for {slug}"));
+            (slug, icon)
+        })
+        .collect();
+    let mut out = String::from(
+        "/// The icons drawn from studio renders instead of their flat SVGs, with\n/// the slug each was rendered as (`tools/icon-studio/icons/<slug>.opscene`).\n/// The SVG stays as the fallback. Sorted by slug (icons.txt).\npub const RENDERED: &[(Icon, &str)] = &[\n",
+    );
+    for (slug, icon) in &entries {
+        out.push_str(&format!("    (Icon::{icon}, {slug:?}),\n"));
+    }
+    out.push_str("];\n\nstatic FILES: &[(&str, &str, u32, &[u8])] = &[\n");
+    let root = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+    for (slug, _) in &entries {
+        for set in ["dark-outline", "light-outline"] {
+            for px in RENDERED_PIXELS {
+                out.push_str(&format!(
+                    "    ({set:?}, {slug:?}, {px}, include_bytes!({:?})),\n",
+                    format!("{root}/assets/rendered-icons/{set}/{slug}-{px}.png")
+                ));
+            }
+        }
+    }
+    out.push_str("];\n");
+    let path =
+        std::path::Path::new(&std::env::var("OUT_DIR").unwrap()).join("rendered_icons_table.rs");
+    std::fs::write(path, out).unwrap();
 }

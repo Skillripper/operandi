@@ -66,6 +66,11 @@ rayon), to write OpenEXR multilayer files with Cryptomatte metadata.
 operandi-cycles now uses serde_json (workspace version) to read Cycles'
 Cryptomatte manifests. No new crate.
 
+Heavy meshes on every core (2026-11-24, branch heavy-mesh-speed) make
+operandi-core and operandi-app depend directly on rayon 1.12.0 (MIT OR
+Apache-2.0), already in the tree through the vendored craft-psd, with its
+rayon-core 1.13.0 and crossbeam crates. No new crate.
+
 The Text tool (2026-11-05) makes operandi-core depend directly on
 ttf-parser 0.25.1 (letter outlines) and epaint_default_fonts 0.33.3 (its two
 shipped fonts, Ubuntu Light and Hack, already in the app through egui), both
@@ -73,9 +78,11 @@ already in the tree, and adds earcut 0.4.12 (MIT OR Apache-2.0) to fill
 letters that have holes. Installed system fonts are read at run time, never
 bundled.
 
-The icon studio (2026-11-20, `icon_studio_cli.rs`) makes operandi-app name
-ab_glyph 0.2.32 (Apache-2.0) directly, already in the tree through egui, to
-letter its contact sheet with egui's own Ubuntu Light. No new crate.
+The icon studio (2026-11-20; its own developer-tool crate,
+`operandi-icon-studio`, since 2026-11-24) names ab_glyph 0.2.32 (Apache-2.0)
+and epaint_default_fonts 0.33.3 (MIT OR Apache-2.0) directly, both already in
+the tree through egui, to letter its contact sheet with egui's own Ubuntu
+Light. No new crate.
 
 The material converter (2026-11-11, branch blender-materials-starter) is a
 new workspace crate, `operandi-preset-convert`, using only crates already
@@ -357,6 +364,8 @@ compatibility warning; the current build passes. Milestone 1 had no authored uns
 | range-alloc | 0.1.5 | MIT OR Apache-2.0 | [source](https://github.com/gfx-rs/range-alloc) |
 | raw-cpuid | 11.6.0 | MIT | [source](https://github.com/gz/rust-cpuid) |
 | raw-window-handle | 0.6.2 | MIT OR Apache-2.0 OR Zlib | [source](https://github.com/rust-windowing/raw-window-handle) |
+| rayon | 1.12.0 | MIT OR Apache-2.0 | [source](https://github.com/rayon-rs/rayon) |
+| rayon-core | 1.13.0 | MIT OR Apache-2.0 | [source](https://github.com/rayon-rs/rayon) |
 | reborrow | 0.5.5 | MIT | [source](https://github.com/sarah-ek/reborrow) |
 | redox_syscall | 0.4.1 | MIT | [source](https://gitlab.redox-os.org/redox-os/syscall) |
 | redox_syscall | 0.5.18 | MIT | [source](https://gitlab.redox-os.org/redox-os/syscall) |

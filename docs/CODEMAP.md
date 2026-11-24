@@ -85,8 +85,10 @@ interactive tool normally touches:
   until the tool is in them); `<tool>_tests.rs`.
 - **docs:** `PROGRESS.md`, `COMMAND_NAMES.md`, `<TOOL>_GUI_QA.md`, and
   `SPECIFICATION_QUESTIONS.md` for gaps.
-- **icons:** a recipe in `tools/operandi-icons`, then the generated SVG in
-  `operandi-app/assets/icons` (see "Icons" in AGENTS.md).
+- **icons:** a studio scene in `tools/icon-studio/icons` (renderer:
+  the developer-tool crate `operandi-icon-studio`), its PNGs in
+  `operandi-app/assets/rendered-icons` and a line in `icons.txt` there
+  (see "Icons" in AGENTS.md).
 
 ## Which tests cover what
 

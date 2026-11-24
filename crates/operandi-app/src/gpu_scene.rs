@@ -2311,7 +2311,7 @@ struct Source<'a> {
     normal_matrix: glam::DMat3,
     /// Every point placed in the world, for a full build; a patch places
     /// only the points its polygons read (`world`).
-    world: Option<Vec<DVec3>>,
+    world: Option<Held<'a, Vec<DVec3>>>,
     /// A patch's cage polygon normals, each computed once (a smooth-shaded
     /// corner reads every polygon around its point).
     face_memo: std::cell::RefCell<operandi_core::fxhash::FxHashMap<usize, DVec3>>,
@@ -2326,9 +2326,9 @@ struct Source<'a> {
     patch_uvs: std::cell::RefCell<Vec<(usize, Vec<[f32; 2]>)>>,
     smoothing: &'a SmoothingSettings,
     materials: &'a MaterialLooks,
-    point_faces: std::rc::Rc<operandi_core::topology_cache::PointFaces>,
+    point_faces: Held<'a, operandi_core::topology_cache::PointFaces>,
     /// The polygon across each side (`plain_sides`).
-    mates: std::rc::Rc<operandi_core::topology_cache::SideMates>,
+    mates: Held<'a, operandi_core::topology_cache::SideMates>,
     map: VertexMap<'a>,
     /// Colours already folded, by (material tag, part).
     looked: std::cell::RefCell<HashMap<(&'a str, Option<&'a str>), Looked>>,
@@ -2338,8 +2338,8 @@ struct Source<'a> {
     programs: std::cell::RefCell<HashMap<LookKey<'a>, Option<Arc<Instance>>>>,
     /// A full build's world polygon normals (cage, then smooth pieces);
     /// a patch computes the few it needs instead.
-    face_normals: Option<Vec<DVec3>>,
-    piece_normals: Option<Vec<DVec3>>,
+    face_normals: Option<Held<'a, Vec<DVec3>>>,
+    piece_normals: Option<Held<'a, Vec<DVec3>>>,
     /// A patch's piece normals and smooth point normals, each computed once
     /// (every refined point is shared by several pieces' corners).
     piece_memo: std::cell::RefCell<operandi_core::fxhash::FxHashMap<usize, DVec3>>,
@@ -2347,7 +2347,7 @@ struct Source<'a> {
     /// Piece normals computed (not looked up), for the speed guards.
     piece_normals_computed: std::cell::Cell<u64>,
     /// Locked and hidden geometry (element_state.rs), when there is any.
-    protection: Option<operandi_core::Protection>,
+    protection: Option<Held<'a, operandi_core::Protection>>,
     /// LCK-25 Show Locked Mesh Items.
     show_locked: bool,
     /// The mesh's selected UV map (UVE-1 section 1): polygons without a
@@ -2360,6 +2360,104 @@ struct Source<'a> {
     /// shown.
     distortion: Option<std::cell::OnceCell<Vec<[u8; 4]>>>,
 }
+/// A `Source` input it either worked out itself (on the drawing thread,
+/// through the core's per-thread topology memo) or was lent by the
+/// `Source` that spread a big patch over worker threads
+/// (`patch_in_parallel`), so the workers don't each work it out again.
+enum Held<'a, T> {
+    Shared(std::rc::Rc<T>),
+    Owned(T),
+    Lent(&'a T),
+}
+impl<T> std::ops::Deref for Held<'_, T> {
+    type Target = T;
+    fn deref(&self) -> &T {
+        match self {
+            Held::Shared(t) => t,
+            Held::Owned(t) => t,
+            Held::Lent(t) => t,
+        }
+    }
+}
+
+/// What a worker thread lends a `Source` from the one that started it:
+/// its topology and protection.
+#[derive(Clone, Copy)]
+struct LentInputs<'a> {
+    point_faces: &'a operandi_core::topology_cache::PointFaces,
+    mates: &'a operandi_core::topology_cache::SideMates,
+    protection: Option<&'a operandi_core::Protection>,
+    /// A full build's world points and polygon (and piece) normals.
+    full: Option<FullInputs<'a>>,
+}
+#[derive(Clone, Copy)]
+struct FullInputs<'a> {
+    world: &'a Vec<DVec3>,
+    faces: &'a Vec<DVec3>,
+    pieces: Option<&'a Vec<DVec3>>,
+}
+
+/// From this many points, polygons or pieces a full build works out its
+/// world points and normals, and draws its polygons, on every core.
+const PARALLEL_BUILD: usize = 1 << 14;
+
+#[cfg(test)]
+thread_local! {
+    /// Tests: draw everything on this thread, as the reference the work
+    /// spread over every core must match.
+    static ONE_THREAD: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+/// Whether big builds and patches may use every core (always, outside
+/// tests that ask for the one-thread reference).
+fn all_cores() -> bool {
+    #[cfg(test)]
+    return !ONE_THREAD.with(std::cell::Cell::get);
+    #[cfg(not(test))]
+    true
+}
+
+/// The drawing thread's per-thread drawing state (colours, view scheme,
+/// tints, Show Locked, reference drawing), copied onto a worker thread for
+/// as long as the returned guard lives, so polygons drawn there look as
+/// they would on the drawing thread.
+#[derive(Clone)]
+struct DrawState {
+    colours: crate::theme::Colours,
+    tints: Tints,
+    show_locked: bool,
+    #[cfg(test)]
+    reference: bool,
+}
+impl DrawState {
+    fn here() -> Self {
+        DrawState {
+            colours: crate::theme::colours(),
+            tints: tints(),
+            show_locked: show_locked(),
+            #[cfg(test)]
+            reference: reference_drawing(),
+        }
+    }
+    fn lend(&self) -> DrawStateGuard {
+        let old = DrawState::here();
+        self.apply();
+        DrawStateGuard(old)
+    }
+    fn apply(&self) {
+        self.colours.apply();
+        TINTS.with(|c| *c.borrow_mut() = self.tints.clone());
+        set_show_locked(self.show_locked);
+        #[cfg(test)]
+        set_reference_drawing(self.reference);
+    }
+}
+struct DrawStateGuard(DrawState);
+impl Drop for DrawStateGuard {
+    fn drop(&mut self) {
+        self.0.apply();
+    }
+}
+
 thread_local! {
     /// HT-5/HT-6: what the views' tints show, set each frame.
     static TINTS: std::cell::RefCell<Tints> = std::cell::RefCell::new(Tints::default());
@@ -2473,17 +2571,31 @@ impl<'a> Source<'a> {
         smoothing: &'a SmoothingSettings,
         materials: &'a MaterialLooks,
         full: bool,
+        lent: Option<LentInputs<'a>>,
     ) -> Self {
         let mut source = Source {
             item,
             matrix,
             normal_matrix: glam::DMat3::from_mat4(matrix).inverse().transpose(),
-            world: full.then(|| {
-                item.mesh
-                    .vertices
-                    .iter()
-                    .map(|&v| matrix.transform_point3(v))
-                    .collect()
+            world: full.then(|| match lent.and_then(|l| l.full) {
+                Some(f) => Held::Lent(f.world),
+                None if item.mesh.vertices.len() >= PARALLEL_BUILD => {
+                    use rayon::prelude::*;
+                    Held::Owned(
+                        item.mesh
+                            .vertices
+                            .par_iter()
+                            .map(|&v| matrix.transform_point3(v))
+                            .collect(),
+                    )
+                }
+                None => Held::Owned(
+                    item.mesh
+                        .vertices
+                        .iter()
+                        .map(|&v| matrix.transform_point3(v))
+                        .collect(),
+                ),
             }),
             face_memo: Default::default(),
             selection,
@@ -2493,8 +2605,14 @@ impl<'a> Source<'a> {
             patch_uvs: Default::default(),
             smoothing,
             materials,
-            point_faces: item.mesh.point_faces(),
-            mates: item.mesh.side_mates(),
+            point_faces: match lent {
+                Some(l) => Held::Lent(l.point_faces),
+                None => Held::Shared(item.mesh.point_faces()),
+            },
+            mates: match lent {
+                Some(l) => Held::Lent(l.mates),
+                None => Held::Shared(item.mesh.side_mates()),
+            },
             map: VertexMap::of(&item.mesh),
             looked: Default::default(),
             patterned: Default::default(),
@@ -2504,7 +2622,10 @@ impl<'a> Source<'a> {
             piece_memo: Default::default(),
             point_memo: Default::default(),
             piece_normals_computed: Default::default(),
-            protection: operandi_core::Protection::of(&item.mesh, &item.elements),
+            protection: match lent {
+                Some(l) => l.protection.map(Held::Lent),
+                None => operandi_core::Protection::of(&item.mesh, &item.elements).map(Held::Owned),
+            },
             show_locked: show_locked(),
             checker_map: operandi_core::uv_maps::current_map(&item.mesh),
             weights: None,
@@ -2517,16 +2638,62 @@ impl<'a> Source<'a> {
             .and_then(|name| item.mesh.attributes.point_weights.get(name));
         source.distortion = shown.distortion.then(std::cell::OnceCell::new);
         if full {
-            let faces = (0..item.mesh.faces.len())
-                .map(|f| source.face_normal(f))
-                .collect();
-            let pieces = smooth.map(|s| {
-                (0..s.mesh.faces.len())
-                    .map(|p| source.piece_normal(p))
+            if let Some(f) = lent.and_then(|l| l.full) {
+                source.face_normals = Some(Held::Lent(f.faces));
+                source.piece_normals = f.pieces.map(Held::Lent);
+                return source;
+            }
+            let nf = item.mesh.faces.len();
+            let faces = if nf >= PARALLEL_BUILD {
+                // What `face_normal` works out from the world points, for
+                // every polygon at once.
+                use rayon::prelude::*;
+                let world = source
+                    .world
+                    .as_deref()
+                    .expect("a full build places every point");
+                (0..nf)
+                    .into_par_iter()
+                    .map(|f| {
+                        let v = &item.mesh.faces[f].vertices;
+                        if v.len() < 3 {
+                            DVec3::ZERO
+                        } else {
+                            newell_by(v.len(), |k| world[v[k] as usize])
+                        }
+                    })
                     .collect()
+            } else {
+                (0..nf).map(|f| source.face_normal(f)).collect()
+            };
+            let pieces = smooth.map(|s| {
+                if s.mesh.faces.len() >= PARALLEL_BUILD {
+                    // `piece_normal`, for every piece at once.
+                    use rayon::prelude::*;
+                    let m = source.normal_matrix;
+                    source
+                        .piece_normals_computed
+                        .set(source.piece_normals_computed.get() + s.mesh.faces.len() as u64);
+                    (0..s.mesh.faces.len())
+                        .into_par_iter()
+                        .map(|p| {
+                            let v = &s.mesh.faces[p].vertices;
+                            if v.len() < 3 {
+                                DVec3::ZERO
+                            } else {
+                                let local = newell_by(v.len(), |k| s.mesh.vertices[v[k] as usize]);
+                                (m * local).normalize_or_zero()
+                            }
+                        })
+                        .collect()
+                } else {
+                    (0..s.mesh.faces.len())
+                        .map(|p| source.piece_normal(p))
+                        .collect()
+                }
             });
-            source.face_normals = Some(faces);
-            source.piece_normals = pieces;
+            source.face_normals = Some(Held::Owned(faces));
+            source.piece_normals = pieces.map(Held::Owned);
         }
         source
     }
@@ -3249,23 +3416,31 @@ fn build(
         smoothing,
         materials,
         true,
+        None,
     );
     let mut out = ItemGeometry {
         built: matrix,
         ..Default::default()
     };
-    for f in 0..item.mesh.faces.len() {
-        let (fill_start, edge_start) = (out.fill.len(), out.edges.len());
-        source.face(
-            f,
-            Some(source.base(f)),
-            source.wire(f),
-            false,
-            &mut out.fill,
-            &mut out.edges,
+    let faces = item.mesh.faces.len();
+    if patches.is_none() && faces >= PARALLEL_BUILD && !tints().distortion && all_cores() {
+        build_in_parallel(
+            &mut out, item, matrix, selection, smooth, smoothing, materials, &source,
         );
-        out.fill_ranges.push(fill_start..out.fill.len());
-        out.edge_ranges.push(edge_start..out.edges.len());
+    } else {
+        for f in 0..faces {
+            let (fill_start, edge_start) = (out.fill.len(), out.edges.len());
+            source.face(
+                f,
+                Some(source.base(f)),
+                source.wire(f),
+                false,
+                &mut out.fill,
+                &mut out.edges,
+            );
+            out.fill_ranges.push(fill_start..out.fill.len());
+            out.edge_ranges.push(edge_start..out.edges.len());
+        }
     }
     (out.highlight, out.highlight_ranges) = source.highlight();
     out.clear = source.any_clear();
@@ -3295,6 +3470,102 @@ fn build(
         }));
     }
     out
+}
+
+/// `build`'s polygons drawn on every core (heavy-mesh-speed): opening a
+/// million-polygon scene, or a tool that changes a big mesh's polygons,
+/// draws all of them. The polygons are cut into runs; each worker draws its
+/// run with a `Source` of its own that borrows `source`'s world points,
+/// normals, topology and the drawing thread's colours, and the runs' blocks
+/// are joined in polygon order, so the geometry is the same as on one
+/// thread.
+#[allow(clippy::too_many_arguments)]
+fn build_in_parallel(
+    out: &mut ItemGeometry,
+    item: &Item,
+    matrix: DMat4,
+    selection: &Option<(bool, BTreeSet<u32>, BTreeSet<u32>)>,
+    smooth: Option<&crate::subdivision_view::Evaluated>,
+    smoothing: &SmoothingSettings,
+    materials: &MaterialLooks,
+    source: &Source,
+) {
+    use rayon::prelude::*;
+    let lent = LentInputs {
+        point_faces: &source.point_faces,
+        mates: &source.mates,
+        protection: source.protection.as_deref(),
+        full: Some(FullInputs {
+            world: source
+                .world
+                .as_deref()
+                .expect("a full build places every point"),
+            faces: source
+                .face_normals
+                .as_deref()
+                .expect("a full build has every normal"),
+            pieces: source.piece_normals.as_deref(),
+        }),
+    };
+    let state = DrawState::here();
+    let faces = item.mesh.faces.len();
+    // A few runs per core, so a run of costlier polygons doesn't hold the
+    // others up.
+    let size = faces.div_ceil(rayon::current_num_threads() * 4).max(1024);
+    type Run = (Vec<WorldVertex>, Vec<EdgeVertex>, Vec<(usize, usize)>, u64);
+    let runs: Vec<Run> = (0..faces.div_ceil(size))
+        .into_par_iter()
+        .map(|r| {
+            let _state = state.lend();
+            let source = Source::patched(
+                item,
+                matrix,
+                selection,
+                smooth,
+                None,
+                smoothing,
+                materials,
+                true,
+                Some(lent),
+            );
+            let (mut fill, mut edges, mut ends) = (Vec::new(), Vec::new(), Vec::new());
+            for f in r * size..((r + 1) * size).min(faces) {
+                source.face(
+                    f,
+                    Some(source.base(f)),
+                    source.wire(f),
+                    false,
+                    &mut fill,
+                    &mut edges,
+                );
+                ends.push((fill.len(), edges.len()));
+            }
+            (fill, edges, ends, source.piece_normals_computed.get())
+        })
+        .collect();
+    let (nfill, nedges) = runs
+        .iter()
+        .fold((0, 0), |(a, b), r| (a + r.0.len(), b + r.1.len()));
+    out.fill.reserve(nfill);
+    out.edges.reserve(nedges);
+    out.fill_ranges.reserve(faces);
+    out.edge_ranges.reserve(faces);
+    let mut computed = 0;
+    for (fill, edges, ends, normals) in runs {
+        let (fill_base, edge_base) = (out.fill.len(), out.edges.len());
+        let (mut fill_at, mut edge_at) = (fill_base, edge_base);
+        for (fe, ee) in ends {
+            out.fill_ranges.push(fill_at..fill_base + fe);
+            out.edge_ranges.push(edge_at..edge_base + ee);
+            (fill_at, edge_at) = (fill_base + fe, edge_base + ee);
+        }
+        out.fill.extend_from_slice(&fill);
+        out.edges.extend_from_slice(&edges);
+        computed += normals;
+    }
+    source
+        .piece_normals_computed
+        .set(source.piece_normals_computed.get() + computed);
 }
 
 /// What one patch did, for the speed guards.
@@ -3334,6 +3605,7 @@ fn patch(
         smoothing,
         materials,
         false,
+        None,
     );
     let mut pieces = 0;
     if let Some(surface) = smooth {
@@ -3348,26 +3620,39 @@ fn patch(
         source.point_memo.borrow_mut().reserve(pieces * 3 / 2);
     }
     let (mut fill, mut edges) = (Vec::new(), Vec::new());
-    for &f in dirty {
-        fill.clear();
-        edges.clear();
-        source.face(
-            f,
-            Some(source.base(f)),
-            source.wire(f),
-            false,
-            &mut fill,
-            &mut edges,
-        );
-        let (fr, er) = (
-            geometry.fill_ranges[f].clone(),
-            geometry.edge_ranges[f].clone(),
-        );
-        if fr.len() != fill.len() || er.len() != edges.len() {
-            return None;
+    let mut lent_normals = 0;
+    if patches.is_none() && dirty.len() >= PARALLEL_PATCH && all_cores() {
+        let inputs = PatchInputs {
+            item,
+            matrix,
+            selection,
+            smooth,
+            smoothing,
+            materials,
+        };
+        lent_normals = patch_in_parallel(geometry, &inputs, &source, dirty)?;
+    } else {
+        for &f in dirty {
+            fill.clear();
+            edges.clear();
+            source.face(
+                f,
+                Some(source.base(f)),
+                source.wire(f),
+                false,
+                &mut fill,
+                &mut edges,
+            );
+            let (fr, er) = (
+                geometry.fill_ranges[f].clone(),
+                geometry.edge_ranges[f].clone(),
+            );
+            if fr.len() != fill.len() || er.len() != edges.len() {
+                return None;
+            }
+            geometry.fill[fr].copy_from_slice(&fill);
+            geometry.edges[er].copy_from_slice(&edges);
         }
-        geometry.fill[fr].copy_from_slice(&fill);
-        geometry.edges[er].copy_from_slice(&edges);
     }
     // The highlight draws only selected polygons: unchanged when the
     // selection is and none of them moved (a dirty polygon is every one
@@ -3424,10 +3709,116 @@ fn patch(
     }
     Some(PatchWork {
         pieces: pieces as u64,
-        piece_normals: source.piece_normals_computed.get(),
+        piece_normals: source.piece_normals_computed.get() + lent_normals,
         highlight,
         highlight_ranges,
     })
+}
+
+/// From this many changed polygons a patch is rewritten on every core
+/// (heavy-mesh-speed): a deformer, a posed skin or a big drag moves most of
+/// a mesh each frame. Fewer stay on the drawing thread, where they cost
+/// less than handing them out.
+const PARALLEL_PATCH: usize = 8192;
+
+/// The inputs `patch` draws polygons from, for `patch_in_parallel`.
+struct PatchInputs<'a> {
+    item: &'a Item,
+    matrix: DMat4,
+    selection: &'a Option<(bool, BTreeSet<u32>, BTreeSet<u32>)>,
+    smooth: Option<&'a crate::subdivision_view::Evaluated>,
+    smoothing: &'a SmoothingSettings,
+    materials: &'a MaterialLooks,
+}
+
+/// `patch`'s rewrite of the `dirty` polygons' blocks, spread over every
+/// core: the sorted polygons are cut into runs, each run's blocks are one
+/// stretch of the geometry (blocks follow polygon order), and each worker
+/// draws its run with a `Source` of its own, borrowing `source`'s topology
+/// and the drawing thread's colours. Every polygon is drawn exactly as on
+/// one thread (memos are only caches), so the geometry is the same. Returns
+/// the piece normals the workers computed, or `None` when a block changed
+/// size (rebuild instead).
+fn patch_in_parallel(
+    geometry: &mut ItemGeometry,
+    inputs: &PatchInputs,
+    source: &Source,
+    dirty: &[usize],
+) -> Option<u64> {
+    use rayon::prelude::*;
+    let lent = LentInputs {
+        point_faces: &source.point_faces,
+        mates: &source.mates,
+        protection: source.protection.as_deref(),
+        full: None,
+    };
+    let state = DrawState::here();
+    let ItemGeometry {
+        fill: all_fill,
+        edges: all_edges,
+        fill_ranges,
+        edge_ranges,
+        ..
+    } = geometry;
+    // One run per core: each run's worker makes a Source, which costs a
+    // few small lookups.
+    let size = dirty.len().div_ceil(rayon::current_num_threads()).max(1024);
+    let mut jobs = Vec::new();
+    let (mut fill_rest, mut fill_at) = (&mut all_fill[..], 0);
+    let (mut edge_rest, mut edge_at) = (&mut all_edges[..], 0);
+    for run in dirty.chunks(size) {
+        let (first, last) = (run[0], run[run.len() - 1]);
+        let (fs, fe) = (fill_ranges[first].start, fill_ranges[last].end);
+        let (es, ee) = (edge_ranges[first].start, edge_ranges[last].end);
+        // Blocks out of order would overlap: rebuild instead.
+        if fs < fill_at || fe < fs || es < edge_at || ee < es {
+            return None;
+        }
+        let (mine, rest) = std::mem::take(&mut fill_rest)[fs - fill_at..].split_at_mut(fe - fs);
+        (fill_rest, fill_at) = (rest, fe);
+        let (edges, rest) = std::mem::take(&mut edge_rest)[es - edge_at..].split_at_mut(ee - es);
+        (edge_rest, edge_at) = (rest, ee);
+        jobs.push((run, mine, fs, edges, es));
+    }
+    let (fill_ranges, edge_ranges) = (&*fill_ranges, &*edge_ranges);
+    let normals: Option<Vec<u64>> = jobs
+        .into_par_iter()
+        .map(|(run, fill_out, fill_base, edge_out, edge_base)| {
+            let _state = state.lend();
+            let source = Source::patched(
+                inputs.item,
+                inputs.matrix,
+                inputs.selection,
+                inputs.smooth,
+                None,
+                inputs.smoothing,
+                inputs.materials,
+                false,
+                Some(lent),
+            );
+            let (mut fill, mut edges) = (Vec::new(), Vec::new());
+            for &f in run {
+                fill.clear();
+                edges.clear();
+                source.face(
+                    f,
+                    Some(source.base(f)),
+                    source.wire(f),
+                    false,
+                    &mut fill,
+                    &mut edges,
+                );
+                let (fr, er) = (&fill_ranges[f], &edge_ranges[f]);
+                if fr.len() != fill.len() || er.len() != edges.len() {
+                    return None;
+                }
+                fill_out[fr.start - fill_base..fr.end - fill_base].copy_from_slice(&fill);
+                edge_out[er.start - edge_base..er.end - edge_base].copy_from_slice(&edges);
+            }
+            Some(source.piece_normals_computed.get())
+        })
+        .collect();
+    Some(normals?.into_iter().sum())
 }
 
 /// The rollover overlay for polygon `face` of an item: its fill (or its
@@ -4786,6 +5177,181 @@ mod tests {
         scene.items[0].parent = Some(42);
         resident.sync_materials(&scene, false);
         assert!(!Arc::ptr_eq(&second, &resident.materials.0));
+    }
+
+    /// A full build big enough to be drawn on every core gives exactly
+    /// what one thread draws, with that thread's colours, selection, locked
+    /// polygons and mixed smooth and flat polygons (heavy-mesh-speed).
+    #[test]
+    fn big_builds_on_every_core_match_one_thread() {
+        let side = 140u32; // 19,600 polygons, over PARALLEL_BUILD
+        let row = side + 1;
+        let mut mesh = Mesh {
+            vertices: (0..row * row)
+                .map(|i| {
+                    let (x, z) = (f64::from(i % row), f64::from(i / row));
+                    DVec3::new(x, (x * 0.3).sin() + (z * 0.2).cos(), z) * 0.1
+                })
+                .collect(),
+            ..Default::default()
+        };
+        *mesh.faces = (0..side * side)
+            .map(|k| {
+                let (x, y) = (k % side, k / side);
+                operandi_core::Face {
+                    vertices: vec![
+                        y * row + x,
+                        (y + 1) * row + x,
+                        (y + 1) * row + x + 1,
+                        y * row + x + 1,
+                    ],
+                    uv: None,
+                    material: String::new(),
+                    smooth: k % 3 != 0,
+                    part: None,
+                    material_label: None,
+                }
+            })
+            .collect();
+        let mut scene = operandi_core::Scene::default();
+        scene.new_mesh().unwrap();
+        scene.items[0].mesh = mesh.into();
+        scene.items[0].elements.locked.faces = (0..side * side).step_by(7).collect();
+        let item = scene.items[0].clone();
+        crate::theme::set_override(
+            crate::theme::ColorId::Wireframe,
+            Some(Color32::from_rgb(4, 5, 6)),
+        );
+        let selection = Some((
+            false,
+            (0..side * side).step_by(5).collect(),
+            BTreeSet::new(),
+        ));
+        let s = SmoothingSettings::default();
+        let m = DMat4::from_rotation_y(0.3) * DMat4::from_translation(DVec3::new(1., 2., 3.));
+        let many = Resident::default()
+            .item(&item, m, selection.clone(), None, &s)
+            .0;
+        ONE_THREAD.with(|c| c.set(true));
+        let one = Resident::default().item(&item, m, selection, None, &s).0;
+        ONE_THREAD.with(|c| c.set(false));
+        crate::theme::set_override(crate::theme::ColorId::Wireframe, None);
+        assert!(
+            many.edges
+                .iter()
+                .any(|e| e.color == Color32::from_rgb(4, 5, 6))
+        );
+        assert!(many.fill == one.fill, "fill matches one thread");
+        assert!(many.edges == one.edges, "wire matches one thread");
+        assert!(many.fill_ranges == one.fill_ranges && many.edge_ranges == one.edge_ranges);
+        assert!(
+            many.highlight == one.highlight,
+            "highlight matches one thread"
+        );
+
+        // A quarter of the polygons as subdivision surfaces: their pieces'
+        // normals are worked out on every core too.
+        let mut sub = item.clone();
+        let mut mesh = sub.mesh.open().clone();
+        mesh.attributes.representations = (0..side * side)
+            .map(|f| {
+                if f < side * side / 4 {
+                    operandi_core::PolygonRepresentation::Subdivs
+                } else {
+                    operandi_core::PolygonRepresentation::Face
+                }
+            })
+            .collect();
+        sub.mesh = mesh.into();
+        let surface = crate::subdivision_view::SubdivisionCache::default()
+            .get(&sub)
+            .expect("a subdivision surface");
+        assert!(surface.mesh.faces.len() >= PARALLEL_BUILD);
+        let many = Resident::default()
+            .item(&sub, m, None, Some(&surface), &s)
+            .0;
+        ONE_THREAD.with(|c| c.set(true));
+        let one = Resident::default()
+            .item(&sub, m, None, Some(&surface), &s)
+            .0;
+        ONE_THREAD.with(|c| c.set(false));
+        assert!(many.fill == one.fill, "subdivided fill matches one thread");
+        assert!(
+            many.edges == one.edges,
+            "subdivided wire matches one thread"
+        );
+    }
+
+    /// A patch big enough to be spread over every core (a deformer moving
+    /// the whole mesh) gives exactly what a full build on the drawing
+    /// thread gives, with that thread's colours, view scheme, selection and
+    /// locked polygons (heavy-mesh-speed).
+    #[test]
+    fn big_patches_on_every_core_match_a_build() {
+        let side = 110u32; // 12,100 polygons, over PARALLEL_PATCH
+        let row = side + 1;
+        let mut mesh = Mesh {
+            vertices: (0..row * row)
+                .map(|i| DVec3::new(f64::from(i % row), 0., f64::from(i / row)) * 0.1)
+                .collect(),
+            ..Default::default()
+        };
+        *mesh.faces = (0..side * side)
+            .map(|k| {
+                let (x, y) = (k % side, k / side);
+                operandi_core::Face {
+                    vertices: vec![
+                        y * row + x,
+                        (y + 1) * row + x,
+                        (y + 1) * row + x + 1,
+                        y * row + x + 1,
+                    ],
+                    uv: None,
+                    material: String::new(),
+                    smooth: k % 3 != 0,
+                    part: None,
+                    material_label: None,
+                }
+            })
+            .collect();
+        let mut scene = operandi_core::Scene::default();
+        scene.new_mesh().unwrap();
+        scene.items[0].mesh = mesh.clone().into();
+        scene.items[0].elements.locked.faces = (0..side * side).step_by(7).collect();
+        let item = scene.items[0].clone();
+        let _scheme = palette::use_scheme(palette::ViewScheme::Orthographic);
+        crate::theme::set_override(
+            crate::theme::ColorId::OrthoWireframe,
+            Some(Color32::from_rgb(1, 2, 3)),
+        );
+        let selection = Some((
+            false,
+            (0..side * side).step_by(5).collect(),
+            BTreeSet::new(),
+        ));
+        let s = SmoothingSettings::default();
+        let mut resident = Resident::default();
+        resident.item(&item, DMat4::IDENTITY, selection.clone(), None, &s);
+        let mut moved = item.clone();
+        let mut m = mesh.clone();
+        for (i, v) in m.vertices.iter_mut().enumerate() {
+            v.y = (i as f64 * 0.37).sin() * 0.05;
+        }
+        moved.mesh = m.into();
+        let (g, _, patch) = resident.item(&moved, DMat4::IDENTITY, selection.clone(), None, &s);
+        assert!(patch.is_some(), "patched, not rebuilt");
+        let fresh = Resident::default()
+            .item(&moved, DMat4::IDENTITY, selection, None, &s)
+            .0;
+        crate::theme::set_override(crate::theme::ColorId::OrthoWireframe, None);
+        assert!(
+            g.edges
+                .iter()
+                .any(|e| e.color == Color32::from_rgb(1, 2, 3))
+        );
+        assert!(g.fill == fresh.fill, "fill matches a build");
+        assert!(g.edges == fresh.edges, "wire matches a build");
+        assert!(g.highlight == fresh.highlight, "highlight matches a build");
     }
 
     #[test]
