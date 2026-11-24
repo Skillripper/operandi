@@ -72,6 +72,7 @@ pub mod text;
 pub use curve_edit::{AddGeometry, CurveEdit};
 pub use curves::CurveKind;
 pub use text::{TextJustification, TextLocation, TextParameters};
+#[path = "primitives/unit_insert.rs"]
 pub mod unit_insert;
 pub use pen::*;
 pub use unit_insert::UnitShape;
@@ -213,8 +214,10 @@ pub mod fix_black_dots;
 pub mod merge_instance;
 #[path = "painting/mesh_paint.rs"]
 pub mod mesh_paint;
+#[path = "primitives/plane_item.rs"]
 pub mod plane_item;
 pub mod scaffold;
+#[path = "primitives/teapot.rs"]
 pub mod teapot;
 pub use editor_color::EditorColor;
 pub mod tag_selection;
@@ -463,6 +466,7 @@ mod document_state;
 #[path = "commands/persistence.rs"]
 pub mod persistence;
 pub mod preset;
+#[path = "primitives/primitive.rs"]
 pub mod primitive;
 pub mod transform_repeat;
 #[path = "commands/undo_memory.rs"]
@@ -563,6 +567,7 @@ pub use symmetry::{Side, SymmetrizeSide, Symmetry};
 pub use tool_card::ToolCard;
 pub type Result<T> = std::result::Result<T, String>;
 
+#[path = "primitives/cone.rs"]
 pub mod cone;
 pub use cone::*;
 #[path = "polygons/inset.rs"]
@@ -575,20 +580,26 @@ pub use mesh_cleanup_ops::{CleanupOption, CleanupResult, mesh_cleanup_geometry};
 pub mod mesh_attributes;
 pub use mesh_attributes::*;
 
+#[path = "primitives/cone_editor.rs"]
 pub mod cone_editor;
 mod numeric_session;
 pub use numeric_session::*;
 
+#[path = "primitives/cone_grid.rs"]
 mod cone_grid;
 
+#[path = "primitives/ellipsoid.rs"]
 pub mod ellipsoid;
 pub use ellipsoid::*;
+#[path = "primitives/ellipsoid_editor.rs"]
 mod ellipsoid_editor;
 
+#[path = "primitives/shapes.rs"]
 pub mod shapes;
 pub use shapes::*;
 pub mod element_state;
 pub use element_state::{ElementKind, ElementMask, ElementOp, ElementState, Protection};
+#[path = "primitives/shape_editor.rs"]
 mod shape_editor;
 
 #[path = "polygons/spike.rs"]

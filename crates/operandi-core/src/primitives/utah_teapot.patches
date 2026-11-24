@@ -7,7 +7,7 @@
 # commercial use; the model and versions derived from it are to be credited
 # as a "Utah Teapot" (or "Modified Utah Teapot").
 #
-# Operandi's own format (read by crates/operandi-core/src/teapot.rs):
+# Operandi's own format (read by crates/operandi-core/src/primitives/teapot.rs):
 # "points N", then N lines "x y z" (z up, spout toward +x); "patches 32",
 # then one line per patch of 16 point numbers, row by row. The control
 # points were recovered exactly from the site's own patch tessellation
