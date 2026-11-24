@@ -298,3 +298,36 @@ fn per_polygon_allocations() {
         "BENCH layout_bytes faces={face_bytes} (+ one heap block per polygon) flat={flat_bytes}"
     );
 }
+
+/// Instance and Duplicate Item on a ~700k-polygon mesh, three copies each
+/// (forum report, 2026-11-24): each command's time, then undo.
+#[test]
+#[ignore = "opt-in timings; run in release with --nocapture"]
+fn instancing_a_big_mesh() {
+    for (label, command) in [
+        ("instance", Command::InstanceItems),
+        ("duplicate_item", Command::DuplicateItem),
+    ] {
+        let mut e = Editor::default();
+        e.scene.new_mesh().unwrap();
+        let source = e.scene.items.last().unwrap().id;
+        e.scene.item_mut(source).unwrap().mesh = grid(837).into(); // 700,569 polygons
+        for k in 1..=3 {
+            e.scene.select_item(Some(source));
+            let t = Instant::now();
+            e.dispatch(command.clone()).unwrap();
+            line(
+                &format!("{label}_700k_copy{k}"),
+                t.elapsed().as_secs_f64() * 1000.,
+                700_569,
+            );
+        }
+        let t = Instant::now();
+        e.dispatch(Command::Undo).unwrap();
+        line(
+            &format!("{label}_700k_undo"),
+            t.elapsed().as_secs_f64() * 1000.,
+            700_569,
+        );
+    }
+}

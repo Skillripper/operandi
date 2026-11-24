@@ -1367,7 +1367,16 @@ impl Operandi {
                 // changed reuses its cached geometry through a matrix on the
                 // graphics card (gpu_scene.rs `delta`); it is rebuilt exactly
                 // once the tool is dropped.
-                let live = self.editor.live.is_some() || self.navigation.is_some();
+                // Playback and scrubbing move items every frame (an imported
+                // shot moves hundreds of meshes under one locator): those
+                // reuse their geometry through a matrix too, and settle at
+                // their places a few at a time once time stops
+                // (`Resident::begin_frame`).
+                let live = self.editor.live.is_some()
+                    || self.navigation.is_some()
+                    || self.editor.anim.playing.is_some()
+                    || self.anim_ui.time_moved;
+                self.resident_cache.begin_frame(ctx.cumulative_pass_nr());
                 let placed = |item: &'_ operandi_core::Item, matrix: glam::DMat4| match &whole {
                     Some((base, map)) if base.id == item.id => (base.clone(), matrix * *map),
                     _ => (item.clone(), matrix),
@@ -1764,6 +1773,9 @@ impl Operandi {
                     }
                 }
                 self.resident_cache.retain(&held);
+                if self.resident_cache.deferred() {
+                    ctx.request_repaint();
+                }
                 draw
             });
             if let Some(gpu) = &mut self.viewport_gpu {

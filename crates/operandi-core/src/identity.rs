@@ -211,13 +211,18 @@ impl MeshIdentity {
                     .collect()
             })
             .collect::<Result<_>>()?;
-        let mut edges = BTreeMap::new();
-        for (a, b) in mesh.edges() {
-            edges.insert(
-                key(vertices[a as usize], vertices[b as usize]),
-                EdgeId(take(next)?),
-            );
-        }
+        // Collected in one go (the set is built from a sorted list instead
+        // of a million single inserts): same IDs, same map.
+        let edges = mesh
+            .edges()
+            .into_iter()
+            .map(|(a, b)| {
+                Ok((
+                    key(vertices[a as usize], vertices[b as usize]),
+                    EdgeId(take(next)?),
+                ))
+            })
+            .collect::<Result<BTreeMap<_, _>>>()?;
         let ids = Self {
             scope,
             vertices,
@@ -894,6 +899,7 @@ impl IdentityRuntime {
         &self,
         mesh: &crate::Shared<Mesh>,
         item: u64,
+        template: Option<&MeshIdentity>,
     ) -> Result<crate::Shared<MeshIdentity>> {
         let mut m = self
             .allocation
@@ -913,7 +919,11 @@ impl IdentityRuntime {
         // A mesh whose polygons are unchanged from the item's current
         // bootstrap identity (points moved): same result, without re-deriving
         // and re-checking it. The scene's meshes were validated by the caller.
-        if let Some(previous) = self.current.meshes.get(&item)
+        // The same for a new item whose mesh shares another item's polygons
+        // (an Instance, a Duplicate): its own block of new IDs, laid out as
+        // that item's are, instead of building and checking them from the
+        // polygons again (seconds on a big mesh).
+        if let Some(previous) = self.current.meshes.get(&item).map(|p| &**p).or(template)
             && let Some(ids) = previous.rebootstrap(mesh, scope, &mut m.next)
         {
             // `rebootstrap` proved the same layout and edges as a previous
@@ -961,7 +971,19 @@ impl IdentityRuntime {
                 }
                 ids
             } else {
-                self.allocate_mesh(item.mesh.shared(), item.id)?
+                // An item already known whose mesh has these very polygons
+                // (the same shared list), to lay the new IDs out from.
+                let template = (!self.current.meshes.contains_key(&item.id))
+                    .then(|| {
+                        self.observed.as_ref()?.items.iter().find_map(|other| {
+                            (other.id != item.id
+                                && crate::Shared::same(&other.mesh.faces, &item.mesh.faces))
+                            .then(|| self.current.meshes.get(&other.id))
+                            .flatten()
+                        })
+                    })
+                    .flatten();
+                self.allocate_mesh(item.mesh.shared(), item.id, template.map(|t| &**t))?
             };
             meshes.insert(item.id, ids);
         }
@@ -1008,7 +1030,7 @@ impl IdentityRuntime {
     }
     pub(crate) fn invalidate_mesh(&mut self, scene: &Scene, item: u64) -> Result<()> {
         if let Some(target) = scene.item(item) {
-            let ids = self.allocate_mesh(target.mesh.shared(), item)?;
+            let ids = self.allocate_mesh(target.mesh.shared(), item, None)?;
             self.current.meshes.insert(item, ids);
             self.observe(scene)?;
         }
@@ -1018,7 +1040,10 @@ impl IdentityRuntime {
         scene.validate()?;
         let mut meshes = BTreeMap::new();
         for item in &scene.items {
-            meshes.insert(item.id, self.allocate_mesh(item.mesh.shared(), item.id)?);
+            meshes.insert(
+                item.id,
+                self.allocate_mesh(item.mesh.shared(), item.id, None)?,
+            );
         }
         Ok(IdentityScene { meshes })
     }

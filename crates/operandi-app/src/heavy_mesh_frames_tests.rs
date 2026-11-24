@@ -205,3 +205,41 @@ fn posing(side: u32) {
     report("grid1m/pose_skinned_elbow", &mut times);
     println!("PERF grid1m/pose_skinned_elbow_upload bytes_per_frame={per_frame}");
 }
+
+/// Instance and Duplicate Item on a ~700k-polygon mesh, three copies each,
+/// each with the frame that shows it (forum report, 2026-11-24):
+/// `cargo test --release -p operandi-app heavy_instancing -- --ignored --nocapture`
+#[test]
+#[ignore = "opt-in whole-frame timings; run in release with --nocapture"]
+fn heavy_instancing_frames() {
+    for (label, command) in [
+        ("instance", Command::InstanceItems),
+        ("duplicate_item", Command::DuplicateItem),
+    ] {
+        let (b, mut a) = bench();
+        a.editor.scene.new_mesh().unwrap();
+        let source = a.editor.scene.items.last().unwrap().id;
+        a.editor.scene.items.last_mut().unwrap().mesh = grid(837, 4.).into();
+        a.frame(false);
+        b.frame(&mut a, vec![]);
+        b.frame(&mut a, vec![]);
+        // OPERANDI_HEAVY_COPIES: more copies, for a profiler.
+        let copies = std::env::var("OPERANDI_HEAVY_COPIES")
+            .ok()
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(3);
+        for k in 1..=copies {
+            a.editor.scene.select_item(Some(source));
+            let t = std::time::Instant::now();
+            a.run(command.clone());
+            let command_ms = super::perf_drags_tests::ms(t);
+            let frame = b.frame(&mut a, vec![]);
+            println!(
+                "PERF grid700k/{label}_copy{k} command_ms={command_ms:.1} frame_ms={frame:.1} total_ms={:.1}",
+                command_ms + frame
+            );
+        }
+        let mut still: Vec<f64> = (0..10).map(|_| b.frame(&mut a, vec![])).collect();
+        report(&format!("grid700k/{label}_4_items_still"), &mut still);
+    }
+}
