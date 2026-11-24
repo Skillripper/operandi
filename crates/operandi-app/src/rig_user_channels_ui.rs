@@ -1,8 +1,9 @@
 //! The active item's rig user channels (RG-53) as sliders on the User
 //! Channels tab: an imported rig's controls (an arm angle, wings, landing
 //! gear) and the ones Add User Channel makes in the Channel Links window.
-//! Each edit is `operandi.rig.userChannelSet`, one undo step that Auto Key
-//! keys like any channel edit (UIC-112: keyed rows show their state the
+//! Dragging is live (UIC-51); the release, or a typed value on Enter, is
+//! `operandi.rig.userChannelSet`, one undo step that Auto Key keys like
+//! any channel edit (UIC-112: keyed rows show their state the
 //! way the rest of the panel does is a follow-up).
 use super::*;
 use operandi_core::rig::UserType;
@@ -89,12 +90,44 @@ impl Operandi {
                     if r.changed() {
                         ui.data_mut(|d| d.insert_temp(key, shown));
                     }
+                    // UIC-51: a drag stays live. Each frame writes the value
+                    // straight into the channel (the rig and the views
+                    // follow); the value from before the drag is kept so
+                    // the release makes the whole drag one undo step and
+                    // one Auto Key. Typing still waits for Enter.
+                    let before = egui::Id::new(("rig-user-channel-drag", item, &name));
+                    if r.dragged() && r.changed() {
+                        if ui.data(|d| d.get_temp::<f64>(before)).is_none() {
+                            ui.data_mut(|d| d.insert_temp(before, value));
+                        }
+                        if let Some(c) = self
+                            .editor
+                            .scene
+                            .animation
+                            .rig
+                            .user_channel_mut(item, &name)
+                        {
+                            let _ = c.set(&name, shown / scale);
+                        }
+                    }
                     if r.drag_stopped()
                         || r.lost_focus()
                         || (r.changed() && !r.dragged() && !r.has_focus())
                     {
                         ui.data_mut(|d| d.remove::<f64>(key));
-                        if (shown / scale - value).abs() > 1e-12 {
+                        let old = ui
+                            .data_mut(|d| d.remove_temp::<f64>(before))
+                            .unwrap_or(value);
+                        if let Some(c) = self
+                            .editor
+                            .scene
+                            .animation
+                            .rig
+                            .user_channel_mut(item, &name)
+                        {
+                            let _ = c.set(&name, old);
+                        }
+                        if (shown / scale - old).abs() > 1e-12 {
                             lines.push(set(shown / scale));
                         }
                     }
