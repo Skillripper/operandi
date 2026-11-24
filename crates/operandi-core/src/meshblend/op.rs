@@ -106,19 +106,25 @@ impl OpDef for MeshBlendOp {
     }
 }
 
-/// The op's table entry. Every value is drawn by the MeshBlend panel
-/// section rather than the generic form, so the fields are hidden.
+/// The op's table entry. The strip settings use the generic op form; the
+/// sources are drawn by the MeshBlend panel section (meshblend_ui.rs), and
+/// what isn't built yet (relative width, output modes, per-strip
+/// overrides) stays hidden (UIC-117).
 pub(crate) fn entries() -> Vec<Arc<dyn OpDef>> {
     let hidden = |key: &'static str| Field::new(key, key, FieldKind::Hidden);
     vec![Arc::new(MeshBlendOp {
         fields: vec![
             hidden("sources"),
             hidden("widthUnits"),
-            hidden("stripWidth"),
-            hidden("stripProfile"),
-            hidden("stripRows"),
+            Field::new("stripWidth", "Strip Width", FieldKind::Distance),
+            Field::new("stripProfile", "Strip Profile", FieldKind::Percent),
+            Field::new(
+                "stripRows",
+                "Strip Rows",
+                FieldKind::Count { min: 1, max: 16 },
+            ),
+            Field::new("designMode", "Design Mode", FieldKind::Check),
             hidden("output"),
-            hidden("designMode"),
             hidden("strips"),
         ],
     })]

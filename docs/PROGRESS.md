@@ -1,5 +1,14 @@
 # Milestone progress ledger
 
+- **MeshBlend B2, strips v1 (2026-11-24, branch claude/project-thread-20fok5):**
+  rounded strips on every join with the B0 strip builder (now
+  `meshblend/strips.rs`): Strip Width, Profile 0–200 %, Rows, Design Mode
+  in the op form; three-patch corners; ST-10 gate (`meshblend/check.rs`)
+  before a strip result is used; a width that doesn't fit is halved up to
+  three times with a note (room and volume checks), else sharp joins with
+  a note; cut surface triangles paired back into quads. Not yet: relative
+  width, output modes, per-strip edits, quad cleanup beyond pairing.
+
 - **MeshBlend B1 (2026-11-24, branch claude/project-thread-20fok5):**
   Geometry > New MeshBlend makes a MeshBlend Item (a mesh whose stack
   starts with the `meshblend.item` op) from the selected meshes. Recipe

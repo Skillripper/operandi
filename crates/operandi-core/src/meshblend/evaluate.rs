@@ -372,9 +372,17 @@ pub fn evaluate(recipe: &Recipe, inputs: &[Input]) -> Result<Blend> {
     // Polygons rebuilt from provenance; if a region came back in a shape
     // the mesh rules refuse, fall back to the engine's triangles, which
     // are always closed and consistently wound (ST-10 before swap-in).
-    let (mesh, origin) = match rebuild(&prepared, &offsets, &engine, false) {
-        Ok(built) if built.0.validate().is_ok() => built,
-        _ => rebuild(&prepared, &offsets, &engine, true)?,
+    let stripped = if recipe.strip_width > 0. && recipe.output != 0 && !engine.tris.is_empty() {
+        with_strips(recipe, &prepared, &offsets, &engine, &mut notes)
+    } else {
+        None
+    };
+    let (mesh, origin) = match stripped {
+        Some(done) => done,
+        None => match rebuild(&prepared, &offsets, &engine, false) {
+            Ok(built) if built.0.validate().is_ok() => built,
+            _ => rebuild(&prepared, &offsets, &engine, true)?,
+        },
     };
     Ok(Blend {
         mesh,
@@ -442,4 +450,231 @@ fn rebuild(
     }
     let mesh = crate::mesh_cleanup::remove_unreferenced(&mesh, None)?.mesh;
     Ok((mesh, origin))
+}
+
+/// B2: rounded strips along every join (strips.rs), gated by ST-10. A
+/// width that doesn't fit is narrowed (halved, up to three times) and the
+/// note says so (ST-11, SB-72); if no width fits, the sharp result stays
+/// with a note (ST-04). Design Mode (ST-16) makes narrow flat strips.
+fn with_strips(
+    recipe: &Recipe,
+    prepared: &[Prepared],
+    offsets: &[u32],
+    engine: &Tri,
+    notes: &mut Vec<Note>,
+) -> Option<(Mesh, Vec<Origin>)> {
+    let joined = super::strips::Joined {
+        pos: engine.pos.clone(),
+        tris: engine.tris.clone(),
+        source: engine
+            .owner
+            .iter()
+            .map(|&g| (offsets.partition_point(|&o| o <= g) - 1) as u32)
+            .collect(),
+        face: engine
+            .owner
+            .iter()
+            .map(|&g| g - offsets[offsets.partition_point(|&o| o <= g) - 1])
+            .collect(),
+        names: prepared.iter().map(|p| p.name.clone()).collect(),
+    };
+    let (width, profile, rows) = if recipe.design_mode {
+        (recipe.strip_width * 0.1, 0., 1)
+    } else {
+        (
+            recipe.strip_width,
+            recipe.strip_profile * 100.,
+            recipe.strip_rows,
+        )
+    };
+    // ST-11 / SB-72: a strip changes the volume by at most its band's
+    // cross-section along the joins (about width² per unit of join length).
+    // More than that means bands folded over the shape, as wide strips on
+    // small shapes do: narrow them instead.
+    let sharp_volume = engine.volume();
+    let join_length: f64 = {
+        let mut seen = std::collections::HashMap::new();
+        for (t, tri) in joined.tris.iter().enumerate() {
+            for k in 0..3 {
+                seen.insert((tri[k], tri[(k + 1) % 3]), joined.source[t]);
+            }
+        }
+        seen.iter()
+            .filter(|((a, b), s)| a < b && seen.get(&(*b, *a)).is_some_and(|o| o != *s))
+            .map(|((a, b), _)| joined.pos[*a as usize].distance(joined.pos[*b as usize]))
+            .sum()
+    };
+    // Room: a band wider than 40 % of the smallest source can't lie on it.
+    let room = prepared
+        .iter()
+        .map(|p| {
+            let (lo, hi) = crate::boolean::bbox(&p.tri.pos);
+            (hi - lo).min_element()
+        })
+        .fold(f64::INFINITY, f64::min)
+        * 0.4;
+    for tries in 0..4 {
+        let w = width / f64::from(1u32 << tries);
+        if w > room {
+            continue;
+        }
+        let built = super::strips::build(&joined, w, profile, rows);
+        let report = super::check::st10(&built.mesh, w, Some(&built.kind));
+        let bulge = (profile / 100.).max(1.);
+        if !report.passes()
+            || (report.volume - sharp_volume).abs() > 0.6 * join_length * w * w * bulge + 1e-9
+        {
+            continue;
+        }
+        let (mut mesh, mut origin) = strip_polygons(prepared, &built);
+        pair_triangles(&mut mesh, &mut origin, &built.kind);
+        if mesh.validate().is_err() {
+            continue;
+        }
+        if tries > 0 {
+            notes.push(Note {
+                item: 0,
+                text: format!(
+                    "Strip Width limited to {} here: the strips didn't fit at {}",
+                    crate::units::format_distance(w),
+                    crate::units::format_distance(width)
+                ),
+                problem: false,
+            });
+        }
+        let origin = origin.into_iter().map(|(o, _)| o).collect();
+        return Some((mesh, origin));
+    }
+    notes.push(Note {
+        item: 0,
+        text: "The strips couldn't be built on this shape, so the joins are shown sharp".into(),
+        problem: true,
+    });
+    None
+}
+
+/// The strip builder's polygons with their templates: surface pieces
+/// keep their source polygon's material and part; strips and corners take
+/// their first side's material, smooth shaded (Q09). Each polygon's origin
+/// and whether it may pair with a neighbour (surface pieces only).
+fn strip_polygons(
+    prepared: &[Prepared],
+    built: &super::strips::Strips,
+) -> (Mesh, Vec<(Origin, bool)>) {
+    let mut mesh = Mesh {
+        vertices: built.mesh.vertices.clone(),
+        ..Default::default()
+    };
+    let mut origin = Vec::new();
+    for (i, f) in built.mesh.faces.iter().enumerate() {
+        let p = &prepared[built.source[i] as usize];
+        let polygon = built.face[i];
+        let mut face = if polygon == u32::MAX {
+            let mut t = p.surface.faces[0].clone();
+            t.smooth = true;
+            t
+        } else {
+            p.surface.faces[polygon as usize].clone()
+        };
+        face.vertices = f.vertices.clone();
+        face.uv = None;
+        mesh.faces.push(face);
+        origin.push((
+            Origin {
+                item: p.item,
+                polygon,
+            },
+            built.kind[i] == 0,
+        ));
+    }
+    (mesh, origin)
+}
+
+/// "Closed, clean" (SB-50): pairs of surface triangles from the same
+/// source polygon that share an edge become one quad when the quad is
+/// convex and nearly flat, so the cut faces beside strips are mostly
+/// quads again. Greedy in polygon order, so the result repeats (ST-09).
+fn pair_triangles(mesh: &mut Mesh, origin: &mut Vec<(Origin, bool)>, kind: &[u8]) {
+    use std::collections::HashMap;
+    let n = mesh.faces.len();
+    let tri = |f: usize| mesh.faces[f].vertices.len() == 3 && origin[f].1 && kind[f] == 0;
+    let mut by_edge: HashMap<(u32, u32), usize> = HashMap::new();
+    for f in 0..n {
+        if !tri(f) {
+            continue;
+        }
+        let v = &mesh.faces[f].vertices;
+        for k in 0..3 {
+            by_edge.insert((v[k], v[(k + 1) % 3]), f);
+        }
+    }
+    let mut used = vec![false; n];
+    let mut merged: Vec<Option<Vec<u32>>> = vec![None; n];
+    let mut drop = vec![false; n];
+    for f in 0..n {
+        if !tri(f) || used[f] {
+            continue;
+        }
+        let v = mesh.faces[f].vertices.clone();
+        let mut best: Option<(f64, usize, Vec<u32>)> = None;
+        for k in 0..3 {
+            let (a, b, c) = (v[k], v[(k + 1) % 3], v[(k + 2) % 3]);
+            let Some(&g) = by_edge.get(&(b, a)) else {
+                continue;
+            };
+            if g == f || used[g] || origin[g].0 != origin[f].0 {
+                continue;
+            }
+            let w = &mesh.faces[g].vertices;
+            let Some(d) = w.iter().copied().find(|&x| x != a && x != b) else {
+                continue;
+            };
+            // Quad a, d, b, c in this winding.
+            let q = vec![a, d, b, c];
+            if let Some(score) = quad_quality(&mesh.vertices, &q)
+                && best.as_ref().is_none_or(|(s, _, _)| score > *s)
+            {
+                best = Some((score, g, q));
+            }
+        }
+        if let Some((_, g, q)) = best {
+            used[f] = true;
+            used[g] = true;
+            merged[f] = Some(q);
+            drop[g] = true;
+        }
+    }
+    let mut faces = Vec::with_capacity(n);
+    for (f, face) in mesh.faces.iter().enumerate() {
+        if drop[f] {
+            continue;
+        }
+        let mut face = face.clone();
+        if let Some(q) = merged[f].take() {
+            face.vertices = q;
+        }
+        faces.push(face);
+    }
+    mesh.faces = faces.into();
+    let mut keep = drop.iter().map(|d| !d);
+    origin.retain(|_| keep.next().unwrap_or(true));
+}
+
+/// How good a quad is (higher better), or `None` when it is folded,
+/// concave or bent more than about 10°: the smallest of its corner sines.
+fn quad_quality(pos: &[DVec3], q: &[u32]) -> Option<f64> {
+    let p: Vec<DVec3> = q.iter().map(|&i| pos[i as usize]).collect();
+    let n1 = (p[1] - p[0]).cross(p[2] - p[0]);
+    let n2 = (p[2] - p[0]).cross(p[3] - p[0]);
+    if n1.length() == 0. || n2.length() == 0. || n1.normalize().dot(n2.normalize()) < 0.985 {
+        return None;
+    }
+    let normal = (n1 + n2).normalize();
+    let mut worst = f64::INFINITY;
+    for i in 0..4 {
+        let (a, b, c) = (p[(i + 3) % 4], p[i], p[(i + 1) % 4]);
+        let s = (b - a).normalize().cross((c - b).normalize()).dot(normal);
+        worst = worst.min(s);
+    }
+    (worst > 0.1).then_some(worst)
 }

@@ -178,8 +178,8 @@ impl Recipe {
         if !self.strip_profile.is_finite() || !(0. ..=2.).contains(&self.strip_profile) {
             return Err("MeshBlend Strip Profile must be 0% to 200%".into());
         }
-        if !(1..=64).contains(&self.strip_rows) {
-            return Err("MeshBlend Strip Rows must be 1 to 64".into());
+        if !(1..=16).contains(&self.strip_rows) {
+            return Err("MeshBlend Strip Rows must be 1 to 16".into());
         }
         if self.width_units > 1 || self.output as usize >= OUTPUTS.len() {
             return Err("MeshBlend has a setting out of range".into());

@@ -21,7 +21,7 @@
 //!
 //! B1 keeps the corpus, checker and sharp stage; only the losing strip
 //! method is thrown away.
-pub mod check;
+pub use crate::meshblend::check;
 pub mod corpus;
 pub mod picture;
 pub mod sharp;

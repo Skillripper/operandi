@@ -11,8 +11,8 @@ The result lives on its own item, the
 **MeshBlend Item**: a mesh whose **Mesh Operations** list starts with a
 **MeshBlend** operation. The source meshes are never changed.
 
-Joins between the meshes are sharp for now. Rounded strips along the joins
-are coming in a later version.
+Where two meshes meet, MeshBlend lays a **strip**: a band of quads that
+replaces the sharp crease with a round or a chamfer.
 
 ## How to use
 
@@ -38,6 +38,23 @@ are coming in a later version.
 A new Trim acts on every Primary. Untick **Acts on** for a Primary to leave
 that one alone. A Trim never changes a Primary it doesn't act on, even where
 they overlap.
+
+## Strips
+
+The strip settings are at the top of the **MeshBlend** properties.
+
+| Name | What it does | Default |
+|---|---|---|
+| **Strip Width** | How far each edge of the strip lies from the old crease, measured along the surface. Set it to 0 for sharp joins. | 2 % of the meshes' size when the MeshBlend is made |
+| **Strip Profile** | The strip's cross-section: 0 % is a flat chamfer, 100 % a round that meets both surfaces smoothly, up to 200 % for a slight groove. | 100 % |
+| **Strip Rows** | Rows of polygons across the strip: each row adds two quads across. | 3 |
+| **Design Mode** | Narrow flat strips that build quickly while you work out the shape; your settings are kept. | Off |
+
+Where three strips meet, a corner patch of quads joins them.
+
+If a strip is too wide to fit on the meshes, MeshBlend narrows it and the
+**MeshBlend** row's tooltip says the width it used. If no strip fits at all,
+the joins are shown sharp, with a note. The shape never collapses.
 
 ## Properties
 
