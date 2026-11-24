@@ -1385,7 +1385,7 @@ used in the app; `primitive_add` always starts from the Reset values.
   - `mode` (string): "set" (default) or "add" select it; "remove" selects none.
 - **`scene.saveAs`** — Export the scene to an interchange file, as File > Export does (Mesh Stack results, hidden items as hidden). The document keeps its own file name and unsaved state, and nothing is added to the history. Here it only exports: it needs filename plus a format (format:, or a file extension that names one); to save the .opscene use scene_save.
   - `filename` (string, required): The file to write.
-  - `format` (string): obj, stl, stlAscii, gltf, glb, geo, svg, lxo, ply, plyAscii, abc, usd, usda, usdc, usdz, fbx or 3mf; default from the file's extension (.stl and .ply mean binary). USD needs the running app's exporter (operandi-mcp --attach).
+  - `format` (string): obj, stl, stlAscii, gltf, glb, geo, svg, lxo, ply, plyAscii, abc, usd, usda, usdc, usdz, fbx, 3mf, step or iges; default from the file's extension (.stl and .ply mean binary, .stp and .igs are STEP and IGES). USD needs the running app's exporter (operandi-mcp --attach).
   - `export` (boolean): Accepted; here scene.saveAs always exports.
   - `animation` (string): USD: on (default; time samples once a frame over the scene range), off, or current (the current frame only).
 - **`hide.sel`** — Hide the selected elements of the active mesh (everything when nothing is selected), one undo step; hidden polygons drop out of the UV tools. No arguments.

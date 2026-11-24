@@ -157,6 +157,7 @@
 - [Scripting and the test bridge]()
 - [Preferences]()
 - [Reference]()
+    - [CAD export (STEP and IGES)](reference/cad-export.md)
     - [Keyboard shortcuts](reference/keyboard-shortcuts.md)
     - [Commands]()
 - [Glossary]()

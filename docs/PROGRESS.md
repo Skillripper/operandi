@@ -1,5 +1,15 @@
 # Milestone progress ledger
 
+- **STEP and IGES export (2026-11-24, branch claude/project-thread-losplx):**
+  File ▸ Export ▸ STEP/IGES and `scene.saveAs format:step|iges` (.stp,
+  .igs too). Tab polygons leave as exact degree-2 B-spline patches with
+  shared edges (closed pieces as solids, open ones as surfaces); Face
+  polygons as planes (bent ones as triangles); Catmull-Clark as
+  render-level facets. Millimetres, Z up, fixed (provisional: no prefs).
+  Checked in OpenCascade 7.8 (FreeCAD 1.1): valid, closed, volume equals
+  the patches' exact volume. IGES is untrimmed surfaces only. Not yet:
+  packed faces, import, seam-continuity measurement.
+
 - **LXO export label (2026-11-24, branch lxo-export-label, Jason's
   choice):** File ▸ Export's "Modo Scene (LXO)…" is now "LXO Scene…", and
   the format's name in the export file dialog is "LXO Scene". The command

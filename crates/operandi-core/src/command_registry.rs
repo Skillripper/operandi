@@ -702,7 +702,7 @@ pub fn tool_phrase(id: &str) -> Option<&'static str> {
 /// format strings).
 pub const EXPORT_FORMATS: ArgType = ArgType::Choice(&[
     "obj", "stl", "stlAscii", "gltf", "glb", "geo", "svg", "lxo", "ply", "plyAscii", "abc", "usd",
-    "usda", "usdc", "usdz", "fbx", "3mf",
+    "usda", "usdc", "usdz", "fbx", "3mf", "step", "iges",
 ]);
 const ON_OFF_QUERY: ArgType = ArgType::Choice(&["on", "off", "?"]);
 const AXES: ArgType = ArgType::Choice(&["x", "y", "z", "xy", "yz", "zx", "all"]);
@@ -6237,7 +6237,7 @@ pub static COMMANDS: &[Entry] = &[
             jopt(
                 "format",
                 "string",
-                "obj, stl, stlAscii, gltf, glb, geo, svg, lxo, ply, plyAscii, abc, usd, usda, usdc, usdz, fbx or 3mf; default from the file's extension (.stl and .ply mean binary). USD needs the running app's exporter (operandi-mcp --attach).",
+                "obj, stl, stlAscii, gltf, glb, geo, svg, lxo, ply, plyAscii, abc, usd, usda, usdc, usdz, fbx, 3mf, step or iges; default from the file's extension (.stl and .ply mean binary, .stp and .igs are STEP and IGES). USD needs the running app's exporter (operandi-mcp --attach).",
             ),
             jopt(
                 "export",

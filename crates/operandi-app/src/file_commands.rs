@@ -7,7 +7,7 @@ use operandi_core::interchange::ExportFormat;
 
 /// scene.saveAs `format:` values, in `command_registry::EXPORT_FORMATS`
 /// order (core's table, shared with the headless runner).
-pub(super) const EXPORT_FORMATS: [ExportFormat; 17] =
+pub(super) const EXPORT_FORMATS: [ExportFormat; 19] =
     operandi_core::interchange::SCRIPT_EXPORT_FORMATS;
 
 /// The export format a file name's extension names (.stl and .ply mean

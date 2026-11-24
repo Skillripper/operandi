@@ -1,5 +1,5 @@
 //! Interchange formats: OBJ, STL, glTF/GLB, PLY, Alembic, 3MF, FBX and
-//! VideoScape GEO import and export, plus SVG export. These are general-purpose formats with public
+//! VideoScape GEO import and export, plus SVG, STEP and IGES export. These are general-purpose formats with public
 //! descriptions, not Modo behavior; nothing here claims Modo parity.
 //!
 //! Import always builds a complete, validated scene before anything is
@@ -15,12 +15,17 @@ use std::io::Write;
 use std::path::Path;
 
 mod abc;
+mod cad;
+#[cfg(test)]
+mod cad_tests;
 mod fbx;
 mod fbx_write;
 mod geo;
 mod gltf_io;
+mod iges;
 mod obj;
 mod ply;
+mod step;
 mod stl;
 mod svg;
 #[cfg(test)]
@@ -69,9 +74,14 @@ pub enum ExportFormat {
     Fbx,
     /// 3D Manufacturing Format (`threemf.rs`).
     ThreeMf,
+    /// STEP AP214: exact Tab patches and flat faces as solids or
+    /// surfaces (`cad.rs`, `step.rs`).
+    Step,
+    /// IGES 5.3: the same faces as untrimmed B-spline surfaces (`iges.rs`).
+    Iges,
 }
 impl ExportFormat {
-    pub const ALL: [ExportFormat; 17] = [
+    pub const ALL: [ExportFormat; 19] = [
         Self::Obj,
         Self::StlBinary,
         Self::StlAscii,
@@ -89,6 +99,8 @@ impl ExportFormat {
         Self::Usdz,
         Self::Fbx,
         Self::ThreeMf,
+        Self::Step,
+        Self::Iges,
     ];
     /// Menu and panel title.
     pub fn label(self) -> &'static str {
@@ -110,6 +122,8 @@ impl ExportFormat {
             Self::Usdz => "USDZ (.usdz)",
             Self::Fbx => "FBX (.fbx)",
             Self::ThreeMf => "3D Manufacturing (.3mf)",
+            Self::Step => "STEP (.step)",
+            Self::Iges => "IGES (.iges)",
         }
     }
     pub fn extension(self) -> &'static str {
@@ -129,6 +143,8 @@ impl ExportFormat {
             Self::Usdz => "usdz",
             Self::Fbx => "fbx",
             Self::ThreeMf => "3mf",
+            Self::Step => "step",
+            Self::Iges => "iges",
         }
     }
     /// One of the USD formats, which keep the scene's structure.
@@ -153,7 +169,7 @@ pub fn has_usd_exporter() -> bool {
 
 /// scene.saveAs `format:` values, in `command_registry::EXPORT_FORMATS`
 /// order.
-pub const SCRIPT_EXPORT_FORMATS: [ExportFormat; 17] = [
+pub const SCRIPT_EXPORT_FORMATS: [ExportFormat; 19] = [
     ExportFormat::Obj,
     ExportFormat::StlBinary,
     ExportFormat::StlAscii,
@@ -171,6 +187,8 @@ pub const SCRIPT_EXPORT_FORMATS: [ExportFormat; 17] = [
     ExportFormat::Usdz,
     ExportFormat::Fbx,
     ExportFormat::ThreeMf,
+    ExportFormat::Step,
+    ExportFormat::Iges,
 ];
 
 /// The export format a file name's extension names: the first in
@@ -178,6 +196,12 @@ pub const SCRIPT_EXPORT_FORMATS: [ExportFormat; 17] = [
 /// forms).
 pub fn export_format_of_path(path: &str) -> Option<ExportFormat> {
     let ext = Path::new(path).extension()?.to_str()?.to_ascii_lowercase();
+    // The short CAD extensions name the same formats.
+    let ext = match ext.as_str() {
+        "stp" => "step".to_owned(),
+        "igs" => "iges".to_owned(),
+        _ => ext,
+    };
     SCRIPT_EXPORT_FORMATS
         .into_iter()
         .find(|f| f.extension() == ext)
@@ -551,6 +575,9 @@ pub fn export(path: &Path, scene: &Scene, format: ExportFormat) -> Result<Export
     if format == ExportFormat::Lxo {
         return export_lxo(path, scene);
     }
+    if matches!(format, ExportFormat::Step | ExportFormat::Iges) {
+        return cad::export(path, scene, format);
+    }
     let options = io_options();
     let mut meshes = if matches!(format, ExportFormat::Gltf | ExportFormat::Glb) {
         world_meshes_of(scene, options.gltf_export)?
@@ -628,6 +655,9 @@ pub fn export(path: &Path, scene: &Scene, format: ExportFormat) -> Result<Export
             return Ok(report);
         }
         ExportFormat::Lxo => unreachable!("LXO returns through export_lxo above"),
+        ExportFormat::Step | ExportFormat::Iges => {
+            unreachable!("STEP and IGES return through cad::export above")
+        }
         ExportFormat::Usd | ExportFormat::Usda | ExportFormat::Usdc | ExportFormat::Usdz => {
             unreachable!("USD returns through the registered exporter above")
         }

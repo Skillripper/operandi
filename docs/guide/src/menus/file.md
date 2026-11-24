@@ -36,6 +36,8 @@ The entries of the **File** menu, in order. A **▸** opens a submenu. Keys in b
   - **USDZ (.usdz)…** · `scene.saveAs format:usdz export:true`
   - **FBX (.fbx)…** · `scene.saveAs format:fbx export:true`
   - **3D Manufacturing (.3mf)…** · `scene.saveAs format:3mf export:true`
+  - **STEP (.step)…** · `scene.saveAs format:step export:true`
+  - **IGES (.iges)…** · `scene.saveAs format:iges export:true`
 - **Export Material as MaterialX…** · `operandi.materialx.export`
 - **Load Preset…** · `preset.do`
 - **Save Item Preset…** · `preset.saveAs`

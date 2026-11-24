@@ -265,6 +265,13 @@ fn scene_save_as_exports_interchange_files_and_leaves_the_document_alone() {
     let text = std::fs::read_to_string(&ply).unwrap();
     assert!(text.starts_with("ply\nformat ascii"), "{text}");
     assert!(text.contains("element face 6"), "{text}");
+    // STEP by its short extension: the cube as one closed solid.
+    let step = temp("cube.stp");
+    let _ = std::fs::remove_file(&step);
+    command(&mut b, "scene.saveAs", json!({"filename": step})).unwrap();
+    let text = std::fs::read_to_string(&step).unwrap();
+    assert!(text.starts_with("ISO-10303-21;"), "{text}");
+    assert_eq!(text.matches("=MANIFOLD_SOLID_BREP(").count(), 1, "{text}");
     // Nothing joined the history, and the document is still doc.opscene,
     // saved.
     assert_eq!(undo_depth(&b), depth);
