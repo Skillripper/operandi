@@ -4,7 +4,8 @@
 //! No scene files needed:
 //! `cargo test --release -p operandi-app heavy_mesh_frames -- --ignored --nocapture`
 //!
-//! Cases: a still frame; Move-dragging one polygon; Move-dragging every
+//! Cases: the first frame (a full build of the mesh's GPU geometry); a
+//! still frame; Move-dragging one polygon; Move-dragging every
 //! point (what a deformer does to the viewport each frame); posing the
 //! elbow of a skinned arm (evaluation + skin + redraw). Each drag also
 //! prints the bytes uploaded per frame.
@@ -87,7 +88,10 @@ fn heavy_mesh_frames() {
     a.editor.scene.items.last_mut().unwrap().mesh = grid(side, 4.).into();
     a.run(Command::Mode(Mode::Polygon));
     a.frame(false);
-    b.frame(&mut a, vec![]);
+    // The first frame builds the whole mesh's GPU geometry (as opening it,
+    // or an edit that changes its polygons, does).
+    let first = b.frame(&mut a, vec![]);
+    super::perf_drags_tests::one("grid1m/first_frame_full_build", first);
     let mut still: Vec<f64> = (0..20).map(|_| b.frame(&mut a, vec![])).collect();
     report("grid1m/still_frame", &mut still);
     let points = a.editor.scene.items[0].mesh.vertices.len() as u32;

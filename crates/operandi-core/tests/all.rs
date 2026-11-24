@@ -243,6 +243,8 @@ mod group_material_extras;
 mod haul;
 #[path = "heavy_mesh_bench.rs"]
 mod heavy_mesh_bench;
+#[path = "heavy_mesh_parallel.rs"]
+mod heavy_mesh_parallel;
 #[path = "history_completion.rs"]
 mod history_completion;
 #[path = "i1_completion.rs"]

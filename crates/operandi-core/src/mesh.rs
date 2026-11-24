@@ -62,6 +62,10 @@ pub struct Mesh {
     #[serde(default, with = "crate::mesh_pack::uv_maps")]
     pub uv_maps: crate::Shared<BTreeMap<String, Vec<Vec<Option<DVec2>>>>>,
 }
+/// From this many points or polygons `Mesh::validate` checks them on every
+/// core.
+const PARALLEL_VALIDATE: usize = 1 << 15;
+
 /// The points whose coordinates differ bit for bit between two equally long
 /// point lists, in order. Blocks of points are compared branch-free first, so
 /// a drag frame's diff of a million points runs at memory speed and only the
@@ -400,11 +404,13 @@ impl Mesh {
         if let Some(e) = mesh_too_big(self.vertices.len(), self.faces.len()) {
             return Err(e);
         }
-        if self
-            .vertices
-            .iter()
-            .any(|p| !p.is_finite() || p.abs().max_element() > 1e9)
-        {
+        let bad = |p: &DVec3| !p.is_finite() || p.abs().max_element() > 1e9;
+        if if self.vertices.len() >= PARALLEL_VALIDATE {
+            use rayon::prelude::*;
+            self.vertices.par_iter().any(bad)
+        } else {
+            self.vertices.iter().any(bad)
+        } {
             return Err("Invalid mesh coordinates".into());
         }
         if self.uv_maps.len() > 64 {
@@ -420,40 +426,21 @@ impl Mesh {
                 return Err("Invalid named sparse UV map".into());
             }
         }
-        for (fi, f) in self.faces.iter().enumerate() {
-            // A polygon needs three points, a line two (copied edges paste
-            // as two-point lines, CLP-04), except a one-point polygon:
-            // Make Polygon from one point (make-split-2026-11-05 rule 2,
-            // MP06), kept as an open straight line of one point, so it has
-            // no spans, no area and no edges.
-            let min = match self.attributes.representations.get(fi) {
-                Some(crate::PolygonRepresentation::Polyline {
-                    closed: false,
-                    curve: crate::curves::CurveKind::Line,
-                }) => 1,
-                Some(crate::PolygonRepresentation::Polyline { .. }) => 2,
-                _ => 3,
-            };
-            if f.vertices.len() < min
-                || f.vertices.len() > 4096
-                || f.vertices
-                    .iter()
-                    .any(|&i| i as usize >= self.vertices.len())
-                || (repeats(&f.vertices)
-                    && !self.attributes.degenerate_faces.contains(&(fi as u32)))
-            {
-                return Err(format!("Invalid face {fi}"));
-            }
-            if let Some(uv) = &f.uv
-                && (uv.len() != f.vertices.len() || uv.iter().any(|v| !v.is_finite()))
-            {
-                return Err("Invalid corner UVs".into());
-            }
-            if !self.is_polyline(fi)
-                && self.normal(fi) == DVec3::ZERO
-                && !self.attributes.degenerate_faces.contains(&(fi as u32))
-            {
-                return Err(format!("Degenerate face {fi}"));
+        // A big mesh's polygons are checked on every core first; only if
+        // one fails are they gone through in order, so the error names the
+        // first bad polygon exactly as before (heavy-mesh-speed).
+        let all_fine = self.faces.len() >= PARALLEL_VALIDATE && {
+            use rayon::prelude::*;
+            self.faces
+                .par_iter()
+                .enumerate()
+                .all(|(fi, f)| self.face_error(fi, f).is_none())
+        };
+        if !all_fine {
+            for (fi, f) in self.faces.iter().enumerate() {
+                if let Some(e) = self.face_error(fi, f) {
+                    return Err(e);
+                }
             }
         }
         // Topology only, so remembered per topology (see `topology_cache.rs`):
@@ -462,6 +449,43 @@ impl Mesh {
             return Err("Nonmanifold edge or inconsistent winding".into());
         }
         Ok(())
+    }
+    /// Why polygon `fi` makes the mesh invalid, if it does (`validate`).
+    fn face_error(&self, fi: usize, f: &Face) -> Option<String> {
+        // A polygon needs three points, a line two (copied edges paste
+        // as two-point lines, CLP-04), except a one-point polygon:
+        // Make Polygon from one point (make-split-2026-11-05 rule 2,
+        // MP06), kept as an open straight line of one point, so it has
+        // no spans, no area and no edges.
+        let min = match self.attributes.representations.get(fi) {
+            Some(crate::PolygonRepresentation::Polyline {
+                closed: false,
+                curve: crate::curves::CurveKind::Line,
+            }) => 1,
+            Some(crate::PolygonRepresentation::Polyline { .. }) => 2,
+            _ => 3,
+        };
+        if f.vertices.len() < min
+            || f.vertices.len() > 4096
+            || f.vertices
+                .iter()
+                .any(|&i| i as usize >= self.vertices.len())
+            || (repeats(&f.vertices) && !self.attributes.degenerate_faces.contains(&(fi as u32)))
+        {
+            return Some(format!("Invalid face {fi}"));
+        }
+        if let Some(uv) = &f.uv
+            && (uv.len() != f.vertices.len() || uv.iter().any(|v| !v.is_finite()))
+        {
+            return Some("Invalid corner UVs".into());
+        }
+        if !self.is_polyline(fi)
+            && self.normal(fi) == DVec3::ZERO
+            && !self.attributes.degenerate_faces.contains(&(fi as u32))
+        {
+            return Some(format!("Degenerate face {fi}"));
+        }
+        None
     }
     /// `edge_uses`, remembered per topology.
     pub(crate) fn exceptional_edge_uses(&self) -> std::rc::Rc<crate::topology_cache::EdgeUses> {
