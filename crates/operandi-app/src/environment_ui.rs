@@ -302,7 +302,7 @@ impl Operandi {
                     }
                     if r.lost_focus() {
                         ui.data_mut(|d| d.remove::<String>(key));
-                        if text.trim() != env.lpe_label {
+                        if crate::numeric_tab::accepted(&r) && text.trim() != env.lpe_label {
                             self.env_edit(id, EnvironmentEdit::LpeLabel(text.trim().to_owned()));
                         }
                     }
@@ -499,7 +499,8 @@ impl Operandi {
         if r.lost_focus() {
             ui.data_mut(|d| d.remove::<String>(key));
             // Runs item.name layer:<material> (UIC-164/165).
-            if text.trim() != name
+            if crate::numeric_tab::accepted(&r)
+                && text.trim() != name
                 && !text.trim().is_empty()
                 && let Some(material) = self
                     .editor
@@ -1145,7 +1146,7 @@ impl Operandi {
             }
             if r.lost_focus() {
                 ui.data_mut(|d| d.remove::<String>(key));
-                if !text.trim().is_empty() {
+                if crate::numeric_tab::accepted(&r) && !text.trim().is_empty() {
                     edited.name = text.trim().to_owned();
                 }
             }

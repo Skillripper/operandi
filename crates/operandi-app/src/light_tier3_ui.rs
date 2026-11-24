@@ -108,7 +108,7 @@ impl Operandi {
         }
         if r.lost_focus() {
             ui.data_mut(|d| d.remove::<String>(key));
-            if text.trim() != l.lpe_label {
+            if crate::numeric_tab::accepted(&r) && text.trim() != l.lpe_label {
                 self.light_edit(id, LightEdit::LpeLabel(text));
             }
         }

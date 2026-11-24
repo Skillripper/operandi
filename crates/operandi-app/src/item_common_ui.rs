@@ -172,7 +172,10 @@ impl Operandi {
                 if response.lost_focus() {
                     ui.data_mut(|d| d.remove::<String>(key));
                     let unchanged = same_label && text == first.display.label;
-                    if !unchanged && !(text.is_empty() && !same_label) {
+                    if crate::numeric_tab::accepted(&response)
+                        && !unchanged
+                        && !(text.is_empty() && !same_label)
+                    {
                         self.run_common(ItemCommonEdit::Label(text));
                     }
                 }
