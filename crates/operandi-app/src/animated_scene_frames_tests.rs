@@ -222,3 +222,103 @@ fn moving_items_reuse_their_geometry_then_settle_at_their_places() {
         assert!(cached.edges == fresh.edges);
     }
 }
+
+/// A real shot on this machine, measured where it lies (never copied):
+/// `OPERANDI_SHOT_FILE=<scene.lxo> cargo test --release -p operandi-app
+/// real_shot_frames -- --ignored --nocapture`. Opens it as File > Open
+/// does, then times scrubbing and playback. It prints how many items'
+/// world placements change between two times: an LXO opened this way came
+/// in still on 2026-11-24 (its keys come with File > Import), so check
+/// that line before trusting the playback numbers.
+#[test]
+#[ignore = "opt-in timings on a local scene file (OPERANDI_SHOT_FILE)"]
+fn real_shot_frames() {
+    let Some(path) = std::env::var_os("OPERANDI_SHOT_FILE").map(std::path::PathBuf::from) else {
+        println!("OPERANDI_SHOT_FILE not set");
+        return;
+    };
+    let state = super::performance_tests::headless_gpu().expect("graphics device");
+    let ctx = Context::default();
+    theme::install(&ctx);
+    let b = Bench {
+        ctx,
+        device: state.device.clone(),
+        size: vec2(1440., 900.),
+    };
+    let mut a = Operandi::empty();
+    a.viewport_gpu = Some(gpu::ViewportGpu::new(state));
+    a.camera.view = crate::camera::View::Perspective;
+    b.frame(&mut a, vec![]);
+    let t = std::time::Instant::now();
+    a.open(path);
+    for _ in 0..6000 {
+        if a.import_job.is_none() && a.import_ready.is_none() {
+            break;
+        }
+        if let Some(ready) = a.import_ready.take() {
+            a.commit_import(ready);
+        }
+        b.frame(&mut a, vec![]);
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+    let s = &a.editor.scene;
+    let meshes = s.items.iter().filter(|i| i.is_mesh()).count();
+    let polygons: usize = s.items.iter().map(|i| i.mesh.faces.len()).sum();
+    println!(
+        "PERF shot/opened ms={:.0} items={} meshes={meshes} polygons={polygons} channels_keyed={} rig_pieces={} status={:?}",
+        super::perf_drags_tests::ms(t),
+        s.items.len(),
+        s.animation.channels.len(),
+        s.animation.rig.pieces.len(),
+        a.status
+    );
+    a.run(Command::Mode(Mode::Item));
+    a.frame(false);
+    let mut still: Vec<f64> = (0..10).map(|_| b.frame(&mut a, vec![])).collect();
+    report("shot/still_frame", &mut still);
+    let (first, last) = operandi_core::animation::current_range(&a.editor.scene);
+    let rate = a.editor.scene.time.rate;
+    let f0 = operandi_core::animation::frames(rate, first).round() as i64;
+    let f1 = operandi_core::animation::frames(rate, last).round() as i64;
+    println!("PERF shot/range frames {f0}..{f1}");
+    // Does anything move? Sum of every item's world origin at two times.
+    let spread = |a: &mut Operandi, f: i64| {
+        a.execute(&format!("operandi.time.set frame:{f}"));
+        let s = a
+            .editor
+            .shown_display()
+            .unwrap_or_else(|| a.editor.scene.clone());
+        s.items
+            .iter()
+            .filter_map(|i| s.world_matrix(i.id).ok())
+            .map(|m| m.to_cols_array())
+            .collect::<Vec<_>>()
+    };
+    let (p0, p1) = (spread(&mut a, f0), spread(&mut a, (f0 + f1) / 2));
+    let moved = p0.iter().zip(&p1).filter(|(x, y)| x != y).count();
+    println!("PERF shot/moves items_whose_world_changed={moved}");
+    let mut pose = Vec::new();
+    let mut scrub: Vec<f64> = (0..20)
+        .map(|k| {
+            let t = std::time::Instant::now();
+            a.execute(&format!(
+                "operandi.time.set frame:{}",
+                f0 + (f1 - f0) * k / 20
+            ));
+            pose.push(super::perf_drags_tests::ms(t));
+            b.frame(&mut a, vec![])
+        })
+        .collect();
+    report("shot/scrub_set_time", &mut pose);
+    report("shot/scrub", &mut scrub);
+    a.execute("operandi.time.settings realTime:false");
+    a.execute(&format!("operandi.time.set frame:{f0}"));
+    a.execute("operandi.time.play");
+    let frames = std::env::var("OPERANDI_PERF_DRAG_FRAMES")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(30);
+    let mut play: Vec<f64> = (0..frames).map(|_| b.frame(&mut a, vec![])).collect();
+    report("shot/playback", &mut play);
+    println!("PERF   totals {:?}", a.rebuild_totals());
+}
