@@ -530,9 +530,13 @@ mod subdivide_tab_tests;
 #[path = "polygons/subdivide_ui.rs"]
 mod subdivide_ui;
 mod subdivision_view;
+#[path = "topology_tools/topology_mode.rs"]
 mod topology_mode;
+#[path = "topology_tools/topology_pen_ui.rs"]
 mod topology_pen_ui;
+#[path = "topology_tools/topology_tab.rs"]
 mod topology_tab;
+#[path = "topology_tools/topology_tools_ui.rs"]
 mod topology_tools_ui;
 #[path = "files/usd_import_dialog.rs"]
 mod usd_import_dialog;
@@ -4617,10 +4621,13 @@ mod polygon_unify_tests;
 mod polygon_triple_tests;
 
 #[cfg(test)]
+#[path = "topology_tools/topology_mode_tests.rs"]
 mod topology_mode_tests;
 #[cfg(test)]
+#[path = "topology_tools/topology_pen_ui_tests.rs"]
 mod topology_pen_ui_tests;
 #[cfg(test)]
+#[path = "topology_tools/topology_tools_ui_tests.rs"]
 mod topology_tools_ui_tests;
 
 #[cfg(test)]
