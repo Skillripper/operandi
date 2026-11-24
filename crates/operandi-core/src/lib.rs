@@ -30,8 +30,11 @@ pub mod paint_stroke;
 pub mod paint_tips;
 #[path = "selections/selection_inference.rs"]
 pub mod selection_inference;
+#[path = "uv/uv_atlas.rs"]
 pub mod uv_atlas;
+#[path = "uv/uv_box.rs"]
 pub mod uv_box;
+#[path = "uv/uv_charts.rs"]
 pub mod uv_charts;
 pub use action_center::*;
 #[path = "transforms/align_tools.rs"]
@@ -91,6 +94,7 @@ pub mod camera_light;
 pub mod camera_light_defaults;
 #[path = "render/camera_props.rs"]
 pub mod camera_props;
+#[path = "uv/corner_uv.rs"]
 mod corner_uv;
 #[path = "tools/drop_action.rs"]
 pub mod drop_action;
@@ -188,6 +192,7 @@ pub mod node_view_settings;
 pub mod openpbr;
 #[path = "render/per_light_outputs.rs"]
 pub mod per_light_outputs;
+#[path = "uv/planar_texture.rs"]
 pub mod planar_texture;
 #[path = "meshops/procedural.rs"]
 pub mod procedural;
@@ -353,16 +358,27 @@ pub use edge_relax::edge_relax_geometry;
 pub mod axis_slice;
 #[path = "polygons/detriangulate.rs"]
 pub mod detriangulate;
+#[path = "uv/uv_edit.rs"]
 pub mod uv_edit;
+#[path = "uv/uv_export.rs"]
 pub mod uv_export;
+#[path = "uv/uv_maps.rs"]
 pub mod uv_maps;
+#[path = "uv/uv_ops.rs"]
 pub mod uv_ops;
+#[path = "uv/uv_peel.rs"]
 pub mod uv_peel;
+#[path = "uv/uv_pipe.rs"]
 pub mod uv_pipe;
+#[path = "uv/uv_project.rs"]
 pub mod uv_project;
+#[path = "uv/uv_relax.rs"]
 pub mod uv_relax;
+#[path = "uv/uv_seams.rs"]
 pub mod uv_seams;
+#[path = "uv/uv_symmetry.rs"]
 pub mod uv_symmetry;
+#[path = "uv/uv_tools.rs"]
 pub mod uv_tools;
 pub use detriangulate::DetriangulateOptions;
 #[path = "anim/anim_camera_channels.rs"]
@@ -540,6 +556,7 @@ pub mod transform_repeat;
 #[path = "commands/undo_memory.rs"]
 mod undo_memory;
 pub use primitive::*;
+#[path = "uv/primitive_uv.rs"]
 pub mod primitive_uv;
 #[path = "scene_items/project.rs"]
 pub mod project;
