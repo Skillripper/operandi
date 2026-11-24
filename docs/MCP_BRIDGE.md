@@ -785,6 +785,28 @@ used in the app; `primitive_add` always starts from the Reset values.
   - `item` (integer): Item id (default the active item).
   - `name` (string, required): Channel name.
   - `value` (number, required): The value: percents 0–1, angles radians, true/false for a boolean.
+- **`operandi.channelSet.create`** — Create a channel set from the named or selected channels, one undo step; it becomes the current set and its panel shows over the 3D view.
+  - `name` (string): Its name (default Channel Set).
+  - `channels` (string): item:name,... (default the channel selection, UIC-119).
+- **`operandi.channelSet.add`** — Add channels to a channel set, one undo step; ones already in it stay where they are.
+  - `set` (integer): Channel set id (default the current set).
+  - `channels` (string): item:name,... (default the channel selection, UIC-119).
+- **`operandi.channelSet.remove`** — Remove channels from a channel set (all:true empties it), one undo step.
+  - `set` (integer): Channel set id (default the current set).
+  - `channels` (string): item:name,... (default the channel selection, UIC-119).
+  - `all` (boolean): Remove every channel.
+- **`operandi.channelSet.move`** — Move one row of a channel set to to: (0 is the top) or by: rows, one undo step.
+  - `set` (integer): Channel set id (default the current set).
+  - `channel` (string, required): The row, item:name.
+  - `to` (integer): New place, 0 = top.
+  - `by` (integer): Rows to move, negative = up.
+- **`operandi.channelSet.rename`** — Rename a channel set, one undo step.
+  - `set` (integer): Channel set id (default the current set).
+  - `name` (string, required): New name.
+- **`operandi.channelSet.delete`** — Delete a channel set, one undo step; the channels themselves are untouched.
+  - `set` (integer): Channel set id (default the current set).
+- **`operandi.channelSet.current`** — Pick the channel set whose panel shows over the 3D view, or none; view state, not an undo step.
+  - `set` (string): Channel set id, or none.
 - **`operandi.rig.bindUserChannel`** — Add a user channel of the same kind to target (named after the channel unless name is given) and link the channel to it, one undo step; the channel becomes driven.
   - `channel` (string, required): The channel to drive, item:name.
   - `target` (integer, required): Item that gets the user channel.

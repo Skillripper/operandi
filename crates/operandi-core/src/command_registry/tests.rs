@@ -205,7 +205,7 @@ fn headless_entries_carry_their_arguments() {
             assert!(!json.about.is_empty(), "{}", e.name);
         }
     }
-    assert_eq!(crate::command_exec::specs().count(), 337);
+    assert_eq!(crate::command_exec::specs().count(), 344);
 }
 
 #[test]

@@ -732,12 +732,21 @@ impl Operandi {
     /// [`Self::anim_row`] for a row that is several channels (a colour's
     /// components).
     pub(crate) fn anim_row_names(&self, names: &[String], non_default: bool) {
-        use crate::form::status::ChannelStatus;
         // The animation switch: no keying on the rows while off.
         if !crate::anim_switch::enabled() {
             return;
         }
         let keys: Vec<ChannelKey> = names.iter().flat_map(|n| self.row_channels(n)).collect();
+        self.anim_row_keys(&keys, non_default);
+    }
+
+    /// The status light and keying of the next row for exactly `keys`
+    /// (the channel panel's rows, CP-50).
+    pub(crate) fn anim_row_keys(&self, keys: &[ChannelKey], non_default: bool) {
+        use crate::form::status::ChannelStatus;
+        if !crate::anim_switch::enabled() {
+            return;
+        }
         let s = &self.editor.scene;
         let now = s.time.current;
         let at = self.editor.key_time();

@@ -19,7 +19,13 @@ const MAX_LOAD_BYTES: u64 = 256 << 30;
 /// Newest native version this build reads and writes.
 // Version numbers: renumber here (and in the tests that name them) when
 // branches merge in another order.
-const CURRENT_VERSION: u32 = SAVED_GRAPHS_VERSION;
+const CURRENT_VERSION: u32 = CHANNEL_SETS_VERSION;
+/// Version 66: channel sets (`Animation::channel_sets`, channel_sets.rs,
+/// CP-70). A v65 build would refuse the unknown field.
+const CHANNEL_SETS_VERSION: u32 = 66;
+fn has_v66_channel_sets(scene: &Scene) -> bool {
+    !scene.animation.channel_sets.is_empty() || scene.animation.current_set.is_some()
+}
 /// Version 65: every surface's MaterialX graph and its bindings
 /// (`Document::material_graphs`, materialx/saved.rs; materials stage 4).
 /// A v64 build would refuse the unknown field.
@@ -621,7 +627,9 @@ fn encode_document(scene: &Scene, preset: Option<&crate::preset::PresetHeader>) 
     let data = serde_json::to_vec_pretty(&Document {
         format: "Operandi".into(),
         preset: preset.cloned(),
-        version: if !material_graphs.is_empty() {
+        version: if has_v66_channel_sets(scene) {
+            CHANNEL_SETS_VERSION
+        } else if !material_graphs.is_empty() {
             SAVED_GRAPHS_VERSION
         } else if has_v64_multires(scene) {
             MULTIRES_VERSION
@@ -791,6 +799,9 @@ fn decode_document(
     }
     if doc.version < RENDER_OUTPUTS_D_VERSION && has_v55_outputs(&doc.scene) {
         return Err("These Render Outputs require native version 55".into());
+    }
+    if doc.version < CHANNEL_SETS_VERSION && has_v66_channel_sets(&doc.scene) {
+        return Err("Channel sets require native version 66".into());
     }
     if doc.version < SAVED_GRAPHS_VERSION && !doc.material_graphs.is_empty() {
         return Err("Saved material graphs require native version 65".into());

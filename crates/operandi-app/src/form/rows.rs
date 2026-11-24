@@ -132,7 +132,7 @@ fn anim_controls(ui: &mut Ui, label: &Response, circle: Pos2, row: &AnimRow) {
     }
     for r in [&light, label] {
         r.context_menu(|ui| {
-            let entries: [(&str, String); 9] = [
+            let entries: [(&str, String); 10] = [
                 ("Add Key", format!("operandi.key.set channels:{list}")),
                 ("Remove Key", format!("operandi.key.remove channels:{list}")),
                 ("Next Key", "operandi.time.go to:nextKey".into()),
@@ -145,6 +145,11 @@ fn anim_controls(ui: &mut Ui, label: &Response, circle: Pos2, row: &AnimRow) {
                 ),
                 ("Reset", format!("operandi.key.reset channels:{list}")),
                 ("Bake", format!("operandi.key.bake channels:{list}")),
+                // CP-20: into the channel panel's current set.
+                (
+                    "Add to Channel Set",
+                    format!("operandi.channelSet.add channels:{list}"),
+                ),
             ];
             for (text, line) in entries {
                 if ui.button(text).clicked() {

@@ -232,6 +232,7 @@ pub mod anim_edit;
 pub mod anim_graph;
 pub mod animation;
 pub mod boolean;
+pub mod channel_sets;
 pub mod click_select;
 pub mod drill;
 pub mod eval_build;

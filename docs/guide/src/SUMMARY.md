@@ -161,6 +161,7 @@
 - [Lights and cameras]()
 - [Rendering]()
 - [Animation]()
+    - [Channel panel](animation/channel-panel.md)
 - [Rigging]()
 - [Scripting and the test bridge](scripting/README.md)
     - [Python scripting](scripting/python.md)

@@ -1772,6 +1772,8 @@ impl Operandi {
                 "operandi.rig.bake",
             );
         }
+        // CP-30: the channel panel's set.
+        self.channel_set_menu(ui);
         // TK-41: Apply / Discard while edits are pending.
         let pending = animation::pending(&self.editor.scene).len();
         if pending > 0 {
