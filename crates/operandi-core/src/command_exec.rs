@@ -1516,7 +1516,7 @@ fn export_scene(e: &Editor, a: &Map<String, Value>) -> Result<crate::interchange
     let named = match opt_str(a, "format")? {
         None => None,
         Some(f) => Some(interchange::script_export_format(f).ok_or_else(|| {
-            format!("format is obj, stl, stlAscii, gltf, glb, geo, svg, lxo, ply, plyAscii, abc, usd, usda, usdc, usdz, fbx or 3mf, not \"{f}\"")
+            format!("format is obj, stl, stlAscii, gltf, glb, geo, svg, lxo, ply, plyAscii, abc, usd, usda, usdc, usdz, fbx, 3mf, step or iges, not \"{f}\"")
         })?),
     };
     // Both given and disagreeing is an error, as in the app.

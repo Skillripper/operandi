@@ -160,6 +160,7 @@
     - [Kits and extensions](scripting/kits.md)
 - [Preferences]()
 - [Reference]()
+    - [CAD export (STEP and IGES)](reference/cad-export.md)
     - [Keyboard shortcuts](reference/keyboard-shortcuts.md)
     - [Commands]()
 - [Glossary]()

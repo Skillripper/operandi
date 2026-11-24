@@ -11,6 +11,15 @@
   left out: Operandi's subdivision has nothing to hold it. Animated mesh
   points stay first-sample only. docs/USD_STATUS.md corrected.
 
+- **STEP and IGES export (2026-11-24, branch claude/project-thread-losplx):**
+  File ▸ Export ▸ STEP/IGES and `scene.saveAs format:step|iges` (.stp,
+  .igs too). Tab polygons leave as exact degree-2 B-spline patches with
+  shared edges (closed pieces as solids, open ones as surfaces); Face
+  polygons as planes (bent ones as triangles); Catmull-Clark as
+  render-level facets. Millimetres, Z up, fixed (provisional: no prefs).
+  Checked in OpenCascade 7.8 (FreeCAD 1.1): valid, closed, volume equals
+  the patches' exact volume. IGES is untrimmed surfaces only. Not yet:
+  packed faces, import, seam-continuity measurement.
 - **Mini Properties resize (2026-11-24, branch mini-properties-resize,
   UIC-66 amended with the maintainer's OK):** the bottom-right corner drags
   to resize it; it keeps its top-left corner while you drag and opens at

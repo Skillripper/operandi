@@ -71,6 +71,14 @@
     {
       "command": "scene.saveAs format:3mf export:true",
       "label": "3D Manufacturing (.3mf)…"
+    },
+    {
+      "command": "scene.saveAs format:step export:true",
+      "label": "STEP (.step)…"
+    },
+    {
+      "command": "scene.saveAs format:iges export:true",
+      "label": "IGES (.iges)…"
     }
   ]
 }
