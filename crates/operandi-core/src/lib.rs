@@ -77,12 +77,17 @@ pub mod unit_insert;
 pub use pen::*;
 pub use unit_insert::UnitShape;
 pub mod background_constraint;
+#[path = "render/camera_light.rs"]
 pub mod camera_light;
+#[path = "render/camera_light_defaults.rs"]
 pub mod camera_light_defaults;
+#[path = "render/camera_props.rs"]
 pub mod camera_props;
 mod corner_uv;
 pub mod drop_action;
+#[path = "render/environment.rs"]
 pub mod environment;
+#[path = "render/environment_channels.rs"]
 mod environment_channels;
 pub mod item_common;
 pub mod item_common_channels;
@@ -92,8 +97,11 @@ pub mod item_groups;
 pub mod item_list;
 pub mod item_target;
 pub mod item_transform_ops;
+#[path = "render/locator.rs"]
 pub mod locator;
+#[path = "render/photometry.rs"]
 pub mod photometry;
+#[path = "render/physical_sun.rs"]
 pub mod physical_sun;
 pub use drop_action::DropAction;
 #[path = "commands/command_record.rs"]
@@ -120,6 +128,7 @@ pub mod mesh;
 pub mod multires;
 #[path = "geometry/polygon.rs"]
 pub mod polygon;
+#[path = "render/render_settings.rs"]
 pub mod render_settings;
 #[path = "materials/shading.rs"]
 pub mod shading;
@@ -137,6 +146,7 @@ pub mod dispersion;
 pub mod gradient;
 #[path = "nodes/graph_view.rs"]
 pub mod graph_view;
+#[path = "render/light_path_expressions.rs"]
 pub mod light_path_expressions;
 #[path = "materials/material.rs"]
 pub mod material;
@@ -156,12 +166,14 @@ pub mod node_view_commands;
 #[path = "nodes/node_view_settings.rs"]
 pub mod node_view_settings;
 pub mod openpbr;
+#[path = "render/per_light_outputs.rs"]
 pub mod per_light_outputs;
 pub mod planar_texture;
 #[path = "meshops/procedural.rs"]
 pub mod procedural;
 #[path = "materials/process_occlusion.rs"]
 pub mod process_occlusion;
+#[path = "render/render_outputs.rs"]
 pub mod render_outputs;
 #[path = "materials/shader_eval.rs"]
 pub mod shader_eval;
@@ -481,6 +493,7 @@ pub use project::Project;
 pub mod radial;
 pub use radial::*;
 pub mod active_task;
+#[path = "render/backdrop.rs"]
 pub mod backdrop;
 pub mod last_mesh;
 pub mod multi_active;
