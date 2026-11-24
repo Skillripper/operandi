@@ -755,8 +755,19 @@ pub(crate) fn headless_gpu() -> Option<egui_wgpu::RenderState> {
     }
     // WGPU_BACKEND picks the graphics API, as it does for the app (for
     // example `dx12` to run the GPU tests on DirectX 12 on Windows).
+    //
+    // Without it, only the primary APIs (Vulkan, Metal, DirectX 12), not
+    // OpenGL. Each call makes and drops its own instance, and an OpenGL
+    // instance starts a helper thread ("wgpu-hal WGL Instance Thread").
+    // On Windows with an NVIDIA driver, that thread exiting (holding the
+    // system's DLL loader lock while the driver's detach code waits on a
+    // driver lock) deadlocks against another test creating a Vulkan device
+    // (holding that driver lock while loading a DLL), and the test run
+    // hangs forever. No GPU test uses OpenGL unless asked to.
     let instance = egui_wgpu::wgpu::Instance::new(&egui_wgpu::wgpu::InstanceDescriptor {
         flags: crate::gpu::instance_flags(),
+        backends: egui_wgpu::wgpu::Backends::from_env()
+            .unwrap_or(egui_wgpu::wgpu::Backends::PRIMARY),
         ..egui_wgpu::wgpu::InstanceDescriptor::from_env_or_default()
     });
     wait(egui_wgpu::RenderState::create(

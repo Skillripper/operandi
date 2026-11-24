@@ -90,6 +90,7 @@ skip() {
 run fmt "$CARGO_BIN" fmt --check
 run clippy "$CARGO_BIN" clippy --locked --workspace --all-targets -- -D warnings
 run tests "$CARGO_BIN" test --locked --workspace --no-fail-fast
+TESTS_RESULT=$result
 # Monkey-user sessions (monkey_tests.rs): 2,000 random sessions, ~10 min.
 run monkey env OPERANDI_MONKEY_SEEDS=2000 "$CARGO_BIN" test --locked -p operandi-app monkey_sessions_long -- --ignored
 if [ -d development/cycles/install/lib ]; then
@@ -137,4 +138,14 @@ fi
     fi
 } >"$REPORT"
 cp "$REPORT" "$OUT/latest.md"
+# The nightly test build (installed with `nightly-install.sh --test-builds`):
+# only after the workspace tests pass, so testers never get a build whose
+# tests failed. It skips itself when main hasn't changed.
+if [ "${OPERANDI_NIGHTLY_TEST_BUILD:-}" = 1 ]; then
+    if [ "$TESTS_RESULT" = pass ]; then
+        sh "$REPO/scripts/nightly-test-build.sh" || true
+    else
+        printf '# Test build %s: skipped, the tests failed\n' "$STAMP" >"$OUT/latest-test-build.md"
+    fi
+fi
 [ "$FAILED" = 0 ]

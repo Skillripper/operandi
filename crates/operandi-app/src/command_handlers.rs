@@ -2232,6 +2232,7 @@ fn tables(r: &mut Commands) {
     on(r, &["operandi.help.documentation"], |a, _| {
         a.open_documentation()
     });
+    on(r, &["operandi.help.whatsThis"], |a, _| a.toggle_help_mode());
     on(r, &["operandi.update.check"], |a, _| a.check_for_updates());
     // Online libraries (online_library_ui.rs).
     on_words(

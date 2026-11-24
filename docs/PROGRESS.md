@@ -1,5 +1,13 @@
 # Milestone progress ledger
 
+- **Help mode, What's This? (2026-11-24, branch help-mode, UIC-06):** F1
+  or Help ▸ What's This? (`operandi.help.whatsThis`), question-mark
+  pointer; the next click opens /guide/<version>/go/<help-id>/ for the
+  button, menu entry, tool's Tool Properties, panel or 3D view, and does
+  nothing else; Esc or right-click leaves. Provisional: floating palettes
+  in their own OS windows and the in-window menu bar (Linux, Windows)
+  still act on the click.
+
 - **LXO export label (2026-11-24, branch lxo-export-label, Jason's
   choice):** File ▸ Export's "Modo Scene (LXO)…" is now "LXO Scene…", and
   the format's name in the export file dialog is "LXO Scene". The command
@@ -99,6 +107,18 @@
   (OPERANDI_BLESS_GUIDE=1 rewrites it). New QA harness settings for the
   shots: OPERANDI_QA_PRIMITIVE_HEIGHT (height drag), OPERANDI_QA_FIELDS
   (type into Tool Properties), OPERANDI_QA_CLICKS (clicks at world points).
+- **Scripting guide pages (2026-11-23, branch scripting-guide):**
+  User Guide section Scripting and the test bridge: overview, Python
+  scripting (switch, Script Console, Run Script, mesh data, animation,
+  undo, limits), Python reference (written from operandi.py, the
+  registry's script-askable queries and the operandi.python.* commands by
+  guide_python_tests.rs; bless with OPERANDI_BLESS_GUIDE=1), Kits and
+  extensions (scripts on menus via operandi.form.add, kit items kept,
+  the two Rust register hooks, what isn't built). Every ```python block
+  in those pages runs in the app as a test (python feature). Fix found on
+  the way: in the app a script couldn't run any command without a
+  headless form (tools, select.*, operandi.form.*, command.list): the
+  query check refused them first (operandi-python answer_editor).
 
 - **Help > User Guide (2026-11-23, branch guide-help-menu):** Help >
   Documentation is now User Guide and always lit; it opens
