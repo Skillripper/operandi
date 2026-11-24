@@ -802,7 +802,8 @@ Added 2026-11-14, the maintainer's OK.
 - **UIC-180** Two kinds of loose panel. A **popover** is for a quick look or
   a quick change, then it's gone. A **floating window** is a panel you keep
   open while you work. Rule of thumb: one tweak = popover; open for minutes
-  = window. [OP]
+  = window. Controls kept beside the work in a 3D view: an in-view panel
+  (UIC-188). [OP]
 - **UIC-181** **Popover**: opens at the pointer, or under the button or key
   that called it (O for Viewport Properties, the Snapping button, the colour
   picker). It sits inside the main window, not its own OS window, and has no
@@ -835,6 +836,15 @@ Added 2026-11-14, the maintainer's OK.
   Window menu (UIC-184). (the maintainer, 2026-11-14.) [OP]
 - **UIC-186** **Dialogs** (section 8) are neither: they block the app until
   you press OK or Cancel. [OP]
+- **UIC-188** **In-view panel** (the maintainer, 2026-11-24): a third kind
+  of loose panel, for controls you keep beside the work in a 3D view (the
+  channel panel, CP-xx). It sits inside one 3D view, not its own OS window,
+  with a header strip carrying its name and a close (×) at the left end;
+  drag the header to move it anywhere inside the view. It stays open until
+  closed: the pointer leaving, Esc and the selection changing do nothing.
+  Its place is kept per view as a fraction of the view, clamped inside it,
+  as layout state (UIC-73), not scene data. Changes in it apply live, one
+  undo step each (UIC-182). [OP]
 
 ## 14. Layouts
 
