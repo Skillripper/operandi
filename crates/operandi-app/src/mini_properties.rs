@@ -29,6 +29,10 @@ const MAX_HEIGHT: f32 = 480.;
 /// MP-04: the pop-over's bottom-right corner sits this far above and left
 /// of the pointer.
 const OFFSET: f32 = 8.;
+/// The resize corner's size (UIC-66).
+const CORNER: f32 = 14.;
+/// The smallest a resize leaves it.
+const MIN_SIZE: Vec2 = vec2(200., 120.);
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct MiniProperties {
@@ -36,6 +40,9 @@ pub struct MiniProperties {
     pub at: Pos2,
     /// Moved by dragging the title bar (MP-07).
     pub moved: Vec2,
+    /// Set once its corner is dragged: from then on it keeps this top-left
+    /// corner (plus `moved`) instead of hanging from the pointer.
+    pub top_left: Option<Pos2>,
 }
 
 impl Operandi {
@@ -99,6 +106,7 @@ impl Operandi {
         self.mini_properties = open.then(|| MiniProperties {
             at: anchor.unwrap_or_else(|| self.viewport_rect.center()),
             moved: Vec2::ZERO,
+            top_left: None,
         });
         Ok(())
     }
@@ -150,34 +158,54 @@ impl Operandi {
 
     /// Draws the pop-over when open; returns where it was drawn.
     pub(super) fn mini_properties_window(&mut self, ctx: &Context) -> Option<Rect> {
-        let MiniProperties { at, moved } = self.mini_properties?;
+        let MiniProperties {
+            at,
+            moved,
+            top_left,
+        } = self.mini_properties?;
         let tool = self.mini_shows_tool();
+        let screen = ctx.content_rect();
+        let room = (screen.height() - 60.).max(MIN_SIZE.y);
         // Issue #8: an Area's content gets last frame's size as its room,
         // so a scroll area sized from the room could only shrink: once
         // the pop-over was short (two rows, say, before an item was
         // picked) it stayed short. The rows ask for their own height, up
-        // to MAX_HEIGHT and what fits on screen, and scroll past that.
-        let rows_height = MAX_HEIGHT.min((ctx.content_rect().height() - 60.).max(120.));
+        // to MAX_HEIGHT (or the size dragged with the corner) and what
+        // fits on screen, and scroll past that.
+        let size = self.mini_properties_size;
+        let width = size.map_or(WIDTH, |s| s.x).min(screen.width() - 16.);
+        let rows_height = size.map_or(MAX_HEIGHT, |s| s.y).min(room);
+        // Opened, it hangs above-left of the pointer (MP-04); once resized
+        // it keeps its top-left corner, so the corner follows the pointer.
+        let (pivot, pos) = match top_left {
+            Some(p) => (Align2::LEFT_TOP, p + moved),
+            None => (Align2::RIGHT_BOTTOM, at - Vec2::splat(OFFSET) + moved),
+        };
         let shown = egui::Area::new(Id::new("mini-properties"))
             .order(egui::Order::Foreground)
-            .constrain_to(ctx.content_rect())
-            .pivot(Align2::RIGHT_BOTTOM)
-            .fixed_pos(at - Vec2::splat(OFFSET) + moved)
+            .constrain_to(screen)
+            .pivot(pivot)
+            .fixed_pos(pos)
             .show(ctx, |ui| {
-                egui::Frame::popup(&ctx.style())
+                let frame = egui::Frame::popup(&ctx.style())
                     .fill(theme::popup_fill())
                     .show(ui, |ui| {
-                        ui.set_width(WIDTH);
+                        ui.set_width(width);
                         // N07: the standard popover header (UIC-64/181):
                         // no title, the pin circle at the top right. Mini
                         // Properties opens pinned (MP-06), so the circle
                         // closes it and the strip drags it (MP-07).
                         let action = crate::snapping::popover_header(ui, true);
-                        ScrollArea::vertical()
+                        let rows = ScrollArea::vertical()
                             .id_salt("mini-properties-rows")
                             .max_height(rows_height)
                             .min_scrolled_height(rows_height)
                             .show(ui, |ui| {
+                                // A dragged size holds even when the rows
+                                // are fewer.
+                                if size.is_some() {
+                                    ui.set_min_height(rows_height);
+                                }
                                 ui.spacing_mut().item_spacing.y =
                                     crate::form::layout::panel::ROW_GAP;
                                 crate::form::rows::scope(ui, "mini-properties", |ui| {
@@ -190,12 +218,45 @@ impl Operandi {
                                     }
                                 });
                             });
-                        action
-                    })
-                    .inner
+                        (action, rows.content_size.y.min(rows.inner_rect.height()))
+                    });
+                // UIC-66 (the maintainer, 2026-11-24, issue #8): the
+                // bottom-right corner drags to resize it.
+                let corner = Rect::from_min_max(
+                    frame.response.rect.max - Vec2::splat(CORNER),
+                    frame.response.rect.max,
+                );
+                let grip = ui
+                    .interact(corner, Id::new("mini-properties-resize"), Sense::drag())
+                    .on_hover_text("Drag to resize");
+                if grip.hovered() || grip.dragged() {
+                    ctx.set_cursor_icon(egui::CursorIcon::ResizeNwSe);
+                }
+                let stroke = egui::Stroke::new(1_f32, theme::weak_text());
+                for k in 1..=3 {
+                    let d = 3. * k as f32;
+                    ui.painter().line_segment(
+                        [corner.max - vec2(d + 2., 2.), corner.max - vec2(2., d + 2.)],
+                        stroke,
+                    );
+                }
+                let resized = grip.dragged().then(|| grip.drag_delta());
+                (frame.inner, resized, frame.response.rect)
             });
+        let ((action, rows_drawn), resized, frame_rect) = shown.inner;
+        if let Some(delta) = resized
+            && let Some(m) = self.mini_properties.as_mut()
+        {
+            if m.top_left.is_none() {
+                m.top_left = Some(frame_rect.min - m.moved);
+            }
+            // The drag grows or shrinks the rows from what's drawn now.
+            let rows = vec2(width, rows_drawn);
+            let max = vec2(screen.width() - 16., room);
+            self.mini_properties_size = Some((rows + delta).clamp(MIN_SIZE, max.max(MIN_SIZE)));
+        }
         use crate::snapping::HeaderAction;
-        match shown.inner {
+        match action {
             HeaderAction::Pin => self.mini_properties = None,
             HeaderAction::Drag(delta) => {
                 if let Some(m) = self.mini_properties.as_mut() {

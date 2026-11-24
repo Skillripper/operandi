@@ -649,6 +649,9 @@ struct Operandi {
     mini_properties: Option<mini_properties::MiniProperties>,
     /// Where the next Mini Properties opens (the pointer at the Space tap).
     mini_properties_anchor: Option<Pos2>,
+    /// The size Mini Properties' corner was dragged to (UIC-66); kept until
+    /// quit, so it opens that size next time.
+    mini_properties_size: Option<Vec2>,
     /// N03: where the in-window pop-overs (Mini Properties, Smooth Shift's
     /// mini window) were last drawn. Presses there belong to them, not to
     /// the viewport under them.
@@ -1494,6 +1497,7 @@ impl Operandi {
             surface_mini_properties: false,
             mini_properties: None,
             mini_properties_anchor: None,
+            mini_properties_size: None,
             overlay_rects: Vec::new(),
             item_fields: BTreeMap::new(),
             item_field_owner: None,

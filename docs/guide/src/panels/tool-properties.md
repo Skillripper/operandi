@@ -26,6 +26,15 @@ the last tool again with its last values.
 **Ctrl+D** (**Reset Tool Attributes**) puts the active tool's settings back
 to their starting values.
 
+## Mini Properties
+
+Tap **Space** over the 3D view for **Mini Properties**: a small pop-over
+by the pointer with the active tool's most-used rows, or the selected
+item's **Name** and **Item Transform** when no tool is on. It stays open
+until you press **Space** again or click its circle. Drag its top strip to
+move it, and drag its bottom-right corner to make it bigger or smaller.
+It keeps that size until you quit Operandi.
+
 ## Related
 
 - [Interface](../interface/window.md): part 13 is Tool Properties

@@ -230,6 +230,9 @@ Version 1, 2026-11-07. Behaviour only. Open questions and exceptions are tracked
   its x closes it (not Esc, clicks or the pointer leaving; it overrides
   UIC-62). **Q** and **Esc** drop the active tool. **Alt+Shift+Space**
   cycles selection modes. [ref] (the maintainer, 2026-11-10, curve tool thread.)
+  Its bottom-right corner drags to resize it; it keeps its top-left corner
+  while you drag, and opens at that size until you quit. (the maintainer,
+  2026-11-24, issue #8.)
 
 ## 7. Viewports, windows, drag and drop
 

@@ -1,5 +1,11 @@
 # Milestone progress ledger
 
+- **Mini Properties resize (2026-11-24, branch mini-properties-resize,
+  UIC-66 amended with the maintainer's OK):** the bottom-right corner drags
+  to resize it; it keeps its top-left corner while you drag and opens at
+  that size until quit (not saved across launches yet). Guide: Tool
+  Properties page, "Mini Properties".
+
 - **Bug reports #6, #7, #8 (2026-11-24, branch fix-bug-reports-batch1):**
   #6 Texture Locator (Shader Tree and Environment) Position, Rotation,
   Size, Falloff and Real World Size are one row per axis (UIC-114), so Y
