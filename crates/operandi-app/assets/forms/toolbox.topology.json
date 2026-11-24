@@ -86,7 +86,8 @@
     {
       "command": "Retopo Sketch",
       "label": "Retopo Guides",
-      "tooltip": "Retopo Guides · Retopo Sketch under this tab's name: drag across a background mesh to draw a guide curve on it"
+      "tooltip": "Retopo Guides · Retopo Sketch under this tab's name: drag across a background mesh to draw a guide curve on it",
+      "icon": "retopo-sketch"
     },
     {
       "divider": "Commands",
@@ -95,7 +96,8 @@
     {
       "command": "Automatic Retopology",
       "label": "Automatic Retopology...",
-      "look": "flat"
+      "look": "flat",
+      "icon": "auto-retopology"
     },
     {
       "divider": ""
@@ -103,7 +105,8 @@
     {
       "command": "Triple",
       "label": "Convert to Triangles",
-      "look": "flat"
+      "look": "flat",
+      "icon": "triple"
     },
     {
       "command": "Quadruple",

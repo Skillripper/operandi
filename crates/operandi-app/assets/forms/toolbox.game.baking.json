@@ -10,15 +10,18 @@
     },
     {
       "command": "operandi.bake.curvature",
-      "label": "Bake Curvature…"
+      "label": "Bake Curvature…",
+      "icon": "bake-curvature"
     },
     {
       "command": "operandi.bake.thickness",
-      "label": "Bake Thickness…"
+      "label": "Bake Thickness…",
+      "icon": "bake-thickness"
     },
     {
       "command": "operandi.bake.padImage",
-      "label": "Pad Texture to UVs…"
+      "label": "Pad Texture to UVs…",
+      "icon": "pad-texture"
     }
   ]
 }

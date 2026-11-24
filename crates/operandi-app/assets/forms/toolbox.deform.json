@@ -202,7 +202,8 @@
           },
           {
             "command": "Relax Mesh",
-            "label": "Relax Mesh..."
+            "label": "Relax Mesh...",
+            "icon": "relax-mesh"
           }
         ]
       }

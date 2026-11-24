@@ -30,7 +30,8 @@
     },
     {
       "command": "Retopo Sketch",
-      "label": "Retopo Sketch"
+      "label": "Retopo Sketch",
+      "icon": "retopo-sketch"
     },
     {
       "divider": ""
@@ -42,11 +43,13 @@
     },
     {
       "command": "Tube",
-      "label": "Tube"
+      "label": "Tube",
+      "icon": "tube"
     },
     {
       "command": "Draw Patch",
-      "label": "Patch"
+      "label": "Patch",
+      "icon": "draw-patch"
     },
     {
       "divider": ""
@@ -65,18 +68,21 @@
       "command": "curves.setColor",
       "label": "Set Curves Color…",
       "look": "flat",
-      "tooltip": "Set Curves Color… · the colour curves draw in this view; not saved in the scene · curves.setColor"
+      "tooltip": "Set Curves Color… · the colour curves draw in this view; not saved in the scene · curves.setColor",
+      "icon": "curve-color"
     },
     {
       "command": "Freeze",
       "label": "Freeze...",
-      "look": "flat"
+      "look": "flat",
+      "icon": "curve-freeze"
     },
     {
       "command": "curve.winding",
       "label": "Align Winding",
       "look": "flat",
-      "tooltip": "Align Winding · every selected closed curve runs the same way round · curve.winding"
+      "tooltip": "Align Winding · every selected closed curve runs the same way round · curve.winding",
+      "icon": "curve-winding"
     },
     {
       "divider": ""
@@ -86,24 +92,28 @@
       "label": "Make Open Curve",
       "look": "flat",
       "tooltip": "Make Open Curve · a Curve through the selected vertices, in selection order · poly.makeCurveOpen",
-      "shortcut": "Make Open Curve"
+      "shortcut": "Make Open Curve",
+      "icon": "curve-make-open"
     },
     {
       "command": "poly.makeCurveClosed",
       "label": "Make Closed Curves",
       "look": "flat",
-      "tooltip": "Make Closed Curve · a closed Curve through the selected vertices, in selection order · poly.makeCurveClosed"
+      "tooltip": "Make Closed Curve · a closed Curve through the selected vertices, in selection order · poly.makeCurveClosed",
+      "icon": "curve-make-closed"
     },
     {
       "command": "poly.makeCurveFill",
       "label": "Make Curve Fill",
       "look": "flat",
-      "tooltip": "Make Curve Fill · a flat polygon filling each selected closed curve; the curve stays · poly.makeCurveFill"
+      "tooltip": "Make Curve Fill · a flat polygon filling each selected closed curve; the curve stays · poly.makeCurveFill",
+      "icon": "curve-make-fill"
     },
     {
       "command": "edges.toCurve",
       "label": "Edges to Curves",
-      "look": "flat"
+      "look": "flat",
+      "icon": "edges-to-curves"
     },
     {
       "divider": ""
@@ -117,13 +127,15 @@
             "command": "ppi.curveOffset closed:false trio:false",
             "label": "Open Curve Offset…",
             "look": "flat",
-            "tooltip": "Open Curve Offset… · an offset copy of the selected open curves in the same item · ppi.curveOffset"
+            "tooltip": "Open Curve Offset… · an offset copy of the selected open curves in the same item · ppi.curveOffset",
+            "icon": "curve-offset-open"
           },
           {
             "command": "ppi.curveOffset closed:false trio:true",
             "label": "Open Curve Offset Trio…",
             "look": "flat",
-            "tooltip": "Open Curve Offset Trio… · an offset copy of the selected open curves in the same item (both sides) · ppi.curveOffset"
+            "tooltip": "Open Curve Offset Trio… · an offset copy of the selected open curves in the same item (both sides) · ppi.curveOffset",
+            "icon": "curve-offset-trio"
           }
         ]
       }
@@ -137,13 +149,15 @@
             "command": "ppi.curveOffset closed:true trio:false",
             "label": "Closed Curve Offset…",
             "look": "flat",
-            "tooltip": "Closed Curve Offset… · an offset copy of the selected closed curves in the same item · ppi.curveOffset"
+            "tooltip": "Closed Curve Offset… · an offset copy of the selected closed curves in the same item · ppi.curveOffset",
+            "icon": "curve-offset-closed"
           },
           {
             "command": "ppi.curveOffset closed:true trio:true",
             "label": "Closed Curve Offset Trio…",
             "look": "flat",
-            "tooltip": "Closed Curve Offset Trio… · an offset copy of the selected closed curves in the same item (both sides) · ppi.curveOffset"
+            "tooltip": "Closed Curve Offset Trio… · an offset copy of the selected closed curves in the same item (both sides) · ppi.curveOffset",
+            "icon": "curve-offset-trio"
           }
         ]
       }
@@ -160,37 +174,43 @@
             "command": "curve.convert from:curve to:bspline",
             "label": "Curve to B-Spline",
             "look": "flat",
-            "tooltip": "Curve to B-Spline · the selected curves become a new Converted item; the source stays · curve.convert"
+            "tooltip": "Curve to B-Spline · the selected curves become a new Converted item; the source stays · curve.convert",
+            "icon": "curve-convert"
           },
           {
             "command": "curve.convert from:curve to:bezier",
             "label": "Curve to Bezier",
             "look": "flat",
-            "tooltip": "Curve to Bezier · the selected curves become a new Converted item; the source stays · curve.convert"
+            "tooltip": "Curve to Bezier · the selected curves become a new Converted item; the source stays · curve.convert",
+            "icon": "curve-convert"
           },
           {
             "command": "curve.convert from:bezier to:curve",
             "label": "Bezier to Curve",
             "look": "flat",
-            "tooltip": "Bezier to Curve · the selected curves become a new Converted item; the source stays · curve.convert"
+            "tooltip": "Bezier to Curve · the selected curves become a new Converted item; the source stays · curve.convert",
+            "icon": "curve-convert"
           },
           {
             "command": "curve.convert from:bezier to:bspline",
             "label": "Bezier to B-Spline",
             "look": "flat",
-            "tooltip": "Bezier to B-Spline · the selected curves become a new Converted item; the source stays · curve.convert"
+            "tooltip": "Bezier to B-Spline · the selected curves become a new Converted item; the source stays · curve.convert",
+            "icon": "curve-convert"
           },
           {
             "command": "curve.convert from:bspline to:bezier",
             "label": "B-Spline to Bezier",
             "look": "flat",
-            "tooltip": "B-Spline to Bezier · the selected curves become a new Converted item; the source stays · curve.convert"
+            "tooltip": "B-Spline to Bezier · the selected curves become a new Converted item; the source stays · curve.convert",
+            "icon": "curve-convert"
           },
           {
             "command": "curve.convert from:bspline to:curve",
             "label": "B-Spline to Curve",
             "look": "flat",
-            "tooltip": "B-Spline to Curve · the selected curves become a new Converted item; the source stays · curve.convert"
+            "tooltip": "B-Spline to Curve · the selected curves become a new Converted item; the source stays · curve.convert",
+            "icon": "curve-convert"
           }
         ]
       }
@@ -199,7 +219,8 @@
       "command": "bezier.tangent",
       "label": "Bezier Tangent…",
       "look": "flat",
-      "tooltip": "Bezier Tangent… · sharpen, smooth or even the handles of the selected Bezier knots · bezier.tangent"
+      "tooltip": "Bezier Tangent… · sharpen, smooth or even the handles of the selected Bezier knots · bezier.tangent",
+      "icon": "bezier-tangent"
     }
   ]
 }
