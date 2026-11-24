@@ -111,7 +111,7 @@ mod tests {
     fn editor() -> Editor {
         let mut editor = Editor {
             scene: serde_json::from_str(include_str!(
-                "../../../docs/i2/expectations/graphs/G0.json"
+                "../../../../docs/i2/expectations/graphs/G0.json"
             ))
             .unwrap(),
             ..Default::default()

@@ -29,6 +29,7 @@ pub mod pen;
 pub use align_tools::{
     GroundAlign, GroundMode, QuickAlign, QuickAlignKind, SelectionAxisMode, Tack, TackOptions,
 };
+#[path = "commands/clipboard.rs"]
 pub mod clipboard;
 pub mod curve_boolean;
 pub mod curve_commands;
@@ -72,11 +73,14 @@ pub mod locator;
 pub mod photometry;
 pub mod physical_sun;
 pub use drop_action::DropAction;
+#[path = "commands/command_record.rs"]
 pub mod command_record;
 pub mod editor;
 pub use command_record::{CommandClass, CommandRecord, RecordLog, Source, StepRecords};
+#[path = "commands/history_settings.rs"]
 mod history_settings;
 pub mod units;
+#[path = "commands/user_defaults.rs"]
 pub mod user_defaults;
 pub use history_settings::*;
 mod flip;
@@ -161,11 +165,16 @@ mod bridge_commands;
 pub mod channels;
 pub mod character_rig;
 pub mod character_rig_commands;
+#[path = "commands/command_args.rs"]
 pub mod command_args;
+#[path = "commands/command_exec.rs"]
 pub mod command_exec;
+#[path = "commands/command_line.rs"]
 pub mod command_line;
+#[path = "commands/command_names.rs"]
 pub mod command_names;
 pub mod command_registry;
+#[path = "commands/command_runtime.rs"]
 pub mod command_runtime;
 mod set_position;
 pub use set_position::*;
@@ -335,11 +344,14 @@ pub mod packed_mesh;
 pub use mesh_slot::{MeshSlot, MeshView};
 pub mod mesh_instance;
 pub use packed_mesh::{MeshRead, PackedMesh};
+#[path = "commands/document_state.rs"]
 mod document_state;
+#[path = "commands/persistence.rs"]
 pub mod persistence;
 pub mod preset;
 pub mod primitive;
 pub mod transform_repeat;
+#[path = "commands/undo_memory.rs"]
 mod undo_memory;
 pub use primitive::*;
 pub mod primitive_uv;
@@ -486,13 +498,16 @@ mod identity_editor;
 pub mod live_extrude;
 pub use live_extrude::*;
 
+#[path = "commands/history_policy.rs"]
 mod history_policy;
 pub(crate) mod mid_tool_undo;
 pub use history_policy::*;
 pub use mid_tool_undo::{ToolReopen, ToolTweaks};
 
+#[path = "commands/session_ownership.rs"]
 mod session_ownership;
 
+#[path = "commands/history_completion.rs"]
 mod history_completion;
 pub use history_completion::*;
 
