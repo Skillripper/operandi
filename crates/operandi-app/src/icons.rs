@@ -553,6 +553,9 @@ pub enum Icon {
     UvTileRight,
     UvTileUp,
     UvTileDown,
+    /// UV tab Box Transform (studio render made as "transform" in batch 5;
+    /// renamed 2026-11-24 so the shared Transform tool keeps its own icon).
+    UvBoxTransform,
 }
 /// One table: each icon's file in assets/icons (named as in the generator's
 /// output) and its embedded artwork. Add Loop uses the Loop Cut artwork;
@@ -1145,6 +1148,7 @@ icon_files! {
     UvTileRight => "uv-tile-right",
     UvTileUp => "uv-tile-up",
     UvTileDown => "uv-tile-down",
+    UvBoxTransform => "uv-box-transform",
 }
 
 fn rasterize(icon: Icon, pixels: u32) -> Result<ColorImage, String> {

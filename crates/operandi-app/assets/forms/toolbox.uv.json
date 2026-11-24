@@ -263,7 +263,7 @@
             "command": "Box Transform",
             "label": "Box",
             "tooltip": "Box Transform · move, turn and scale the selected UVs by a box round them (UV view) · operandi.uv.boxTransform",
-            "icon": "transform"
+            "icon": "uv-box-transform"
           }
         ],
         "icons": "icon"
