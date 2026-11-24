@@ -60,8 +60,10 @@ fn type_value(a: &mut Operandi, c: &Context, text: &str) {
 }
 
 fn parked_app() -> Operandi {
-    let scene: Scene =
-        serde_json::from_str(include_str!("../../../docs/i2/expectations/graphs/G0.json")).unwrap();
+    let scene: Scene = serde_json::from_str(include_str!(
+        "../../../../docs/i2/expectations/graphs/G0.json"
+    ))
+    .unwrap();
     let mut a = Operandi::empty();
     a.editor = Editor {
         scene,

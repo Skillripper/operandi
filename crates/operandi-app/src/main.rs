@@ -1,5 +1,6 @@
 #[path = "files/about.rs"]
 mod about;
+#[path = "transforms/absolute_scaling_ui.rs"]
 mod absolute_scaling_ui;
 #[path = "presets/add_browser.rs"]
 mod add_browser;
@@ -60,7 +61,9 @@ mod node_view_panel_tests;
 #[path = "controls/popup_title.rs"]
 mod popup_title;
 mod snaps_panel;
+#[path = "transforms/symmetrize_panel.rs"]
 mod symmetrize_panel;
+#[path = "transforms/symmetry_ui.rs"]
 mod symmetry_ui;
 use crate::prefs_file::PrefsFile;
 use snaps_panel::SnapPreset;
@@ -462,6 +465,7 @@ mod rig_tab_tests;
 mod rig_ui_tests;
 #[path = "rigging/rig_user_channels_ui.rs"]
 mod rig_user_channels_ui;
+#[path = "transforms/scale_offset_dialog.rs"]
 mod scale_offset_dialog;
 #[path = "files/scenes.rs"]
 mod scenes;
@@ -488,6 +492,7 @@ mod session_draw;
 #[cfg(test)]
 #[path = "graphics/session_draw_tests.rs"]
 mod session_draw_tests;
+#[path = "transforms/set_position_dialog.rs"]
 mod set_position_dialog;
 #[path = "materials/shading_panel.rs"]
 mod shading_panel;
@@ -4243,6 +4248,7 @@ mod app_bundle_icon_tests {
 }
 
 #[cfg(test)]
+#[path = "transforms/absolute_scaling_tests.rs"]
 mod absolute_scaling_tests;
 #[cfg(test)]
 mod active_mesh_pick_tests;
@@ -4667,8 +4673,10 @@ mod pen_interactive_tests;
 mod solid_sketch_ui_tests;
 
 #[cfg(test)]
+#[path = "transforms/scale_offset_tests.rs"]
 mod scale_offset_tests;
 #[cfg(test)]
+#[path = "transforms/set_position_tests.rs"]
 mod set_position_tests;
 
 #[cfg(test)]
@@ -4698,6 +4706,7 @@ mod material_editing_tests;
 #[path = "input_devices/nav_lock_hide_tests.rs"]
 mod nav_lock_hide_tests;
 #[cfg(test)]
+#[path = "transforms/symmetry_tests.rs"]
 mod symmetry_tests;
 #[cfg(test)]
 mod zoom_to_surface_tests;
