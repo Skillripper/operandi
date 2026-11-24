@@ -111,7 +111,8 @@
     },
     {
       "command": "Edges To Curves",
-      "tooltip": "Edges To Curves · edges.toCurve{binding}"
+      "tooltip": "Edges To Curves · edges.toCurve{binding}",
+      "icon": "edges-to-curves"
     },
     {
       "command": "Unbevel",

@@ -225,17 +225,20 @@
     {
       "command": "Solid Drill",
       "label": "Solid Drill...",
-      "tooltip": "Solid Drill...{binding} · Cut the active mesh's polygons where a closed driver passes through them: keep the inside (Core) or outside (Tunnel), or keep both (Stencil, Slice) · poly.solidDrill"
+      "tooltip": "Solid Drill...{binding} · Cut the active mesh's polygons where a closed driver passes through them: keep the inside (Core) or outside (Tunnel), or keep both (Stencil, Slice) · poly.solidDrill",
+      "icon": "solid-drill"
     },
     {
       "command": "Axis Drill",
       "label": "Axis Drill...",
-      "tooltip": "Axis Drill...{binding} · Cut the active mesh's polygons with the driver's outline pushed straight along X, Y or Z · poly.drill"
+      "tooltip": "Axis Drill...{binding} · Cut the active mesh's polygons with the driver's outline pushed straight along X, Y or Z · poly.drill",
+      "icon": "axis-drill"
     },
     {
       "command": "curve.boolean",
       "label": "Curve Boolean...",
-      "tooltip": "Curve Boolean... · slice, unite, intersect or subtract the selected closed curves with the other curves · curve.boolean"
+      "tooltip": "Curve Boolean... · slice, unite, intersect or subtract the selected closed curves with the other curves · curve.boolean",
+      "icon": "curve-boolean"
     },
     {
       "divider": ""
@@ -249,12 +252,14 @@
     {
       "command": "Retopo Sketch",
       "label": "Retopo Sketch",
-      "tooltip": "Retopo Sketch{binding} · Drag across a background mesh to draw a guide curve on it"
+      "tooltip": "Retopo Sketch{binding} · Drag across a background mesh to draw a guide curve on it",
+      "icon": "retopo-sketch"
     },
     {
       "command": "Automatic Retopology",
       "label": "Automatic Retopology...",
-      "tooltip": "Automatic Retopology...{binding} · Rebuild the whole active mesh as even quads that follow its shape · mesh.retopo"
+      "tooltip": "Automatic Retopology...{binding} · Rebuild the whole active mesh as even quads that follow its shape · mesh.retopo",
+      "icon": "auto-retopology"
     },
     {
       "command": "Remesh",
@@ -287,12 +292,14 @@
     {
       "command": "Retopo Edge Lock",
       "label": "Retopo Edge Lock",
-      "tooltip": "Retopo Edge Lock{binding} · Add the selected guide curves to the RetopoEdgeLock selection set"
+      "tooltip": "Retopo Edge Lock{binding} · Add the selected guide curves to the RetopoEdgeLock selection set",
+      "icon": "retopo-edge-lock"
     },
     {
       "command": "Retopo Edge Flow",
       "label": "Retopo Edge Flow",
-      "tooltip": "Retopo Edge Flow{binding} · Add the selected guide curves to the RetopoEdgeFlow selection set"
+      "tooltip": "Retopo Edge Flow{binding} · Add the selected guide curves to the RetopoEdgeFlow selection set",
+      "icon": "retopo-edge-flow"
     },
     {
       "heading": "UV",
