@@ -275,8 +275,10 @@ fn stabilization_baseline() {
 #[test]
 #[ignore = "opt-in bounded I2 CPU history baseline"]
 fn stabilization_i2_baseline() {
-    let source: Scene =
-        serde_json::from_str(include_str!("../../../docs/i2/expectations/graphs/G0.json")).unwrap();
+    let source: Scene = serde_json::from_str(include_str!(
+        "../../../../docs/i2/expectations/graphs/G0.json"
+    ))
+    .unwrap();
     for depth in [0, 10, 100] {
         let mut editor = Editor {
             scene: source.clone(),

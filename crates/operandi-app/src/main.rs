@@ -134,6 +134,7 @@ mod contour_ui;
 #[path = "items/create_utility.rs"]
 mod create_utility;
 #[cfg(test)]
+#[path = "tools/ctrl_constrain_tests.rs"]
 mod ctrl_constrain_tests;
 #[path = "create_tools/curve_hands_on.rs"]
 mod curve_hands_on;
@@ -145,6 +146,7 @@ mod cut_dialogs;
 mod defaults_preferences;
 #[path = "deformers/deform_panel.rs"]
 mod deform_panel;
+#[path = "tools/detents.rs"]
 mod detents;
 #[path = "polygons/detriangulate_dialog.rs"]
 mod detriangulate_dialog;
@@ -152,11 +154,13 @@ mod dialog_place;
 #[path = "materials/display_shading.rs"]
 mod display_shading;
 #[cfg(test)]
+#[path = "tools/drag_undo_guard_tests.rs"]
 mod drag_undo_guard_tests;
 #[path = "create_tools/draw_tools.rs"]
 mod draw_tools;
 #[path = "slicing/drill_dialog.rs"]
 mod drill_dialog;
+#[path = "tools/drop_action_ui.rs"]
 mod drop_action_ui;
 #[path = "input_devices/drop_keys.rs"]
 mod drop_keys;
@@ -175,6 +179,7 @@ mod edit_panel;
 mod editor_color_ui;
 #[path = "create_tools/ellipsoid_panel.rs"]
 mod ellipsoid_panel;
+#[path = "tools/empty_expand.rs"]
 mod empty_expand;
 #[path = "graphics/environment_gpu.rs"]
 mod environment_gpu;
@@ -186,6 +191,7 @@ mod environment_ui;
 mod exr_multilayer;
 #[path = "deformers/falloff_panel.rs"]
 mod falloff_panel;
+#[path = "tools/field_handoff.rs"]
 mod field_handoff;
 #[path = "files/file_chooser.rs"]
 mod file_chooser;
@@ -234,8 +240,10 @@ mod handle_tips;
 mod haul_view;
 #[path = "menus/help_menu.rs"]
 mod help_menu;
+#[path = "tools/help_mode.rs"]
 mod help_mode;
 #[cfg(test)]
+#[path = "tools/help_mode_tests.rs"]
 mod help_mode_tests;
 #[path = "commands/i2_route.rs"]
 mod i2_route;
@@ -277,7 +285,9 @@ mod layouts_edit;
 mod light_tier2_ui;
 #[path = "render/light_tier3_ui.rs"]
 mod light_tier3_ui;
+#[path = "tools/link_mode.rs"]
 mod link_mode;
+#[path = "tools/live_fields.rs"]
 mod live_fields;
 #[path = "files/log_ring.rs"]
 mod log_ring;
@@ -302,6 +312,7 @@ mod mesh_cleanup_dialog;
 mod mesh_items_preferences;
 #[path = "painting_ui/mesh_paint_ui.rs"]
 mod mesh_paint_ui;
+#[path = "tools/mini_properties.rs"]
 mod mini_properties;
 #[path = "menus/modeling_menu.rs"]
 mod modeling_menu;
@@ -325,7 +336,9 @@ mod native;
 mod native_menu;
 #[path = "settings/navigation_preferences.rs"]
 mod navigation_preferences;
+#[path = "tools/numeric_draft.rs"]
 mod numeric_draft;
+#[path = "tools/numeric_tab.rs"]
 mod numeric_tab;
 #[path = "presets/online_library.rs"]
 mod online_library;
@@ -371,6 +384,7 @@ mod plane_handles_tests;
 #[cfg(test)]
 #[path = "create_tools/plane_teapot_tests.rs"]
 mod plane_teapot_tests;
+#[path = "tools/poly_haul_drag.rs"]
 mod poly_haul_drag;
 #[path = "polygons/polygon_align.rs"]
 mod polygon_align;
@@ -600,10 +614,13 @@ mod painting_viewer;
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 #[path = "input_devices/tablet.rs"]
 mod tablet;
+#[path = "tools/tag_mode_ui.rs"]
 mod tag_mode_ui;
 mod theme;
+#[path = "tools/tool_exit_hint.rs"]
 mod tool_exit_hint;
 mod tool_form;
+#[path = "tools/tool_framing.rs"]
 mod tool_framing;
 mod tool_split;
 mod toolbox;
@@ -643,6 +660,7 @@ mod value_presets;
 mod vertex_panel;
 #[path = "settings/viewport_preferences.rs"]
 mod viewport_preferences;
+#[path = "tools/weld_drag.rs"]
 mod weld_drag;
 mod window_state;
 mod workspace;
@@ -4031,6 +4049,7 @@ pub(crate) fn same_document(a: &Scene, b: &Scene) -> bool {
             .all(|(x, y)| operandi_core::Shared::same(x.mesh.shared(), y.mesh.shared()))
         && a == b
 }
+#[path = "tools/drag_readout.rs"]
 mod drag_readout;
 mod floating;
 mod form_editor;
@@ -4232,6 +4251,7 @@ mod camera_props_tests;
 #[cfg(test)]
 mod camera_view_settle_tests;
 #[cfg(test)]
+#[path = "tools/click_start_tests.rs"]
 mod click_start_tests;
 #[cfg(test)]
 #[path = "commands/command_history_tests.rs"]
@@ -4243,6 +4263,7 @@ mod command_line_tests;
 #[path = "commands/command_names_tests.rs"]
 mod command_names_tests;
 #[cfg(test)]
+#[path = "tools/component_transform_tests.rs"]
 mod component_transform_tests;
 #[cfg(test)]
 #[path = "items/create_utility_tests.rs"]
@@ -4251,6 +4272,7 @@ mod create_utility_tests;
 #[path = "deformers/deform_tab_tests.rs"]
 mod deform_tab_tests;
 #[cfg(test)]
+#[path = "tools/drag_anywhere_tests.rs"]
 mod drag_anywhere_tests;
 #[cfg(test)]
 #[path = "graphics/drag_patch_tests.rs"]
@@ -4268,6 +4290,7 @@ mod draw_tools_tests;
 #[path = "graphics/drawing_equivalence_tests.rs"]
 mod drawing_equivalence_tests;
 #[cfg(test)]
+#[path = "tools/drop_action_tests.rs"]
 mod drop_action_tests;
 #[cfg(test)]
 #[path = "files/drop_files_tests.rs"]
@@ -4285,6 +4308,7 @@ mod duplicate_tools_tests;
 #[path = "edges/edge_tab_tests.rs"]
 mod edge_tab_tests;
 #[cfg(test)]
+#[path = "tools/empty_expand_tests.rs"]
 mod empty_expand_tests;
 #[cfg(test)]
 #[path = "render/environment_image_tests.rs"]
@@ -4309,6 +4333,7 @@ mod handle_style_menu_tests;
 #[cfg(test)]
 mod handle_tips_tests;
 #[cfg(test)]
+#[path = "tools/haul_tests.rs"]
 mod haul_tests;
 #[cfg(test)]
 #[path = "graphics/heavy_mesh_frames_tests.rs"]
@@ -4349,13 +4374,16 @@ mod light_properties_tests;
 #[path = "render/light_view_tests.rs"]
 mod light_view_tests;
 #[cfg(test)]
+#[path = "tools/link_button_tests.rs"]
 mod link_button_tests;
 #[cfg(test)]
+#[path = "tools/mini_properties_tests.rs"]
 mod mini_properties_tests;
 #[cfg(test)]
 #[path = "controls/number_field_tests.rs"]
 mod number_field_tests;
 #[cfg(test)]
+#[path = "tools/numeric_tab_tests.rs"]
 mod numeric_tab_tests;
 #[cfg(test)]
 #[path = "presets/online_library_tests.rs"]
@@ -4367,6 +4395,7 @@ mod path_slice_tools_tests;
 #[path = "create_tools/pen_ui_tests.rs"]
 mod pen_ui_tests;
 #[cfg(test)]
+#[path = "tools/perf_drags_tests.rs"]
 mod perf_drags_tests;
 #[cfg(test)]
 mod perf_view_tests;
@@ -4394,6 +4423,7 @@ mod render_item_ui_tests;
 #[path = "render/render_outputs_save_tests.rs"]
 mod render_outputs_save_tests;
 #[cfg(test)]
+#[path = "tools/reset_tool_tests.rs"]
 mod reset_tool_tests;
 #[cfg(test)]
 #[path = "items/scene_panel_tests.rs"]
@@ -4424,16 +4454,21 @@ mod snaps_panel_tests;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]
+#[path = "tools/tool_card_view_tests.rs"]
 mod tool_card_view_tests;
 #[cfg(test)]
+#[path = "tools/tool_field_handoff_tests.rs"]
 mod tool_field_handoff_tests;
+#[path = "tools/tool_info.rs"]
 mod tool_info;
 #[cfg(test)]
 #[path = "presets/tool_presets_tests.rs"]
 mod tool_presets_tests;
 #[cfg(test)]
+#[path = "tools/tool_properties_header_tests.rs"]
 mod tool_properties_header_tests;
 #[cfg(test)]
+#[path = "tools/tool_speed_guard_tests.rs"]
 mod tool_speed_guard_tests;
 mod toolbox_form;
 #[cfg(test)]
@@ -4509,9 +4544,11 @@ mod smooth_shift_escape_tests;
 mod smooth_shift_picking_freshness_tests;
 
 #[cfg(test)]
+#[path = "tools/performance_tests.rs"]
 mod performance_tests;
 
 #[cfg(test)]
+#[path = "tools/perf_snapshot_tests.rs"]
 mod perf_snapshot_tests;
 
 #[cfg(test)]
