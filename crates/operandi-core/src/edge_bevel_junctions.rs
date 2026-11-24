@@ -936,35 +936,57 @@ pub(crate) fn general(
             }
             let homes: Vec<usize> = corners[&v].iter().map(|c| c.face).collect();
             let n = rows as usize;
-            if n >= 2 && (!square || n == 2) && ring.len() % n == 0 && ring.len() / n >= 3 {
-                // EBC-J-05 / EBC-B3-04: where strips with two or more rows
-                // meet, a patch of quads.
-                let start = ring.iter().position(|id| !is_row(&defs, id)).unwrap_or(0);
-                ring.rotate_left(start);
-                if ring
-                    .iter()
-                    .enumerate()
-                    .all(|(i, id)| is_row(&defs, id) == (i % n != 0))
-                {
-                    // Corner Pattern (EBC-Q-CP1): Edge Bevel's other fills
-                    // for a Round corner; Patch is the measured one below.
-                    if !chamfer && !square && options.corner != CornerPattern::Patch {
-                        corner_fill(
-                            &ring,
-                            n,
-                            options.corner,
-                            &mut out,
-                            &mut defs,
-                            &mut new_faces,
-                            &homes,
-                        )?;
-                        continue;
-                    }
+            // EBC-J-05 / EBC-B3-04: where strips with two or more rows meet,
+            // a patch of quads. The opening runs strip corner, profile rows,
+            // strip corner… An unselected edge between two strips (a split
+            // line of the polygons around the point, the tester's L-shape,
+            // 2026-11-24) adds a second corner point there; such a run of
+            // corner points is laid out as one corner (their mean) and its
+            // points go back into the polygon that takes that corner.
+            // Before, such an opening was closed by one polygon whatever
+            // the Corner Pattern.
+            let layout = if n >= 2 && (!square || n == 2) {
+                corner_layout(&ring, n, |id| is_row(&defs, id))
+            } else {
+                None
+            };
+            if let Some((ring, runs)) = layout {
+                // One stand-in point per run of corner points.
+                let mut layout_ring = ring.clone();
+                let mut stand_ins: Vec<(u32, Vec<u32>)> = Vec::new();
+                for (at, run) in runs.iter().rev() {
+                    let w = 1. / run.len() as f64;
+                    let comb: Comb = run.iter().map(|&id| (id, w)).collect();
+                    let position = run
+                        .iter()
+                        .map(|&id| out.vertices[id as usize] * w)
+                        .sum::<DVec3>();
+                    let id = push(&mut out, position)?;
+                    defs.insert(id, Def::Blend(comb));
+                    layout_ring.splice(*at..*at + run.len(), [id]);
+                    stand_ins.push((id, run.clone()));
+                }
+                let first_new = new_faces.len();
+                // Corner Pattern (EBC-Q-CP1): Edge Bevel's other fills for a
+                // Round corner; Patch is the measured one below.
+                if !chamfer && !square && options.corner != CornerPattern::Patch {
+                    let centre = corner_centre(&layout_ring, n);
+                    corner_fill(
+                        &ring,
+                        centre,
+                        n,
+                        options.corner,
+                        &mut out,
+                        &mut defs,
+                        &mut new_faces,
+                        &homes,
+                    )?;
+                } else {
                     // Square keeps the corner sharp: the patch meets at the
                     // original point (Depth ignored, EBS-03).
                     let center = square.then_some((v, 1.));
                     corner_patch(
-                        &ring,
+                        &layout_ring,
                         n,
                         center,
                         &mut out,
@@ -972,8 +994,25 @@ pub(crate) fn general(
                         &mut new_faces,
                         &homes,
                     )?;
-                    continue;
+                    // Each stand-in's polygon takes its run's points instead,
+                    // in the opening's order.
+                    for (id, run) in &stand_ins {
+                        for (face, _) in new_faces[first_new..].iter_mut() {
+                            let Some(i) = face.iter().position(|x| x == id) else {
+                                continue;
+                            };
+                            let before = face[(i + face.len() - 1) % face.len()];
+                            let ri = ring.iter().position(|x| *x == run[0]).unwrap_or(0);
+                            let ring_before = ring[(ri + ring.len() - 1) % ring.len()];
+                            let mut ids = run.clone();
+                            if before != ring_before {
+                                ids.reverse();
+                            }
+                            face.splice(i..=i, ids);
+                        }
+                    }
                 }
+                continue;
             }
             if let Some(apex) = ring.iter().position(|id| beyond.contains(id))
                 && fan_ends
@@ -1233,32 +1272,50 @@ fn flat_opening(out: &Mesh, ring: &[u32], new_faces: &mut [(Vec<u32>, Vec<usize>
     false
 }
 
-/// Corner Pattern (a tester's request, 2026-11-24; EBC-Q-CP1): fill the
-/// opening `ring` where strips of `n` rows meet (laid out as for
-/// [`corner_patch`]) with one of the patterns besides Patch.
-/// * Uniform: a triangle from each profile segment to one centre point.
-/// * Radial: rings between the opening and the centre (`n / 2` of them,
-///   at least one), quads between rings, triangles to the centre.
-/// * None: the opening as one polygon.
-///
-/// The centre is where [`corner_patch`]'s grids meet with even rows: the
-/// mean of the parallelograms A + B − C of each strip corner C and the two
-/// profile points A, B half a profile away, so it lies on the rounded
-/// surface the strips describe.
-fn corner_fill(
-    ring: &[u32],
-    n: usize,
-    pattern: CornerPattern,
-    out: &mut Mesh,
-    defs: &mut BTreeMap<u32, Def>,
-    new_faces: &mut Vec<(Vec<u32>, Vec<usize>)>,
-    homes: &[usize],
-) -> Result<()> {
+/// The opening `ring` laid out as strip corners each followed by `n − 1`
+/// profile rows, at least three strips: the ring turned to start at a
+/// corner point, and each run of two or more corner points in a row (an
+/// unselected edge between two strips adds one) with its index in that
+/// turned ring. `None` for any other opening.
+type Layout = (Vec<u32>, Vec<(usize, Vec<u32>)>);
+fn corner_layout(ring: &[u32], n: usize, is_row: impl Fn(&u32) -> bool) -> Option<Layout> {
     let len = ring.len();
-    if pattern == CornerPattern::None {
-        new_faces.push((ring.to_vec(), homes.to_vec()));
-        return Ok(());
+    // Start at a corner point that follows a row.
+    let start = (0..len).find(|&i| !is_row(&ring[i]) && is_row(&ring[(i + len - 1) % len]))?;
+    let mut turned = ring.to_vec();
+    turned.rotate_left(start);
+    let mut runs = Vec::new();
+    let mut corners = 0;
+    let mut i = 0;
+    while i < len {
+        let run: Vec<u32> = turned[i..]
+            .iter()
+            .take_while(|id| !is_row(id))
+            .copied()
+            .collect();
+        if run.is_empty() {
+            return None;
+        }
+        if run.len() > 1 {
+            runs.push((i, run.clone()));
+        }
+        i += run.len();
+        let rows = turned[i..].iter().take_while(|id| is_row(id)).count();
+        if rows != n - 1 {
+            return None;
+        }
+        i += rows;
+        corners += 1;
     }
+    (corners >= 3).then_some((turned, runs))
+}
+
+/// Where [`corner_patch`]'s grids meet with even rows, for a laid-out
+/// opening (one point per strip corner): the mean of the parallelograms
+/// A + B − C of each strip corner C and the two profile points A, B half a
+/// profile away, so it lies on the rounded surface the strips describe.
+fn corner_centre(ring: &[u32], n: usize) -> Comb {
+    let len = ring.len();
     let k = len / n;
     let m = (n / 2).max(1);
     let r = |i: isize| ring[i.rem_euclid(len as isize) as usize];
@@ -1273,6 +1330,36 @@ fn corner_fill(
             *sum.entry(id).or_default() += w / k as f64;
         }
     }
+    sum.into_iter().filter(|&(_, w)| w != 0.).collect()
+}
+
+/// Corner Pattern (a tester's request, 2026-11-24; EBC-Q-CP1): fill the
+/// opening `ring` where strips of `n` rows meet (laid out as for
+/// [`corner_patch`]) with one of the patterns besides Patch.
+/// * Uniform: a triangle from each profile segment to one centre point.
+/// * Radial: rings between the opening and the centre (`n / 2` of them,
+///   at least one), quads between rings, triangles to the centre.
+/// * None: the opening as one polygon.
+///
+/// `centre` is [`corner_centre`]; `ring` may hold more than one corner
+/// point between two strips (see `corner_layout`).
+#[allow(clippy::too_many_arguments)]
+fn corner_fill(
+    ring: &[u32],
+    centre_comb: Comb,
+    n: usize,
+    pattern: CornerPattern,
+    out: &mut Mesh,
+    defs: &mut BTreeMap<u32, Def>,
+    new_faces: &mut Vec<(Vec<u32>, Vec<usize>)>,
+    homes: &[usize],
+) -> Result<()> {
+    let len = ring.len();
+    if pattern == CornerPattern::None {
+        new_faces.push((ring.to_vec(), homes.to_vec()));
+        return Ok(());
+    }
+    let m = (n / 2).max(1);
     let mut make = |out: &mut Mesh, comb: Comb| -> Result<u32> {
         let position = comb
             .iter()
@@ -1283,7 +1370,6 @@ fn corner_fill(
         defs.insert(id, Def::Blend(comb));
         Ok(id)
     };
-    let centre_comb: Comb = sum.into_iter().filter(|&(_, w)| w != 0.).collect();
     let centre = make(out, centre_comb.clone())?;
     // Uniform is Radial with no rings.
     let rings = if pattern == CornerPattern::Radial {

@@ -63,7 +63,9 @@ fn sides(m: &Mesh, n: usize) -> usize {
 #[test]
 fn every_pattern_closes_the_corner() {
     let c = cube();
-    let shapes: [(&str, Mesh, Vec<(u32, u32)>, usize); 2] = [
+    // Name, mesh, edges and how many corners where three strips meet.
+    type Shape = (&'static str, Mesh, Vec<(u32, u32)>, usize);
+    let shapes: [Shape; 2] = [
         ("cube corner", c.clone(), cube_corner(&c), 1),
         ("hole corners", hole(), HOLE.to_vec(), 4),
     ];

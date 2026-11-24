@@ -162,6 +162,8 @@ mod edge_bevel;
 mod edge_bevel_cap_edges;
 #[path = "edge_bevel_corner_pattern.rs"]
 mod edge_bevel_corner_pattern;
+#[path = "edge_bevel_l_shape.rs"]
+mod edge_bevel_l_shape;
 #[path = "edge_bevel_loop_slide.rs"]
 mod edge_bevel_loop_slide;
 #[cfg(operandi_specs)]
