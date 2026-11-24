@@ -6,6 +6,7 @@ The entries of the **Geometry** menu, in order. A **▸** opens a submenu. Keys 
 
 - **Mesh Cleanup...** · `mesh.cleanup`
 - **Vertex Normal Tools...** · `Vertex Normal Tools...`
+- **New MeshBlend** · `meshblend.new`
 - **Draw ▸**
   - **Solid Sketch** · `Solid Sketch`
   - **Topology Pen** · `Topology Pen`

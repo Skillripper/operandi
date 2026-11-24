@@ -924,6 +924,10 @@ pub fn op_status(s: &operandi_core::mesh_stack::OpStatus) -> Value {
         S::Ok => json!("ok"),
         S::Off => json!("off"),
         S::Failed(why) => json!({"failed": why}),
+        S::Noted(notes) => json!({"notes": notes
+            .iter()
+            .map(|n| json!({"item": n.item, "text": n.text, "problem": n.problem}))
+            .collect::<Vec<_>>()}),
     }
 }
 

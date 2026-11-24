@@ -249,6 +249,8 @@ mod mesh_stack_builtin;
 pub mod mesh_stack_editor;
 pub mod mesh_stack_items;
 pub mod mesh_stack_tools;
+pub mod meshblend;
+pub mod meshblend_spike;
 pub mod meshop_selection;
 pub mod meshop_types;
 pub mod pose_tool;

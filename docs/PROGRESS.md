@@ -1,5 +1,27 @@
 # Milestone progress ledger
 
+- **MeshBlend B1 (2026-11-24, branch claude/project-thread-20fok5):**
+  Geometry > New MeshBlend makes a MeshBlend Item (a mesh whose stack
+  starts with the `meshblend.item` op) from the selected meshes. Recipe
+  (`meshblend/recipe.rs`) holds sources, roles, relationships, per-source
+  Subdivision / Keep Cage Points / In Result and the strip settings for
+  B2; evaluator (`meshblend/evaluate.rs`) is a plain function; eight
+  undoable `meshblend.*` commands; Properties rows per source with Add and
+  Convert. Sharp joins only. Bad sources are left out with a red line on
+  the op row (new `OpStatus::Noted`). Provisional: MB-Q01..Q05.
+
+- **MeshBlend B0 strip spike (2026-11-24, branch claude/project-thread-20fok5):**
+  no UI. `meshblend_spike/` in core: a 25-scene corpus (BLD-C01..C27
+  inputs plus FAILURES cases), the ST-10 topology gate and ST-09
+  repeatability fingerprint, the shared sharp stage (smooth sources,
+  pre-flight with reasons, canonical source order, one Manifold boolean
+  per branch with provenance), and two strip prototypes. D (own strip
+  builder: cut at distance Width from the join, matched stations, profile
+  loft, three-patch corners) passes ST-10 and ST-09 on every scene; 16
+  cutters rebuild in about 0.2 s. B (Edge Chamfer on the join) refuses
+  most joins on smooth sources. Pictures: the ignored
+  `meshblend_spike::b0_comparison` test. Jason picks the method (Q07).
+
 - **USD animation import (2026-11-24, branch usd-animation-import):**
   opening or importing a USD file brings its animation: transform time
   samples and camera and light attribute samples become linear keys on

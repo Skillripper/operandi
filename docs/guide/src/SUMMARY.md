@@ -103,6 +103,7 @@
         - [Subdivide](edit/subdivide.md)
         - [Freeze](edit/freeze.md)
         - [Booleans and drills](edit/booleans.md)
+        - [MeshBlend](edit/meshblend.md)
         - [Retopology and Remesh](edit/retopology.md)
         - [Clean-up commands](edit/cleanup.md)
         - [Mesh Cleanup](edit/mesh-cleanup.md)
