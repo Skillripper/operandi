@@ -754,6 +754,7 @@ pub(crate) fn builtin() -> Vec<Arc<dyn OpDef>> {
     ];
     // Ops that read other items (Boolean, Merge Meshes).
     table.extend(crate::mesh_stack_items::entries());
+    table.extend(crate::meshblend::op::entries());
     // Direct tools as ops, by group (mesh_stack_tools.rs).
     table.extend(crate::mesh_stack_tools::polygon_entries());
     table.extend(crate::mesh_stack_tools::edge_entries());

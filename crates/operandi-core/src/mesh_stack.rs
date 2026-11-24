@@ -494,11 +494,18 @@ pub enum OpStatus {
     Ok,
     Off,
     Failed(String),
+    /// Ran, with lines to show (OpContext::note).
+    Noted(Vec<crate::meshop_types::OpNote>),
 }
 
 /// The op on `ctx.input`, without the guard. Values are re-checked by the
 /// op because a file or script can bypass the panel (SAFE-10).
-fn run_op(op: &MeshOp, links: &[Linked], time: Tick, input: &Mesh) -> Result<Mesh> {
+fn run_op(
+    op: &MeshOp,
+    links: &[Linked],
+    time: Tick,
+    input: &Mesh,
+) -> Result<(Mesh, Vec<crate::meshop_types::OpNote>)> {
     let kind = op.kind.revived();
     let (def, values) = match (&*kind, kind.def()) {
         (OpKind::Op { values, .. }, Some(def)) => (def, values),
@@ -511,7 +518,7 @@ fn run_op(op: &MeshOp, links: &[Linked], time: Tick, input: &Mesh) -> Result<Mes
     };
     // Edit ops on a mesh with no polygons have nothing to do.
     if def.takes_selection() && input.faces.is_empty() {
-        return Ok(input.clone());
+        return Ok((input.clone(), Vec::new()));
     }
     let selection = if def.takes_selection() {
         crate::meshop_selection::resolve(op.selection.as_ref(), &op.selops, input)?
@@ -520,7 +527,7 @@ fn run_op(op: &MeshOp, links: &[Linked], time: Tick, input: &Mesh) -> Result<Mes
     };
     // A Selection input that picked nothing: nothing to do (PG-04).
     if selection.as_ref().is_some_and(Vec::is_empty) {
-        return Ok(input.clone());
+        return Ok((input.clone(), Vec::new()));
     }
     let (clean, groups) = crate::meshop_selection::split_groups(input);
     let ctx = OpContext {
@@ -529,10 +536,11 @@ fn run_op(op: &MeshOp, links: &[Linked], time: Tick, input: &Mesh) -> Result<Mes
         selection: selection.as_deref(),
         links,
         time,
+        notes: Default::default(),
     };
     let mut out = def.run(&ctx, values)?;
     crate::meshop_selection::carry_groups(&groups, &clean, &mut out);
-    Ok(out)
+    Ok((out, ctx.notes.into_inner()))
 }
 
 /// SAFE-04: the op inside a guard. A panic, an error, an invalid result or
@@ -544,9 +552,9 @@ pub fn guarded_op(
     links: &[Linked],
     time: Tick,
     limits: Limits,
-) -> std::result::Result<Mesh, String> {
-    let out = match catch_unwind(AssertUnwindSafe(|| run_op(op, links, time, input))) {
-        Ok(Ok(mesh)) => mesh,
+) -> std::result::Result<(Mesh, Vec<crate::meshop_types::OpNote>), String> {
+    let (out, notes) = match catch_unwind(AssertUnwindSafe(|| run_op(op, links, time, input))) {
+        Ok(Ok(done)) => done,
         Ok(Err(e)) => return Err(e),
         Err(_) => return Err("It stopped unexpectedly (an internal error)".into()),
     };
@@ -559,7 +567,7 @@ pub fn guarded_op(
         ));
     }
     match catch_unwind(AssertUnwindSafe(|| out.validate())) {
-        Ok(Ok(())) => Ok(out),
+        Ok(Ok(())) => Ok((out, notes)),
         Ok(Err(e)) => Err(format!("It made an invalid mesh: {e}")),
         Err(_) => Err("Its result couldn't be checked (an internal error)".into()),
     }
@@ -734,11 +742,16 @@ fn run_chain(
         } else {
             counter.fetch_add(1, Ordering::Relaxed);
             match guarded_op(&input, op, &op_inputs.links, op_inputs.time(), limits) {
-                Ok(mesh) => {
+                Ok((mesh, notes)) => {
                     let mesh = Shared::new(mesh);
                     // Checked above; later readers skip the walk.
                     mesh.record_checked();
-                    (mesh, OpStatus::Ok)
+                    let status = if notes.is_empty() {
+                        OpStatus::Ok
+                    } else {
+                        OpStatus::Noted(notes)
+                    };
+                    (mesh, status)
                 }
                 // Pass the input through (SAFE-04, Q2).
                 Err(reason) => (input, OpStatus::Failed(reason)),

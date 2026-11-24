@@ -15,6 +15,7 @@ mod item_transform_ui;
 #[cfg(test)]
 mod mesh_paint_tests;
 mod mesh_stack_ui;
+mod meshblend_ui;
 mod node_edit_ui;
 #[cfg(test)]
 mod node_edit_ui_tests;
@@ -256,6 +257,7 @@ mod resource_write;
 mod rig_tab_tests;
 #[cfg(test)]
 mod rig_ui_tests;
+mod rig_user_channels_ui;
 mod scale_offset_dialog;
 mod scenes;
 mod schematic_ui;

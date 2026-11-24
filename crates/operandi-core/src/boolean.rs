@@ -400,7 +400,7 @@ fn segment_hits_triangle(p: DVec3, q: DVec3, a: DVec3, b: DVec3, c: DVec3) -> bo
 
 /// The first pair of triangles that cross although they share no corner
 /// (BOOL-21). Sweep along x over bounding boxes; exact pair test.
-fn self_intersection(m: &Tri) -> Option<(usize, usize)> {
+pub(crate) fn self_intersection(m: &Tri) -> Option<(usize, usize)> {
     let boxes: Vec<(DVec3, DVec3)> = m
         .tris
         .iter()
@@ -450,7 +450,7 @@ pub(crate) enum EngineOp {
 /// counting up from zero, far below this.
 const RUN_BASE: u32 = 1 << 30;
 
-fn manifold_solid(m: &Tri) -> Result<manifold_csg::Manifold> {
+pub(crate) fn manifold_solid(m: &Tri) -> Result<manifold_csg::Manifold> {
     let pos: Vec<f64> = m.pos.iter().flat_map(|p| p.to_array()).collect();
     let idx: Vec<u64> = m.tris.iter().flatten().map(|&i| i as u64).collect();
     // One run per source polygon (its triangles are consecutive).
@@ -702,7 +702,7 @@ impl Points {
 /// Split the triangles of one source polygon into disk-shaped regions (a
 /// region never wraps around a hole or touches itself at a point), and
 /// return each region's boundary loop in winding order.
-fn regions(tris: &[[u32; 3]]) -> Vec<Vec<u32>> {
+pub(crate) fn regions(tris: &[[u32; 3]]) -> Vec<Vec<u32>> {
     let mut by_edge: HashMap<(u32, u32), Vec<usize>> = HashMap::new();
     for (i, t) in tris.iter().enumerate() {
         for k in 0..3 {

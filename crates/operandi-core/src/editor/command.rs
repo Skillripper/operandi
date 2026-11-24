@@ -800,6 +800,8 @@ pub enum Command {
     /// Mesh Stack (mesh_stack_editor.rs): add an op of this type to the
     /// selected mesh (`meshop.create`).
     MeshOpCreate(String),
+    /// MeshBlend recipe edits (meshblend/commands.rs).
+    MeshBlend(crate::meshblend::MeshBlendCommand),
     /// Delete ops (`item.delete item:<op>`).
     MeshOpDelete(Vec<crate::mesh_stack_editor::OpRef>),
     /// Move an op to a position in evaluation order (`item.parent`).

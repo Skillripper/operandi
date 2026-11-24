@@ -218,6 +218,89 @@ pub(super) const COMMANDS: &[Entry] = &[
             "Edit Base Mesh on or off: direct tools then edit the mesh's Base Mesh, with the stack's result drawn as a ghost.",
             &[JSON_ITEM, jopt("select", "boolean", "Default true.")],
         ).undo(),
+    // MeshBlend (meshblend/commands.rs): live smooth booleans. item is the
+    // MeshBlend Item (default the selected one); source and of are mesh ids.
+    script("meshblend.new", Modeling, "Makes a MeshBlend Item from the selected meshes, all as Primaries.")
+        .operandi()
+        .undo()
+        .headless(
+            "Make a MeshBlend Item: a new mesh whose Mesh Stack blends the selected meshes (all Primaries, unioned) as smooth surfaces. The new item is selected.",
+            &[],
+        )
+        .example("meshblend.new"),
+    script("meshblend.addSource", Modeling, "Adds a mesh to a MeshBlend Item as a Primary or a Trim.")
+        .operandi()
+        .undo()
+        .headless(
+            "Add a mesh to a MeshBlend Item with a role. A Trim acts on the Primaries in of, or on every Primary when of is left out.",
+            &[
+                JSON_ITEM,
+                jreq("source", "integer", "The mesh item to add."),
+                jopt("role", "string", "primary (default), subtract or intersect."),
+                jopt("of", "array", "For a Trim: the Primary mesh ids it acts on."),
+            ],
+        )
+        .example("meshblend.addSource source:7 role:subtract"),
+    script("meshblend.role", Modeling, "Changes the role of a MeshBlend source.")
+        .operandi()
+        .undo()
+        .headless(
+            "Change a MeshBlend source's role (primary, subtract or intersect). A new Trim acts on every Primary until Trim or Untrim changes that.",
+            &[
+                JSON_ITEM,
+                jreq("source", "integer", "The source mesh."),
+                jreq("role", "string", "primary, subtract or intersect."),
+            ],
+        ),
+    script("meshblend.trim", Modeling, "Makes MeshBlend Trims act on more Primaries.")
+        .operandi()
+        .undo()
+        .headless(
+            "Relate Trims to Primaries: each Trim in source then acts on each Primary in of.",
+            &[
+                JSON_ITEM,
+                jreq("source", "array", "The Trim mesh id, or a list of them."),
+                jreq("of", "array", "The Primary mesh id, or a list of them."),
+            ],
+        ),
+    script("meshblend.untrim", Modeling, "Stops MeshBlend Trims acting on some Primaries.")
+        .operandi()
+        .undo()
+        .headless(
+            "Remove relationships: each Trim in source stops acting on each Primary in of.",
+            &[
+                JSON_ITEM,
+                jreq("source", "array", "The Trim mesh id, or a list of them."),
+                jreq("of", "array", "The Primary mesh id, or a list of them."),
+            ],
+        ),
+    script("meshblend.clearRole", Modeling, "Takes a mesh out of a MeshBlend Item.")
+        .operandi()
+        .undo()
+        .headless(
+            "Take a source out of a MeshBlend Item; it is an ordinary mesh again.",
+            &[JSON_ITEM, jreq("source", "integer", "The source mesh.")],
+        ),
+    script("meshblend.source", Modeling, "Sets a MeshBlend source's settings.")
+        .operandi()
+        .undo()
+        .headless(
+            "Set a MeshBlend source's settings: enabled (in the result or not), subdivision (0-3, how finely its smooth surface becomes polygons) and keepCage (use the cage's points).",
+            &[
+                JSON_ITEM,
+                jreq("source", "integer", "The source mesh."),
+                jopt("enabled", "boolean", "In the result or not."),
+                jopt("subdivision", "integer", "0 to 3; 0 uses the cage as it is."),
+                jopt("keepCage", "boolean", "Use the cage's points instead of the smooth surface."),
+            ],
+        ),
+    script("meshblend.convert", Modeling, "Turns a MeshBlend Item into an ordinary mesh.")
+        .operandi()
+        .undo()
+        .headless(
+            "Freeze a MeshBlend Item's result into an ordinary mesh: in place, or as a new mesh item with duplicate.",
+            &[JSON_ITEM, jopt("duplicate", "boolean", "Make a new mesh item; default false.")],
+        ),
     script("selop.indexcreate", Selection, "Gives the selected mesh operation a Select by Index of the selected polygons.")
         .undo()
         .headless(

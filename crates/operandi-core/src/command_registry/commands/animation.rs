@@ -315,6 +315,19 @@ pub(super) const COMMANDS: &[Entry] = &[
         .undo()
         .operandi()
         .example("operandi.rig.userChannelRemove item:3 name:crank"),
+    script("operandi.rig.userChannelSet", Items, "Set User Channel (RG-53): a user channel's value, keyed per Auto Key.")
+        .on_editor(
+            "Set a user channel's value (name.X for one component of a vector channel), one undo step; Auto Key keys it like any channel edit.",
+            &[
+            jopt("item", "integer", "Item id (default the active item)."),
+            jreq("name", "string", "Channel name."),
+            jreq("value", "number", "The value: percents 0–1, angles radians, true/false for a boolean."),
+        ],
+            crate::rig_user_set::run,
+        )
+        .undo()
+        .operandi()
+        .example("operandi.rig.userChannelSet item:3 name:crank value:0.5"),
     script("operandi.rig.bindUserChannel", Items, "Bind into User Channel (RG-54): a user channel on target drives the channel.")
         .on_editor(
             "Add a user channel of the same kind to target (named after the channel unless name is given) and link the channel to it, one undo step; the channel becomes driven.",
