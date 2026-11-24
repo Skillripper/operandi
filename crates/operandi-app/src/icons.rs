@@ -483,6 +483,21 @@ pub enum Icon {
     LevelDown,
     DeleteHigher,
     ApplyMultires,
+    MirrorOperation,
+    VmapTransfer,
+    SelectSoftEdges,
+    ConvertHardEdges,
+    ToggleVertexNormals,
+    MorphToNormals,
+    SplitNormals,
+    BakeCurvature,
+    BakeThickness,
+    PadTexture,
+    AddFurTexture,
+    GeometryToBrush,
+    RelaxMesh,
+    VectorDisplacement,
+    Remesh,
 }
 /// One table: each icon's file in assets/icons (named as in the generator's
 /// output) and its embedded artwork. Add Loop uses the Loop Cut artwork;
@@ -1005,6 +1020,21 @@ icon_files! {
     LevelDown => "multires-level-down",
     DeleteHigher => "multires-delete-higher",
     ApplyMultires => "multires-apply",
+    MirrorOperation => "mirror-operation",
+    VmapTransfer => "vmap-transfer",
+    SelectSoftEdges => "select-soft-edges",
+    ConvertHardEdges => "convert-hard-edges",
+    ToggleVertexNormals => "toggle-vertex-normals",
+    MorphToNormals => "morph-to-normals",
+    SplitNormals => "split-normals",
+    BakeCurvature => "bake-curvature",
+    BakeThickness => "bake-thickness",
+    PadTexture => "pad-texture",
+    AddFurTexture => "add-fur-texture",
+    GeometryToBrush => "geometry-to-brush",
+    RelaxMesh => "relax-mesh",
+    VectorDisplacement => "vector-displacement",
+    Remesh => "remesh",
 }
 
 fn rasterize(icon: Icon, pixels: u32) -> Result<ColorImage, String> {
