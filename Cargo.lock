@@ -2850,6 +2850,7 @@ dependencies = [
  "operandi-remesh",
  "operandi-uv",
  "png",
+ "rayon",
  "robust",
  "roxmltree",
  "serde",
