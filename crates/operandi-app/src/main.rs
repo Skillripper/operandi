@@ -303,8 +303,10 @@ mod monkey_tests;
 mod mouse_rule_tests;
 #[cfg(test)]
 mod multi_active_tests;
+#[path = "sculpting/multires_ui.rs"]
 mod multires_ui;
 #[cfg(test)]
+#[path = "sculpting/multires_ui_tests.rs"]
 mod multires_ui_tests;
 #[path = "controls/native.rs"]
 mod native;
@@ -398,6 +400,7 @@ mod qa;
 mod reduction_panel;
 #[path = "polygons/relax_mesh_dialog.rs"]
 mod relax_mesh_dialog;
+#[path = "sculpting/remesh_dialog.rs"]
 mod remesh_dialog;
 #[path = "render/render_item_ui.rs"]
 mod render_item_ui;
@@ -430,8 +433,10 @@ mod scenes;
 mod schematic_ui;
 #[path = "anim/scrub.rs"]
 mod scrub;
+#[path = "sculpting/sculpt_ui.rs"]
 mod sculpt_ui;
 #[cfg(test)]
+#[path = "sculpting/sculpt_ui_tests.rs"]
 mod sculpt_ui_tests;
 mod select_panel;
 mod select_tools_ui;
