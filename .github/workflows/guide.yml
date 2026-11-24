@@ -29,6 +29,7 @@ on:
       - "docs/guide/**"
       - "scripts/guide-build.sh"
       - "scripts/guide-name-check.sh"
+      - "tools/guide_404.py"
       - "tools/guide_redirects.py"
       - ".github/workflows/guide.yml"
   workflow_dispatch:
@@ -127,6 +128,11 @@ jobs:
           <link rel="canonical" href="$target"></head>
           <body><p><a href="$target">Operandi User Guide</a></p></body></html>
           EOF
+
+          # guide/404.html: a version folder not published yet (a release
+          # build's Help > User Guide before its tag) goes on to the same
+          # page in latest/ or test/.
+          python3 tools/guide_404.py "$guide"
 
       - name: Push to the website
         shell: bash

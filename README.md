@@ -3,7 +3,7 @@
 Operandi is a free, open-source 3D polygon modeler written in Rust (egui and
 wgpu), with rendering by [Cycles](https://www.cycles-renderer.org). If you've used
 Modo, it should feel familiar, but Operandi is its own program, written
-from scratch with no Modo code and no reverse engineering. [docs/ABOUT.md](docs/ABOUT.md) tells the story.
+from scratch. [docs/ABOUT.md](docs/ABOUT.md) tells the story.
 
 macOS on Apple silicon comes first; Windows and Linux builds exist but
 aren't validated yet. Operandi is pre-release: [docs/STATUS.md](docs/STATUS.md)
@@ -32,6 +32,11 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) first, including the short
 [ground rules](docs/CLEAN_ROOM.md): please don't contribute anything copied
 from another commercial app, or based on reverse engineering one. Be kind: see the [code of conduct](CODE_OF_CONDUCT.md). AI
 agents follow [AGENTS.md](AGENTS.md).
+
+To send a change, fork the repository and open a pull request from your
+fork, with signed-off commits (`git commit -s`). Pushing straight to this
+repository isn't possible. CONTRIBUTING.md has the steps under
+[How to send a change](CONTRIBUTING.md#how-to-send-a-change).
 
 Contributor docs:
 

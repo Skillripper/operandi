@@ -121,11 +121,16 @@ mod groups_ui;
 #[cfg(test)]
 mod guide_menus_tests;
 #[cfg(test)]
+mod guide_python_tests;
+#[cfg(test)]
 mod guide_shortcuts_tests;
 mod handle_preferences;
 mod handle_tips;
 mod haul_view;
 mod help_menu;
+mod help_mode;
+#[cfg(test)]
+mod help_mode_tests;
 mod i2_route;
 mod icon_studio_cli;
 mod icons;
@@ -623,6 +628,8 @@ struct Operandi {
     copy_next: Option<String>,
     /// The last link handed to the browser (help_menu.rs); tests read it.
     opened_url: Option<String>,
+    /// F1 / Help > What's This? (help_mode.rs).
+    help_mode: help_mode::HelpMode,
     /// Window > Frame Time readout in the viewport.
     show_frame_time: bool,
     /// The Alt+Shift+wheel field of view readout: which view, and until
@@ -642,6 +649,9 @@ struct Operandi {
     mini_properties: Option<mini_properties::MiniProperties>,
     /// Where the next Mini Properties opens (the pointer at the Space tap).
     mini_properties_anchor: Option<Pos2>,
+    /// The size Mini Properties' corner was dragged to (UIC-66); kept until
+    /// quit, so it opens that size next time.
+    mini_properties_size: Option<Vec2>,
     /// N03: where the in-window pop-overs (Mini Properties, Smooth Shift's
     /// mini window) were last drawn. Presses there belong to them, not to
     /// the viewport under them.
@@ -1475,6 +1485,7 @@ impl Operandi {
             show_about: false,
             copy_next: None,
             opened_url: None,
+            help_mode: Default::default(),
             show_frame_time: false,
             fov_readout: None,
             drag_readout: None,
@@ -1486,6 +1497,7 @@ impl Operandi {
             surface_mini_properties: false,
             mini_properties: None,
             mini_properties_anchor: None,
+            mini_properties_size: None,
             overlay_rects: Vec::new(),
             item_fields: BTreeMap::new(),
             item_field_owner: None,
@@ -3569,6 +3581,7 @@ impl Operandi {
         self.pie_window(ctx);
         self.workbench_frame_end(ctx);
         self.history_frame(ctx, false);
+        self.help_mode_after_compose(ctx);
     }
 }
 impl Operandi {
@@ -3612,6 +3625,8 @@ impl eframe::App for Operandi {
     }
     fn raw_input_hook(&mut self, ctx: &Context, input: &mut RawInput) {
         self.input_preferences.options.adjust_input(input);
+        // Help mode's click and Esc reach no control (help_mode.rs).
+        self.help_mode_take_input(input);
         // A numeric field's Tab moves to the next field (UIC-51); only the
         // rest may become a bound Tab shortcut.
         numeric_tab::take_tab(ctx, input);
@@ -4028,6 +4043,8 @@ mod light_properties_tests;
 mod light_view_tests;
 #[cfg(test)]
 mod link_button_tests;
+#[cfg(test)]
+mod mini_properties_tests;
 #[cfg(test)]
 mod number_field_tests;
 #[cfg(test)]

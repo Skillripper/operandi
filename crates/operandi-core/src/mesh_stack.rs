@@ -39,13 +39,56 @@ use std::sync::{Arc, Mutex};
 
 /// One stack (MO-01, MO-11). `ops[0]` runs first, right above the Base
 /// Mesh; the list shows them the other way up (top = last evaluated).
-#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(from = "SavedStack")]
 pub struct MeshStack {
     pub ops: Vec<MeshOp>,
     /// Next op id. Ids name rows for commands and the list; they are never
-    /// reused within a stack.
+    /// reused within a stack. Ids start at 1: 0 means "no op" wherever an
+    /// op is named, as Select by Previous Operation's Source Item "(none)".
     pub next_id: u64,
+}
+impl Default for MeshStack {
+    fn default() -> Self {
+        Self {
+            ops: Vec::new(),
+            next_id: 1,
+        }
+    }
+}
+
+/// A stack as saved. Scenes saved before ids started at 1 can hold an op
+/// with id 0, which Select by Previous Operation can't name (it reads as
+/// "(none)", issue #7); reading one gives that op a fresh id. Its Select by
+/// Previous Operations that named 0 did pick that op's groups, so they
+/// follow it to the new id.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct SavedStack {
+    ops: Vec<MeshOp>,
+    next_id: u64,
+}
+impl From<SavedStack> for MeshStack {
+    fn from(saved: SavedStack) -> Self {
+        let SavedStack {
+            mut ops,
+            mut next_id,
+        } = saved;
+        if let Some(op) = ops.iter_mut().find(|o| o.id == 0) {
+            next_id = next_id.max(1);
+            let fresh = next_id;
+            op.id = fresh;
+            next_id += 1;
+            for s in ops.iter_mut().flat_map(|o| o.selops.iter_mut()) {
+                if let crate::meshop_selection::SelKind::Previous { source, .. } = &mut s.kind
+                    && *source == 0
+                {
+                    *source = fresh;
+                }
+            }
+        }
+        Self { ops, next_id }
+    }
 }
 
 /// One operation in a stack.

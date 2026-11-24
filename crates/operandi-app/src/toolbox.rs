@@ -740,6 +740,7 @@ impl Operandi {
 
     pub(super) fn toolbox(&mut self, ui: &mut Ui) {
         chrome::apply(ui);
+        self.help_region(ui.max_rect(), crate::help_mode::TOOLBOX);
         self.follow_tab_set();
         let mut panel = ui.max_rect().expand(4.);
         let combined = !self.layouts.mixed_dock;
@@ -1092,6 +1093,7 @@ impl Operandi {
     pub(super) fn tool_tabs_panel(&mut self, ui: &mut Ui, panel: Rect) {
         chrome::apply(ui);
         let area = ui.max_rect();
+        self.help_region(area, crate::help_mode::TOOLBOX);
         let horizontal = self.layouts.tool_tabs_horizontal == Some(true);
         self.panel_dot(
             ui,
@@ -1370,6 +1372,11 @@ impl Operandi {
         }
         self.toolbox_rects
             .insert("Tool Properties".into(), header.rect);
+        // Help mode (help_mode.rs): the header and an empty panel name
+        // Tool Properties; the rows under it, the tool that fills them.
+        self.help_region(rect, crate::help_mode::TOOL_PROPERTIES);
+        let rows = Rect::from_min_max(pos2(rect.left(), header.rect.bottom()), rect.max);
+        self.help_region(rows, crate::help_mode::tool_help_id(title));
         if header.clicked() && self.confirm_fields() {
             self.tool_properties_open = !self.tool_properties_open;
         }

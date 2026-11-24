@@ -2476,13 +2476,13 @@ impl Operandi {
                       range: std::ops::RangeInclusive<f64>,
                       scale: f64,
                       suffix: &str| {
-            crate::option_row::row(ui, label, |ui| {
-                for k in 0..3 {
-                    let mut x = v[k] * scale;
-                    drag(ui, &mut x, range.clone(), 0.01, suffix);
-                    if (x / scale - v[k]).abs() > 1e-12 {
-                        v[k] = x / scale;
-                    }
+            // UIC-114: one row per component (issue #6: three fields on one
+            // row ran past the panel's edge).
+            crate::option_row::vector(ui, label, &["X", "Y", "Z"], "", |ui, k| {
+                let mut x = v[k] * scale;
+                drag(ui, &mut x, range.clone(), 0.01, suffix);
+                if (x / scale - v[k]).abs() > 1e-12 {
+                    v[k] = x / scale;
                 }
             });
         };
@@ -2637,13 +2637,13 @@ impl Operandi {
         })
         .response
         .on_hover_text("Fades the layer with distance from the locator centre");
-        crate::option_row::row(ui, "Falloff", |ui| {
-            for k in 0..3 {
-                drag(ui, &mut s.falloff[k], 0.0..=1e9, 0.01, "");
-            }
-        })
-        .response
-        .on_hover_text("0 is off; the layer is gone at Size / Falloff from the centre");
+        crate::option_row::vector(
+            ui,
+            "Falloff",
+            &["X", "Y", "Z"],
+            "0 is off; the layer is gone at Size / Falloff from the centre",
+            |ui, k| drag(ui, &mut s.falloff[k], 0.0..=1e9, 0.01, ""),
+        );
         crate::option_row::field_row(ui, "Tangent Type", |ui| {
             enum_combo(
                 ui,
@@ -2657,13 +2657,9 @@ impl Operandi {
         .on_hover_text(STORED);
         crate::option_row::check(ui, "Real World Size", &mut s.real_world_size)
             .on_hover_text(STORED);
-        crate::option_row::row(ui, "Real World Size X/Y", |ui| {
-            for k in 0..2 {
-                drag(ui, &mut s.real_world_size_xy[k], 1e-6..=1e6, 0.01, " m");
-            }
-        })
-        .response
-        .on_hover_text(STORED);
+        crate::option_row::vector(ui, "Real World Size", &["X", "Y"], STORED, |ui, k| {
+            drag(ui, &mut s.real_world_size_xy[k], 1e-6..=1e6, 0.01, " m");
+        });
         let items: Vec<(u64, String)> = self
             .editor
             .scene

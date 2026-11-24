@@ -86,7 +86,13 @@ pub fn write_atomic_with(
         })?;
     let result = (|| {
         fill(&temp)?;
-        File::open(&temp)
+        // Opened for writing: Windows refuses to flush (FlushFileBuffers)
+        // a file opened read-only ("Access is denied"), which made every
+        // save fail there. Opening it without truncate keeps what `fill`
+        // wrote.
+        OpenOptions::new()
+            .write(true)
+            .open(&temp)
             .and_then(|f| f.sync_all())
             .map_err(|e| format!("Cannot write {}: {e}", path.display()))?;
         fs::rename(&temp, path).map_err(|e| format!("Cannot replace {}: {e}", path.display()))?;

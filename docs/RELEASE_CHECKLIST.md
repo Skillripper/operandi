@@ -35,7 +35,6 @@ it from history. Anyone who clones a public repo gets all of it.
 |---|---|---|
 | [x] | Remove the old Word files (2026-11-23; with the history rewrite they leave history too). | Done |
 | [ ] | Review the provenance notes of the earliest specs (October, now in the private specs repo) on the study side and re-derive any that need it from documentation and observed behaviour only. | To do |
-| [ ] | **Gate for `docs/ABOUT.md`:** its "Built clean" section says Operandi was made without reverse engineering. Confirm it once the review above is done. | To do |
 | [x] | Specs, their oracle data and the old icon dictionary are out of the public repo (2026-11-23); specs live in a private repo next to the checkout. | Done |
 | [ ] | Confirm every `.lxo` test file was made by you, not copied from Modo's sample content (that folder must never be committed). | To do |
 | [ ] | Check for personal paths, emails or tokens: `git grep -nE '/Users/[^/]+/|@privaterelay|ghp_|sk-'`. | To do |

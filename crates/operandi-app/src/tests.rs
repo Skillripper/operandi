@@ -45,7 +45,9 @@ pub(super) fn draw_held(
         .entry(ViewportId::ROOT)
         .or_default()
         .native_pixels_per_point = Some(scale);
-    // The real app's raw-input hook step that keeps bound Tab chords.
+    // The real app's raw-input hook steps: help mode's clicks,
+    a.help_mode_take_input(&mut raw);
+    // and the one that keeps bound Tab chords.
     crate::numeric_tab::take_tab(ctx, &mut raw);
     a.hold_bound_tab(ctx, &mut raw);
     // And the one that hands puck button presses in as keys.

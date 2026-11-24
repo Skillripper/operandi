@@ -8,11 +8,45 @@ Please read this page, the [Modo ground rules](docs/CLEAN_ROOM.md) and the
 [docs/SETUP.md](docs/SETUP.md) gets you from a fresh clone to a running
 app on macOS, Windows or Linux.
 
+## How to send a change
+
+Only the maintainer can push to this repository, so `git push` to
+`operandi3d/operandi` fails with a 403 error. That's expected. Send your
+change from your own copy (a fork) instead:
+
+1. Click **Fork** at the top of the
+   [repository page](https://github.com/operandi3d/operandi). GitHub makes
+   your own copy at `github.com/<you>/operandi`.
+2. Clone your fork and start a branch from `main`:
+
+   ```bash
+   git clone https://github.com/<you>/operandi.git
+   cd operandi
+   git switch -c my-change
+   ```
+
+   Already cloned `operandi3d/operandi`? Point it at your fork instead:
+   `git remote rename origin upstream`, then
+   `git remote add origin https://github.com/<you>/operandi.git`.
+3. Commit with a sign-off, `git commit -s` (see "Signing off your work"
+   below). A check on the pull request fails without it.
+4. Push the branch to your fork: `git push -u origin my-change`.
+5. GitHub then shows a **Compare & pull request** button on your fork or on
+   this repository. Open the pull request against `operandi3d/operandi`
+   `main` and fill in its checklist.
+
+The first time you contribute, the checks wait until the maintainer starts
+them, so don't worry if they sit for a while. To change the pull request
+later, push more commits to the same branch; it updates by itself. To catch
+up with `main`, run `git pull upstream main` (add the `upstream` remote
+with `git remote add upstream https://github.com/operandi3d/operandi.git`
+if you cloned your fork).
+
 ## Modo: what we can't accept (read this first)
 
-Operandi is an homage to Modo, built without reverse engineering it (see
-[docs/ABOUT.md](docs/ABOUT.md)). Knowing Modo well, using it, reading its
-public documentation and recreating how its tools behave are all fine.
+Operandi is an homage to Modo (see [docs/ABOUT.md](docs/ABOUT.md)). Knowing
+Modo well, using it, reading its public documentation and recreating how
+its tools behave are all fine.
 What we can't take:
 
 - **Anything from reverse engineering Modo.** No decompiling, disassembly,
@@ -124,8 +158,11 @@ contribute.
    for each criterion. [AGENTS.md](AGENTS.md) has the details, including the
    fast-drag rules every interactive tool follows.
 4. Interface work follows the project's UI conventions,
-   [docs/UI_BIBLE.md](docs/UI_BIBLE.md); mention the rule numbers (UIC-nn)
-   when your change makes or breaks one. Departures need the maintainer's OK.
+   [docs/UI_BIBLE.md](docs/UI_BIBLE.md). Read the section for what you're
+   changing before you start, and mention the rule numbers (UIC-nn) when
+   your change makes or breaks one. Departures need the maintainer's OK.
+   Anything a user can see or do needs its User Guide page in the same
+   pull request (UIC-300; [docs/guide/RULES.md](docs/guide/RULES.md)).
 5. Run the checks with the pinned toolchain:
 
    ```bash
@@ -137,10 +174,14 @@ contribute.
 6. New icons come only from the icon studio in
    [`tools/icon-studio`](tools/icon-studio): small 3D scenes rendered with
    Cycles, so the set keeps one look (same camera, lights and materials).
-   Never hand-draw, hand-edit or import an icon. The old flat generator in
+   Final icons are never hand-drawn, hand-edited or imported. The old flat generator in
    `tools/operandi-icons` is deprecated; don't add icons to it. The "Icons"
    section of [AGENTS.md](AGENTS.md) has the steps; Jason approves the
    contact sheet before an icon goes into the app.
+   **Any icon you make yourself is a placeholder.** That's fine to include
+   so your feature has a button, but say so in the pull request ("placeholder
+   icon: <name>"). It will be replaced with a studio icon so the whole set
+   keeps one consistent look.
 7. Add new dependencies with their licences to
    [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
    Put each new tool or command in its own new file. Each shared list that

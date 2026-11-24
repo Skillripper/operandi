@@ -58,6 +58,26 @@ fn key_equivalent(key: &str) -> String {
     }
 }
 
+/// A key shown in a menu title ("Ctrl+Z") as the key map saves it
+/// ("Cmd+Z"). On Linux and Windows a title shows Cmd as Ctrl
+/// (`input::display_chord`), which would make the guide call it Control and
+/// write different pages there than on the Mac. The entry's own binding wins;
+/// otherwise any binding that shows as this key.
+fn saved_chord(
+    shown: &str,
+    line: &str,
+    title: &str,
+    keys: &std::collections::BTreeMap<String, String>,
+) -> String {
+    let shows_as = |k: &&String| input::display_chord(k) == shown;
+    keys.get(line)
+        .filter(shows_as)
+        .or_else(|| keys.get(title).filter(shows_as))
+        .or_else(|| keys.values().find(shows_as))
+        .cloned()
+        .unwrap_or_else(|| shown.to_owned())
+}
+
 /// The menus as a user with one mesh in Polygon mode sees them.
 fn menus() -> Vec<Menu> {
     let mut a = Operandi::empty();
@@ -94,6 +114,7 @@ fn entries(
                     _ => String::new(),
                 };
                 let (title, shown) = split_key(&item.title);
+                let shown = shown.map(|k| saved_chord(&k, &line, &title, keys));
                 let key = shown
                     .or_else(|| keys.get(line.as_str()).cloned())
                     .or_else(|| keys.get(title.as_str()).cloned())

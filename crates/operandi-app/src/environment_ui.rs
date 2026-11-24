@@ -1320,17 +1320,15 @@ impl Operandi {
                       speed: f64,
                       suffix: &str,
                       tip: &str| {
-            crate::option_row::row(ui, label, |ui| {
-                for k in 0..3 {
-                    let mut x = v[k] * scale;
-                    drag(ui, &mut x, range.clone(), speed, suffix);
-                    if (x / scale - v[k]).abs() > 1e-12 {
-                        v[k] = x / scale;
-                    }
+            // UIC-114: one row per component (issue #6: three fields on one
+            // row ran past the panel's edge).
+            crate::option_row::vector(ui, label, &["X", "Y", "Z"], tip, |ui, k| {
+                let mut x = v[k] * scale;
+                drag(ui, &mut x, range.clone(), speed, suffix);
+                if (x / scale - v[k]).abs() > 1e-12 {
+                    v[k] = x / scale;
                 }
-            })
-            .response
-            .on_hover_text(tip);
+            });
         };
         ui.weak(item.name.clone());
         crate::form::rows::section(ui, "Transform", false, |ui| {
@@ -1457,13 +1455,9 @@ impl Operandi {
             })
             .response
             .on_hover_text(AT_INFINITY);
-            crate::option_row::row(ui, "Falloff", |ui| {
-                for k in 0..3 {
-                    drag(ui, &mut s.falloff[k], 0.0..=1e9, 0.01, "");
-                }
-            })
-            .response
-            .on_hover_text(AT_INFINITY);
+            crate::option_row::vector(ui, "Falloff", &["X", "Y", "Z"], AT_INFINITY, |ui, k| {
+                drag(ui, &mut s.falloff[k], 0.0..=1e9, 0.01, "");
+            });
         });
         if s != settings || tr != transform {
             self.run(Command::ShaderTree(ShaderTreeEdit::SetLocator {

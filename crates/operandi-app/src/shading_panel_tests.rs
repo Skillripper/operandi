@@ -308,10 +308,16 @@ fn texture_layer_reveals_its_locator_and_its_sub_tab() {
             _ => None,
         })
         .collect();
+    // UIC-114 (issue #6): vectors are one row per component, so Y and Z
+    // can't run off the panel's edge.
     for label in [
+        "Position X",
+        "Rotation X",
+        "Y",
+        "Z",
         "Projection Type",
         "Projection Axis",
-        "Size",
+        "Size X",
         "Auto Size",
         "UV Map",
     ] {
