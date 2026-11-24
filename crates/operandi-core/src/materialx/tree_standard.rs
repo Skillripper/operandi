@@ -186,17 +186,20 @@ pub fn group_surface(scene: &Scene, group: crate::shader_tree::NodeId) -> Option
     let ancestors = item.map_or_else(Vec::new, |i| scene.item_ancestors(i.id));
     let locators = item.map_or_else(Vec::new, |i| scene.locator_frames(i.id));
     let tree = scene.shading_tree();
-    Some(
-        tree.evaluate(&crate::shader_eval::Context {
-            item: id,
-            ancestors: &ancestors,
-            material: tag,
-            part: None,
-            sets: &[],
-            locators: &locators,
-        })
-        .principled(),
-    )
+    let ctx = crate::shader_eval::Context {
+        item: id,
+        ancestors: &ancestors,
+        material: tag,
+        part: None,
+        sets: &[],
+        locators: &locators,
+    };
+    // The saved graph where one is pinned (materials stage 4).
+    Some(super::saved::surface(
+        scene,
+        &ctx,
+        tree.evaluate(&ctx).principled(),
+    ))
 }
 
 /// The colour picture nodes (`operandi_image`, not alpha) node `name`

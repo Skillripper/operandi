@@ -555,17 +555,20 @@ impl<'s> Collector<'s> {
                 out.push(m);
                 continue;
             }
-            let surface = self
-                .tree
-                .evaluate(&Context {
-                    item: item.id,
-                    ancestors: &ancestors,
-                    material: key.0,
-                    part: key.1,
-                    sets: key.2,
-                    locators: &locators,
-                })
-                .principled();
+            let ctx = Context {
+                item: item.id,
+                ancestors: &ancestors,
+                material: key.0,
+                part: key.1,
+                sets: key.2,
+                locators: &locators,
+            };
+            // The saved graph where one is pinned (materials stage 4).
+            let surface = operandi_core::materialx::saved::surface(
+                scene,
+                &ctx,
+                self.tree.evaluate(&ctx).principled(),
+            );
             let m = match self.surfaces.iter().position(|s| *s == surface) {
                 Some(m) => m,
                 None => {

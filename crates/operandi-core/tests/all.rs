@@ -356,6 +356,8 @@ mod make_polygon_symmetry;
 mod make_split_clean_spec;
 #[path = "material_distance_fields.rs"]
 mod material_distance_fields;
+#[path = "material_graphs_saved.rs"]
+mod material_graphs_saved;
 #[path = "merge_align.rs"]
 mod merge_align;
 #[path = "merge_holes.rs"]

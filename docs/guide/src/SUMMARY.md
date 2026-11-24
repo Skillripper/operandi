@@ -149,6 +149,7 @@
     - [Multiresolution](sculpting/multiresolution.md)
 - [Curves]()
 - [Materials]()
+    - [How materials are saved](materials/how-materials-are-saved.md)
     - [Online libraries](materials/online-libraries.md)
 - [Lights and cameras]()
 - [Rendering]()

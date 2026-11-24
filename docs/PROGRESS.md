@@ -20,6 +20,21 @@
   Checked in OpenCascade 7.8 (FreeCAD 1.1): valid, closed, volume equals
   the patches' exact volume. IGES is untrimmed surfaces only. Not yet:
   packed faces, import, seam-continuity measurement.
+- **Materials stage 4, slice 1: MaterialX is the saved master copy
+  (2026-11-24, branch materialx-master-copy, AR-32):** scene files keep
+  every surface's MaterialX graph and which polygons use it (native
+  version 65, `materialx/saved.rs`); the Shader Tree is saved beside them
+  as the view's layout. On open, a saved graph that differs from what the
+  layers now give is pinned to its polygons for renders and exports until
+  those layers are edited. Old scenes open from their layers and save
+  their graphs from then on. The direct layers-to-Cycles route is gone.
+  Items with the same material share one graph (texture placement saved
+  by reference; 1,000 textured cubes: 5 graphs, +0.5 MB, 0.5 s).
+  Provisional: MXG-Q12 (pinned graphs aren't drawn by the viewport or
+  marked in the tree), MXG-Q13 (placement by reference). Not yet: one shared graph per material, graph-to-layers
+  recognition, node editing (MXG-Q11). Guide: Materials > How materials
+  are saved.
+
 - **Mini Properties resize (2026-11-24, branch mini-properties-resize,
   UIC-66 amended with the maintainer's OK):** the bottom-right corner drags
   to resize it; it keeps its top-left corner while you drag and opens at

@@ -1374,12 +1374,12 @@ mod behaviour_tests {
             (Projection::UvMap, 2, [1., 1.])
         );
         assert_eq!(t.legacy_projection, None);
-        // Saved again it is version 19 and reopens the same.
+        // Saved again it reopens the same. Since materials stage 4 a scene
+        // with layers saves its MaterialX graphs, so version 65.
         let mut loaded = loaded;
-        // A pre-OpenPBR material, so the older version is what is tested.
         loaded.shader_tree.legacy_openpbr();
         let bytes = crate::persistence::encode(&loaded).unwrap();
-        assert!(String::from_utf8_lossy(&bytes).contains("\"version\": 19"));
+        assert!(String::from_utf8_lossy(&bytes).contains("\"version\": 65"));
         assert_eq!(crate::persistence::decode(&bytes).unwrap(), loaded);
         // It renders from the mesh UVs, as before.
         let after = Editor {
@@ -1390,7 +1390,7 @@ mod behaviour_tests {
         assert!(close(c, [0.3, 0.6, 0.5]), "{c:?}");
         // A file claiming version 18 with locator items is refused.
         let text = String::from_utf8(bytes).unwrap();
-        let old = text.replace("\"version\": 19", "\"version\": 18");
+        let old = text.replace("\"version\": 65", "\"version\": 18");
         assert!(crate::persistence::decode(old.as_bytes()).is_err());
     }
 
@@ -1796,10 +1796,11 @@ mod behaviour_tests {
                 l.projection_camera = Some(79);
                 l.world_transforms = false;
             });
-            // A pre-OpenPBR material, so the older version is what is tested.
+            // Since materials stage 4 a scene with layers saves its
+            // MaterialX graphs, so version 65.
             e.scene.shader_tree.legacy_openpbr();
             let bytes = crate::persistence::encode(&e.scene).unwrap();
-            assert!(String::from_utf8_lossy(&bytes).contains("\"version\": 25"));
+            assert!(String::from_utf8_lossy(&bytes).contains("\"version\": 65"));
             let back = crate::persistence::decode(&bytes).unwrap();
             assert_eq!(
                 back.texture_locator(locator),

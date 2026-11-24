@@ -27,6 +27,7 @@ reference application or the research side's tree-to-USD work.
 | Tree render | `operandi-cycles` `RenderShader::compile_through_graph` | every tree surface is written as its MaterialX form and rendered from the form read back |
 | Standard form | `materialx/tree_standard.rs` | a tree surface as standard MaterialX onto `open_pbr_surface`, for USD and other readers |
 | Tree to USD | `operandi-usd` `materialx_out::tree_network` | the standard form as a flat UsdShade network, custom nodes expanded (`materialx_graph_out`) |
+| Saved graphs | `materialx/saved.rs` | every surface's graph and its bindings in `.opscene` (native 65); pins a saved graph where the layers now differ |
 
 ## Stages
 
@@ -79,11 +80,43 @@ reference application or the research side's tree-to-USD work.
    makes the same choice (the group's surface is read on the first item
    carrying its tag). Pictures that drive a colour input are marked
    `srgb_texture` (EXR/HDR stay linear), the rest are read as numbers;
-   a picture used both ways is read as a colour, with a note. Still to do: retiring the direct route,
-   which needs stage 4 (until the graph is saved, the tree is the only
-   source of the graph).
-4. **The graph is the saved truth.** Graph-to-tree recognition, then the
-   scene saves the graph plus view hints; old scenes upgrade on open.
+   a picture used both ways is read as a colour, with a note. The direct
+   route retired with stage 4.
+4. **The graph is the saved truth.**
+   *Built 2026-11-24 (slice 1, `materialx/saved.rs`, native version 65):*
+   a scene file keeps every distinct surface its polygons render with as
+   its MaterialX form, plus a binding table (item, material tag, part
+   tag, selection sets → graph), as MaterialX and UsdShade bind materials
+   to geometry. The Shader Tree is saved beside them as the view's layout
+   (order, names, masks, hidden layers). On open the layers are evaluated
+   again for each binding; where they give a different surface (a build
+   with different layer sums, or an outside edit), the saved graph is
+   pinned to those polygons and renders and exports use it, until the
+   layers that shade them change. Older scenes open from their layers and
+   save their graphs from then on; a new, untouched scene saves none.
+   Cycles, USD export and File ▸ Export Material as MaterialX all ask
+   `saved::surface`, and the direct route from the layers to Cycles is
+   gone (`RenderShader::compile` is private; a graph that doesn't read
+   back renders clay, which the round-trip tests guard).
+   Tests (`tests/material_graphs_saved.rs`): a scene with every texture
+   source, procedural kind, gradient input and mask kind, and the icon
+   studio's 250 version-44 scenes, open → save → open → save to the same
+   file with no pins.
+   Placement by reference (MXG-Q13): the form holds texture locator
+   matrices as one item sees them, so a graph is written with each
+   matrix entry as a reference number and marked `placed`; reading it for
+   an item puts that item's own numbers back. Saving checks, once per
+   graph, that this gives exactly what the layers give; a surface whose
+   sums run through a placement number is saved for its item alone.
+   1,000 textured cubes (about 100 layers, every mask kind) save 5 graphs
+   and 4,008 bindings: 4.1 MB against 3.5 MB with no materials, in about
+   0.5 s (release; `material_graphs_saved::probe`).
+   *Not yet:* a pinned graph isn't drawn by the viewport or marked in the
+   tree (MXG-Q12); graph-to-layers recognition, so an outside graph shows
+   as layers, waits for node editing (MXG-Q11); the saved form is
+   Operandi's own (`operandi_*` nodes, placement by reference), so outside
+   tools read materials through USD export or Export Material as
+   MaterialX, not straight from `.opscene`.
 5. **Viewport from the graph.** The Advanced style draws MaterialX graphs.
    *Built 2026-11-20:* `graph_view` reads a graph layer in its flattened
    Cycles form (so MaterialX graphs and Blender Node Materials alike) and

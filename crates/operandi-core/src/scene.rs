@@ -403,6 +403,11 @@ pub struct Scene {
     /// Where each item is in `items`, remembered (`item_index`). Not saved.
     #[serde(skip)]
     pub index: crate::scene_index::ItemIndex,
+    /// Saved MaterialX graphs in force where the layers now render
+    /// differently (materialx/saved.rs, stage 4). Not saved as such: a
+    /// save writes the graphs themselves.
+    #[serde(skip)]
+    pub material_pins: crate::materialx::saved::Pins,
 }
 fn unit_draw_size() -> f64 {
     1.
@@ -438,6 +443,7 @@ impl Default for Scene {
             guides: Default::default(),
             last_mesh: Default::default(),
             index: Default::default(),
+            material_pins: Default::default(),
         }
     }
 }

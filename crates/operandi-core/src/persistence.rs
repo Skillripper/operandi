@@ -19,7 +19,11 @@ const MAX_LOAD_BYTES: u64 = 256 << 30;
 /// Newest native version this build reads and writes.
 // Version numbers: renumber here (and in the tests that name them) when
 // branches merge in another order.
-const CURRENT_VERSION: u32 = MULTIRES_VERSION;
+const CURRENT_VERSION: u32 = SAVED_GRAPHS_VERSION;
+/// Version 65: every surface's MaterialX graph and its bindings
+/// (`Document::material_graphs`, materialx/saved.rs; materials stage 4).
+/// A v64 build would refuse the unknown field.
+const SAVED_GRAPHS_VERSION: u32 = 65;
 /// Version 64: multiresolution meshes (`Item::multires`, multires.rs). A
 /// v63 build would refuse the unknown field; a scene without one keeps its
 /// older number.
@@ -577,6 +581,14 @@ struct Document {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     preset: Option<crate::preset::PresetHeader>,
     scene: Scene,
+    /// The materials' master copy (version 65): every surface as a
+    /// MaterialX graph and the polygons bound to it. The scene's shader
+    /// tree is the view's layout.
+    #[serde(
+        default,
+        skip_serializing_if = "crate::materialx::saved::SavedGraphs::is_empty"
+    )]
+    material_graphs: crate::materialx::saved::SavedGraphs,
 }
 /// Edge selection sets and selection set groups arrived in version 13.
 fn has_v13_sets(mesh: &crate::Mesh) -> bool {
@@ -599,10 +611,19 @@ fn encode_document(scene: &Scene, preset: Option<&crate::preset::PresetHeader>) 
     for item in &scene.items {
         item.elements.validate_locked(&item.mesh)?;
     }
+    // Presets carry no graphs: loading one merges its layers into another
+    // scene, whose own graphs then come from them.
+    let material_graphs = if preset.is_none() {
+        crate::materialx::saved::graphs(scene)
+    } else {
+        Default::default()
+    };
     let data = serde_json::to_vec_pretty(&Document {
         format: "Operandi".into(),
         preset: preset.cloned(),
-        version: if has_v64_multires(scene) {
+        version: if !material_graphs.is_empty() {
+            SAVED_GRAPHS_VERSION
+        } else if has_v64_multires(scene) {
             MULTIRES_VERSION
         } else if has_v63_characters(scene) {
             CHARACTER_RIG_VERSION
@@ -740,6 +761,7 @@ fn encode_document(scene: &Scene, preset: Option<&crate::preset::PresetHeader>) 
             4
         },
         scene: scene.clone(),
+        material_graphs,
     })
     .map_err(|e| e.to_string())?;
     Ok(data)
@@ -769,6 +791,9 @@ fn decode_document(
     }
     if doc.version < RENDER_OUTPUTS_D_VERSION && has_v55_outputs(&doc.scene) {
         return Err("These Render Outputs require native version 55".into());
+    }
+    if doc.version < SAVED_GRAPHS_VERSION && !doc.material_graphs.is_empty() {
+        return Err("Saved material graphs require native version 65".into());
     }
     if doc.version < MULTIRES_VERSION && has_v64_multires(&doc.scene) {
         return Err("Multiresolution meshes require native version 64".into());
@@ -1015,6 +1040,9 @@ fn decode_document(
     // that were never keyed don't survive closing it.
     let now = scene.time.current;
     crate::animation::pose(&mut scene, now);
+    // Last, on the scene as it was saved: the saved graphs are the truth
+    // where the layers now differ (materials stage 4).
+    crate::materialx::saved::open(&mut scene, &doc.material_graphs)?;
     Ok((scene, doc.preset))
 }
 /// Read a scene file. `project:` references are resolved against the

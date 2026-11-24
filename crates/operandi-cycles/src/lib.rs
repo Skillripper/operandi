@@ -378,30 +378,48 @@ pub struct VolumeBeam {
 }
 impl RenderShader {
     /// Compiles a tree surface through its MaterialX form (materials
-    /// architecture stage 3, docs/MATERIALX_GRAPHS.md): the layer stack's
-    /// surface is written as a MaterialX graph, and what Cycles renders is
-    /// that graph read back. Debug builds and tests check the graph
-    /// against the surface it came from; a graph that can't be read back
-    /// (a writer bug) renders the surface directly instead.
+    /// architecture stages 3-4, docs/MATERIALX_GRAPHS.md): the surface is
+    /// written as its MaterialX graph, and what Cycles renders is that
+    /// graph read back, the same text a scene file saves. This is the only
+    /// way a surface reaches Cycles; the direct route from the layers
+    /// retired with stage 4. Debug builds check the graph against the
+    /// surface it came from; a graph that can't be read back (a writer
+    /// bug, which the round-trip tests guard) renders as the default
+    /// clay rather than from the layers.
     pub fn compile_through_graph(p: &Principled, scene: &Scene) -> Self {
         use operandi_core::materialx::tree;
-        match tree::read(&tree::write(p, scene, "Surface")) {
+        let graph = match tree::read(&tree::write(p, scene, "Surface")) {
             Ok(graph) => {
                 debug_assert!(
                     graph == *p,
                     "the tree's MaterialX graph reads back differently"
                 );
-                Self::compile(&graph, scene)
+                graph
             }
             Err(e) => {
                 debug_assert!(false, "the tree's MaterialX graph doesn't read back: {e}");
-                Self::compile(p, scene)
+                eprintln!(
+                    "Operandi: a material's MaterialX graph doesn't read back ({e}); rendering clay"
+                );
+                operandi_core::shader_tree::ShaderTree::default()
+                    .evaluate(&operandi_core::shader_eval::Context {
+                        item: 0,
+                        ancestors: &[],
+                        material: operandi_core::material::DEFAULT_MATERIAL,
+                        part: None,
+                        sets: &[],
+                        locators: &[],
+                    })
+                    .principled()
             }
-        }
+        };
+        Self::compile(&graph, scene)
     }
 
-    /// Compiles a principled surface; images resolve through `scene`.
-    pub fn compile(p: &Principled, scene: &Scene) -> Self {
+    /// Compiles a surface read from its MaterialX graph; images resolve
+    /// through `scene`. Private: callers go through
+    /// [`RenderShader::compile_through_graph`].
+    fn compile(p: &Principled, scene: &Scene) -> Self {
         let mut out = Self {
             ops: Vec::new(),
             inputs: [-1; Input::COUNT],
@@ -1361,16 +1379,21 @@ fn shader_rules(scene: &Scene) -> Vec<(u64, ShaderLightRule)> {
             if !seen.insert((face.material.as_str(), face.part.as_deref(), sets.clone())) {
                 continue;
             }
-            let shader = tree
-                .evaluate(&Context {
-                    item: item.id,
-                    ancestors: &ancestors,
-                    material: &face.material,
-                    part: face.part.as_deref(),
-                    sets,
-                    locators: &locators,
-                })
-                .shader;
+            let ctx = Context {
+                item: item.id,
+                ancestors: &ancestors,
+                material: &face.material,
+                part: face.part.as_deref(),
+                sets,
+                locators: &locators,
+            };
+            let surface = tree.evaluate(&ctx);
+            // A saved graph pinned here brings its own Shader settings.
+            let shader = if scene.material_pins.is_empty() {
+                surface.shader
+            } else {
+                operandi_core::materialx::saved::surface(scene, &ctx, surface.principled()).shader
+            };
             let rule = ShaderLightRule::of(&shader, scene);
             if !rule.is_plain() && !out.iter().any(|(i, r)| *i == item.id && *r == rule) {
                 out.push((item.id, rule));
@@ -3148,7 +3171,12 @@ fn scene_meshes_of(
                         sets: key.2,
                         locators: &locators,
                     };
-                    let mut surface = tree.evaluate(&ctx).principled_with_values(&material_values);
+                    // The saved graph where one is pinned (materials stage 4).
+                    let mut surface = operandi_core::materialx::saved::surface(
+                        scene,
+                        &ctx,
+                        tree.evaluate(&ctx).principled_with_values(&material_values),
+                    );
                     if !has_uvs {
                         surface = surface.without_uvs();
                     }
