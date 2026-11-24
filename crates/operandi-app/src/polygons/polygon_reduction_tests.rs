@@ -12,7 +12,7 @@
 //! Fixture: the admitted original 25-point/32-triangle grid with its common
 //! face values, every polygon explicitly selected, plus the fixture's
 //! separate tagged unrelated item.
-#[path = "../../operandi-core/tests/support/reduction_oracle.rs"]
+#[path = "../../../operandi-core/tests/support/reduction_oracle.rs"]
 mod oracle;
 
 use super::*;

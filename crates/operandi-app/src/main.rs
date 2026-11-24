@@ -72,6 +72,7 @@ mod app_menu;
 mod backdrop_gpu;
 mod backdrop_ui;
 mod background_ui;
+#[path = "polygons/bevel_panel.rs"]
 mod bevel_panel;
 mod bind_dialog_ui;
 mod boolean_dialog;
@@ -133,6 +134,7 @@ mod defaults_preferences;
 #[path = "deformers/deform_panel.rs"]
 mod deform_panel;
 mod detents;
+#[path = "polygons/detriangulate_dialog.rs"]
 mod detriangulate_dialog;
 mod dialog_place;
 #[path = "materials/display_shading.rs"]
@@ -154,6 +156,7 @@ mod duplicate_transform_panel;
 mod duplicate_view;
 #[path = "edges/edge_panel.rs"]
 mod edge_panel;
+#[path = "polygons/edit_panel.rs"]
 mod edit_panel;
 #[path = "materials/editor_color_ui.rs"]
 mod editor_color_ui;
@@ -173,6 +176,7 @@ mod file_chooser;
 #[path = "files/file_commands.rs"]
 mod file_commands;
 mod file_io_preferences;
+#[path = "polygons/flip_it_dialog.rs"]
 mod flip_it_dialog;
 mod form;
 mod form_app;
@@ -269,6 +273,7 @@ mod material_layout;
 mod mcp;
 #[path = "menus/menu_forms.rs"]
 mod menu_forms;
+#[path = "polygons/mesh_cleanup_dialog.rs"]
 mod mesh_cleanup_dialog;
 mod mesh_items_preferences;
 #[path = "painting_ui/mesh_paint_ui.rs"]
@@ -334,10 +339,13 @@ mod plane_handles_tests;
 #[path = "create_tools/plane_teapot_tests.rs"]
 mod plane_teapot_tests;
 mod poly_haul_drag;
+#[path = "polygons/polygon_align.rs"]
 mod polygon_align;
 #[path = "materials/polygon_material_dialog.rs"]
 mod polygon_material_dialog;
+#[path = "polygons/polygon_part_dialog.rs"]
 mod polygon_part_dialog;
+#[path = "polygons/polygon_unify_dialog.rs"]
 mod polygon_unify_dialog;
 mod pose_tool_ui;
 mod preferences;
@@ -367,7 +375,9 @@ mod python_ui_tests;
 #[cfg(feature = "qa")]
 #[path = "commands/qa.rs"]
 mod qa;
+#[path = "polygons/reduction_panel.rs"]
 mod reduction_panel;
+#[path = "polygons/relax_mesh_dialog.rs"]
 mod relax_mesh_dialog;
 mod remesh_dialog;
 mod render_item_ui;
@@ -423,7 +433,9 @@ mod skeleton_tool_tests;
 mod skeleton_tool_ui;
 mod slice_view;
 #[cfg(test)]
+#[path = "polygons/small_commands_tab_tests.rs"]
 mod small_commands_tab_tests;
+#[path = "polygons/smooth_shift_panel.rs"]
 mod smooth_shift_panel;
 mod snap_kinds;
 mod snap_service;
@@ -432,6 +444,7 @@ mod snapping;
 mod solid_sketch_ui;
 #[path = "input_devices/space_mouse/mod.rs"]
 mod space_mouse;
+#[path = "polygons/spike_panel.rs"]
 mod spike_panel;
 #[path = "items/statistics_ui.rs"]
 mod statistics_ui;
@@ -441,7 +454,9 @@ mod subd_gpu;
 #[path = "graphics/subd_gpu_tests.rs"]
 mod subd_gpu_tests;
 #[cfg(test)]
+#[path = "polygons/subdivide_tab_tests.rs"]
 mod subdivide_tab_tests;
+#[path = "polygons/subdivide_ui.rs"]
 mod subdivide_ui;
 mod subdivision_view;
 mod topology_mode;
@@ -4189,6 +4204,7 @@ mod drop_files_tests;
 #[path = "input_devices/drop_keys_tests.rs"]
 mod drop_keys_tests;
 #[cfg(test)]
+#[path = "polygons/drop_lag_tests.rs"]
 mod drop_lag_tests;
 #[cfg(test)]
 #[path = "duplication/duplicate_tools_tests.rs"]
@@ -4230,6 +4246,7 @@ mod history_limit_tests;
 #[path = "input_devices/input_focus_tests.rs"]
 mod input_focus_tests;
 #[cfg(test)]
+#[path = "polygons/inset_shift_tests.rs"]
 mod inset_shift_tests;
 #[cfg(test)]
 #[path = "items/item_list_header_tests.rs"]
@@ -4336,6 +4353,7 @@ mod toolbox_sets_tests;
 #[path = "deformers/tweak_tests.rs"]
 mod tweak_tests;
 #[cfg(test)]
+#[path = "polygons/twist_bevel_tests.rs"]
 mod twist_bevel_tests;
 #[cfg(test)]
 mod uv_dialogs_tests;
@@ -4390,9 +4408,11 @@ mod tree_list_tests;
 mod viewport_center_tests;
 
 #[cfg(test)]
+#[path = "polygons/smooth_shift_escape_tests.rs"]
 mod smooth_shift_escape_tests;
 
 #[cfg(test)]
+#[path = "polygons/smooth_shift_picking_freshness_tests.rs"]
 mod smooth_shift_picking_freshness_tests;
 
 #[cfg(test)]
@@ -4410,6 +4430,7 @@ mod pie_menu_tests;
 mod bridge_recovery_save_tests;
 
 #[cfg(test)]
+#[path = "polygons/thicken_shell_live_tests.rs"]
 mod thicken_shell_live_tests;
 
 #[cfg(test)]
@@ -4417,9 +4438,11 @@ mod thicken_shell_live_tests;
 mod surface_tool_states_live_tests;
 
 #[cfg(test)]
+#[path = "polygons/extrude_numeric_panel_live_tests.rs"]
 mod extrude_numeric_panel_live_tests;
 
 #[cfg(test)]
+#[path = "polygons/extrude_spike_chain_tests.rs"]
 mod extrude_spike_chain_tests;
 
 #[path = "commands/identity_audit.rs"]
@@ -4438,22 +4461,29 @@ mod cone_new_document_retention_tests;
 mod cone_numeric_repeat_history_tests;
 
 #[cfg(test)]
+#[path = "polygons/polygon_align_tests.rs"]
 mod polygon_align_tests;
 #[cfg(test)]
 #[path = "materials/polygon_material_tests.rs"]
 mod polygon_material_tests;
 #[cfg(test)]
+#[path = "polygons/polygon_part_dialog_tests.rs"]
 mod polygon_part_dialog_tests;
 #[cfg(test)]
+#[path = "polygons/polygon_quadruple_tests.rs"]
 mod polygon_quadruple_tests;
 #[cfg(test)]
+#[path = "polygons/polygon_spin_tests.rs"]
 mod polygon_spin_tests;
 #[cfg(test)]
+#[path = "polygons/polygon_split_tests.rs"]
 mod polygon_split_tests;
 #[cfg(test)]
+#[path = "polygons/polygon_unify_tests.rs"]
 mod polygon_unify_tests;
 
 #[cfg(test)]
+#[path = "polygons/polygon_triple_tests.rs"]
 mod polygon_triple_tests;
 
 #[cfg(test)]
@@ -4464,9 +4494,11 @@ mod topology_pen_ui_tests;
 mod topology_tools_ui_tests;
 
 #[cfg(test)]
+#[path = "polygons/polygon_reduction_tests.rs"]
 mod polygon_reduction_tests;
 
 #[cfg(test)]
+#[path = "polygons/flip_basic_tests.rs"]
 mod flip_basic_tests;
 #[cfg(test)]
 #[path = "graphics/gl_count_tests.rs"]
@@ -4475,9 +4507,11 @@ mod gl_count_tests;
 #[path = "items/statistics_ui_tests.rs"]
 mod statistics_ui_tests;
 #[cfg(test)]
+#[path = "polygons/subdivision_tests.rs"]
 mod subdivision_tests;
 
 #[cfg(test)]
+#[path = "polygons/polygon_remove_tests.rs"]
 mod polygon_remove_tests;
 
 #[cfg(test)]
@@ -4485,6 +4519,7 @@ mod polygon_remove_tests;
 mod edge_loop_delete_tests;
 
 #[cfg(test)]
+#[path = "polygons/polygon_collapse_tests.rs"]
 mod polygon_collapse_tests;
 
 #[cfg(test)]
@@ -4500,6 +4535,7 @@ mod scale_offset_tests;
 mod set_position_tests;
 
 #[cfg(test)]
+#[path = "polygons/flatten_ngons_ui_tests.rs"]
 mod flatten_ngons_ui_tests;
 
 #[cfg(test)]

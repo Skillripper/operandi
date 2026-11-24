@@ -158,8 +158,10 @@ fn remapped_key_and_text_focus() {
 #[test]
 fn options_cancel_keeps_parked_extrude_redo() {
     let mut a = Operandi::empty();
-    a.editor.scene =
-        serde_json::from_str(include_str!("../../../docs/i2/expectations/graphs/G0.json")).unwrap();
+    a.editor.scene = serde_json::from_str(include_str!(
+        "../../../../docs/i2/expectations/graphs/G0.json"
+    ))
+    .unwrap();
     a.editor.dispatch(Command::Activate(Tool::Extrude)).unwrap();
     a.editor
         .dispatch(Command::ConfigureExtrude(Parameters {
