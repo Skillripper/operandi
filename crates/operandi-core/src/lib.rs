@@ -345,6 +345,7 @@ pub use vertex_commands::{
     weld_points,
 };
 pub mod numeric;
+#[path = "deformers/tweak.rs"]
 pub mod tweak;
 pub use tweak::{
     TweakConnect, TweakElement, TweakGrab, TweakMirror, TweakMode, TweakOptions, TweakPlan,
@@ -394,10 +395,14 @@ pub use editor::*;
 pub use mesh::*;
 pub use scene::*;
 pub use selection::*;
+#[path = "deformers/bend.rs"]
 pub mod bend;
 pub mod click_start;
+#[path = "deformers/deform.rs"]
 pub mod deform;
+#[path = "deformers/deform_finish.rs"]
 pub mod deform_finish;
+#[path = "deformers/falloff.rs"]
 pub mod falloff;
 pub mod mesh_stack_deform;
 pub mod select_tools;
@@ -424,10 +429,14 @@ pub use falloff::{
     ActiveFalloff, CylinderFalloff, Falloff, FalloffShape, FalloffSymmetric, LinearFalloff,
     MixMode, RadialFalloff, SelectionFalloff, VertexMapFalloff, VertexMapMode,
 };
+#[path = "deformers/falloff_path.rs"]
 pub mod falloff_path;
+#[path = "deformers/falloff_pattern.rs"]
 pub mod falloff_pattern;
 pub use falloff_path::{CurvatureFalloff, PathFalloff};
+#[path = "deformers/falloff_reach.rs"]
 pub mod falloff_reach;
+#[path = "deformers/falloff_screen.rs"]
 pub mod falloff_screen;
 pub use falloff_pattern::{GrayImage, ImageFalloff, NoiseFalloff};
 pub use falloff_reach::{CoplanarFalloff, ElementFalloff, SoftSelectionFalloff};
@@ -551,8 +560,10 @@ pub use reduction_editor::*;
 pub mod chamfer;
 pub use chamfer::*;
 
+#[path = "deformers/poly_haul.rs"]
 pub mod poly_haul;
 pub use poly_haul::*;
+#[path = "deformers/poly_haul_modes.rs"]
 pub mod poly_haul_modes;
 pub use poly_haul_modes::{HaulAmount, HaulTarget, PolyHaulMode, poly_haul_mode_geometry};
 
