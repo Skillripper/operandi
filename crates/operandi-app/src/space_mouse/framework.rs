@@ -185,25 +185,39 @@ pub struct FrameworkSource {
 }
 
 impl FrameworkSource {
-    /// Connect to 3DxWare, or `None` when it isn't installed or refuses
-    /// (the caller falls back to raw HID).
-    pub fn start(ctx: &Context) -> Option<Self> {
+    /// Connect to 3DxWare. `Ok(None)` when it isn't installed; `Err` (why,
+    /// for Preferences) when it is but we couldn't connect. Either way the
+    /// caller falls back to raw HID, which 3DxWare usually blocks.
+    ///
+    /// Signed builds run with the hardened runtime, which only loads
+    /// libraries signed by Apple or by us unless the app has the
+    /// `disable-library-validation` entitlement
+    /// (assets/macos/operandi.entitlements). Without it the load below
+    /// fails and the device can't be opened at all.
+    pub fn start(ctx: &Context) -> Result<Option<Self>, String> {
         if !std::path::Path::new(FRAMEWORK).exists() {
-            return None;
+            return Ok(None);
         }
         // SAFETY: loading the driver's client framework runs only its own
         // initialisers. The library is never unloaded (leaked below), so
         // the callbacks it holds stay valid for the life of the process.
-        let lib = unsafe { libloading::Library::new(FRAMEWORK) }.ok()?;
+        let lib = unsafe { libloading::Library::new(FRAMEWORK) }
+            .map_err(|error| format!("its framework wouldn't load ({error})"))?;
         let lib: &'static libloading::Library = Box::leak(Box::new(lib));
+        let missing = |_| "its framework is missing functions Operandi needs".to_owned();
         // SAFETY: each symbol is a C function of the declared type.
         let (set_handlers, register, set_button_mask, unregister, cleanup) = unsafe {
             (
-                *lib.get::<SetHandlers>(b"SetConnexionHandlers\0").ok()?,
-                *lib.get::<Register>(b"RegisterConnexionClient\0").ok()?,
-                *lib.get::<SetMask>(b"SetConnexionClientButtonMask\0").ok()?,
-                *lib.get::<Unregister>(b"UnregisterConnexionClient\0").ok()?,
-                *lib.get::<Cleanup>(b"CleanupConnexionHandlers\0").ok()?,
+                *lib.get::<SetHandlers>(b"SetConnexionHandlers\0")
+                    .map_err(missing)?,
+                *lib.get::<Register>(b"RegisterConnexionClient\0")
+                    .map_err(missing)?,
+                *lib.get::<SetMask>(b"SetConnexionClientButtonMask\0")
+                    .map_err(missing)?,
+                *lib.get::<Unregister>(b"UnregisterConnexionClient\0")
+                    .map_err(missing)?,
+                *lib.get::<Cleanup>(b"CleanupConnexionHandlers\0")
+                    .map_err(missing)?,
             )
         };
         let (send, events) = channel();
@@ -220,7 +234,7 @@ impl FrameworkSource {
         let error = unsafe { set_handlers(on_message, on_added, on_removed, true) };
         if error != 0 {
             Self::forget_sink();
-            return None;
+            return Err(format!("it refused the connection (error {error})"));
         }
         // The process name, as a length-prefixed (Pascal) string.
         let name = process_name();
@@ -239,7 +253,7 @@ impl FrameworkSource {
             // SAFETY: undoes set_handlers above.
             unsafe { cleanup() };
             Self::forget_sink();
-            return None;
+            return Err("it refused to register Operandi".to_owned());
         }
         // SAFETY: `client` is the id the driver just gave us.
         unsafe { set_button_mask(client, MASK_ALL_BUTTONS) };
@@ -248,12 +262,12 @@ impl FrameworkSource {
         {
             sink.client = client;
         }
-        Some(Self {
+        Ok(Some(Self {
             events,
             client,
             unregister,
             cleanup,
-        })
+        }))
     }
 
     fn forget_sink() {
