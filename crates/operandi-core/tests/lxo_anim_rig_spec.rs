@@ -398,3 +398,71 @@ fn the_report_names_what_was_left_out() {
     let r = import("morph.lxo").report.summary();
     assert!(r.contains("morph influences"), "{r}");
 }
+
+/// File > Import (a scene's items joining the current one) keeps the
+/// arriving animation: curves on the new ids, rig pieces, skins, and the
+/// file's frame rate when this scene has no keys yet.
+#[test]
+fn importing_into_a_scene_keeps_the_animation_and_rig() {
+    use preset::{Preset, PresetHeader, PresetKind};
+    for file in ["skin.lxo", "constraints.lxo", "xfrm-camera-lights.lxo"] {
+        let source = import(file).scene;
+        let mut e = Editor::default();
+        e.dispatch(Command::LoadPreset {
+            preset: Box::new(Preset {
+                header: PresetHeader {
+                    kind: PresetKind::Assembly,
+                    thumbnail: None,
+                    source: None,
+                },
+                scene: source.clone(),
+            }),
+            group: None,
+        })
+        .unwrap();
+        let a = &e.scene.animation;
+        assert_eq!(a.channels.len(), source.animation.channels.len(), "{file}");
+        assert_eq!(
+            a.rig.pieces.len(),
+            source.animation.rig.pieces.len(),
+            "{file}"
+        );
+        assert_eq!(e.scene.time.rate, source.time.rate, "{file}");
+        assert_eq!(e.scene.time.end, source.time.end, "{file}");
+        for k in a.channels.keys() {
+            assert!(
+                e.scene.item(k.item).is_some() || a.rig.piece(k.item).is_some(),
+                "{file}: {k:?}"
+            );
+        }
+    }
+    // The skin still bends the arm at frame 30.
+    let all = cases();
+    let want = &all["skin.lxo"]["expected"]["mesh_t30"]["points"][16];
+    let mut e = Editor::default();
+    e.dispatch(Command::LoadPreset {
+        preset: Box::new(Preset {
+            header: PresetHeader {
+                kind: PresetKind::Assembly,
+                thumbnail: None,
+                source: None,
+            },
+            scene: import("skin.lxo").scene,
+        }),
+        group: None,
+    })
+    .unwrap();
+    at_frame(&mut e, 30);
+    let arm = id(&e, "Arm");
+    let s = e.evaluated(evaluate::Purpose::Final);
+    let p = s
+        .world_matrix(arm)
+        .unwrap()
+        .transform_point3(s.item(arm).unwrap().mesh.vertices[16]);
+    let w = DVec3::new(
+        want[0].as_f64().unwrap(),
+        want[1].as_f64().unwrap(),
+        want[2].as_f64().unwrap(),
+    );
+    assert!((p - w).length() < 1e-4, "{p} vs {w}");
+}
