@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 
 const REFERENCE: &str = "../../docs/guide/src/scripting/python-reference.md";
 const SCRIPTING: &str = "../../docs/guide/src/scripting";
-const MODULE: &str = include_str!("../../operandi-python/src/operandi.py");
+const MODULE: &str = include_str!("../../../operandi-python/src/operandi.py");
 
 /// One public name of `operandi.py`: `def` or `class`, with its docstring.
 #[derive(Debug, PartialEq)]
@@ -150,7 +150,7 @@ fn plain(s: &str) -> String {
 fn page() -> String {
     let mut out = String::from(
         "<!-- help-ids: ; template: concept ; since: 0.1.0 -->\n\
-         <!-- Written by crates/operandi-app/src/guide_python_tests.rs from \
+         <!-- Written by crates/operandi-app/src/commands/guide_python_tests.rs from \
          crates/operandi-python/src/operandi.py and the command registry. Don't edit \
          by hand: run OPERANDI_BLESS_GUIDE=1 scripts/check-fast.sh guide_python -->\n\
          # Python reference\n\n\

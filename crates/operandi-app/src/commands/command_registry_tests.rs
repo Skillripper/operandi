@@ -162,7 +162,7 @@ fn every_parser_name_is_in_the_registry() {
     // The prefixes `execute` checks itself. (Its old typed `match` became
     // registry handlers in command_handlers.rs, which attach by registry
     // name, so they can't name a missing command.)
-    let main = include_str!("main.rs");
+    let main = include_str!("../main.rs");
     names.extend(
         literals(
             main,
@@ -181,14 +181,14 @@ fn every_parser_name_is_in_the_registry() {
         false,
     ));
     names.extend(literals(
-        include_str!("subdivide_ui.rs"),
+        include_str!("../polygons/subdivide_ui.rs"),
         "let args: Vec<&str> = words.collect();",
         "_ => return false,\n        }\n        true",
         true,
     ));
     // Sculpt's lock verbs (parsed in core's command_line).
     names.extend(literals(
-        include_str!("../../operandi-core/src/command_line.rs"),
+        include_str!("../../../operandi-core/src/commands/command_line.rs"),
         "let corners = match first.as_str() {",
         "_ => return None,",
         true,
@@ -197,7 +197,7 @@ fn every_parser_name_is_in_the_registry() {
     // checked in `pie_phrase_choices_match_the_registry`.
     names.extend(
         literals(
-            include_str!("pie_menu.rs"),
+            include_str!("../menus/pie_menu.rs"),
             "fn execute_pie_command",
             "fn pie_enabled",
             false,
@@ -290,7 +290,7 @@ fn every_sub_parser_is_read_by_the_registry_test() {
             "let first = trimmed",
         ),
         (
-            include_str!("main.rs"),
+            include_str!("../main.rs"),
             "fn execute(&mut self, text: &str)",
             "if self.headless_command(text)",
         ),
@@ -331,7 +331,7 @@ fn every_sub_parser_is_read_by_the_registry_test() {
 /// The pie prefixes' word lists match the registry's choices.
 #[test]
 fn pie_phrase_choices_match_the_registry() {
-    let pie = include_str!("pie_menu.rs");
+    let pie = include_str!("../menus/pie_menu.rs");
     for (entry, start, end) in [
         ("View", "fn view_named", "_ => return None"),
         ("Shading", "fn style_named", "_ => return None"),
@@ -620,17 +620,17 @@ fn pref_value_takes_map_units_for_every_percent_and_angle() {
     use prefs_commands::{Stored, UNITS};
     // The pages' Percent / Angle rows (Remapping has its own entries).
     for source in [
-        include_str!("selection_preferences.rs"),
-        include_str!("units_preferences.rs"),
-        include_str!("viewport_preferences.rs"),
-        include_str!("handle_preferences.rs"),
-        include_str!("defaults_preferences.rs"),
-        include_str!("undo_autosave.rs"),
-        include_str!("mesh_items_preferences.rs"),
-        include_str!("ui_preferences.rs"),
-        include_str!("render_preferences.rs"),
-        include_str!("file_io_preferences.rs"),
-        include_str!("preferences.rs"),
+        include_str!("../settings/selection_preferences.rs"),
+        include_str!("../settings/units_preferences.rs"),
+        include_str!("../settings/viewport_preferences.rs"),
+        include_str!("../settings/handle_preferences.rs"),
+        include_str!("../settings/defaults_preferences.rs"),
+        include_str!("../settings/undo_autosave.rs"),
+        include_str!("../settings/mesh_items_preferences.rs"),
+        include_str!("../settings/ui_preferences.rs"),
+        include_str!("../settings/render_preferences.rs"),
+        include_str!("../settings/file_io_preferences.rs"),
+        include_str!("../settings/preferences.rs"),
     ] {
         for call in source.split("rows::number_d(").skip(1) {
             let head: String = call.chars().take(400).collect();
@@ -680,14 +680,14 @@ fn pref_value_checks_every_ranged_row() {
     // Every ranged group row on the pages is in ranges() (rows of other
     // state, the scene's draw size and the Preview's samples, aren't).
     for source in [
-        include_str!("selection_preferences.rs"),
-        include_str!("units_preferences.rs"),
-        include_str!("viewport_preferences.rs"),
-        include_str!("handle_preferences.rs"),
-        include_str!("undo_autosave.rs"),
-        include_str!("ui_preferences.rs"),
-        include_str!("render_preferences.rs"),
-        include_str!("file_io_preferences.rs"),
+        include_str!("../settings/selection_preferences.rs"),
+        include_str!("../settings/units_preferences.rs"),
+        include_str!("../settings/viewport_preferences.rs"),
+        include_str!("../settings/handle_preferences.rs"),
+        include_str!("../settings/undo_autosave.rs"),
+        include_str!("../settings/ui_preferences.rs"),
+        include_str!("../settings/render_preferences.rs"),
+        include_str!("../settings/file_io_preferences.rs"),
     ] {
         for call in source.split("rows::number_d(").skip(1) {
             let head: String = call.chars().take(300).collect();

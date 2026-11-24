@@ -17,7 +17,9 @@ mod animated_scene_frames_tests;
 #[path = "anim/channel_panel_tests.rs"]
 mod channel_panel_tests;
 mod collapse_line;
+#[path = "commands/command_history.rs"]
 mod command_history;
+#[path = "commands/command_history_ui.rs"]
 mod command_history_ui;
 #[cfg(test)]
 mod contour_tests;
@@ -75,13 +77,18 @@ mod clip_picker;
 mod color_theme;
 mod colour_field;
 mod colour_picker;
+#[path = "commands/command.rs"]
 mod command;
 #[cfg(test)]
+#[path = "commands/command_contract_tests.rs"]
 mod command_contract_tests;
+#[path = "commands/command_handlers.rs"]
 mod command_handlers;
 #[cfg(test)]
+#[path = "commands/command_registry_gaps.rs"]
 mod command_registry_gaps;
 #[cfg(test)]
+#[path = "commands/command_registry_tests.rs"]
 mod command_registry_tests;
 mod cone_panel;
 mod contour_ui;
@@ -136,10 +143,13 @@ mod gradient_ui;
 mod grid;
 mod groups_ui;
 #[cfg(test)]
+#[path = "commands/guide_menus_tests.rs"]
 mod guide_menus_tests;
 #[cfg(test)]
+#[path = "commands/guide_python_tests.rs"]
 mod guide_python_tests;
 #[cfg(test)]
+#[path = "commands/guide_shortcuts_tests.rs"]
 mod guide_shortcuts_tests;
 mod handle_preferences;
 mod handle_tips;
@@ -148,6 +158,7 @@ mod help_menu;
 mod help_mode;
 #[cfg(test)]
 mod help_mode_tests;
+#[path = "commands/i2_route.rs"]
 mod i2_route;
 mod icons;
 mod image_decode;
@@ -179,6 +190,7 @@ mod material_gpu;
 #[cfg(test)]
 mod material_gpu_tests;
 mod material_layout;
+#[path = "commands/mcp.rs"]
 mod mcp;
 mod menu_forms;
 mod mesh_cleanup_dialog;
@@ -187,6 +199,7 @@ mod mesh_paint_ui;
 mod mini_properties;
 mod modeling_menu;
 #[cfg(test)]
+#[path = "commands/monkey_tests.rs"]
 mod monkey_tests;
 #[cfg(test)]
 mod mouse_rule_tests;
@@ -251,11 +264,15 @@ mod profile_browser;
 mod project_files;
 mod project_presets;
 mod project_ui;
+#[path = "commands/python_switch.rs"]
 mod python_switch;
+#[path = "commands/python_ui.rs"]
 mod python_ui;
 #[cfg(test)]
+#[path = "commands/python_ui_tests.rs"]
 mod python_ui_tests;
 #[cfg(feature = "qa")]
+#[path = "commands/qa.rs"]
 mod qa;
 mod reduction_panel;
 mod relax_mesh_dialog;
@@ -384,6 +401,7 @@ mod toolbox;
 mod tree_list;
 mod typography;
 #[cfg(test)]
+#[path = "commands/ui_inventory.rs"]
 mod ui_inventory;
 mod ui_preferences;
 mod ui_text;
@@ -3977,10 +3995,13 @@ mod camera_view_settle_tests;
 #[cfg(test)]
 mod click_start_tests;
 #[cfg(test)]
+#[path = "commands/command_history_tests.rs"]
 mod command_history_tests;
 #[cfg(test)]
+#[path = "commands/command_line_tests.rs"]
 mod command_line_tests;
 #[cfg(test)]
+#[path = "commands/command_names_tests.rs"]
 mod command_names_tests;
 #[cfg(test)]
 mod component_transform_tests;
@@ -4152,6 +4173,7 @@ mod workbench_tests;
 #[cfg(test)]
 mod background_ui_tests;
 #[cfg(test)]
+#[path = "commands/doors_tests.rs"]
 mod doors_tests;
 #[cfg(test)]
 mod falloff_batch2_tests;
@@ -4208,6 +4230,7 @@ mod extrude_numeric_panel_live_tests;
 #[cfg(test)]
 mod extrude_spike_chain_tests;
 
+#[path = "commands/identity_audit.rs"]
 mod identity_audit;
 
 #[cfg(test)]

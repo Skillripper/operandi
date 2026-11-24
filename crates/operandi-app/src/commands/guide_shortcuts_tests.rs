@@ -35,7 +35,7 @@ pub(crate) fn guide_chord(chord: &str) -> String {
 fn page() -> String {
     let mut out = String::from(
         "<!-- help-ids: operandi.inputMap ; template: concept ; since: 0.1.0 -->\n\
-         <!-- Written by crates/operandi-app/src/guide_shortcuts_tests.rs from the \
+         <!-- Written by crates/operandi-app/src/commands/guide_shortcuts_tests.rs from the \
          factory key map. Don't edit by hand: run \
          OPERANDI_BLESS_GUIDE=1 scripts/check-fast.sh guide_shortcuts -->\n\
          # Keyboard shortcuts\n\n\

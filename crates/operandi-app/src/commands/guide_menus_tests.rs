@@ -141,7 +141,7 @@ fn pages() -> Vec<(String, String)> {
     let menus = menus();
     let mut index = String::from(
         "<!-- help-ids: ; template: panel ; since: 0.1.0 -->\n\
-         <!-- Written by crates/operandi-app/src/guide_menus_tests.rs from the app's \
+         <!-- Written by crates/operandi-app/src/commands/guide_menus_tests.rs from the app's \
          menus. Don't edit by hand: run OPERANDI_BLESS_GUIDE=1 scripts/check-fast.sh guide_menus -->\n\
          # Menus\n\n\
          Every command in Operandi is in a menu. On a Mac the menus are in the \
@@ -164,7 +164,7 @@ fn pages() -> Vec<(String, String)> {
         };
         let mut page = format!(
             "<!-- help-ids: {ids} ; template: panel ; since: 0.1.0 -->\n\
-             <!-- Written by crates/operandi-app/src/guide_menus_tests.rs from the app's \
+             <!-- Written by crates/operandi-app/src/commands/guide_menus_tests.rs from the app's \
              menus. Don't edit by hand: run OPERANDI_BLESS_GUIDE=1 scripts/check-fast.sh guide_menus -->\n\
              # {} menu\n\n\
              The entries of the **{}** menu, in order. A **▸** opens a submenu. \
