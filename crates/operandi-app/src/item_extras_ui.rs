@@ -91,7 +91,7 @@ impl Operandi {
         }
         if r.lost_focus() {
             ui.data_mut(|d| d.remove::<String>(id));
-            if text != shown {
+            if crate::numeric_tab::accepted(&r) && text != shown {
                 self.run_extra(make(text));
             }
         }
@@ -368,7 +368,7 @@ impl Operandi {
                                 }
                                 if r.lost_focus() {
                                     ui.data_mut(|d| d.remove::<String>(key));
-                                    if &text != t {
+                                    if crate::numeric_tab::accepted(&r) && &text != t {
                                         self.run_extra(ExtraEdit::ChannelValue(
                                             name.clone(),
                                             ChannelValue::Text(text),

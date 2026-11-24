@@ -157,7 +157,12 @@ Version 1, 2026-11-07. Behaviour only. Open questions and exceptions are tracked
   [ref] with the whole value selected so typing replaces it [OP]; a second
   click places the caret [ref]. Enter accepts [ref]; Esc cancels and Tab
   accepts and moves to the next field [OP]. (The colour field is the one
-  exception: UIC-58.)
+  exception: UIC-58.) **Typing changes nothing until it is accepted**
+  (Jason 2026-11-24): the scene, the viewports and the render preview
+  update on Enter, Tab or a click elsewhere, never on each keystroke, and
+  Esc puts the old value back. Typed text fields that change the scene
+  work the same way. Dragging (the mini-slider, colour numbers, the colour
+  picker) stays live. [OP]
 - **UIC-52** Numeric fields accept simple arithmetic with + − × ÷
   (`+ - * /`), worked out on Enter (`360/7` gives 51.43, shown at the
   field's precision; stored at full precision [OP]). [ref]

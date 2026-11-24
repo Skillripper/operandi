@@ -25,7 +25,9 @@ pages. A shader tree layer's settings show here when you click it in the
 ## Common tasks
 
 - **Type an exact value**: click a field, type, and press **Return**.
-  Fields take expressions, such as `250 mm` or `1 m/4`.
+  Fields take expressions, such as `250 mm` or `1 m/4`. Nothing changes
+  until you press **Return** or **Tab**, or click somewhere else; **Esc**
+  puts the old value back.
 - **Link X, Y and Z**: click the chain at the end of the first row, so
   changing one changes all three.
 - **Animate a value**: click the dot before a field to set a key on it.

@@ -1997,7 +1997,7 @@ impl Operandi {
                         crate::numeric_tab::register(ui, &response, Some(draft.as_str()));
                         if response.lost_focus() {
                             let name = draft.trim().to_owned();
-                            if !name.is_empty() {
+                            if crate::numeric_tab::accepted(&response) && !name.is_empty() {
                                 edited.name = name;
                             }
                             // Pick the stored name up again next frame.

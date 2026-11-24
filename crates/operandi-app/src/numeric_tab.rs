@@ -101,6 +101,14 @@ pub(crate) fn register(ui: &Ui, response: &Response, text: Option<&str>) {
     }
 }
 
+/// Did the text field behind `response` just lose focus with its typed
+/// text accepted (Enter, Tab, a click elsewhere) rather than dropped by
+/// Esc? UIC-51: Esc puts the old value back. A field that keeps a draft
+/// clears it on any `lost_focus` and commits only when this is true.
+pub(crate) fn accepted(response: &Response) -> bool {
+    response.lost_focus() && !response.ctx.input(|i| i.key_pressed(Key::Escape))
+}
+
 /// Is `id` a text or number field (one that takes typed keys)? Fields
 /// that registered count, and so does any egui text edit, registered or
 /// not (it keeps its state under its id).
@@ -279,7 +287,12 @@ impl<'a> DragValue<'a> {
         });
         let shared = std::rc::Rc::new(std::cell::RefCell::new(get_set));
         let for_inner = shared.clone();
-        let inner = egui::DragValue::from_get_set(move |v| (for_inner.borrow_mut())(v));
+        // UIC-51: typing changes nothing until it is accepted. egui then
+        // writes the typed text when the box loses focus (Enter, Tab via
+        // `begin_pass`, a click elsewhere) and drops it on Esc. Dragging the
+        // box or its arrows stays live.
+        let inner = egui::DragValue::from_get_set(move |v| (for_inner.borrow_mut())(v))
+            .update_while_editing(false);
         let inner = if Num::INTEGRAL {
             inner.max_decimals(0)
         } else {
@@ -415,6 +428,13 @@ impl Widget for DragValue<'_> {
                 },
             )
             .inner;
+        // UIC-51: while the box is being typed in, egui reports each
+        // keystroke as a change of its text, though the value stays put
+        // until it is accepted. Callers read `changed()` as "the value
+        // changed", so keep it quiet until then.
+        if response.has_focus() {
+            response.flags.remove(egui::response::Flags::CHANGED);
+        }
         register(ui, &response, None);
         // The arrows: drag sideways to change the value. Shift is coarser;
         // Option or the physical Ctrl key finer (F1: Ctrl is never Cmd here).
@@ -599,6 +619,174 @@ mod tests {
         // "7" replaced the selected "2" rather than joining it.
         assert_eq!(values, [5., 7.]);
         assert_eq!(ctx.memory(|m| m.focused()), Some(ids[0]));
+    }
+
+    /// One value box and a plain area beside it, for the accept/cancel
+    /// tests (UIC-51: typing changes nothing until it is accepted).
+    struct OneBox {
+        ctx: Context,
+        value: f64,
+        id: Id,
+        /// The box reported `changed()` in the last frame.
+        changed: bool,
+    }
+
+    impl OneBox {
+        fn new() -> Self {
+            let mut b = Self {
+                ctx: Context::default(),
+                value: 1.,
+                id: Id::NULL,
+                changed: false,
+            };
+            b.frame(vec![]);
+            b
+        }
+        fn frame(&mut self, events: Vec<Event>) {
+            let mut raw = RawInput {
+                screen_rect: Some(Rect::from_min_size(pos2(0., 0.), vec2(400., 300.))),
+                events,
+                focused: true,
+                ..Default::default()
+            };
+            take_tab(&self.ctx, &mut raw);
+            let (value, id, changed) = (&mut self.value, &mut self.id, &mut self.changed);
+            let _ = self.ctx.run(raw, |ctx| {
+                begin_pass(ctx);
+                egui::CentralPanel::default().show(ctx, |ui| {
+                    let r = ui.add(DragValue::new(value));
+                    *id = r.id;
+                    *changed = r.changed();
+                });
+            });
+        }
+        fn click(&mut self, at: egui::Pos2) {
+            let button = |pressed| Event::PointerButton {
+                pos: at,
+                button: egui::PointerButton::Primary,
+                pressed,
+                modifiers: Modifiers::NONE,
+            };
+            self.frame(vec![Event::PointerMoved(at), button(true)]);
+            self.frame(vec![button(false)]);
+            self.frame(vec![]);
+        }
+        /// Click into the box and type `text` over its selected value.
+        fn type_in(&mut self, text: &str) {
+            let at = self.ctx.read_response(self.id).unwrap().rect.center();
+            self.click(at);
+            assert_eq!(self.ctx.memory(|m| m.focused()), Some(self.id));
+            self.frame(vec![Event::Text(text.into())]);
+        }
+        fn key(&mut self, key: Key) {
+            self.frame(vec![Event::Key {
+                key,
+                physical_key: None,
+                pressed: true,
+                repeat: false,
+                modifiers: Modifiers::NONE,
+            }]);
+        }
+    }
+
+    #[test]
+    fn typing_changes_nothing_until_enter() {
+        let mut b = OneBox::new();
+        b.type_in("5");
+        assert_eq!(b.value, 1.);
+        assert!(!b.changed);
+        b.frame(vec![]);
+        assert_eq!(b.value, 1.);
+        b.key(Key::Enter);
+        assert_eq!(b.value, 5.);
+        assert!(b.changed);
+        assert_eq!(b.ctx.memory(|m| m.focused()), None);
+    }
+
+    #[test]
+    fn escape_puts_the_old_value_back() {
+        let mut b = OneBox::new();
+        b.type_in("5");
+        b.key(Key::Escape);
+        assert_eq!(b.value, 1.);
+        assert!(!b.changed);
+        assert_eq!(b.ctx.memory(|m| m.focused()), None);
+        b.frame(vec![]);
+        b.frame(vec![]);
+        assert_eq!(b.value, 1.);
+        // Opening the box again shows the value, not the dropped text.
+        b.type_in("");
+        b.key(Key::Enter);
+        assert_eq!(b.value, 1.);
+    }
+
+    #[test]
+    fn a_click_elsewhere_accepts_the_typed_value() {
+        let mut b = OneBox::new();
+        b.type_in("5");
+        assert_eq!(b.value, 1.);
+        let mut changed = false;
+        let at = pos2(300., 250.);
+        let button = |pressed| Event::PointerButton {
+            pos: at,
+            button: egui::PointerButton::Primary,
+            pressed,
+            modifiers: Modifiers::NONE,
+        };
+        for events in [
+            vec![Event::PointerMoved(at), button(true)],
+            vec![button(false)],
+        ] {
+            b.frame(events);
+            changed |= b.changed;
+        }
+        assert_eq!(b.value, 5.);
+        assert!(changed);
+        assert_eq!(b.ctx.memory(|m| m.focused()), None);
+    }
+
+    /// A text field's draft is accepted by Enter and dropped by Esc.
+    #[test]
+    fn text_fields_accept_on_enter_not_escape() {
+        let run = |end: Key| {
+            let ctx = Context::default();
+            let mut text = String::from("Old");
+            let mut accepted_at = None;
+            let mut frame = |events: Vec<Event>, n: usize| {
+                let _ = ctx.run(
+                    RawInput {
+                        events,
+                        focused: true,
+                        ..Default::default()
+                    },
+                    |ctx| {
+                        egui::CentralPanel::default().show(ctx, |ui| {
+                            let r = ui.text_edit_singleline(&mut text);
+                            if n == 0 {
+                                r.request_focus();
+                            }
+                            if accepted(&r) {
+                                accepted_at = Some(n);
+                            }
+                        });
+                    },
+                );
+            };
+            frame(vec![], 0);
+            frame(vec![Event::Text("!".into())], 1);
+            let key = Event::Key {
+                key: end,
+                physical_key: None,
+                pressed: true,
+                repeat: false,
+                modifiers: Modifiers::NONE,
+            };
+            frame(vec![key], 2);
+            frame(vec![], 3);
+            (accepted_at, ctx.memory(|m| m.focused()))
+        };
+        assert_eq!(run(Key::Enter), (Some(2), None));
+        assert_eq!(run(Key::Escape), (None, None));
     }
 
     /// Every value box in the app goes through the wrapper, so Tab reaches
