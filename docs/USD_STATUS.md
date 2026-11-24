@@ -3,7 +3,8 @@
 Audit of the code and tests on main `99c49012` (2026-11-19), not of the
 docs, updated for branch usd-gaps-2b (the four gap jobs: foreign data,
 curves, PointInstancer export, untested rows) and branch usd-gaps-3
-(node graphs, render settings, mesh lights, variants; 2026-11-20). Code lives in `crates/operandi-usd`; paths below are relative to its
+(node graphs, render settings, mesh lights, variants; 2026-11-20) and branch
+usd-animation-import (animation import; 2026-11-24). Code lives in `crates/operandi-usd`; paths below are relative to its
 `src/` (and `bridge/`). Tests named are in `tests.rs`, `plan_tests.rs`,
 `import_tests.rs`, `export_gaps_tests.rs`, `lights.rs`,
 `import_lights.rs`, `untested_rows_tests.rs`, `foreign_tests.rs`,
@@ -24,7 +25,7 @@ D = done, P = partial, M = missing, n/a = no such thing on that side.
 | Morphs / blend shapes | D | D | UsdSkelBlendShape + BindingAPI. Import: every bound BlendShape, Blender shape keys included (offsets and pointIndices); inbetweens left out |
 | Selection sets | D | D | Polygon/point sets as GeomSubsets, edge sets in customData; set groups dropped and noted (`what_stays_behind_is_reported`). Import: Operandi families and any other family but materialBind (face, point and edge subsets; Houdini groups) |
 | Parts | D | D | GeomSubset family `operandi:part`; round trip test above |
-| Subdivision and creases | D | D | Catmull-Clark scheme, boundary and FV rules, creases ×10; `subdivision_cage_writes_scheme_and_creases`, `subdivision_and_creases_come_across`. Import drops corner sharpness (noted) |
+| Subdivision and creases | D | D | Catmull-Clark scheme, boundary and FV rules, creases ×10; `subdivision_cage_writes_scheme_and_creases`, `subdivision_and_creases_come_across`. Import drops corner sharpness (noted): Operandi's subdivision has no corner sharpness to put it in |
 | Curves (BasisCurves / NurbsCurves) | D | D | curves.rs (USD-IQ24). Export exact for every kind: linear, bezier, periodic bspline, clamped B-Splines as NurbsCurves, catmullRom; widths from a `widths` typed map. Import every basis and wrap; NURBS other than order 2 and clamped uniform cubics are sampled (reported). `every_curve_kind_round_trips`, `other_programs_curves_come_in_as_the_curves_they_draw`, `blender_curves_round_trip` |
 | Instances (instanceable) | D | D | Mesh Instances as instanceable refs to `/root/_prototypes`; `mesh_instances_are_usd_instances`, `instances_or_copies` |
 | PointInstancer | D | D | Export: 16+ plain Mesh Instances of one source under one parent (point_instancer.rs, USD-IQ25), names and eyes in customData; `a_thousand_copy_scatter_round_trips_as_a_point_instancer` (63 KB vs 116 KB, 0.017 s vs 0.097 s to import). Import: copies or Mesh Instances; invisibleIds hide, inactiveIds skip (the mask used to misalign instances) |
@@ -45,7 +46,7 @@ D = done, P = partial, M = missing, n/a = no such thing on that side.
 | Node Material graphs (Blender) | P | D | Export (cycles_mtlx.rs): the graph as the MaterialX nodes its Cycles nodes map to (Principled and Emission onto open_pbr_surface, Image, Math, Mix, Mapping, Invert, Separate/Combine RGB, tangent Normal Map, Value, RGB, Texture Coordinate); Noise, Voronoi, Wave, Gradient, Color Ramp, Bump, Fresnel, Layer Weight and closures other than the two are reported, and a surface with no map keeps Preview Surface only. No sidecar is written. Import reads `<file>_graphs.json` (`usd_t4_the_graphs_sidecar_brings_node_materials`). `a_blender_graph_goes_out_as_the_materialx_it_maps_to` |
 | Transforms and hierarchy | D | D | `/root` Xform, items nest; `children_nest_under_their_parents`, `a_z_up_hierarchy_keeps_local_transforms_turned_to_y_up` |
 | Xform op orders | D | D | All 6 rotate orders (`world_placement_matches_operandi_for_both_rotation_orders`); import reads plain TRS, else the matrix (shear dropped, resetXformStack read as local, both noted) |
-| Animation / time samples | M | M | Nothing writes time samples; the reader samples `EarliestTime` only (operandi_usd_read.cpp `TIME`). Operandi has scene time but no keyframes yet |
+| Animation / time samples | D | D | Export (anim_usd.rs, TL-80..84): stage timing and a sample per frame (plus keys between frames) for animated or rigged transforms, camera lens values and light intensity and colour; `tl80_82_the_ball_exports_time_samples_and_stage_timing`. Import (import_anim.rs, 2026-11-24): transform samples and camera and light attribute samples become linear keys on the channels that change (stepped for on/off and choice channels); time codes become frames by framesPerSecond / timeCodesPerSecond, and the scene takes the stage's rate and authored range. Angles from matrices keep turning the same way. UsdSkel joint animation comes in as keys on the joints (import_skel.rs). A round trip keeps the motion with a key per frame, not the original keys. `the_ball_round_trips_with_its_motion`, `camera_and_light_keys_round_trip`, import_anim_tests.rs. Animated mesh points, primvars and visibility are not read (first sample only) |
 | Visibility and purpose | D | D | Inherited visibility per GV-01 (`hidden_items_and_hidden_hierarchies`). Export writes no purpose (all default). Import drops guide/proxy, keeps render (`usda_details_come_across`) |
 | Units and up-axis | D | D | metersPerUnit, Y/Z up, X up via a root matrix; `z_up_scenes_say_so`, `up_axis_follows_the_scene`, `units_and_up_axis_can_be_overridden` |
 | Kits | M | n/a | Kit items skipped, noted per kind (plan.rs `Skipped`) |
@@ -60,9 +61,11 @@ D = done, P = partial, M = missing, n/a = no such thing on that side.
 
 A partial row counts half.
 
-- Export: 33 done, 4 partial, 3 missing of 40 rows: **88%** (was 81%).
-- Import: 37 done, 0 partial, 1 missing of 38 rows (2 n/a): **97%** (was 92%).
-- Overall: 72 of 78: **92%** (was 87%).
+- Export: 34 done, 4 partial, 2 missing of 40 rows: **90%** (was 88%; the
+  animation row was out of date, export has written time samples since
+  the animation work).
+- Import: 38 done, 0 partial, 0 missing of 38 rows (2 n/a): **100%** (was 97%).
+- Overall: 74 of 78: **95%** (was 92%).
 
 The nine "done" rows that rested on untested code (ortho/DOF cameras,
 Disk, Cylinder and Portal lights, each both ways, and IES export) have
@@ -99,10 +102,11 @@ same way as pointsTypes.usda. Not fixed yet.
 
 ## Top 3 missing for real users
 
-1. **Animation / time samples.** Nothing writes or reads them beyond the
-   first sample; it should come with keyframes.
-2. **Variants and payloads on export, and a variant picker on import.**
+1. **Variants and payloads on export, and a variant picker on import.**
    The import takes the default selections only.
-3. **Blender graph nodes with no MaterialX counterpart** (procedural
+2. **Blender graph nodes with no MaterialX counterpart** (procedural
    textures, Color Ramp, Bump) and the DomeLight picture of a Dome light
    item.
+3. **Animated geometry** (mesh points over time, from simulations or
+   other programs' deformers): the import reads the first sample. It
+   would need a point cache in Operandi first.

@@ -1,5 +1,16 @@
 # Milestone progress ledger
 
+- **USD animation import (2026-11-24, branch usd-animation-import):**
+  opening or importing a USD file brings its animation: transform time
+  samples and camera and light attribute samples become linear keys on
+  the channels that change (import_anim.rs; bridge reader writes
+  `xformSamples`, `attributeSamples` and the stage timing). The scene
+  takes the file's frame rate and authored range; time codes convert by
+  framesPerSecond / timeCodesPerSecond (UsdSkel keys too). Export then
+  import keeps the motion, one key per frame. Corner sharpness is still
+  left out: Operandi's subdivision has nothing to hold it. Animated mesh
+  points stay first-sample only. docs/USD_STATUS.md corrected.
+
 - **Mini Properties resize (2026-11-24, branch mini-properties-resize,
   UIC-66 amended with the maintainer's OK):** the bottom-right corner drags
   to resize it; it keeps its top-left corner while you drag and opens at

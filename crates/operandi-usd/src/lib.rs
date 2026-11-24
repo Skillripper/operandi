@@ -28,6 +28,9 @@ pub mod ffi;
 #[cfg(all(test, feature = "usd"))]
 mod foreign_tests;
 pub mod import;
+pub mod import_anim;
+#[cfg(test)]
+mod import_anim_tests;
 pub mod import_extras;
 pub mod import_graphs;
 pub mod import_lights;

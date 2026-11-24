@@ -54,6 +54,7 @@
 #include <pxr/usd/usdShade/tokens.h>
 #include <pxr/usd/usdShade/utils.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -327,7 +328,7 @@ std::string matrix_json(const GfMatrix4d &m)
 
 /* translate / rotate (degrees) / scale and the rotation order, when the
  * prim's ops are plain TRS without pivots; "" otherwise. */
-std::string trs_json(const UsdGeomXformable &xf)
+std::string trs_json(const UsdGeomXformable &xf, UsdTimeCode time = TIME)
 {
   UsdGeomXformCommonAPI api(xf.GetPrim());
   if (!api) {
@@ -336,7 +337,7 @@ std::string trs_json(const UsdGeomXformable &xf)
   GfVec3d t;
   GfVec3f r, s, pivot;
   UsdGeomXformCommonAPI::RotationOrder order;
-  if (!api.GetXformVectorsByAccumulation(&t, &r, &s, &pivot, &order, TIME)) {
+  if (!api.GetXformVectorsByAccumulation(&t, &r, &s, &pivot, &order, time)) {
     return "";
   }
   if (pivot != GfVec3f(0)) {
@@ -442,13 +443,13 @@ const char *const LIGHT_ATTRIBUTES[] = {
 /* {"name": value...} for the attributes in `names` that have a value
  * (authored or the schema's fallback): numbers, bools and tokens as JSON
  * values, vectors as arrays. */
-std::string attributes_json(const UsdPrim &prim, const char *const *names)
+std::string attributes_json(const UsdPrim &prim, const char *const *names, UsdTimeCode time = TIME)
 {
   std::string s = "{";
   for (; *names != nullptr; names++) {
     UsdAttribute a = prim.GetAttribute(TfToken(*names));
     VtValue v;
-    if (!a || !a.Get(&v, TIME) || v.IsEmpty()) {
+    if (!a || !a.Get(&v, time) || v.IsEmpty()) {
       continue;
     }
     std::string value;
@@ -478,6 +479,63 @@ std::string attributes_json(const UsdPrim &prim, const char *const *names)
     s += (s.size() > 1 ? "," : "") + json_string(*names) + ":" + value;
   }
   return s + "}";
+}
+
+std::string times_json(const std::vector<double> &times)
+{
+  std::string s = "[";
+  for (size_t k = 0; k < times.size(); k++) {
+    s += (k ? "," : "") + num(times[k]);
+  }
+  return s + "]";
+}
+
+/* `,"xformSamples":{...}` when the prim's transform has two or more time
+ * samples: per time (time codes), the local matrix and the plain TRS (or
+ * null), like "local" and "trs". "" otherwise. */
+std::string xform_samples_json(const UsdGeomXformable &xf)
+{
+  std::vector<double> times;
+  if (!xf.TransformMightBeTimeVarying() || !xf.GetTimeSamples(&times) || times.size() < 2) {
+    return "";
+  }
+  std::string local = "[", trs = "[";
+  for (size_t k = 0; k < times.size(); k++) {
+    const UsdTimeCode code(times[k]);
+    GfMatrix4d m;
+    bool resets = false;
+    xf.GetLocalTransformation(&m, &resets, code);
+    const std::string one = trs_json(xf, code);
+    local += (k ? "," : "") + matrix_json(m);
+    trs += (k ? "," : "") + (one.empty() ? std::string("null") : one);
+  }
+  return ",\"xformSamples\":{\"times\":" + times_json(times) + ",\"local\":" + local +
+         "],\"trs\":" + trs + "]}";
+}
+
+/* `,"attributeSamples":{...}` when any of `names` has two or more time
+ * samples: the union of their times and attributes_json at each. "" when
+ * nothing in `names` changes over time. */
+std::string attribute_samples_json(const UsdPrim &prim, const char *const *names)
+{
+  std::vector<double> all;
+  for (const char *const *n = names; *n != nullptr; n++) {
+    UsdAttribute a = prim.GetAttribute(TfToken(*n));
+    std::vector<double> times;
+    if (a && a.ValueMightBeTimeVarying() && a.GetTimeSamples(&times)) {
+      all.insert(all.end(), times.begin(), times.end());
+    }
+  }
+  std::sort(all.begin(), all.end());
+  all.erase(std::unique(all.begin(), all.end()), all.end());
+  if (all.size() < 2) {
+    return "";
+  }
+  std::string values = "[";
+  for (size_t k = 0; k < all.size(); k++) {
+    values += (k ? "," : "") + attributes_json(prim, names, UsdTimeCode(all[k]));
+  }
+  return ",\"attributeSamples\":{\"times\":" + times_json(all) + ",\"values\":" + values + "]}";
 }
 
 /* One material's shading network: every shader the surface outputs reach,
@@ -1142,9 +1200,11 @@ struct Walker {
       if (!trs.empty()) {
         s += ",\"trs\":" + trs;
       }
+      s += xform_samples_json(xf);
     }
     if (prim.IsA<UsdGeomCamera>()) {
       s += ",\"camera\":" + attributes_json(prim, CAMERA_ATTRIBUTES);
+      s += attribute_samples_json(prim, CAMERA_ATTRIBUTES);
     }
     if (prim.HasAPI<UsdLuxLightAPI>()) {
       std::string light = attributes_json(prim, LIGHT_ATTRIBUTES);
@@ -1164,6 +1224,7 @@ struct Walker {
         light += std::string(light.size() > 1 ? "," : "") + "\"ies\":{" + profile.substr(1) + "}}";
       }
       s += ",\"light\":" + light;
+      s += attribute_samples_json(prim, LIGHT_ATTRIBUTES);
     }
     UsdGeomMesh mesh(prim);
     if (mesh) {
@@ -1362,6 +1423,11 @@ struct Walker {
     };
     s += ",\"renderCamera\":" + json_string(render_camera());
     s += render_settings_json();
+    /* The stage's timing, for animation (time samples are in time codes). */
+    s += ",\"time\":{\"timeCodesPerSecond\":" + num(stage->GetTimeCodesPerSecond()) +
+         ",\"framesPerSecond\":" + num(stage->GetFramesPerSecond()) +
+         ",\"start\":" + num(stage->GetStartTimeCode()) + ",\"end\":" + num(stage->GetEndTimeCode()) +
+         ",\"range\":" + (stage->HasAuthoredTimeCodeRange() ? "true" : "false") + "}";
     return s + ",\"prims\":" + list(prims) + ",\"meshes\":" + list(meshes) +
            ",\"materials\":" + list(materials) + ",\"skipped\":" + list(skipped) +
            ",\"skeletons\":" + list(skeletons) + "}";
