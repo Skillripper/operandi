@@ -132,7 +132,6 @@ mod help_mode;
 #[cfg(test)]
 mod help_mode_tests;
 mod i2_route;
-mod icon_studio_cli;
 mod icons;
 mod image_decode;
 mod image_viewer;
@@ -3844,10 +3843,6 @@ fn main() -> eframe::Result {
     // Operandi's own matcap renders (matcap_render.rs): no window opens.
     if args.first().map(String::as_str) == Some("--render-matcap") {
         std::process::exit(matcap_render::command(&args[1..]));
-    }
-    // UI icons rendered from 3D scenes (icon_studio_cli.rs): no window opens.
-    if args.first().map(String::as_str) == Some("--icon-studio") {
-        std::process::exit(icon_studio_cli::command(&args[1..]));
     }
     #[cfg(feature = "qa")]
     if qa::offscreen_requested() {

@@ -1,10 +1,11 @@
-//! `operandi-app --icon-studio`: UI icons rendered from small 3D scenes
-//! with Cycles (core `icon_studio`). No window opens.
+//! `operandi-icon-studio`: UI icons rendered from small 3D scenes with
+//! Cycles (the studio in `lib.rs`). A developer tool; the app only ships
+//! the finished PNGs.
 //!
 //! ```text
-//! operandi-app --icon-studio template <studio.opscene>
-//! operandi-app --icon-studio sample <slug> <icon.opscene>
-//! operandi-app --icon-studio render <icon.opscene | folder>... --out <folder>
+//! operandi-icon-studio template <studio.opscene>
+//! operandi-icon-studio sample <slug> <icon.opscene>
+//! operandi-icon-studio render <icon.opscene | folder>... --out <folder>
 //!              [--studio <studio.opscene>] [--samples <n>] [--no-outline]
 //! ```
 //!
@@ -20,14 +21,13 @@
 //! the same under `light-outline/`. `<out>/contact-sheet.png` shows the
 //! dark-outline set on the generator's light preview background and the
 //! light-outline set on its dark one.
-use eframe::egui;
 use operandi_core::Scene;
-use operandi_core::icon_studio::{self, SIZES};
+use operandi_icon_studio::{self as icon_studio, SIZES};
 use std::path::{Path, PathBuf};
 
-const USAGE: &str = "usage: operandi-app --icon-studio template <studio.opscene>\n       \
-operandi-app --icon-studio sample <slug> <icon.opscene>\n       \
-operandi-app --icon-studio render <icon.opscene | folder>... --out <folder> \
+const USAGE: &str = "usage: operandi-icon-studio template <studio.opscene>\n       \
+operandi-icon-studio sample <slug> <icon.opscene>\n       \
+operandi-icon-studio render <icon.opscene | folder>... --out <folder> \
 [--studio <studio.opscene>] [--samples <n>] [--no-outline]";
 
 #[derive(Clone, Debug, PartialEq)]
@@ -56,7 +56,7 @@ pub(crate) struct RenderJob {
     pub outline: bool,
 }
 
-/// Parses the arguments after `--icon-studio`.
+/// Parses the command's arguments.
 pub(crate) fn parse(args: &[String]) -> Result<Job, String> {
     let (verb, rest) = args
         .split_first()
@@ -232,8 +232,8 @@ impl Outline {
     /// The set's folder under the icon's own.
     pub(crate) fn folder(self) -> &'static str {
         match self {
-            Outline::Dark => crate::rendered_icons::IconSet::DarkOutline.folder(),
-            Outline::Light => crate::rendered_icons::IconSet::LightOutline.folder(),
+            Outline::Dark => "dark-outline",
+            Outline::Light => "light-outline",
             Outline::None => "no-outline",
         }
     }
@@ -472,12 +472,7 @@ impl Canvas {
 
 /// Egui's own UI font (Ubuntu Light), for the sheet's labels.
 fn label_font_bytes() -> Option<Vec<u8>> {
-    let fonts = egui::FontDefinitions::default();
-    let data = fonts
-        .font_data
-        .get("Ubuntu-Light")
-        .or_else(|| fonts.font_data.values().next())?;
-    Some(data.font.to_vec())
+    Some(epaint_default_fonts::UBUNTU_LIGHT.to_vec())
 }
 
 /// Draws the contact sheet: one row per icon, every size at 1× and 2×
@@ -621,7 +616,7 @@ fn run(job: &Job) -> Result<(), String> {
     }
 }
 
-/// `operandi-app --icon-studio ...`. Returns the process exit code.
+/// `operandi-icon-studio ...`. Returns the process exit code.
 pub(crate) fn command(args: &[String]) -> i32 {
     let job = match parse(args) {
         Ok(job) => job,
@@ -637,6 +632,11 @@ pub(crate) fn command(args: &[String]) -> i32 {
             1
         }
     }
+}
+
+fn main() {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    std::process::exit(command(&args));
 }
 
 #[cfg(test)]

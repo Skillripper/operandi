@@ -73,9 +73,11 @@ already in the tree, and adds earcut 0.4.12 (MIT OR Apache-2.0) to fill
 letters that have holes. Installed system fonts are read at run time, never
 bundled.
 
-The icon studio (2026-11-20, `icon_studio_cli.rs`) makes operandi-app name
-ab_glyph 0.2.32 (Apache-2.0) directly, already in the tree through egui, to
-letter its contact sheet with egui's own Ubuntu Light. No new crate.
+The icon studio (2026-11-20; its own developer-tool crate,
+`operandi-icon-studio`, since 2026-11-24) names ab_glyph 0.2.32 (Apache-2.0)
+and epaint_default_fonts 0.33.3 (MIT OR Apache-2.0) directly, both already in
+the tree through egui, to letter its contact sheet with egui's own Ubuntu
+Light. No new crate.
 
 The material converter (2026-11-11, branch blender-materials-starter) is a
 new workspace crate, `operandi-preset-convert`, using only crates already

@@ -2875,6 +2875,18 @@ name = "operandi-files"
 version = "0.1.0"
 
 [[package]]
+name = "operandi-icon-studio"
+version = "0.1.0"
+dependencies = [
+ "ab_glyph",
+ "epaint_default_fonts",
+ "glam 0.30.10",
+ "image",
+ "operandi-core",
+ "operandi-cycles",
+]
+
+[[package]]
 name = "operandi-layout"
 version = "0.1.0"
 dependencies = [

@@ -266,22 +266,24 @@ so the whole set shares one camera, light rig and set of materials. Read
 `tools/icon-studio/README.md` before touching icons.
 
 - **Add an icon:** model its scene inside the studio's icon box (in
-  Operandi, or as a `Sample` in `operandi-core/src/icon_studio.rs`), tag
+  Operandi, or as a `Sample` in `operandi-icon-studio/src/studio.rs`), tag
   polygons with the studio materials (Selected yellow-orange always means
   "selected", New cyan new geometry, Axis X/Y/Z red/green/blue), and save it
   as `tools/icon-studio/icons/<slug>.opscene`.
 - **Render and install:** `scripts/render-icons.sh --install` renders every
   icon at 16-64 px in a dark-outline and a light-outline set, writes
   `development/icon-studio/contact-sheet.png`, and copies the PNGs into
-  `crates/operandi-app/assets/rendered-icons`. Then add the icon's line to
-  `RENDERED` and its `FILES` lines in `operandi-app/src/rendered_icons.rs`
-  (the build needs the PNGs first). A brand-new icon has no SVG: add its
+  `crates/operandi-app/assets/rendered-icons`. Then add the icon's line
+  (`<slug> <Icon variant>`, in sorted place) to `icons.txt` in that folder;
+  the app's build embeds the listed PNGs. A brand-new icon has no SVG: add its
   `Icon` variant and put it under `rendered only:` in the icon table in
   `operandi-app/src/icons.rs`; forms and presets name it by its slug.
 - **Review:** show the maintainer the contact sheet. New or changed artwork
   needs their visual approval.
 - Change the shared look (camera, lights, materials) only in the studio, and
   only with the maintainer's OK.
+- The studio is a developer tool in its own crate, `operandi-icon-studio`
+  (the app doesn't depend on it); the app ships only the PNGs.
 - Never draw from screenshots or other applications' icons, and never use
   image generation for final artwork.
 - **Any icon not made with the studio is a placeholder.** A contributor
