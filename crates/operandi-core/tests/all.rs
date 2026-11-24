@@ -158,6 +158,8 @@ mod duplicate_tools;
 mod duplicate_transform;
 #[path = "edge_bevel.rs"]
 mod edge_bevel;
+#[path = "edge_bevel_cap_edges.rs"]
+mod edge_bevel_cap_edges;
 #[cfg(operandi_specs)]
 #[path = "edge_bevel_measured.rs"]
 mod edge_bevel_measured;

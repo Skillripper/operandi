@@ -262,6 +262,42 @@ struct Corner {
     next: u32,
 }
 
+/// A crossing this close to a profile point (as a share of the profile
+/// segment) uses that point.
+const CROSS_SNAP: f64 = 1e-6;
+
+/// Where the edge from `a` to `b` crosses the polyline `line`: the segment
+/// index, the share along that segment and the share `t` along the edge
+/// (0 < t ≤ 1). The nearest crossing to `a` when there are several; `None`
+/// when the edge misses it (they don't meet in space, or it ends first).
+fn crossing(a: DVec3, b: DVec3, line: &[DVec3]) -> Option<(usize, f64, f64)> {
+    let d1 = b - a;
+    let scale = d1.length().max(1e-12);
+    let mut best: Option<(usize, f64, f64)> = None;
+    for (seg, w) in line.windows(2).enumerate() {
+        let d2 = w[1] - w[0];
+        let r = a - w[0];
+        let (aa, bb, ee) = (d1.dot(d1), d1.dot(d2), d2.dot(d2));
+        let (c, f) = (d1.dot(r), d2.dot(r));
+        let denom = aa * ee - bb * bb;
+        if denom <= 1e-18 * aa * ee {
+            continue; // parallel
+        }
+        let t = (bb * f - c * ee) / denom;
+        let u = (aa * f - bb * c) / denom;
+        if t <= CROSS_SNAP || t > 1. + CROSS_SNAP || !(-CROSS_SNAP..=1. + CROSS_SNAP).contains(&u) {
+            continue;
+        }
+        if (a + d1 * t).distance(w[0] + d2 * u) > 1e-7 * scale.max(d2.length()) {
+            continue; // skew: they pass without meeting
+        }
+        if best.is_none_or(|(_, _, bt)| t < bt) {
+            best = Some((seg, u.clamp(0., 1.), t.min(1.)));
+        }
+    }
+    best
+}
+
 fn newell(mesh: &Mesh, face: usize) -> DVec3 {
     let r = &mesh.faces[face].vertices;
     let mut n = DVec3::ZERO;
@@ -438,6 +474,11 @@ pub(crate) fn general(
     let mut kept: BTreeSet<u32> = BTreeSet::new();
     // Points slid along edges away from the strips (fan apexes).
     let mut beyond: BTreeSet<u32> = BTreeSet::new();
+    // Edge Bevel ends whose extra edges (no strip side) can't slide: where
+    // the end's profile crosses them, they end on it and the point goes
+    // (tester's report, 2026-11-24); see `crossing` below.
+    let mut across: BTreeMap<u32, Vec<u32>> = BTreeMap::new();
+    let strips_at = |v: u32| selected.iter().filter(|&&(a, b)| a == v || b == v).count();
     for &v in &touched {
         let fan = &corners[&v];
         for c in fan {
@@ -462,6 +503,13 @@ pub(crate) fn general(
                     // over face the strip's way (the measured grid cases,
                     // UVN-T-01 / EBC-B3-06; EBC-Q11). At a sharp fold the
                     // point stays put instead (N08).
+                    // An Edge Bevel strip's single end whose extra edges lie
+                    // across its end profile (the cap side): decided once
+                    // the profile exists.
+                    None if !chamfer && keep_end(v) && strips_at(v) == 1 => {
+                        across.entry(v).or_default().push(s);
+                        continue;
+                    }
                     None if (chamfer && !fan_ends) || keep_end(v) => {
                         kept.insert(v);
                         continue;
@@ -584,6 +632,67 @@ pub(crate) fn general(
             ends.insert((x, y, v), run);
         }
     }
+    // Extra edges into a strip's end (tester's report, 2026-11-24: the tip
+    // of a shape whose top was split into triangles). At an end where more
+    // polygons meet than the strip's two sides and one end polygon, the
+    // edges between them used to keep the old point (N08's kept point), so
+    // those polygons still reached it: spikes. The end's profile runs
+    // across them instead, so each such edge ends where it crosses the
+    // profile, the polygons between share the profile, and the point goes.
+    // If any of the point's extra edges misses the profile (too short, or
+    // leaving the surface), the point is kept as before.
+    let mut ext_runs: Vec<Vec<u32>> = Vec::new();
+    for (&v, edges) in &across {
+        let Some(run) = ends.iter().find(|(k, _)| k.2 == v).map(|(_, r)| r.clone()) else {
+            kept.insert(v);
+            continue;
+        };
+        let line: Vec<DVec3> = run.iter().map(|&id| out.vertices[id as usize]).collect();
+        let hits: Option<Vec<(u32, usize, f64, f64)>> = edges
+            .iter()
+            .map(|&s| crossing(p(v), p(s), &line).map(|(seg, u, t)| (s, seg, u, t)))
+            .collect();
+        let Some(mut hits) = hits else {
+            kept.insert(v);
+            continue;
+        };
+        hits.sort_by(|a, b| (a.1, a.2).partial_cmp(&(b.1, b.2)).unwrap());
+        let mut ext = vec![run[0]];
+        for seg in 0..run.len() - 1 {
+            for &(s, _, u, t) in hits.iter().filter(|h| h.1 == seg) {
+                let id = if u <= CROSS_SNAP {
+                    run[seg]
+                } else if u >= 1. - CROSS_SNAP {
+                    run[seg + 1]
+                } else {
+                    let id = push(&mut out, p(v) + (p(s) - p(v)) * t)?;
+                    defs.insert(id, Def::Edge { v, s, t });
+                    ext.push(id);
+                    id
+                };
+                on_edge.insert((v, s), id);
+            }
+            ext.push(run[seg + 1]);
+        }
+        ext.dedup();
+        ext_runs.push(ext);
+    }
+    // The points of an extended end profile strictly between `a` and `b`,
+    // in that order (none when no extended profile holds both).
+    let ext_between = |a: u32, b: u32| -> Vec<u32> {
+        ext_runs
+            .iter()
+            .find_map(|run| {
+                let ia = run.iter().position(|&x| x == a)?;
+                let ib = run.iter().position(|&x| x == b)?;
+                Some(if ia < ib {
+                    run[ia + 1..ib].to_vec()
+                } else {
+                    run[ib + 1..ia].iter().rev().copied().collect()
+                })
+            })
+            .unwrap_or_default()
+    };
     // Profile between two points around a touched point, if they end a strip.
     let between = |a: u32, b: u32| -> Vec<u32> {
         if !profile_in_ends {
@@ -597,7 +706,7 @@ pub(crate) fn general(
                     .get(&(b, a))
                     .map(|r| r.iter().rev().copied().collect())
             })
-            .unwrap_or_default()
+            .unwrap_or_else(|| ext_between(a, b))
     };
     // Rebuild every polygon around touched points. `from_corner` keeps, for
     // each rebuilt polygon, the source corner each new corner came from, so
@@ -655,9 +764,14 @@ pub(crate) fn general(
         let (f1, f2) = (face_of[&(x, y)], face_of[&(y, x)]);
         let (ra, rb) = (&ends[&(x, y, x)], &ends[&(x, y, y)]);
         for k in 0..rows as usize {
-            let quad = vec![rb[k], ra[k], ra[k + 1], rb[k + 1]];
-            for i in 0..4 {
-                strip_edges.insert(edge_key(quad[i], quad[(i + 1) % 4]));
+            // A row's end edge takes the points where extra edges cross the
+            // profile there, so the end polygons meet it without gaps.
+            let mut quad = vec![rb[k], ra[k]];
+            quad.extend(ext_between(ra[k], ra[k + 1]));
+            quad.extend([ra[k + 1], rb[k + 1]]);
+            quad.extend(ext_between(rb[k + 1], rb[k]));
+            for i in 0..quad.len() {
+                strip_edges.insert(edge_key(quad[i], quad[(i + 1) % quad.len()]));
             }
             new_faces.push((quad, vec![f1, f2]));
             strips.push((x, y, f1, f2));
