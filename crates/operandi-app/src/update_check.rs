@@ -2,8 +2,10 @@
 //! Application > Updates picks the Release or Test channel; on launch (if
 //! Check for Updates on Launch is on) and from Help > Check for Updates
 //! (`operandi.update.check`) the app asks GitHub for the newest build on
-//! that channel and, when it is newer, offers to open its download page.
-//! Nothing is ever downloaded or installed by the app.
+//! that channel and, when it is newer, offers it: OK downloads a test
+//! build's file for this platform in the browser, or opens a release's
+//! page. The app itself never downloads or installs anything. New installs
+//! follow the Test channel for now (everyone is a tester, 2026-11-24).
 //!
 //! This file holds the parts without a window: the preferences, the feed
 //! parsing and comparison, and the fetch. update_check_ui.rs puts them on
@@ -85,7 +87,12 @@ impl Default for UpdatePreferences {
     fn default() -> Self {
         Self {
             version: 1,
-            channel: Channel::build_default(),
+            // Everyone follows the Test channel for now (Jason, 2026-11-24:
+            // "right now everyone is a tester"; test builds go out
+            // nightly). A saved choice wins; Preferences switches back.
+            // Release builds still know they are releases
+            // (Channel::build_default, used for the User Guide link).
+            channel: Channel::Test,
             check_on_launch: true,
             skipped: String::new(),
         }
@@ -115,6 +122,14 @@ impl Platform {
             Self::Windows
         } else {
             Self::Linux
+        }
+    }
+    /// The test build's file for this platform (scripts/test-build.sh).
+    fn test_file(self) -> &'static str {
+        match self {
+            Self::Mac => "Operandi-Test-macOS.zip",
+            Self::Windows => "Operandi-Test-Windows-x64.zip",
+            Self::Linux => "Operandi-Test-Linux-x86_64.AppImage",
         }
     }
     /// The key in the hidden build line, and the name in the notes.
@@ -254,10 +269,26 @@ pub struct Offer {
     pub message: String,
 }
 impl Offer {
-    /// The release page. Built from the tag (checked to be plain), never
-    /// taken from the feed, so the browser only ever opens GitHub.
+    /// Where OK goes. Built from the tag (checked to be plain) and fixed
+    /// file names, never taken from the feed, so the browser only ever
+    /// opens GitHub.
     pub fn url(&self) -> String {
-        format!("https://github.com/{REPOSITORY}/releases/tag/{}", self.tag)
+        self.url_for(Platform::current())
+    }
+    /// A test build is one fixed file per platform, so OK downloads it
+    /// straight away; a release's files carry its version, so OK opens
+    /// its page.
+    fn url_for(&self, platform: Platform) -> String {
+        match self.channel {
+            Channel::Test => format!(
+                "https://github.com/{REPOSITORY}/releases/download/{}/{}",
+                self.tag,
+                platform.test_file()
+            ),
+            Channel::Release => {
+                format!("https://github.com/{REPOSITORY}/releases/tag/{}", self.tag)
+            }
+        }
     }
 }
 
@@ -395,7 +426,7 @@ pub fn evaluate_test(json: &str, me: &ThisBuild, platform: Platform) -> Result<V
             key: remote.to_ascii_lowercase(),
             message: format!(
                 "A newer test build is available, {theirs}. You have {mine}. \
-                 OK opens the download page."
+                 OK downloads it."
             ),
         })
     };
@@ -755,12 +786,13 @@ mod tests {
         assert_eq!(
             offer.message,
             "A newer test build is available, built Nov 23 from 1a2b3c4d. \
-             You have 9f8e7d6c, built Nov 21. OK opens the download page."
+             You have 9f8e7d6c, built Nov 21. OK downloads it."
         );
         assert_eq!(offer.key, "1a2b3c4d00000000000000000000000000000000");
         assert_eq!(
-            offer.url(),
-            "https://github.com/operandi3d/operandi/releases/tag/test-build"
+            offer.url_for(Platform::Mac),
+            "https://github.com/operandi3d/operandi/releases/download/test-build/\
+             Operandi-Test-macOS.zip"
         );
         // Windows' build is as old as this one: nothing newer.
         assert_eq!(
@@ -797,7 +829,18 @@ mod tests {
         assert_eq!(
             offer.message,
             "A newer test build is available, built from 5e6f7a8b. You have 9f8e7d6c. \
-             OK opens the download page."
+             OK downloads it."
+        );
+        // OK downloads this platform's file, not the page.
+        assert_eq!(
+            offer.url_for(Platform::Windows),
+            "https://github.com/operandi3d/operandi/releases/download/test-build/\
+             Operandi-Test-Windows-x64.zip"
+        );
+        assert!(
+            offer
+                .url_for(Platform::Mac)
+                .ends_with("/test-build/Operandi-Test-macOS.zip")
         );
         let same = build("0.1.0", "1a2b3c4d", Some(NOV_21));
         assert_eq!(
@@ -912,8 +955,9 @@ mod tests {
         assert_eq!(offer.channel, Channel::Test);
         assert_eq!(offer.key, LIN_SHA);
         assert_eq!(
-            offer.url(),
-            "https://github.com/operandi3d/operandi/releases/tag/test-build"
+            offer.url_for(Platform::Linux),
+            "https://github.com/operandi3d/operandi/releases/download/test-build/\
+             Operandi-Test-Linux-x86_64.AppImage"
         );
         // Linux empty: no Linux build, even with a "built from" line.
         let empty = test_release(&format!(
@@ -1018,7 +1062,7 @@ mod tests {
     fn preferences_round_trip_and_default_to_launch_checks() {
         let p = UpdatePreferences::default();
         assert!(p.check_on_launch);
-        assert_eq!(p.channel, Channel::build_default());
+        assert_eq!(p.channel, Channel::Test);
         let dir =
             std::env::temp_dir().join(format!("operandi-update-prefs-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();

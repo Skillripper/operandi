@@ -43,15 +43,16 @@ OPERANDI_UPDATE_FEED=/tmp/test-newer.json OPERANDI_DEV_DATA=/tmp/operandi-qa "/p
 
 1. Preferences (Cmd+,) > Defaults > Application: an **Updates** section
    under Names and Files with **Update Channel** (a dropdown: Release,
-   Test; default Release) and the checkbox **Check for Updates on Launch**
-   (box then text, on). Set Update Channel to Test. Quit.
+   Test; default Test for now) and the checkbox **Check for Updates on Launch**
+   (box then text, on). Leave Update Channel on Test. Quit.
 2. Start with `test-newer.json` as above. Once the window is up an
    **Update Available** dialog opens: "A newer test build is available,
-   built Jan 1 from 1a2b3c4d. You have <commit>, built <date>. OK opens
-   the download page." Buttons on the right: OK (Ret), Cancel (Esc), Skip
+   built Jan 1 from 1a2b3c4d. You have <commit>, built <date>. OK
+   downloads it." Buttons on the right: OK (Ret), Cancel (Esc), Skip
    This Build.
-3. Press Return: the browser opens
-   `https://github.com/operandi3d/operandi/releases/tag/test-build`.
+3. Press Return: the browser downloads
+   `https://github.com/operandi3d/operandi/releases/download/test-build/Operandi-Test-macOS.zip`
+   (the Windows or Linux file on those platforms).
 4. Quit and start again: the prompt comes back. Press **Skip This Build**.
    Quit and start again: no prompt.
 5. Help > **Check for Updates** (no "…"): the prompt shows even though the
