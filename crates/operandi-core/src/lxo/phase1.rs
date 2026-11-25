@@ -51,6 +51,8 @@ pub(super) struct RawItem {
     pub(super) user: Vec<super::user_channels::UserDef>,
     /// Gradient channels (`GRAD`): channel name → envelope (LXA-33/110).
     pub(super) grads: BTreeMap<String, u32>,
+    /// Item tags (`ITAG`): tag id → text (schematic places, SC-90).
+    pub(super) tags: BTreeMap<String, String>,
 }
 
 impl RawItem {
@@ -296,6 +298,13 @@ fn gather(chunks: &[Chunk<'_>], c: &mut Control<'_>) -> Result<Gathered> {
                             let (name, _) = s.text(c)?;
                             let env = s.vx()?;
                             item.grads.insert(name, env);
+                        }
+                        b"ITAG" => {
+                            let tag = s.id()?;
+                            let (value, odd) = s.text(c)?;
+                            extras.not_utf8 += usize::from(odd);
+                            item.tags
+                                .insert(String::from_utf8_lossy(&tag).into_owned(), value);
                         }
                         b"LINK" => {
                             let graph = s.string(c)?;
@@ -998,6 +1007,7 @@ fn scene(
     let pieces = super::rig_import::pieces(&mut scene, &items, &extras, &rig_plan, &mut report)?;
     super::anim_import::apply(&mut scene, &items, &extras, &pieces, &mut report)?;
     super::rig_import::finish(&mut scene, &rig_plan, &mut report);
+    super::schematic_import::apply(&mut scene, &items, &pieces, &mut report);
     let first = scene
         .items
         .iter()

@@ -480,6 +480,96 @@ pub(super) const COMMANDS: &[Entry] = &[
         .quiet()
         .operandi()
         .example("operandi.rig.schematic"),
+    script("operandi.rig.schematicArrange", Items, "Arranges a Schematic workspace's nodes by data flow (SC-60): nodes moved by hand stay put unless named.")
+        .on_editor(
+            "Lay out a workspace's nodes left to right by data flow, ordered to cut wire crossings, one undo step. With nodes, just those (even hand-placed ones); without, every node not moved by hand since the last Arrange, placed below the hand-placed ones.",
+            &[
+            jreq("workspace", "integer", "The workspace id (operandi.rig.workspaces)."),
+            jopt("nodes", "string", "Node keys to arrange, comma-separated (item:<id>, piece:<id>)."),
+        ],
+            crate::schematic_pages::run,
+        )
+        .undo()
+        .operandi()
+        .example("operandi.rig.schematicArrange workspace:40"),
+    script("operandi.rig.schematicPlace", Items, "Puts nodes on a Schematic workspace or moves them there (SC-10, SC-91); nodes given without a place arrive arranged.")
+        .on_editor(
+            "Place nodes on a workspace, one undo step: place puts each key at x/y (moving it if it is there already, marked as moved by hand unless pinned:false); nodes adds keys not on the page yet, arranged together below what is there (SC-60). Never changes the items or pieces.",
+            &[
+            jreq("workspace", "integer", "The workspace id."),
+            jopt("place", "string", "key@x/y pairs, comma-separated: item:3@10/20,piece:7@-40/5."),
+            jopt("nodes", "string", "Node keys to add without a place, comma-separated."),
+            jopt("pinned", "boolean", "Mark placed nodes as moved by hand (default true)."),
+        ],
+            crate::schematic_pages::run,
+        )
+        .undo()
+        .operandi()
+        .example("operandi.rig.schematicPlace workspace:40 nodes:item:3,piece:7"),
+    script("operandi.rig.schematicRemove", Items, "Takes nodes off a Schematic workspace (SC-40, SC-41); the items and pieces stay in the scene.")
+        .on_editor(
+            "Remove nodes from a workspace page, one undo step. The items and rig pieces are untouched.",
+            &[
+            jreq("workspace", "integer", "The workspace id."),
+            jreq("nodes", "string", "Node keys, comma-separated (item:<id>, piece:<id>)."),
+        ],
+            crate::schematic_pages::run,
+        )
+        .undo()
+        .operandi()
+        .example("operandi.rig.schematicRemove workspace:40 nodes:item:3"),
+    script("operandi.rig.workspaceAdd", Items, "New Schematic workspace (SC-01, SC-02): a named page, empty or with nodes at given places.")
+        .on_editor(
+            "Add a Schematic workspace, one undo step. place puts nodes on it at once (key@x/y pairs, as schematicPlace). The new workspace is the last in operandi.rig.workspaces.",
+            &[
+            jopt("name", "string", "The name (default Workspace)."),
+            jopt("place", "string", "key@x/y pairs, comma-separated."),
+        ],
+            crate::schematic_pages::run,
+        )
+        .undo()
+        .operandi()
+        .example("operandi.rig.workspaceAdd name:Arms"),
+    script("operandi.rig.workspaceClear", Items, "Empties a Schematic workspace (SC-06): its nodes leave the page, the scene keeps its items and pieces.")
+        .on_editor(
+            "Remove every node from a workspace, one undo step; nothing in the scene changes.",
+            &[jreq("workspace", "integer", "The workspace id.")],
+            crate::schematic_pages::run,
+        )
+        .undo()
+        .operandi()
+        .example("operandi.rig.workspaceClear workspace:40"),
+    script("operandi.rig.workspaceRemove", Items, "Deletes a Schematic workspace (the page only; the scene keeps its items and pieces).")
+        .on_editor(
+            "Delete a workspace page, one undo step; nothing in the scene changes.",
+            &[jreq("workspace", "integer", "The workspace id.")],
+            crate::schematic_pages::run,
+        )
+        .undo()
+        .operandi()
+        .example("operandi.rig.workspaceRemove workspace:40"),
+    script("operandi.rig.workspaceRename", Items, "Renames a Schematic workspace (SC-04).")
+        .on_editor(
+            "Rename a workspace, one undo step.",
+            &[
+            jreq("workspace", "integer", "The workspace id."),
+            jreq("name", "string", "The new name."),
+        ],
+            crate::schematic_pages::run,
+        )
+        .undo()
+        .operandi()
+        .example("operandi.rig.workspaceRename workspace:40 name:Legs"),
+    script("operandi.rig.workspaces", Items, "Reads the Schematic workspaces and their node places as JSON (SC-91, UIC-163).")
+        .on_editor(
+            "Read the saved Schematic workspaces: id, name and nodes (key, x, y, pinned).",
+            &[],
+            crate::schematic_pages::run,
+        )
+        .query()
+        .quiet()
+        .operandi()
+        .example("operandi.rig.workspaces"),
     script("operandi.rig.unwire", Items, "Deletes a Schematic wire (RG-72): a link goes, a modifier input or output is unwired, a constraint loses that target.")
         .on_editor(
             "Delete the wire at piece's port (a link: the link; a modifier: that input, or out; a constraint or dynamic parent: that target, the piece with its last), one undo step.",

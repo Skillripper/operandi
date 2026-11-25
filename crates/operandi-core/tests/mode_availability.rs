@@ -121,6 +121,7 @@ fn mv03_surface_errors_and_cone_overlap_keep_authoritative_drop_order() {
             requested: Default::default(),
             preview: None,
             error: Some("cone invalid".into()),
+            applied_step: None,
         });
         refusal(
             &mut e,
@@ -200,6 +201,7 @@ fn mv04_route_queries_are_pure_and_never_a_cached_permit() {
         requested: Default::default(),
         preview: None,
         error: Some("cone first".into()),
+        applied_step: None,
     });
     assert_eq!(
         e.mode_route_eligibility(),

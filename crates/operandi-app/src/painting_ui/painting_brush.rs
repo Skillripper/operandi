@@ -2712,12 +2712,29 @@ impl Operandi {
             TipChoice::Text => {
                 let t = &tips.text;
                 crate::option_row::field_row(ui, "Text", |ui| {
-                    let mut text = t.text.clone();
-                    if ui.text_edit_singleline(&mut text).lost_focus() && text != t.text {
-                        lines.push(format!(
-                            "operandi.paint.tipSet text:\"{}\"",
-                            text.replace('"', "'")
-                        ));
+                    // The typing is kept as a draft while the field has
+                    // focus and committed when it loses it (Enter, Tab or a
+                    // click away); rebuilding it from the tip every frame
+                    // threw each keystroke away.
+                    let draft = egui::Id::new("paint-tip-text-draft");
+                    let mut text = ui
+                        .data(|d| d.get_temp::<String>(draft))
+                        .unwrap_or_else(|| t.text.clone());
+                    let edit =
+                        ui.add(egui::TextEdit::singleline(&mut text).id(draft.with("field")));
+                    crate::numeric_tab::register(ui, &edit, Some(&text));
+                    if edit.lost_focus() {
+                        ui.data_mut(|d| d.remove::<String>(draft));
+                        if text != t.text {
+                            lines.push(format!(
+                                "operandi.paint.tipSet text:\"{}\"",
+                                text.replace('"', "'")
+                            ));
+                        }
+                    } else if edit.has_focus() {
+                        ui.data_mut(|d| d.insert_temp(draft, text));
+                    } else {
+                        ui.data_mut(|d| d.remove::<String>(draft));
                     }
                 });
                 crate::option_row::field_row(ui, "Font", |ui| {

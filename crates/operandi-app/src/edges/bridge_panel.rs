@@ -141,7 +141,11 @@ impl Operandi {
                     _ => {}
                 }
                 self.bridge_ui.eligibility = None;
-                self.status = "Bridge configured · Apply uses the current ordered selection".into();
+                self.status = if self.editor.bridge_step_newest() {
+                    "Bridge reshaped · Q keeps it".into()
+                } else {
+                    "Bridge configured · Apply uses the current ordered selection".into()
+                };
             }
             Err(e) => self.status = e,
         }
@@ -310,6 +314,10 @@ impl ToolFields for BridgeFields {
             .separator();
         // Make UVs (BRI-Q04), Curve and Profiles (BRI-Q03/06) are left out
         // until built (UIC-117).
+        // UIC-78: after Apply (or a click in the view) the bridge stays live
+        // and the values reshape it. The cheap check: the newest step is
+        // this session's Apply (the scene comparison runs on edits only).
+        let live = app.editor.bridge_step_newest();
         let eligibility = app.bridge_eligibility_cached();
         f.wide(tf::Button::command("Apply", Command::Apply).enabled_if(
             eligibility.is_ok() && app.field_errors.is_empty(),
@@ -318,7 +326,9 @@ impl ToolFields for BridgeFields {
                 Ok(()) => crate::unavailable::FIELD_ERRORS.to_owned(),
             },
         ));
-        if let Err(e) = eligibility {
+        if live {
+            f.note("Applied · values reshape this bridge; Q keeps it, Cancel removes it");
+        } else if let Err(e) = eligibility {
             f.note(e);
         }
         // Spec: BRI-R19 (named tool states for Bridge unmeasured)
@@ -333,7 +343,7 @@ impl ToolFields for BridgeFields {
             tf::Button::command("Reset Attributes", Command::ResetBridge),
         ])
         // Spec: BRI-Q05/06
-        .note("Apply bridges two selected polygons or groups, or two selected border edges, edge runs or loops; both sides need the same number of edges. Dragging in the viewport and presets aren't available yet.");
+        .note("Apply bridges two selected polygons or groups, or two selected border edges, edge runs or loops; both sides need the same number of edges. A click in the view applies too (UIC-78); dragging left/right sets Segments. Presets aren't available yet.");
         f
     }
     fn prepare(app: &mut Operandi) {

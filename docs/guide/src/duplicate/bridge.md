@@ -8,7 +8,17 @@
 1. Select two polygons (or groups of them) that share no edge, or two border
    edges, edge runs or loops. Both sides need the same number of edges.
 2. Click **Bridge** on the **Duplicate** tool tab.
-3. Set the bridge in **Tool Properties**, then click **Apply** or **Drop**.
+3. Click anywhere in the 3D view, or click **Apply** in **Tool Properties**.
+   The bridge appears and Bridge stays on.
+4. Change **Segments**, **Twist** or any other value. The bridge you just
+   made changes as you go. You can also drag left or right in the view to
+   add or remove segments.
+5. Press **Q** to keep the bridge and turn Bridge off.
+
+The bridge and all your changes to it are one undo step. **Cancel** removes
+the bridge. While Bridge is on, clicks in the view don't select anything, so
+select both sides first. To bridge another pair, press **Q**, select the next
+pair, and pick **Bridge** again.
 
 ## Properties
 

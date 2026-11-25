@@ -243,7 +243,13 @@ fn persisted_remap_is_displayed_on_row_and_tooltip() {
     assert!(labels.iter().any(|n| {
         n.label()
             .or(n.value())
-            .is_some_and(|s| s.contains("poly.align") && s.contains("[Alt+J]"))
+            .is_some_and(|s| s.contains("Align") && s.contains("[Alt+J]"))
+    }));
+    // UIC-04: the tooltip names the command in words, not as a line.
+    assert!(!labels.iter().any(|n| {
+        n.label()
+            .or(n.value())
+            .is_some_and(|s| s.contains("poly.align"))
     }));
 }
 

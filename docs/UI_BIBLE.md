@@ -301,6 +301,27 @@ Version 1, 2026-11-07. Behaviour only. Open questions and exceptions are tracked
   tool without a click never changes the mesh. A builder adding a tool
   applies the rule; if it's unclear which kind a tool is, log a spec
   question. [OP] (the maintainer, 2026-11-24.)
+- **UIC-78** A click applies a tool that waits for Apply, and the tool
+  stays live. While a tool waits for Apply (Bridge, Spike, Polygon
+  Reduction), a plain left click in a 3D view, off every handle and
+  without a drag, does what Apply does: the result appears as one undo
+  step and the tool stays on, showing it. Until something settles it,
+  changing a value or dragging remakes that same result live (more
+  Segments on the bridge just made), still one undo step. Undo removes it
+  and the tool stays on with its values; a new selection or another edit
+  settles it, and so does another Apply or click, which applies again to
+  what is selected now (Spike spikes again; Bridge has nothing left to
+  join and says so). Drop (Q) keeps the result and turns the tool off;
+  Cancel removes only a result that is still live. Polygon Reduction's
+  result is live before Apply, so its click keeps a changed preview and
+  the next drag reduces again (RED-004). Clicks never select while such
+  a tool is on: select first, then pick the tool; for another, drop it,
+  select, and pick it again. Drags still drive the tool (UIC-76);
+  Shift-click, middle-click and right-click keep their meanings, and
+  clicks a tool already uses keep their job (UIC-77 click starts, slices,
+  Duplicate and Paste placing, Pen, Tube and Path points). If the tool
+  can't apply, the click changes nothing and the status line says why.
+  [OP] (the maintainer, 2026-11-25.)
 
 ## 8. Dialogs (command option boxes)
 
@@ -1123,6 +1144,6 @@ Added 2026-11-23. *Applies from: when the guide skeleton merges.*
 
 1 General UIC-01..07 · 2 Menus/layouts UIC-10..19 · 3 Tabs/buttons
 UIC-20..27 · 4 Lists/trees UIC-30..42 · 5 Fields UIC-50..59 · 6 Popovers
-UIC-60..66 · 7 Viewports/windows UIC-70..77 · 8 Dialogs UIC-80..99 · 9 Property
+UIC-60..66 · 7 Viewports/windows UIC-70..78 · 8 Dialogs UIC-80..99 · 9 Property
 panels UIC-100..126 · 10 Tree lists UIC-130..157 · 11 Commands UIC-160..165 · 12 Rendering UIC-170..174 · 13 Popovers vs floating windows UIC-180..188 · 14 Layouts UIC-190..219 · 15 Command history and macros UIC-220..239 · 16 Future doors UIC-240..259 · 18 User Guide UIC-300..305. Gaps in numbering are left for
 later rules in the same topic; never renumber an existing rule.

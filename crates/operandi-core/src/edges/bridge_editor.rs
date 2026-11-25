@@ -41,11 +41,66 @@ impl Editor {
         if !p.tension.is_finite() || p.twist == i32::MIN {
             return Err("Bridge requires finite Tension and normalized Twist".into());
         }
-        self.bridge.as_mut().ok_or("Arm Bridge first")?.requested = p;
+        let session = self.bridge.as_mut().ok_or("Arm Bridge first")?;
+        let changed = session.requested != p;
+        session.requested = p;
         self.bridge_preset = p;
+        // UIC-78: while the last Apply's result is live, a new value
+        // reshapes that bridge, still one undo step.
+        if changed && self.bridge_result_live() {
+            self.remake_bridge(p)?;
+        }
         Ok(())
     }
+
+    /// UIC-78: the last Apply's result is still live (`live_apply.rs`).
+    pub fn bridge_result_live(&self) -> bool {
+        self.live_step_shown(self.bridge.as_ref().and_then(|s| s.applied_step))
+    }
+
+    /// The cheap half of `bridge_result_live`, for the panel's every-frame
+    /// look.
+    pub fn bridge_step_newest(&self) -> bool {
+        self.live_step_newest(self.bridge.as_ref().and_then(|s| s.applied_step))
+    }
+
+    /// Bridge the live result's starting selection again with `p`, folded
+    /// into the same undo step.
+    fn remake_bridge(&mut self, p: BridgeParameters) -> Result<()> {
+        let fold = self.bridge.as_ref().and_then(|s| s.applied_step);
+        let fold = fold.ok_or("No Bridge result")?;
+        let last = self.undo.last().cloned().ok_or("No Bridge result")?;
+        let candidate = self.bridged_from(&last.before, p)?;
+        candidate.validate()?;
+        let edges = last.before.selection.mode == Mode::Edge;
+        let id = candidate.active().ok_or("Missing Bridge target")?.id;
+        if edges {
+            let ids = self.identities.current.clone();
+            if let Some(before) = &last.identity_before {
+                self.identities.current = before.clone();
+            }
+            if let Err(e) = self.identities.invalidate_mesh(&candidate, id) {
+                self.identities.current = ids;
+                return Err(e);
+            }
+        }
+        let shown = std::mem::replace(&mut self.scene, candidate);
+        self.record_folded("Bridge Apply", shown, fold);
+        Ok(())
+    }
+
+    /// UIC-78 Cancel: take back the live result (its undo step goes too).
+    /// The tool's values stay as the preset.
+    pub(crate) fn cancel_live_bridge(&mut self) -> Result<()> {
+        if !self.bridge_result_live() {
+            return Ok(());
+        }
+        self.pop_live_step()
+    }
+
     pub(crate) fn apply_bridge(&mut self) -> Result<()> {
+        // UIC-78: Apply again settles a live result and applies to what is
+        // selected now (the result's own selection).
         // Nothing or a single polygon selected: nothing happens, no message
         // (bridge-2026-11-05, BR18/BR19). The panel still explains why.
         if self.bridge.is_some()
@@ -67,20 +122,30 @@ impl Editor {
             self.identities.current = ids;
             return Err(e);
         }
-        self.record("Bridge Apply".into(), before);
+        // Its own gesture, so edits while it's live fold into this step.
+        let fold = self.live_apply_fold();
+        self.record_folded("Bridge Apply", before, fold);
+        if let Some(s) = self.bridge.as_mut() {
+            s.applied_step = Some(fold);
+        }
         Ok(())
     }
 
     /// The scene after bridging the current selection with `p`, without
     /// recording anything: what Apply would make, and the panel's check.
     pub fn bridged_scene(&self, p: BridgeParameters) -> Result<Scene> {
+        self.bridged_from(&self.scene, p)
+    }
+
+    /// `bridged_scene` from `scene` (with its selection) instead.
+    fn bridged_from(&self, scene: &Scene, p: BridgeParameters) -> Result<Scene> {
         // N28 (Jason, 2026-11-17): with Symmetry, symmetric picking selects
         // each pair and its mirror; each side's pair is bridged by itself,
         // the far side with its Twist reversed (its mirror image). Pairs on
         // or across the plane are bridged once.
         let symmetry = self.active_symmetry();
-        let edges = self.scene.selection.mode == Mode::Edge;
-        let mut candidate = self.scene.clone();
+        let edges = scene.selection.mode == Mode::Edge;
+        let mut candidate = scene.clone();
         // A pair picked on one side only (picked before Symmetry was on, or
         // a lasso) brings its mirror pair along, as the other Symmetry
         // tools act on both sides (Jason, 2026-11-17). Elements with no

@@ -232,18 +232,8 @@ mod tests {
         );
         e.dispatch(Command::EndSelection { cancel: true }).unwrap();
         let target = e.scene.selection.item.unwrap();
-        e.cone = Some(NumericCone {
-            target,
-            requested: Default::default(),
-            preview: None,
-            error: None,
-        });
-        e.ellipsoid = Some(NumericEllipsoid {
-            target,
-            requested: Default::default(),
-            preview: None,
-            error: None,
-        });
+        e.cone = Some(NumericCone::armed(target, Default::default()));
+        e.ellipsoid = Some(NumericEllipsoid::armed(target, Default::default()));
         e.spike = Some(NumericSpike::armed(target, 0.5));
         let before = e.clone();
         let view = e.session_ownership();

@@ -55,12 +55,20 @@ fn shade(pixel:vec4<f32>)->Shaded {
    premultiplied=grid.axis_v.rgb*along_v+premultiplied*(1.-along_v);
    alpha=along_v+alpha*(1.-along_v);
  }
- // The hit's depth as the perspective mesh and backdrop projection write
- // it ((z - near) / z, near in view.z), for the depth-tested draw
- // (original-compatible A5).
- let z=max(dot(point-grid.eye.xyz,grid.forward.xyz),grid.view.z*1.1);
+ // The hit's depth as the mesh and backdrop projections write it, for the
+ // depth-tested draw over meshes and backdrops (original-compatible A5).
+ // Perspective: (z - near) / z, near in view.z. Orthographic:
+ // (z + offset) / range, offset and range in view.z and view.w. Pushed a
+ // hair farther so a surface lying on the plane keeps covering it
+ // instead of speckling through.
+ let z_eye=dot(point-grid.eye.xyz,grid.forward.xyz);
  var out:Shaded;
- out.depth=clamp((z-grid.view.z)/z,0.,1.);
+ if grid.forward.w>0.5 {
+   let z=max(z_eye,grid.view.z*1.1)*1.0005;
+   out.depth=clamp((z-grid.view.z)/z,0.,1.);
+ } else {
+   out.depth=clamp((z_eye+grid.view.z)/max(grid.view.w,0.000001)+0.000002,0.,1.);
+ }
  // Orthographic: the plane draws wherever it lies along the view, behind
  // the zoomed-in eye too (bug report #2).
  if (t<=0. && grid.forward.w>0.5) || abs(denom)<0.000001 {out.color=vec4(0.);out.depth=1.;return out;}

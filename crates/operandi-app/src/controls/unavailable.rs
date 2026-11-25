@@ -83,7 +83,7 @@ pub(crate) fn explain(response: Response, why: Option<&str>) -> Response {
     match why {
         Some(why) => {
             // Users never see spec codes (Jason, 2026-11-24).
-            let why = crate::ui_text::without_spec_codes(why);
+            let why = crate::ui_text::hover_text(why);
             response.on_hover_text(&why).on_disabled_hover_text(why)
         }
         None => response,

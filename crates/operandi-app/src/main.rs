@@ -112,6 +112,8 @@ mod channel_panel_ui;
 mod channel_row;
 #[path = "rigging/character_rig_ui.rs"]
 mod character_rig_ui;
+#[path = "tools/click_finish.rs"]
+mod click_finish;
 #[path = "anim/clip_picker.rs"]
 mod clip_picker;
 #[path = "settings/color_theme.rs"]
@@ -4329,6 +4331,9 @@ mod camera_props_tests;
 #[path = "view/camera_view_settle_tests.rs"]
 mod camera_view_settle_tests;
 #[cfg(test)]
+#[path = "tools/click_finish_tests.rs"]
+mod click_finish_tests;
+#[cfg(test)]
 #[path = "tools/click_start_tests.rs"]
 mod click_start_tests;
 #[cfg(test)]
@@ -4406,6 +4411,9 @@ mod file_chooser_tests;
 #[cfg(test)]
 #[path = "files/file_error_tests.rs"]
 mod file_error_tests;
+#[cfg(test)]
+#[path = "graphics/grid_depth_tests.rs"]
+mod grid_depth_tests;
 #[cfg(test)]
 #[path = "menus/handle_style_menu_tests.rs"]
 mod handle_style_menu_tests;
@@ -4574,6 +4582,9 @@ mod toolbox_form_tests;
 #[cfg(test)]
 #[path = "window_layout/toolbox_sets_tests.rs"]
 mod toolbox_sets_tests;
+#[cfg(test)]
+#[path = "window_layout/tooltip_names_tests.rs"]
+mod tooltip_names_tests;
 #[cfg(test)]
 #[path = "deformers/tweak_tests.rs"]
 mod tweak_tests;

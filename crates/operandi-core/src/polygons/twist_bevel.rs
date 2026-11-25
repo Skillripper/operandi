@@ -49,6 +49,19 @@ pub struct TwistBevelOptions {
     pub center_bias: f64,
     pub bend: f64,
     pub bend_direction: f64,
+    /// Three opt-ins from the TwistBevel notes (2026-11-25), all off by
+    /// default and left out of saved settings while off. Stop Before Fold:
+    /// a tube whose cap would fold stops just short of it instead of being
+    /// refused.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub stop_at_fold: bool,
+    /// Even Interior: points inside a grouped cap and along its straight
+    /// edges move with the inset, so the cap shrinks evenly.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub even_interior: bool,
+    /// Keep Cap UVs: the caps keep their UVs exactly, seams included.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub keep_cap_uvs: bool,
 }
 impl Default for TwistBevelOptions {
     fn default() -> Self {
@@ -66,6 +79,9 @@ impl Default for TwistBevelOptions {
             center_bias: 0.,
             bend: 0.,
             bend_direction: 0.,
+            stop_at_fold: false,
+            even_interior: false,
+            keep_cap_uvs: false,
         }
     }
 }
@@ -232,6 +248,10 @@ pub struct TwistBevelPipe<'a> {
     pub symmetry: Option<(Symmetry, Side)>,
     /// The action axis's main direction (for Rotation Axis = Action Axis).
     pub action_axis: DVec3,
+    /// The world X, Y and Z axes in the mesh's own coordinates (columns),
+    /// so the side axis (TB-Q04) is world +X even on a rotated item
+    /// (TwistBevel notes, 2026-11-25). Identity for an unrotated item.
+    pub world_axes: glam::DMat3,
 }
 impl Default for TwistBevelPipe<'_> {
     fn default() -> Self {
@@ -239,6 +259,7 @@ impl Default for TwistBevelPipe<'_> {
             weight: None,
             symmetry: None,
             action_axis: DVec3::Y,
+            world_axes: glam::DMat3::IDENTITY,
         }
     }
 }
@@ -253,14 +274,15 @@ pub struct TwistBevelResult {
 }
 
 /// The side axis S for normal `n` (TB-Q04, provisional): world +X flattened
-/// onto the plane at right angles to N, else +Z when N is nearly along X.
-fn side_axis(n: DVec3) -> DVec3 {
+/// onto the plane at right angles to N, else world +Z when N is nearly
+/// along X. `world` holds the world axes in the mesh's coordinates.
+fn side_axis(n: DVec3, world: glam::DMat3) -> DVec3 {
     let flat = |d: DVec3| d - n * d.dot(n);
-    let x = flat(DVec3::X);
+    let x = flat(world.x_axis.normalize_or(DVec3::X));
     if x.length() > 0.05 {
         x.normalize()
     } else {
-        flat(DVec3::Z).normalize_or(DVec3::Y)
+        flat(world.z_axis.normalize_or(DVec3::Z)).normalize_or(DVec3::Y)
     }
 }
 
@@ -314,11 +336,11 @@ pub fn twist_bevel_frames(
             side.is_some_and(|(_, side, primary)| side != Side::Plane && side != primary);
         let (side_axis, direction, rotation_sign) = match side {
             Some((s, _, _)) if mirrored => (
-                s.mirror_vector(side_axis(s.mirror_vector(normal))),
+                s.mirror_vector(side_axis(s.mirror_vector(normal), pipe.world_axes)),
                 -o.bend_direction,
                 -1.,
             ),
-            _ => (side_axis(normal), o.bend_direction, 1.),
+            _ => (side_axis(normal, pipe.world_axes), o.bend_direction, 1.),
         };
         let mut bend_dir = DQuat::from_axis_angle(normal, direction.to_radians()) * side_axis;
         // TB-Q06 (provisional): a group across the plane keeps its own frame
@@ -443,6 +465,9 @@ pub fn twist_bevel_geometry(
     }
     let bevel = BevelOptions {
         segments: o.segments,
+        stop_at_fold: o.stop_at_fold,
+        even_interior: o.even_interior,
+        keep_cap_uvs: o.keep_cap_uvs,
         ..BevelOptions::default()
     };
     let BevelResult { mesh, selected } =
