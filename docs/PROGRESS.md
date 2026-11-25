@@ -939,7 +939,7 @@
   Selected), Split with Cap Sections and Gap, and the router Profile with
   Reverse Direction, Reverse Inset and Keep Aspect are built and greyed per
   the spec table (UIC-92/117). New shared Profile layer
-  `operandi-core/src/profile.rs` with five Operandi shapes; only Loop
+  `operandi-core/src/scene_items/profile.rs` with five Operandi shapes; only Loop
   Slice uses it so far (Bevel can move onto it later). Free-mode slices
   keep creation order (LS-71). Provisional readings LS-B04..B09; new
   questions LS-Q13 (grey Count/Position with a profile?) and LS-Q14 (Split
@@ -960,7 +960,7 @@
 - **Command History, stage H (2026-11-16, branch command-history, spec
   ui-architecture-2026-11-16):** every line `execute` runs leaves a
   command record (canonical line with arguments by name, class, source,
-  outcome, sub-commands, time; `operandi-core/src/command_record.rs`,
+  outcome, sub-commands, time; `operandi-core/src/commands/command_record.rs`,
   app `command_history.rs`). Registry classes: `side_effect` and `quiet`
   added, every command has one (test). Undo steps keep their records
   (`Checkpoint::records`, `Editor::pending_records`); tool sessions
@@ -1257,8 +1257,8 @@
   UV-B03 settled.
 - **Drag controls and Loop Slice drags (2026-11-15, branch drag-layer):**
   spec loop-slice-2026-11-15 v0.1. One shared drag layer ("hauls" in
-  code, `operandi-core/src/haul.rs`, table
-  `presets/factory-hauls.toml`, viewport `operandi-app/src/haul_view.rs`):
+  code, `operandi-core/src/tools/haul.rs`, table
+  `presets/factory-hauls.toml`, viewport `operandi-app/src/view/haul_view.rs`):
   a left, middle or right drag away from the handles changes the value the
   tool's row lists for that button and direction, through that value's
   Tool Properties field, live, one undo step per drag; the first 4 px lock
@@ -1980,7 +1980,7 @@
 - **Viewport image textures (2026-11-09, branch viewport-image-textures):**
   image layers draw per pixel in the realtime viewport instead of as their
   average colour. The folded `shader_eval::Expr` is written out as WGSL
-  (`operandi-core/src/shader_wgsl.rs`) and run in the fill shader, so the
+  (`operandi-core/src/materials/shader_wgsl.rs`) and run in the fill shader, so the
   viewport uses the same mapping, tiling, blend modes, opacity, alpha and
   falloff as Cycles (UV maps with the render's map rule, every Texture
   Locator projection, Repeat / Mirror / Edge / Reset). Numbers ride in a
@@ -2034,7 +2034,7 @@
   sculpt-foundation, spec SC-01..123):** new Sculpt toolbox tab with
   Smooth, Push, Inflate and Move (label buttons until icons are drawn),
   Smooth/Hard tip row, Lock Borders / Lock Corners. Core machine in
-  `operandi-core/src/sculpt.rs`: tips with six shapes and Bias, Hard tip
+  `operandi-core/src/sculpting/sculpt.rs`: tips with six shapes and Bias, Hard tip
   with Soft Border, dabs at Interpolation Step spacing (Continuous Stroke),
   Additive/Attenuate/Max Stroke density, all Normal Modes, Ctrl invert,
   Shift (or Smooth Mode Uniform) smoothing, Ctrl-Smooth volume-keeping,
@@ -2283,7 +2283,7 @@
   provisional (PRIM-MOVED-Q01).
 - **Command names (2026-11-07, branch command-names):** command, tool and
   argument names follow the name map; old names are deprecated aliases in
-  `operandi-core/src/command_names.rs`, resolved at `execute` and in the MCP
+  `operandi-core/src/commands/command_names.rs`, resolved at `execute` and in the MCP
   bridge, logged once per run. `*.Slide` picks by mode (provisional: no
   Polygon/Item Slide). Script percents are 0–1 and angles radians (map
   units, Jason 2026-11-07); panels keep % and degrees. Details:
@@ -2550,7 +2550,7 @@ are stored only (MAT-Q01). Materials live in `Scene::materials` by tag name
 (core `material.rs`), shown in the viewport's fill colour and rendered by
 Cycles. Saved in native scenes and glTF; LXO keeps tags only (MAT-Q06).
 Tests: crates/operandi-core/tests/polygon_set_material.rs,
-crates/operandi-app/src/polygon_material_tests.rs.
+crates/operandi-app/src/materials/polygon_material_tests.rs.
 
 **Set Material with nothing selected (branch set-material-empty,
 2026-11-05):** like Set Part, Set Material tags every surface polygon of the
@@ -2571,7 +2571,7 @@ Jason's feel check; distance steps are metric even with English units; the
 handle is painted, not a generator icon. Dialog fields (Create New Vertex,
 Merge distance) have no handle yet. Clean-room note: this build thread was
 shown a reference-app screenshot of a numeric field with drag arrows; the
-design is Operandi's own. Tests: crates/operandi-app/src/scrub_tests.rs.
+design is Operandi's own. Tests: crates/operandi-app/src/anim/scrub_tests.rs.
 
 **Undo and Auto-Save preferences (branch preferences-undo-autosave,
 2026-11-04):** Preferences > Defaults > Application sets Max Undo Level
@@ -2705,7 +2705,7 @@ and each drag is one undo step with the tool staying live. Provisional
 readings (picking priority, drag plane, Esc, symmetry) are listed in
 SPECIFICATION_QUESTIONS.md, Tweak. Range/falloff (TWK-2) and the handle,
 numeric fields, symmetry and snapping (TWK-3) wait for measured specs.
-Tests: crates/operandi-app/src/tweak_tests.rs, core tweak.rs.
+Tests: crates/operandi-app/src/deformers/tweak_tests.rs, core tweak.rs.
 **Tweak part 2, TWK-2 (branch claude/project-thread-94fqz1, 2026-11-04):**
 Mode (all seven entries), Range with Linear / Ease-In / Ease-Out / Smooth /
 Custom, and Connected Elements Ignore / Use Connectivity / Rigid / Edge
@@ -3211,7 +3211,7 @@ pins the known departures. 55 now match (numbering aside).
 
 ## Shader tree renders in Cycles (ST-4 first version, hand-off v0.2)
 
-- Core `operandi-core/src/shader_eval.rs`: folds the tree bottom to top for
+- Core `operandi-core/src/materials/shader_eval.rs`: folds the tree bottom to top for
   each polygon context (item, material tag, part tag) into one value per
   material channel, with the v0.2 measured rules: masked groups, Layer Mask
   hides the one layer above, texture-only groups start from below, Group
@@ -3292,7 +3292,7 @@ build-cycles.sh).
 First slice of the shader tree: the data model and the panel. Nothing renders
 from it yet.
 
-- Core `operandi-core/src/shader_tree.rs`: Render Output, Shader, Material,
+- Core `operandi-core/src/materials/shader_tree.rs`: Render Output, Shader, Material,
   Material Group, Folder and texture layers (Constant, Image Map) with the
   Layer block and the hand-off's channels; ordering and parenting; the default
   tree (Alpha Output, Final Color Output, Base Shader, Base Material). Every
@@ -3869,7 +3869,7 @@ panel; its tab strip stays 22 points at either end. Tests: layout_tests.rs.
   quads/triangles with no stray points. Provisional (ER-Q01, ER-Q02).
 - Tests: `operandi-core/tests/edge_loop_delete.rs` (latitude, pole-to-pole,
   next-to-pole loops; undo/redo; save/reopen) and
-  `operandi-app/src/edge_loop_delete_tests.rs` (both keys in every mode;
+  `operandi-app/src/edges/edge_loop_delete_tests.rs` (both keys in every mode;
   off-viewport changes nothing).
 
 ## 2026-11-10 — Delete vs Backspace (branch delete-backspace)
@@ -3971,14 +3971,14 @@ panel; its tab strip stays 22 points at either end. Tests: layout_tests.rs.
 ## 2026-11-11 — Solid Drill and Axis Drill (branch drills; spec drills-2026-11-11)
 
 - Solid Drill... and Axis Drill... (Edit tab "Booleans & Drill", Geometry menu; `poly.solidDrill mode material cutmesh item children` and `poly.drill mode axis ...`, numbers or words, bare opens the dialog; headless/MCP too). Core, Tunnel, Stencil (material created if missing, one undo step with the cut) and Slice; Background, Last Selected or a Specific Surface Item drives. One undo step "Solid Drill Tunnel" etc.; drivers untouched; nothing selected after.
-- Own cutting core (`operandi-core/src/drill.rs`): edge cuts made once per edge and shared, each nearby polygon split in its plane by the driver's crossing segments (exact-sign triangle tests), holes joined by two bridges, untouched polygons unchanged. Axis Drill uses the outline's prism (shadows extruded, unioned with Manifold) as a Solid Drill driver. Solid Drill drivers get the Booleans pre-flight and notice.
+- Own cutting core (`operandi-core/src/slicing/drill.rs`): edge cuts made once per edge and shared, each nearby polygon split in its plane by the driver's crossing segments (exact-sign triangle tests), holes joined by two bridges, untouched polygons unchanged. Axis Drill uses the outline's prism (shadows extruded, unioned with Manifold) as a Solid Drill driver. Solid Drill drivers get the Booleans pre-flight and notice.
 - Stability (DRILL-19..21): two independent inside tests per piece (winding number + exact ray crossings, or + 2D outline test), per-polygon area cover, open-edge length unchanged, validate; any failure or panic changes nothing. 40 random turned boxes through a curved sheet: all exact, Core + Tunnel = Slice.
 - All spec cases DR-D0..D3, S1..S5, A1..A5, F1..F3 pass. Open: DRILL-Q1..Q6 (result sets, Esc cancel, per-point maps on new points, procedural stage). No icons yet (text rows). GUI checklist `docs/DRILL_GUI_QA.md`.
 - Tests: `operandi-core/tests/drills.rs`, `drill.rs` unit tests, `drill_dialog::tests`.
 
 ## 2026-11-11 — Viewport materials closer to Cycles (branch claude/project-thread-szcspe)
 
-- Advanced style draws each material as Cycles' principled surface, approximated the way Blender's EEVEE does (GPL-2.0-or-later module `operandi-core/src/blender_principled.rs`): sheen, coat, emission, metal (F82 tint), gloss (Specular IOR Level), diffuse, each dimming the layers below; GGX highlight from the key light, flat ambient as diffuse light and reflected environment; all in linear light. Calibrated so the default grey keeps VS-3's levels (90 dark side, 225 facing the light).
+- Advanced style draws each material as Cycles' principled surface, approximated the way Blender's EEVEE does (GPL-2.0-or-later module `operandi-core/src/materials/blender_principled.rs`): sheen, coat, emission, metal (F82 tint), gloss (Specular IOR Level), diffuse, each dimming the layers below; GGX highlight from the key light, flat ambient as diffuse light and reflected environment; all in linear light. Calibrated so the default grey keeps VS-3's levels (90 dark side, 225 facing the light).
 - Advanced base colour is Diffuse Color alone, as in the render (Diffuse × Amount in the other styles). Roughness, Metallic, Specular Amount/Color, Clearcoat, Sheen and Luminous now show.
 - Image layers on those inputs, Bump, Normal and Stencil / RGBA cut-outs draw per pixel (one list function per material, `shader_wgsl::translate_list`); bump and normal map follow Blender's nodes, with a tangent frame from screen derivatives.
 - Other styles unchanged. Provisional: VM-Q01..Q07. GUI check docs/VIEWPORT_MATERIALS_GUI_QA.md.
@@ -4002,7 +4002,7 @@ panel; its tab strip stays 22 points at either end. Tests: layout_tests.rs.
 ## 2026-11-11 — Remesh (branch remesh)
 
 - Three commands, one undo step each, last values kept, bare opens the dialog: `sculpt.remesh` (Voxel Remesh), `mesh.retopo` (Automatic Retopology) and `operandi.remesh` (Blocks / Smooth / Sharp). Edit tab rows, Sculpt tab Remesh..., Geometry menu.
-- Voxel Remesh and Blocks / Smooth / Sharp are Operandi's own (`operandi-core/src/remesh_voxel.rs`): exact line crossings with winding numbers (overlaps join, inside-out shells count, holes closed by a two-of-three axis vote), checkerboard squares filled so no edge has more than two polygons, surface nets with cell-centre, crossing-mean or plane-fit points. Voxel keeps weight and colour maps (sculpt masks) by nearest point.
+- Voxel Remesh and Blocks / Smooth / Sharp are Operandi's own (`operandi-core/src/sculpting/remesh_voxel.rs`): exact line crossings with winding numbers (overlaps join, inside-out shells count, holes closed by a two-of-three axis vote), checkerboard squares filled so no edge has more than two polygons, surface nets with cell-centre, crossing-mean or plane-fit points. Voxel keeps weight and colour maps (sculpt masks) by nearest point.
 - Automatic Retopology through QuadriFlow (BSD-3), vendored in the new `crates/operandi-remesh` (GPL-2.0-or-later glue from Blender, Eigen MPL-2.0); crease angle made adjustable. Refuses surfaces with non-manifold edges or points.
 - Dialogs run the work on a worker thread with progress and Cancel and hand the result to the same command, so typed, scripted and dialog runs give the same mesh.
 - Speed (106k-polygon mesh, release): Voxel 0.05 s (47k quads) to 0.36 s (435k), Smooth 0.26 s, Retopo 2–3 s.

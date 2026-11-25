@@ -2,7 +2,7 @@
 
 Branch `file-formats`, 2026-11-02. General-purpose formats with public
 descriptions; not Modo behavior, no parity claim. Core:
-`crates/operandi-core/src/interchange/`; menus: `operandi-app/src/interchange_ui.rs`.
+`crates/operandi-core/src/interchange/`; menus: `operandi-app/src/files/interchange_ui.rs`.
 
 ## Native scenes (.opscene) and big meshes
 

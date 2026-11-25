@@ -1,5 +1,5 @@
 <!-- help-ids: operandi.inputMap ; template: concept ; since: 0.1.0 -->
-<!-- Written by crates/operandi-app/src/guide_shortcuts_tests.rs from the factory key map. Don't edit by hand: run OPERANDI_BLESS_GUIDE=1 scripts/check-fast.sh guide_shortcuts -->
+<!-- Written by crates/operandi-app/src/commands/guide_shortcuts_tests.rs from the factory key map. Don't edit by hand: run OPERANDI_BLESS_GUIDE=1 scripts/check-fast.sh guide_shortcuts -->
 # Keyboard shortcuts
 
 These are the keys Operandi starts with. You can change any of them in the **Input Map** (**Edit > Input Map…**, or **Input Map…** under **Input** in **Edit > Preferences…**); the list there also shows every action without a key.

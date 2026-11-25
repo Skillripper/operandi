@@ -1,7 +1,7 @@
 # Panel corner dot (panel-corner-dot, 2026-11-06)
 
 Built from the coordinator's behaviour summary (PANEL-DOT v1; the spec file
-itself isn't in `specifications/`). Code: `crates/operandi-app/src/panel_dot.rs`
+itself isn't in `specifications/`). Code: `crates/operandi-app/src/window_layout/panel_dot.rs`
 (the dot, its drags and menu), `crates/operandi-layout` (swap, dock beside,
 tear off at a point, copies, linked quad, divider lock). Tests:
 `panel_dot_tests.rs` (16) and the layout crate (18).

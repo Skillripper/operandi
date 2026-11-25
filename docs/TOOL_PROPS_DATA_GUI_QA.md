@@ -1,7 +1,7 @@
 # Data-driven Tool Properties: GUI checklist
 
 Branch `tool-props-data`. Tool Properties now draws from each tool's field
-list (`crates/operandi-app/src/tool_form.rs`). The panels should look and
+list (`crates/operandi-app/src/window_layout/tool_form.rs`). The panels should look and
 behave as before; these checks look for anything that moved.
 
 ## Pilot (Cube, Sphere, Cylinder, Cone, Ellipsoid, Torus, Capsule, Arc, Tube, Text, Spike, Polygon Reduction)

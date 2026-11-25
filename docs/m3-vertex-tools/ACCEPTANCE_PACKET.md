@@ -22,7 +22,7 @@ reference parity beyond the listed basic workflows.
   `scenes/<row>.before.opscene` → `scenes/<row>.after.opscene` produced through
   the Editor with a one-step Undo/Redo check and a native save/reload
   (regenerate with `OPERANDI_WRITE_M3_DEMO=1`).
-- App routing: `crates/operandi-app/src/vertex_panel_tests.rs` — panel rows,
+- App routing: `crates/operandi-app/src/edges/vertex_panel_tests.rs` — panel rows,
   shortcuts and verbs give the same mesh; tool shortcuts and handle drags;
   Create and Weld clicks; every command, its help, and malformed-input
   refusal; Show Vertices changes no scene/history; Sync two-step.

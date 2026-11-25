@@ -2,7 +2,7 @@
 
 Branch `snapping`, 2026-11-05, from `specifications/snapping-2026-11-05`
 (supersedes the 3 px / 15 px range hint in the 2026-11-04 handle
-preferences; the ranges are 24 / 40 px). Code: `operandi-app/src/snapping.rs`.
+preferences; the ranges are 24 / 40 px). Code: `operandi-app/src/view/snapping.rs`.
 
 ## What works
 

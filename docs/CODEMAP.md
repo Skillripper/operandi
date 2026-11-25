@@ -9,70 +9,136 @@ this page is the "which files" companion. Paths are under `crates/`.
 - Core modules are named after the tool or system (`bevel.rs`,
   `twist_bevel.rs`, `falloff.rs`). The first `//!` line of each file says
   what it is and which spec it follows:
-  `grep -m1 '^//!' crates/operandi-core/src/*.rs` lists them all.
+  `grep -m1 '^//!' crates/operandi-core/src/*/*.rs` lists them all.
 - Spec IDs (`TWB-03`, `UIC-51`, `VX-B11`) appear in code comments and test
   names, so grepping an ID finds the code and its test.
 - A tool's command name (`poly.bevel`, `xfrm.bend`) finds its registry row
   (`operandi-core/src/command_registry/commands/<area>.rs`), its handler
   and its tests.
-- App tests live next to the code as `*_tests.rs` in `operandi-app/src`;
+- App tests live next to the code as `*_tests.rs` in the same area folder;
   core tests are one file per tool or spec in `operandi-core/tests/`.
+
+## Area folders
+
+Both crates file their source by area (2026-11-24). The folders are only
+for filing: each file's `mod` line in `lib.rs` / `main.rs` carries a
+`#[path]`, so module paths are still `crate::<module>`. A few systems that
+were already split into their own folders (`editor/`, `command_registry/`,
+`viewport/`, `materialx/`, `subdivision/`, `layouts/`, `theme/` ...) stay
+at the top of `src/`.
+
+| `operandi-core/src/` | Holds |
+|---|---|
+| `anim/` | Animation: keys, curves, channels, scene time and the animation graph. |
+| `commands/` | Command plumbing: names, arguments, the record and history, undo memory, saving. |
+| `curve_tools/` | Curves, patches, pens, sketches, text and Solid Sketch. |
+| `deformers/` | Deformers, falloffs, Tweak and polygon hauls. |
+| `duplication/` | Duplicate, Radial, Replicator and mesh instances. |
+| `edges/` | Edge tools, bridges and chamfers. |
+| `geometry/` | The mesh, its topology memo, packing and subdivision surfaces. |
+| `materials/` | Materials, shader tree, shader evaluation, MaterialX and OpenPBR. |
+| `meshops/` | The mesh stack (MeshOps) and the evaluation graph. |
+| `nodes/` | Node graphs, the node view and node materials. |
+| `painting/` | 3D painting: brushes, inks, strokes and tips. |
+| `polygons/` | Polygon and vertex tools: bevels, extrudes, cleanups, reductions. |
+| `primitives/` | Primitives: cones, ellipsoids, shapes, the teapot and plane items. |
+| `render/` | Render items: cameras, lights, environments, backdrops and outputs. |
+| `rigging/` | Rigs, skeletons, skins, IK and the pose tool. |
+| `scene_items/` | The scene, its items, identities, projects, presets and statistics. |
+| `sculpting/` | Sculpting, multires, remeshing and the shared brush engine. |
+| `selections/` | Selection, selection sets, inference, locks and hides. |
+| `slicing/` | Slices, booleans, Dicer, Drill and profiles. |
+| `tools/` | The tool lifecycle: tasks, click to start, drop actions, hauls, numeric entry, tool presets. |
+| `transforms/` | Transforms, the action center, pivots, alignment, symmetry and units. |
+| `uv/` | UV maps and UV tools. |
+
+| `operandi-app/src/` | Holds |
+|---|---|
+| `anim/` | Animation UI: keys, timeline, channels, scrubbing. |
+| `commands/` | Commands, the command history, MCP, Python, and whole-app checks. |
+| `controls/` | Shared controls and looks: buttons, fields, icons, branding, theme. |
+| `create_tools/` | Create tools UI: primitives, curves, drawing, pens, guides, Solid Sketch. |
+| `deformers/` | Deform tab and falloff UI. |
+| `duplication/` | Duplicate tab UI. |
+| `edges/` | Edge and vertex panels. |
+| `files/` | Files: open, save, import, scenes, projects, images, updates and bug reports. |
+| `graphics/` | GPU drawing: scene buffers, subdivision, materials, grid, matcaps. |
+| `input_devices/` | Keyboard, mouse, tablet and 3D mouse input. |
+| `items/` | Item list, item properties, groups, mesh stack and replicators. |
+| `materials/` | Shading panel, materials and display shading. |
+| `menus/` | Menus: app, native, help, modeling and pie menus. |
+| `nodes/` | Node editor, graph editor and MaterialX UI. |
+| `painting_ui/` | 3D painting UI. |
+| `polygons/` | Polygon tools UI: bevel, extrude, smooth shift, reduction, cleanup, subdivide. |
+| `presets/` | Preset browser, online libraries, add browser and value presets. |
+| `render/` | Render, preview, lights, cameras, environments and bakes. |
+| `rigging/` | Rigging UI: rigs, skeletons, binding, the pose tool and schematic. |
+| `sculpting/` | Sculpting, multires and remesh UI. |
+| `selections/` | Selection tools, lasso and selection sets. |
+| `settings/` | Preferences, colour themes and the input map editor. |
+| `slicing/` | Slice, cut, drill and boolean UI. |
+| `tools/` | Tool lifecycle UI: drags, drop actions, numeric tab, mini properties, performance checks. |
+| `topology_tools/` | Topology mode and Topology Pen UI. |
+| `transforms/` | Transform dialogs and symmetry UI. |
+| `uv/` | UV editor, UV view and UV dialogs. |
+| `view/` | 3D view helpers: camera, navigation, picking, snapping, handles and tool views. |
+| `window_layout/` | Panels, docking, layouts, toolbox, forms and the workbench. |
 
 ## The files most fixes touch
 
 | Job | Start here |
 |---|---|
 | Tool list, tool enum, every `Command` | `operandi-core/src/editor/`: `tool.rs` (`enum Tool`), `command.rs` (`enum Command`), `dispatch.rs` (runs a `Command`), `activate.rs`, `finish.rs` (Apply/Drop/Cancel), `history.rs` (undo), `preview.rs` (`preview_one` = per-tool geometry arm); `editor.rs` holds the `Editor` struct |
-| What a tool is (family, modes, layers, handles) | `operandi-core/src/tool_card.rs` |
-| Preset buttons (Soft Move, Flex, Flare, Flip It ...): pipe layers + tool | `operandi-core/presets/factory-tool-presets.toml` (data), `operandi-core/src/tool_preset.rs` (activate / drop rules) |
-| Drag controls (hauls): which value each mouse button drags per tool | `operandi-core/presets/factory-hauls.toml` (data), `operandi-core/src/haul.rs` (axis lock, steps, feel numbers), `operandi-app/src/haul_view.rs` (viewport) |
-| Preset browser online libraries (Poly Haven, ambientCG) | `operandi-core/src/preset/online.rs` (catalogues, cache, download plans), `operandi-app/src/online_library.rs` (prefs, curl threads), `online_library_ui.rs` (browser, Preferences, commands, MCP) |
+| What a tool is (family, modes, layers, handles) | `operandi-core/src/tools/tool_card.rs` |
+| Preset buttons (Soft Move, Flex, Flare, Flip It ...): pipe layers + tool | `operandi-core/presets/factory-tool-presets.toml` (data), `operandi-core/src/tools/tool_preset.rs` (activate / drop rules) |
+| Drag controls (hauls): which value each mouse button drags per tool | `operandi-core/presets/factory-hauls.toml` (data), `operandi-core/src/tools/haul.rs` (axis lock, steps, feel numbers), `operandi-app/src/view/haul_view.rs` (viewport) |
+| Preset browser online libraries (Poly Haven, ambientCG) | `operandi-core/src/preset/online.rs` (catalogues, cache, download plans), `operandi-app/src/presets/online_library.rs` (prefs, curl threads), `online_library_ui.rs` (browser, Preferences, commands, MCP) |
 | A tool's geometry | its own core module (`bevel.rs`, `edge_extend.rs`, ...) |
-| Command names, renames, deprecated names | `operandi-core/src/command_names.rs`, `docs/COMMAND_NAMES.md` |
-| Command-line commands and arguments | `operandi-core/src/command_registry.rs` (entry types), `command_registry/commands/<area>.rs` (the rows), `tool_ids.rs`, `lookup.rs`; app handlers in `operandi-app/src/command_handlers.rs` |
-| Undo inside and after tools | `operandi-core/src/mid_tool_undo.rs`, `history_policy.rs` |
-| Scene, items, hierarchy | `operandi-core/src/scene.rs`, `channels.rs`, `item_*.rs` |
-| Mesh data and topology memo | `operandi-core/src/mesh.rs`, `polygon.rs`, `topology_cache.rs` |
-| Saving and opening `.opscene` | `operandi-core/src/persistence.rs`, `mesh_pack.rs` |
+| Command names, renames, deprecated names | `operandi-core/src/commands/command_names.rs`, `docs/COMMAND_NAMES.md` |
+| Command-line commands and arguments | `operandi-core/src/command_registry.rs` (entry types), `command_registry/commands/<area>.rs` (the rows), `tool_ids.rs`, `lookup.rs`; app handlers in `operandi-app/src/commands/command_handlers.rs` |
+| Undo inside and after tools | `operandi-core/src/tools/mid_tool_undo.rs`, `history_policy.rs` |
+| Scene, items, hierarchy | `operandi-core/src/scene_items/scene.rs`, `channels.rs`, `item_*.rs` |
+| Mesh data and topology memo | `operandi-core/src/geometry/mesh.rs`, `polygon.rs`, `topology_cache.rs` |
+| Saving and opening `.opscene` | `operandi-core/src/commands/persistence.rs`, `mesh_pack.rs` |
 | Import / export (OBJ, FBX, glTF, LXO...) | `operandi-core/src/interchange/`, `lxo/` |
-| USD import / export (OpenUSD bridge, reader, scene builder, import dialog) | `operandi-usd/src/` (`import.rs`, `import_materials.rs`, `stage.rs`), `operandi-usd/bridge/`, `operandi-app/src/usd_import_dialog.rs` |
-| Mesh Stack (procedural stack), op types, adding an op | `operandi-core/src/mesh_stack.rs`, `meshop_types.rs`, `mesh_stack_builtin.rs`; `operandi-app/src/mesh_stack_ui.rs`; guide in [MESH_STACK.md](MESH_STACK.md) |
-| Node View panel (registry kind, follows the Shader Tree selection, docks under the views) | `operandi-app/src/node_material_ui.rs`, `node_edit_ui.rs`, `panel_docking.rs` `reveal_registry_panel` |
-| Closing a registry panel (header ×, Close Panel, Node View toggle, window close) | `operandi-app/src/panel_close.rs`, `node_view_open.rs` `toggle_node_view` |
-| Shader tree and materials | `operandi-core/src/shader_tree.rs`, `shader_eval.rs`, `shader_wgsl.rs`, `material.rs`; MaterialX graphs `materialx/` (`cycles.rs` translation, `graph.rs`, the tree's own form `tree.rs` + `tree_library.rs`, docs/MATERIALX_GRAPHS.md); graph layers in the viewport `graph_view.rs` (+ `shader_func.rs`/`.wgsl`, `cycles_noise.rs`) |
+| USD import / export (OpenUSD bridge, reader, scene builder, import dialog) | `operandi-usd/src/` (`import.rs`, `import_materials.rs`, `stage.rs`), `operandi-usd/bridge/`, `operandi-app/src/files/usd_import_dialog.rs` |
+| Mesh Stack (procedural stack), op types, adding an op | `operandi-core/src/meshops/mesh_stack.rs`, `meshop_types.rs`, `mesh_stack_builtin.rs`; `operandi-app/src/items/mesh_stack_ui.rs`; guide in [MESH_STACK.md](MESH_STACK.md) |
+| Node View panel (registry kind, follows the Shader Tree selection, docks under the views) | `operandi-app/src/nodes/node_material_ui.rs`, `node_edit_ui.rs`, `panel_docking.rs` `reveal_registry_panel` |
+| Closing a registry panel (header ×, Close Panel, Node View toggle, window close) | `operandi-app/src/window_layout/panel_close.rs`, `node_view_open.rs` `toggle_node_view` |
+| Shader tree and materials | `operandi-core/src/materials/shader_tree.rs`, `shader_eval.rs`, `shader_wgsl.rs`, `material.rs`; MaterialX graphs `materialx/` (`cycles.rs` translation, `graph.rs`, the tree's own form `tree.rs` + `tree_library.rs`, docs/MATERIALX_GRAPHS.md); graph layers in the viewport `graph_view.rs` (+ `shader_func.rs`/`.wgsl`, `cycles_noise.rs`) |
 | Action centre, falloff, symmetry, snapping layers | `action_center.rs`, `falloff.rs`, `symmetry*.rs` (core); `snapping.rs` (app) |
 | App start-up, module list, top-level frame loop | `operandi-app/src/main.rs` |
-| Toolbox buttons, icons and tooltips per tool | `operandi-app/src/tool_info.rs`, `toolbox.rs`, `icons.rs` |
-| Tool Properties panel | `operandi-app/src/live_fields.rs` (live tools), `tool_form.rs` (field lists), `form/` (shared rows) |
+| Toolbox buttons, icons and tooltips per tool | `operandi-app/src/tools/tool_info.rs`, `toolbox.rs`, `icons.rs` |
+| Tool Properties panel | `operandi-app/src/tools/live_fields.rs` (live tools), `tool_form.rs` (field lists), `form/` (shared rows) |
 | Viewport input, drags, handles | `operandi-app/src/viewport.rs`, `viewport/*_handles.rs`, `input.rs` |
-| Viewport drawing on the GPU | `operandi-app/src/gpu.rs`, `gpu_scene.rs`, `material_gpu.rs` |
-| Menus | `operandi-app/src/app_menu.rs` |
-| Shortcuts and the input map | `operandi-app/src/input.rs`, `preferences.rs` |
-| Greyed-control reasons | `operandi-app/src/unavailable.rs` |
-| Multiresolution sculpting (levels, detail, `operandi.multires.*`) | `operandi-core/src/multires.rs`; Sculpt tab section `operandi-app/src/multires_ui.rs` |
-| Viewport header buttons / Properties popover | `operandi-app/src/viewport_buttons.rs`, `viewport_properties.rs` |
-| Shading tab | `operandi-app/src/shading_panel.rs` |
-| Floating windows, layout | `operandi-app/src/floating.rs`, `workspace.rs`, `operandi-layout` |
+| Viewport drawing on the GPU | `operandi-app/src/graphics/gpu.rs`, `gpu_scene.rs`, `material_gpu.rs` |
+| Menus | `operandi-app/src/menus/app_menu.rs` |
+| Shortcuts and the input map | `operandi-app/src/input_devices/input.rs`, `preferences.rs` |
+| Greyed-control reasons | `operandi-app/src/controls/unavailable.rs` |
+| Multiresolution sculpting (levels, detail, `operandi.multires.*`) | `operandi-core/src/sculpting/multires.rs`; Sculpt tab section `operandi-app/src/sculpting/multires_ui.rs` |
+| Viewport header buttons / Properties popover | `operandi-app/src/view/viewport_buttons.rs`, `viewport_properties.rs` |
+| Shading tab | `operandi-app/src/materials/shading_panel.rs` |
+| Floating windows, layout | `operandi-app/src/window_layout/floating.rs`, `workspace.rs`, `operandi-layout` |
 | Layout files and switching (`layout.restore`), shipped layouts | `operandi-app/src/layouts.rs`, `assets/layouts/*.json`, `operandi-layout/src/window.rs` |
-| Toolbox forms (every tab: Create, UV, Select, Deform, Duplicate, Vertex, Edge, Polygon, Edit, Sculpt; Select's drop-downs in `select_panel.rs`): form files, user copies, Revert, slots, button state from commands (`operandi.form.revert`) | `operandi-app/assets/forms/*.json`, `operandi-app/src/form/command_form.rs` (data), `toolbox_form.rs` (drawing), `command_handlers.rs` `answers` (lit/greyed per command) |
-| Workbenches (layouts stage 4: Edit Workbench, Pick to Add, reorder, right-click properties, tool-pipe presets, the top row; `operandi.workbench.*`) | `operandi-app/src/workbench.rs`, `assets/forms/toolbox.workbench.json`, `toolbar.workbench.json`; property rows via `tool_form.rs` `only_field` |
-| Form Editor (layouts stage 7: System > Form Editor palette, tree/search/Find Form, properties, `operandi.form.*`), menus drawn from forms (`menu.*` forms, `menu_from_form`, `Action::Line`) | `operandi-app/src/form_editor.rs`, `app_menu.rs`, `assets/forms/menu.*.json`, `command_handlers.rs` `menu_answers` |
-| Menus as forms: the whole menu bar (`menu.bar` and `menu.*` forms), live lists (`LISTS`), `{title}` placeholders, the in-window bar, menu snapshots | `operandi-app/src/menu_forms.rs`, `menu_forms_tests.rs`, `menu_snapshots/`, `app_menu.rs`, `native_menu.rs`, `command_handlers.rs` `menu_commands` / `menu_answers` |
-| Palettes (layouts stage 6: palette files, open/close toggle, Toggle Palettes, Layout > Windows/Palettes, floating views app-wide across switches, `layout.window`) | `operandi-app/src/palettes.rs`, `assets/palettes/*.json`, `floating.rs` (side-panel palettes), `uv_editor.rs` |
-| Per-layout key maps (layouts stage 5: `keys` in a layout file, the effective `bindings`, `operandi.layout.setKey` / `clearKeys`; the Input Map's "Keys for" scope) | `operandi-app/src/layout_keys.rs`, `input_map_editor.rs` |
-| User layouts, layout bar, quick switcher, pieces, content arrow (`operandi.layout.*`, `operandi.viewport.*`, `operandi.panel.kind`) | `operandi-app/src/layouts_edit.rs` |
+| Toolbox forms (every tab: Create, UV, Select, Deform, Duplicate, Vertex, Edge, Polygon, Edit, Sculpt; Select's drop-downs in `select_panel.rs`): form files, user copies, Revert, slots, button state from commands (`operandi.form.revert`) | `operandi-app/assets/forms/*.json`, `operandi-app/src/window_layout/form/command_form.rs` (data), `toolbox_form.rs` (drawing), `command_handlers.rs` `answers` (lit/greyed per command) |
+| Workbenches (layouts stage 4: Edit Workbench, Pick to Add, reorder, right-click properties, tool-pipe presets, the top row; `operandi.workbench.*`) | `operandi-app/src/window_layout/workbench.rs`, `assets/forms/toolbox.workbench.json`, `toolbar.workbench.json`; property rows via `tool_form.rs` `only_field` |
+| Form Editor (layouts stage 7: System > Form Editor palette, tree/search/Find Form, properties, `operandi.form.*`), menus drawn from forms (`menu.*` forms, `menu_from_form`, `Action::Line`) | `operandi-app/src/window_layout/form_editor.rs`, `app_menu.rs`, `assets/forms/menu.*.json`, `command_handlers.rs` `menu_answers` |
+| Menus as forms: the whole menu bar (`menu.bar` and `menu.*` forms), live lists (`LISTS`), `{title}` placeholders, the in-window bar, menu snapshots | `operandi-app/src/menus/menu_forms.rs`, `menu_forms_tests.rs`, `menu_snapshots/`, `app_menu.rs`, `native_menu.rs`, `command_handlers.rs` `menu_commands` / `menu_answers` |
+| Palettes (layouts stage 6: palette files, open/close toggle, Toggle Palettes, Layout > Windows/Palettes, floating views app-wide across switches, `layout.window`) | `operandi-app/src/window_layout/palettes.rs`, `assets/palettes/*.json`, `floating.rs` (side-panel palettes), `uv_editor.rs` |
+| Per-layout key maps (layouts stage 5: `keys` in a layout file, the effective `bindings`, `operandi.layout.setKey` / `clearKeys`; the Input Map's "Keys for" scope) | `operandi-app/src/window_layout/layout_keys.rs`, `input_map_editor.rs` |
+| User layouts, layout bar, quick switcher, pieces, content arrow (`operandi.layout.*`, `operandi.viewport.*`, `operandi.panel.kind`) | `operandi-app/src/window_layout/layouts_edit.rs` |
 | Final renders (Cycles) | `operandi-cycles/src/lib.rs`, `operandi-cycles/cycles/operandi_cycles.{h,cpp}` |
-| 3D painting (painting builds only): images, image commands, PSD | `operandi-paint/src/` (pixels, blend, io, psd), `operandi-core/src/paint.rs`, `operandi-app/src/painting.rs`; vendored `vendor/craft-psd` |
-| MCP bridge | `operandi-mcp/src/bridge.rs`, `operandi-app/src/mcp.rs` |
-| Python scripting (interpreter, `operandi` module, Script Console, switch) | `operandi-python/src/` (`lib.rs`, `embed.rs`, `operandi.py`), `operandi-app/src/python_ui.rs`, `python_switch.rs`, `operandi-core/src/script_mesh.rs` |
-| Command records, History/Results logs, Command History panel (`cmds.batch`, `cmds.undoTo`, `history.*`) | `operandi-core/src/command_record.rs`, `operandi-app/src/command_history.rs`, `command_history_ui.rs` |
+| 3D painting (painting builds only): images, image commands, PSD | `operandi-paint/src/` (pixels, blend, io, psd), `operandi-core/src/painting/paint.rs`, `operandi-app/src/painting_ui/painting.rs`; vendored `vendor/craft-psd` |
+| MCP bridge | `operandi-mcp/src/bridge.rs`, `operandi-app/src/commands/mcp.rs` |
+| Python scripting (interpreter, `operandi` module, Script Console, switch) | `operandi-python/src/` (`lib.rs`, `embed.rs`, `operandi.py`), `operandi-app/src/commands/python_ui.rs`, `python_switch.rs`, `operandi-core/src/meshops/script_mesh.rs` |
+| Command records, History/Results logs, Command History panel (`cmds.batch`, `cmds.undoTo`, `history.*`) | `operandi-core/src/commands/command_record.rs`, `operandi-app/src/commands/command_history.rs`, `command_history_ui.rs` |
 
 ## Adding a tool: the usual file list
 
 Twist Bevel (commit `89763be0`) is a good recent example to copy. A new
 interactive tool normally touches:
 
-- **core:** its own module (`<tool>.rs`) and `lib.rs`; `editor/` (`Tool`
+- **core:** its own module (`<area>/<tool>.rs`) and `lib.rs`; `editor/` (`Tool`
   variant in `tool.rs`, `Command` in `command.rs`, `preview_one` arm in
   `preview.rs`); `tool_card.rs`; its rows in
   `command_registry/commands/<area>.rs`; `mid_tool_undo.rs` / `history_policy.rs` when it
@@ -108,8 +174,8 @@ Test locations:
 - `operandi-core/tests/*.rs`: one test program, `tests/all.rs`; one file's
   tests are `cargo test --locked --workspace -- <file>::`.
 - `operandi-core/src`: unit tests inside modules (`mod tests`).
-- `operandi-app/src/*_tests.rs`: app tests, all in the app's one test
-  program (they're modules of `main.rs`).
+- `operandi-app/src/<area>/*_tests.rs`: app tests, all in the app's one
+  test program (they're modules of `main.rs`).
 - The slowest tests (20-35 s each, in debug builds): `mesh_stack_stress`,
   `drag_undo_guard_tests::every_tool_drag_records_at_most_one_undo_step`,
   `gpu_chunks`, the wire-fade tests. They set the floor on a full run.

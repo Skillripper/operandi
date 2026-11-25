@@ -1,5 +1,5 @@
 <!-- help-ids: ; template: concept ; since: 0.1.0 -->
-<!-- Written by crates/operandi-app/src/guide_python_tests.rs from crates/operandi-python/src/operandi.py and the command registry. Don't edit by hand: run OPERANDI_BLESS_GUIDE=1 scripts/check-fast.sh guide_python -->
+<!-- Written by crates/operandi-app/src/commands/guide_python_tests.rs from crates/operandi-python/src/operandi.py and the command registry. Don't edit by hand: run OPERANDI_BLESS_GUIDE=1 scripts/check-fast.sh guide_python -->
 # Python reference
 
 This page lists everything the `operandi` module offers, the commands a script can ask questions with, and the commands that run scripts. It is made from Operandi's own code, so it matches the version it came with. For how to turn scripting on and run a script, see [Python scripting](python.md).

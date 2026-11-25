@@ -2,7 +2,7 @@
 
 Branch `subdivision`, 2026-11-03, from `specifications/subdivision-2026-11-03`.
 Core: `crates/operandi-core/src/subdivision.rs`; drawing:
-`operandi-app/src/subdivision_view.rs`; settings: Item properties.
+`operandi-app/src/view/subdivision_view.rs`; settings: Item properties.
 
 ## What works
 

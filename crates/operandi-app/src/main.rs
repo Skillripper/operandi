@@ -1,399 +1,720 @@
+#[path = "files/about.rs"]
 mod about;
+#[path = "transforms/absolute_scaling_ui.rs"]
 mod absolute_scaling_ui;
+#[path = "presets/add_browser.rs"]
 mod add_browser;
+#[path = "anim/anim_keys.rs"]
 mod anim_keys;
+#[path = "anim/anim_switch.rs"]
 mod anim_switch;
+#[path = "anim/anim_ui.rs"]
 mod anim_ui;
 #[cfg(test)]
+#[path = "anim/anim_ui_tests.rs"]
 mod anim_ui_tests;
 #[cfg(test)]
+#[path = "anim/animated_scene_frames_tests.rs"]
 mod animated_scene_frames_tests;
 #[cfg(test)]
+#[path = "anim/channel_panel_tests.rs"]
 mod channel_panel_tests;
+#[path = "controls/collapse_line.rs"]
 mod collapse_line;
+#[path = "commands/command_history.rs"]
 mod command_history;
+#[path = "commands/command_history_ui.rs"]
 mod command_history_ui;
 #[cfg(test)]
+#[path = "create_tools/contour_tests.rs"]
 mod contour_tests;
+#[path = "items/item_transform_ui.rs"]
 mod item_transform_ui;
 #[cfg(test)]
+#[path = "painting_ui/mesh_paint_tests.rs"]
 mod mesh_paint_tests;
+#[path = "items/mesh_stack_ui.rs"]
 mod mesh_stack_ui;
+#[path = "items/meshblend_ui.rs"]
 mod meshblend_ui;
+#[path = "nodes/node_edit_ui.rs"]
 mod node_edit_ui;
 #[cfg(test)]
+#[path = "nodes/node_edit_ui_tests.rs"]
 mod node_edit_ui_tests;
+#[path = "nodes/node_material_ui.rs"]
 mod node_material_ui;
 #[cfg(test)]
+#[path = "nodes/node_material_ui_tests.rs"]
 mod node_material_ui_tests;
 #[cfg(test)]
+#[path = "nodes/node_view_close_tests.rs"]
 mod node_view_close_tests;
+#[path = "nodes/node_view_open.rs"]
 mod node_view_open;
 #[cfg(test)]
+#[path = "nodes/node_view_open_tests.rs"]
 mod node_view_open_tests;
 #[cfg(test)]
+#[path = "nodes/node_view_panel_tests.rs"]
 mod node_view_panel_tests;
+#[path = "controls/popup_title.rs"]
 mod popup_title;
+#[path = "view/snaps_panel.rs"]
 mod snaps_panel;
+#[path = "transforms/symmetrize_panel.rs"]
 mod symmetrize_panel;
+#[path = "transforms/symmetry_ui.rs"]
 mod symmetry_ui;
 use crate::prefs_file::PrefsFile;
 use snaps_panel::SnapPreset;
+#[path = "view/action_center_click.rs"]
 mod action_center_click;
+#[path = "controls/app_environment.rs"]
 mod app_environment;
+#[path = "menus/app_menu.rs"]
 mod app_menu;
+#[path = "graphics/backdrop_gpu.rs"]
 mod backdrop_gpu;
+#[path = "render/backdrop_ui.rs"]
 mod backdrop_ui;
+#[path = "render/background_ui.rs"]
 mod background_ui;
+#[path = "polygons/bevel_panel.rs"]
 mod bevel_panel;
+#[path = "rigging/bind_dialog_ui.rs"]
 mod bind_dialog_ui;
+#[path = "slicing/boolean_dialog.rs"]
 mod boolean_dialog;
+#[path = "controls/branding.rs"]
 mod branding;
+#[path = "edges/bridge_panel.rs"]
 mod bridge_panel;
+#[path = "files/bug_report.rs"]
 mod bug_report;
+#[path = "files/bug_report_capture.rs"]
 mod bug_report_capture;
+#[path = "controls/button_variants.rs"]
 mod button_variants;
+#[path = "view/camera.rs"]
 mod camera;
+#[path = "render/camera_light_handles.rs"]
 mod camera_light_handles;
+#[path = "render/camera_light_ui.rs"]
 mod camera_light_ui;
+#[path = "render/camera_props_ui.rs"]
 mod camera_props_ui;
+#[path = "anim/channel_links_ui.rs"]
 mod channel_links_ui;
+#[path = "anim/channel_panel_ui.rs"]
 mod channel_panel_ui;
+#[path = "anim/channel_row.rs"]
 mod channel_row;
+#[path = "rigging/character_rig_ui.rs"]
 mod character_rig_ui;
+#[path = "anim/clip_picker.rs"]
 mod clip_picker;
+#[path = "settings/color_theme.rs"]
 mod color_theme;
+#[path = "controls/colour_field.rs"]
 mod colour_field;
+#[path = "controls/colour_picker.rs"]
 mod colour_picker;
+#[path = "commands/command.rs"]
 mod command;
 #[cfg(test)]
+#[path = "commands/command_contract_tests.rs"]
 mod command_contract_tests;
+#[path = "commands/command_handlers.rs"]
 mod command_handlers;
 #[cfg(test)]
+#[path = "commands/command_registry_gaps.rs"]
 mod command_registry_gaps;
 #[cfg(test)]
+#[path = "commands/command_registry_tests.rs"]
 mod command_registry_tests;
+#[path = "create_tools/cone_panel.rs"]
 mod cone_panel;
+#[path = "create_tools/contour_ui.rs"]
 mod contour_ui;
+#[path = "items/create_utility.rs"]
 mod create_utility;
 #[cfg(test)]
+#[path = "tools/ctrl_constrain_tests.rs"]
 mod ctrl_constrain_tests;
+#[path = "create_tools/curve_hands_on.rs"]
 mod curve_hands_on;
+#[path = "create_tools/curve_tab.rs"]
 mod curve_tab;
+#[path = "slicing/cut_dialogs.rs"]
 mod cut_dialogs;
+#[path = "settings/defaults_preferences.rs"]
 mod defaults_preferences;
+#[path = "deformers/deform_panel.rs"]
 mod deform_panel;
+#[path = "tools/detents.rs"]
 mod detents;
+#[path = "polygons/detriangulate_dialog.rs"]
 mod detriangulate_dialog;
+#[path = "window_layout/dialog_place.rs"]
 mod dialog_place;
+#[path = "materials/display_shading.rs"]
 mod display_shading;
 #[cfg(test)]
+#[path = "tools/drag_undo_guard_tests.rs"]
 mod drag_undo_guard_tests;
+#[path = "create_tools/draw_tools.rs"]
 mod draw_tools;
+#[path = "slicing/drill_dialog.rs"]
 mod drill_dialog;
+#[path = "tools/drop_action_ui.rs"]
 mod drop_action_ui;
+#[path = "input_devices/drop_keys.rs"]
 mod drop_keys;
+#[path = "items/duplicate_item_rows.rs"]
 mod duplicate_item_rows;
+#[path = "duplication/duplicate_panel.rs"]
 mod duplicate_panel;
+#[path = "duplication/duplicate_transform_panel.rs"]
 mod duplicate_transform_panel;
+#[path = "view/duplicate_view.rs"]
 mod duplicate_view;
+#[path = "edges/edge_panel.rs"]
 mod edge_panel;
+#[path = "polygons/edit_panel.rs"]
 mod edit_panel;
+#[path = "materials/editor_color_ui.rs"]
 mod editor_color_ui;
+#[path = "create_tools/ellipsoid_panel.rs"]
 mod ellipsoid_panel;
+#[path = "tools/empty_expand.rs"]
 mod empty_expand;
+#[path = "graphics/environment_gpu.rs"]
 mod environment_gpu;
+#[path = "render/environment_preset_ui.rs"]
 mod environment_preset_ui;
+#[path = "render/environment_ui.rs"]
 mod environment_ui;
+#[path = "render/exr_multilayer.rs"]
 mod exr_multilayer;
+#[path = "deformers/falloff_panel.rs"]
 mod falloff_panel;
+#[path = "tools/field_handoff.rs"]
 mod field_handoff;
+#[path = "files/file_chooser.rs"]
 mod file_chooser;
+#[path = "files/file_commands.rs"]
 mod file_commands;
+#[path = "settings/file_io_preferences.rs"]
 mod file_io_preferences;
+#[path = "polygons/flip_it_dialog.rs"]
 mod flip_it_dialog;
+#[path = "window_layout/form/mod.rs"]
 mod form;
+#[path = "window_layout/form_app.rs"]
 mod form_app;
+#[path = "graphics/frame_stats.rs"]
 mod frame_stats;
+#[path = "graphics/free_memory.rs"]
 mod free_memory;
+#[path = "graphics/gpu.rs"]
 mod gpu;
+#[path = "graphics/gpu_arena.rs"]
 mod gpu_arena;
+#[path = "graphics/gpu_backend.rs"]
 mod gpu_backend;
+#[path = "graphics/gpu_chunks.rs"]
 mod gpu_chunks;
+#[path = "graphics/gpu_memory.rs"]
 mod gpu_memory;
+#[path = "graphics/gpu_scene.rs"]
 mod gpu_scene;
+#[path = "materials/gradient_ui.rs"]
 mod gradient_ui;
+#[path = "graphics/grid.rs"]
 mod grid;
+#[path = "items/groups_ui.rs"]
 mod groups_ui;
 #[cfg(test)]
+#[path = "commands/guide_menus_tests.rs"]
 mod guide_menus_tests;
 #[cfg(test)]
+#[path = "commands/guide_python_tests.rs"]
 mod guide_python_tests;
 #[cfg(test)]
+#[path = "commands/guide_shortcuts_tests.rs"]
 mod guide_shortcuts_tests;
+#[path = "settings/handle_preferences.rs"]
 mod handle_preferences;
+#[path = "view/handle_tips.rs"]
 mod handle_tips;
+#[path = "view/haul_view.rs"]
 mod haul_view;
+#[path = "menus/help_menu.rs"]
 mod help_menu;
+#[path = "tools/help_mode.rs"]
 mod help_mode;
 #[cfg(test)]
+#[path = "tools/help_mode_tests.rs"]
 mod help_mode_tests;
+#[path = "commands/i2_route.rs"]
 mod i2_route;
+#[path = "controls/icons.rs"]
 mod icons;
+#[path = "files/image_decode.rs"]
 mod image_decode;
+#[path = "files/image_viewer.rs"]
 mod image_viewer;
+#[path = "files/image_viewer_ui.rs"]
 mod image_viewer_ui;
+#[path = "files/import.rs"]
 mod import;
+#[path = "files/import_into.rs"]
 mod import_into;
+#[path = "input_devices/input.rs"]
 mod input;
+#[path = "settings/input_map_editor.rs"]
 mod input_map_editor;
+#[path = "files/interchange_ui.rs"]
 mod interchange_ui;
+#[path = "items/item_common_ui.rs"]
 mod item_common_ui;
+#[path = "items/item_extras_ui.rs"]
 mod item_extras_ui;
+#[path = "items/item_list_ui.rs"]
 mod item_list_ui;
+#[path = "items/items_tree.rs"]
 mod items_tree;
+#[path = "input_devices/key_toggles.rs"]
 mod key_toggles;
+#[path = "selections/lasso.rs"]
 mod lasso;
+#[path = "window_layout/layout.rs"]
 mod layout;
+#[path = "window_layout/layout_keys.rs"]
 mod layout_keys;
 mod layouts;
+#[path = "window_layout/layouts_edit.rs"]
 mod layouts_edit;
+#[path = "render/light_tier2_ui.rs"]
 mod light_tier2_ui;
+#[path = "render/light_tier3_ui.rs"]
 mod light_tier3_ui;
+#[path = "tools/link_mode.rs"]
 mod link_mode;
+#[path = "tools/live_fields.rs"]
 mod live_fields;
+#[path = "files/log_ring.rs"]
 mod log_ring;
+#[path = "render/lpe_rows.rs"]
 mod lpe_rows;
+#[path = "graphics/matcap.rs"]
 mod matcap;
+#[path = "graphics/material_gpu.rs"]
 mod material_gpu;
 #[cfg(test)]
+#[path = "graphics/material_gpu_tests.rs"]
 mod material_gpu_tests;
+#[path = "materials/material_layout.rs"]
 mod material_layout;
+#[path = "commands/mcp.rs"]
 mod mcp;
+#[path = "menus/menu_forms.rs"]
 mod menu_forms;
+#[path = "polygons/mesh_cleanup_dialog.rs"]
 mod mesh_cleanup_dialog;
+#[path = "settings/mesh_items_preferences.rs"]
 mod mesh_items_preferences;
+#[path = "painting_ui/mesh_paint_ui.rs"]
 mod mesh_paint_ui;
+#[path = "tools/mini_properties.rs"]
 mod mini_properties;
+#[path = "menus/modeling_menu.rs"]
 mod modeling_menu;
 #[cfg(test)]
+#[path = "commands/monkey_tests.rs"]
 mod monkey_tests;
 #[cfg(test)]
+#[path = "input_devices/mouse_rule_tests.rs"]
 mod mouse_rule_tests;
 #[cfg(test)]
+#[path = "selections/multi_active_tests.rs"]
 mod multi_active_tests;
+#[path = "sculpting/multires_ui.rs"]
 mod multires_ui;
 #[cfg(test)]
+#[path = "sculpting/multires_ui_tests.rs"]
 mod multires_ui_tests;
+#[path = "controls/native.rs"]
 mod native;
+#[path = "menus/native_menu.rs"]
 mod native_menu;
+#[path = "settings/navigation_preferences.rs"]
 mod navigation_preferences;
+#[path = "tools/numeric_draft.rs"]
 mod numeric_draft;
+#[path = "tools/numeric_tab.rs"]
 mod numeric_tab;
+#[path = "presets/online_library.rs"]
 mod online_library;
+#[path = "presets/online_library_ui.rs"]
 mod online_library_ui;
+#[path = "files/open_documents.rs"]
 mod open_documents;
+#[path = "controls/option_row.rs"]
 mod option_row;
+#[path = "view/orbit_selected.rs"]
 mod orbit_selected;
+#[path = "controls/original_compatible.rs"]
 mod original_compatible;
+#[path = "settings/os_color.rs"]
 mod os_color;
+#[path = "controls/outline.rs"]
 mod outline;
+#[path = "window_layout/panel_close.rs"]
 mod panel_close;
+#[path = "window_layout/panel_dot.rs"]
 mod panel_dot;
 #[cfg(test)]
+#[path = "window_layout/panel_dot_tests.rs"]
 mod panel_dot_tests;
+#[path = "window_layout/panel_maximize.rs"]
 mod panel_maximize;
 #[cfg(test)]
+#[path = "window_layout/panel_maximize_tests.rs"]
 mod panel_maximize_tests;
+#[path = "window_layout/panel_registry.rs"]
 mod panel_registry;
+#[path = "window_layout/panels.rs"]
 mod panels;
 #[cfg(test)]
+#[path = "create_tools/patch_safety_tests.rs"]
 mod patch_safety_tests;
+#[path = "slicing/path_slice_panel.rs"]
 mod path_slice_panel;
+#[path = "view/path_slice_view.rs"]
 mod path_slice_view;
+#[path = "slicing/path_tool_panel.rs"]
 mod path_tool_panel;
+#[path = "view/path_tool_view.rs"]
 mod path_tool_view;
+#[path = "create_tools/pen_interactive_ui.rs"]
 mod pen_interactive_ui;
+#[path = "view/picking.rs"]
 mod picking;
+#[path = "menus/pie_menu.rs"]
 mod pie_menu;
+#[path = "uv/planar_texture_ui.rs"]
 mod planar_texture_ui;
 #[cfg(test)]
+#[path = "view/plane_handles_tests.rs"]
 mod plane_handles_tests;
 #[cfg(test)]
+#[path = "create_tools/plane_teapot_tests.rs"]
 mod plane_teapot_tests;
+#[path = "tools/poly_haul_drag.rs"]
 mod poly_haul_drag;
+#[path = "polygons/polygon_align.rs"]
 mod polygon_align;
+#[path = "materials/polygon_material_dialog.rs"]
 mod polygon_material_dialog;
+#[path = "polygons/polygon_part_dialog.rs"]
 mod polygon_part_dialog;
+#[path = "polygons/polygon_unify_dialog.rs"]
 mod polygon_unify_dialog;
+#[path = "rigging/pose_tool_ui.rs"]
 mod pose_tool_ui;
+#[path = "settings/preferences.rs"]
 mod preferences;
 #[cfg(test)]
+#[path = "settings/preferences_tier1_tests.rs"]
 mod preferences_tier1_tests;
 #[cfg(test)]
+#[path = "settings/preferences_tier2_tests.rs"]
 mod preferences_tier2_tests;
 #[cfg(test)]
+#[path = "settings/prefs_checkbox_tests.rs"]
 mod prefs_checkbox_tests;
+#[path = "settings/prefs_commands.rs"]
 mod prefs_commands;
+#[path = "settings/prefs_file.rs"]
 mod prefs_file;
+#[path = "create_tools/primitive_input.rs"]
 mod primitive_input;
+#[path = "presets/profile_browser.rs"]
 mod profile_browser;
+#[path = "files/project_files.rs"]
 mod project_files;
+#[path = "presets/project_presets.rs"]
 mod project_presets;
+#[path = "files/project_ui.rs"]
 mod project_ui;
+#[path = "commands/python_switch.rs"]
 mod python_switch;
+#[path = "commands/python_ui.rs"]
 mod python_ui;
 #[cfg(test)]
+#[path = "commands/python_ui_tests.rs"]
 mod python_ui_tests;
 #[cfg(feature = "qa")]
+#[path = "commands/qa.rs"]
 mod qa;
+#[path = "polygons/reduction_panel.rs"]
 mod reduction_panel;
+#[path = "polygons/relax_mesh_dialog.rs"]
 mod relax_mesh_dialog;
+#[path = "sculpting/remesh_dialog.rs"]
 mod remesh_dialog;
+#[path = "render/render_item_ui.rs"]
 mod render_item_ui;
+#[path = "settings/render_preferences.rs"]
 mod render_preferences;
+#[path = "controls/rendered_icons.rs"]
 mod rendered_icons;
+#[path = "items/replica_rows.rs"]
 mod replica_rows;
 #[cfg(test)]
+#[path = "items/replica_safety_tests.rs"]
 mod replica_safety_tests;
+#[path = "items/replicator_ui.rs"]
 mod replicator_ui;
+#[path = "files/report_bug_dialog.rs"]
 mod report_bug_dialog;
+#[path = "files/resource_write.rs"]
 mod resource_write;
 #[cfg(test)]
+#[path = "rigging/rig_tab_tests.rs"]
 mod rig_tab_tests;
 #[cfg(test)]
+#[path = "rigging/rig_ui_tests.rs"]
 mod rig_ui_tests;
+#[path = "rigging/rig_user_channels_ui.rs"]
 mod rig_user_channels_ui;
+#[path = "transforms/scale_offset_dialog.rs"]
 mod scale_offset_dialog;
+#[path = "files/scenes.rs"]
 mod scenes;
+#[path = "rigging/schematic_ui.rs"]
 mod schematic_ui;
+#[path = "anim/scrub.rs"]
 mod scrub;
+#[path = "sculpting/sculpt_ui.rs"]
 mod sculpt_ui;
 #[cfg(test)]
+#[path = "sculpting/sculpt_ui_tests.rs"]
 mod sculpt_ui_tests;
+#[path = "selections/select_panel.rs"]
 mod select_panel;
+#[path = "selections/select_tools_ui.rs"]
 mod select_tools_ui;
+#[path = "view/selection_normals.rs"]
 mod selection_normals;
+#[path = "settings/selection_preferences.rs"]
 mod selection_preferences;
+#[path = "selections/selection_set_dialog.rs"]
 mod selection_set_dialog;
+#[path = "graphics/session_draw.rs"]
 mod session_draw;
 #[cfg(test)]
+#[path = "graphics/session_draw_tests.rs"]
 mod session_draw_tests;
+#[path = "transforms/set_position_dialog.rs"]
 mod set_position_dialog;
+#[path = "materials/shading_panel.rs"]
 mod shading_panel;
+#[path = "create_tools/shape_panel.rs"]
 mod shape_panel;
 #[cfg(test)]
+#[path = "input_devices/shifted_key_tests.rs"]
 mod shifted_key_tests;
+#[path = "window_layout/side_tabs.rs"]
 mod side_tabs;
 #[cfg(test)]
+#[path = "rigging/skeleton_tool_tests.rs"]
 mod skeleton_tool_tests;
+#[path = "rigging/skeleton_tool_ui.rs"]
 mod skeleton_tool_ui;
+#[path = "view/slice_view.rs"]
 mod slice_view;
 #[cfg(test)]
+#[path = "polygons/small_commands_tab_tests.rs"]
 mod small_commands_tab_tests;
+#[path = "polygons/smooth_shift_panel.rs"]
 mod smooth_shift_panel;
+#[path = "view/snap_kinds.rs"]
 mod snap_kinds;
+#[path = "view/snap_service.rs"]
 mod snap_service;
+#[path = "view/snapping.rs"]
 mod snapping;
+#[path = "create_tools/solid_sketch_ui.rs"]
 mod solid_sketch_ui;
+#[path = "input_devices/space_mouse/mod.rs"]
 mod space_mouse;
+#[path = "polygons/spike_panel.rs"]
 mod spike_panel;
+#[path = "items/statistics_ui.rs"]
 mod statistics_ui;
+#[path = "graphics/subd_gpu.rs"]
 mod subd_gpu;
 #[cfg(test)]
+#[path = "graphics/subd_gpu_tests.rs"]
 mod subd_gpu_tests;
 #[cfg(test)]
+#[path = "polygons/subdivide_tab_tests.rs"]
 mod subdivide_tab_tests;
+#[path = "polygons/subdivide_ui.rs"]
 mod subdivide_ui;
+#[path = "view/subdivision_view.rs"]
 mod subdivision_view;
+#[path = "topology_tools/topology_mode.rs"]
 mod topology_mode;
+#[path = "topology_tools/topology_pen_ui.rs"]
 mod topology_pen_ui;
+#[path = "topology_tools/topology_tab.rs"]
 mod topology_tab;
+#[path = "topology_tools/topology_tools_ui.rs"]
 mod topology_tools_ui;
+#[path = "files/usd_import_dialog.rs"]
 mod usd_import_dialog;
 #[cfg(all(test, feature = "cycles", feature = "usd"))]
+#[path = "render/usd_render_tests.rs"]
 mod usd_render_tests;
 // Pen-tablet input is read only on macOS; elsewhere the code is unused.
+#[path = "render/bake_dialogs.rs"]
 mod bake_dialogs;
 #[cfg(all(test, not(feature = "painting")))]
+#[path = "painting_ui/no_painting_tests.rs"]
 mod no_painting_tests;
 #[cfg(feature = "painting")]
+#[path = "painting_ui/painting.rs"]
 mod painting;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_autocreate_tests.rs"]
 mod painting_autocreate_tests;
 #[cfg(feature = "painting")]
+#[path = "painting_ui/painting_brush.rs"]
 mod painting_brush;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_brush_tests.rs"]
 mod painting_brush_tests;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_highlight_tests.rs"]
 mod painting_highlight_tests;
 #[cfg(feature = "painting")]
+#[path = "painting_ui/painting_inks.rs"]
 mod painting_inks;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_inks_tests.rs"]
 mod painting_inks_tests;
 #[cfg(feature = "painting")]
+#[path = "painting_ui/painting_layout.rs"]
 mod painting_layout;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_layout_tests.rs"]
 mod painting_layout_tests;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_polish_tests.rs"]
 mod painting_polish_tests;
 #[cfg(feature = "painting")]
+#[path = "painting_ui/painting_prefs.rs"]
 mod painting_prefs;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_prefs_tests.rs"]
 mod painting_prefs_tests;
 #[cfg(feature = "painting")]
+#[path = "painting_ui/painting_sculpt.rs"]
 mod painting_sculpt;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_sculpt_tests.rs"]
 mod painting_sculpt_tests;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_speed_tests.rs"]
 mod painting_speed_tests;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_starter_tests.rs"]
 mod painting_starter_tests;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_subd_tests.rs"]
 mod painting_subd_tests;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_tabs_tests.rs"]
 mod painting_tabs_tests;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_tests.rs"]
 mod painting_tests;
 #[cfg(feature = "painting")]
+#[path = "painting_ui/painting_uv.rs"]
 mod painting_uv;
 #[cfg(all(test, feature = "painting"))]
+#[path = "painting_ui/painting_uv_tests.rs"]
 mod painting_uv_tests;
 #[cfg(feature = "painting")]
+#[path = "painting_ui/painting_viewer.rs"]
 mod painting_viewer;
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+#[path = "input_devices/tablet.rs"]
 mod tablet;
+#[path = "tools/tag_mode_ui.rs"]
 mod tag_mode_ui;
 mod theme;
+#[path = "tools/tool_exit_hint.rs"]
 mod tool_exit_hint;
+#[path = "window_layout/tool_form.rs"]
 mod tool_form;
+#[path = "tools/tool_framing.rs"]
 mod tool_framing;
+#[path = "window_layout/tool_split.rs"]
 mod tool_split;
+#[path = "window_layout/toolbox.rs"]
 mod toolbox;
+#[path = "controls/tree_list.rs"]
 mod tree_list;
+#[path = "controls/typography.rs"]
 mod typography;
 #[cfg(test)]
+#[path = "commands/ui_inventory.rs"]
 mod ui_inventory;
+#[path = "settings/ui_preferences.rs"]
 mod ui_preferences;
+#[path = "controls/ui_text.rs"]
 mod ui_text;
+#[path = "controls/unavailable.rs"]
 mod unavailable;
+#[path = "settings/undo_autosave.rs"]
 mod undo_autosave;
+#[path = "settings/units_preferences.rs"]
 mod units_preferences;
+#[path = "files/update_check.rs"]
 mod update_check;
+#[path = "files/update_check_ui.rs"]
 mod update_check_ui;
+#[path = "uv/uv_checker.rs"]
 mod uv_checker;
+#[path = "uv/uv_dialogs.rs"]
 mod uv_dialogs;
+#[path = "uv/uv_edit_ui.rs"]
 mod uv_edit_ui;
+#[path = "uv/uv_editor.rs"]
 mod uv_editor;
+#[path = "uv/uv_ops_ui.rs"]
 mod uv_ops_ui;
+#[path = "uv/uv_tool_forms.rs"]
 mod uv_tool_forms;
 mod uv_view;
+#[path = "controls/value_display.rs"]
 mod value_display;
+#[path = "presets/value_presets.rs"]
 mod value_presets;
+#[path = "edges/vertex_panel.rs"]
 mod vertex_panel;
+#[path = "settings/viewport_preferences.rs"]
 mod viewport_preferences;
+#[path = "tools/weld_drag.rs"]
 mod weld_drag;
+#[path = "window_layout/window_state.rs"]
 mod window_state;
+#[path = "window_layout/workspace.rs"]
 mod workspace;
 use camera::{Camera, View};
 use eframe::egui::{self, *};
@@ -1296,8 +1617,6 @@ impl Operandi {
         app.preferences_ui.scheme = scheme;
         app.undo_autosave =
             undo_autosave::UndoAutosavePreferences::load(&app.environment.paths().undo_autosave());
-        // The animation switch reads its preference before the layouts load.
-        anim_switch::set_preference(app.undo_autosave.animation_preview);
         app.editor.rig_compensation = app.undo_autosave.rig_compensation;
         python_switch::set_preference(app.undo_autosave.python_preview);
         app.update_check.prefs =
@@ -3780,40 +4099,70 @@ pub(crate) fn same_document(a: &Scene, b: &Scene) -> bool {
             .all(|(x, y)| operandi_core::Shared::same(x.mesh.shared(), y.mesh.shared()))
         && a == b
 }
+#[path = "tools/drag_readout.rs"]
 mod drag_readout;
+#[path = "window_layout/floating.rs"]
 mod floating;
+#[path = "window_layout/form_editor.rs"]
 mod form_editor;
 #[cfg(test)]
+#[path = "window_layout/form_editor_tests.rs"]
 mod form_editor_tests;
+#[path = "nodes/graph_editor.rs"]
 mod graph_editor;
+#[path = "create_tools/guides_ui.rs"]
 mod guides_ui;
+#[path = "graphics/matcap_render.rs"]
 mod matcap_render;
+#[path = "nodes/materialx_ui.rs"]
 mod materialx_ui;
 #[cfg(test)]
+#[path = "nodes/materialx_ui_tests.rs"]
 mod materialx_ui_tests;
 #[cfg(test)]
+#[path = "menus/menu_forms_tests.rs"]
 mod menu_forms_tests;
+#[path = "window_layout/palettes.rs"]
 mod palettes;
 #[cfg(test)]
+#[path = "window_layout/palettes_tests.rs"]
 mod palettes_tests;
+#[path = "presets/preset_browser.rs"]
 mod preset_browser;
+#[path = "presets/preset_browser_ui.rs"]
 mod preset_browser_ui;
+#[path = "presets/preset_thumbs.rs"]
 mod preset_thumbs;
+#[path = "presets/preset_ui.rs"]
 mod preset_ui;
+#[path = "render/preview.rs"]
 mod preview;
+#[path = "render/preview_ui.rs"]
 mod preview_ui;
+#[path = "create_tools/primitive_panel.rs"]
 mod primitive_panel;
+#[path = "render/render_ui.rs"]
 mod render_ui;
+#[path = "anim/timeline.rs"]
 mod timeline;
+#[path = "items/vertex_normal_ui.rs"]
 mod vertex_normal_ui;
+#[path = "view/view_display.rs"]
 mod view_display;
+#[path = "view/view_display_ui.rs"]
 mod view_display_ui;
+#[path = "view/view_fov.rs"]
 mod view_fov;
+#[path = "view/view_nav.rs"]
 mod view_nav;
+#[path = "window_layout/view_tab_presets.rs"]
 mod view_tab_presets;
 mod viewport;
+#[path = "view/viewport_buttons.rs"]
 mod viewport_buttons;
+#[path = "view/viewport_properties.rs"]
 mod viewport_properties;
+#[path = "window_layout/views.rs"]
 mod views;
 /// One "does this scene need saving?" rule for the open scene and the
 /// parked ones alike (Astra P8-002: a parked tab's numeric preview was
@@ -3953,334 +4302,487 @@ mod app_bundle_icon_tests {
 }
 
 #[cfg(test)]
+#[path = "transforms/absolute_scaling_tests.rs"]
 mod absolute_scaling_tests;
 #[cfg(test)]
+#[path = "view/active_mesh_pick_tests.rs"]
 mod active_mesh_pick_tests;
 #[cfg(test)]
+#[path = "controls/button_variants_tests.rs"]
 mod button_variants_tests;
 #[cfg(test)]
+#[path = "render/camera_props_tests.rs"]
 mod camera_props_tests;
 #[cfg(test)]
+#[path = "view/camera_view_settle_tests.rs"]
 mod camera_view_settle_tests;
 #[cfg(test)]
+#[path = "tools/click_start_tests.rs"]
 mod click_start_tests;
 #[cfg(test)]
+#[path = "commands/command_history_tests.rs"]
 mod command_history_tests;
 #[cfg(test)]
+#[path = "commands/command_line_tests.rs"]
 mod command_line_tests;
 #[cfg(test)]
+#[path = "commands/command_names_tests.rs"]
 mod command_names_tests;
 #[cfg(test)]
+#[path = "tools/component_transform_tests.rs"]
 mod component_transform_tests;
 #[cfg(test)]
+#[path = "items/create_utility_tests.rs"]
 mod create_utility_tests;
 #[cfg(test)]
+#[path = "deformers/deform_tab_tests.rs"]
 mod deform_tab_tests;
 #[cfg(test)]
+#[path = "tools/drag_anywhere_tests.rs"]
 mod drag_anywhere_tests;
 #[cfg(test)]
+#[path = "graphics/drag_patch_tests.rs"]
 mod drag_patch_tests;
 #[cfg(test)]
+#[path = "graphics/draw_depth_tests.rs"]
 mod draw_depth_tests;
 #[cfg(test)]
+#[path = "create_tools/draw_point_mode_tests.rs"]
 mod draw_point_mode_tests;
 #[cfg(test)]
+#[path = "create_tools/draw_tools_tests.rs"]
 mod draw_tools_tests;
 #[cfg(test)]
+#[path = "graphics/drawing_equivalence_tests.rs"]
 mod drawing_equivalence_tests;
 #[cfg(test)]
+#[path = "tools/drop_action_tests.rs"]
 mod drop_action_tests;
 #[cfg(test)]
+#[path = "files/drop_files_tests.rs"]
 mod drop_files_tests;
 #[cfg(test)]
+#[path = "input_devices/drop_keys_tests.rs"]
 mod drop_keys_tests;
 #[cfg(test)]
+#[path = "polygons/drop_lag_tests.rs"]
 mod drop_lag_tests;
 #[cfg(test)]
+#[path = "duplication/duplicate_tools_tests.rs"]
 mod duplicate_tools_tests;
 #[cfg(test)]
+#[path = "edges/edge_tab_tests.rs"]
 mod edge_tab_tests;
 #[cfg(test)]
+#[path = "tools/empty_expand_tests.rs"]
 mod empty_expand_tests;
 #[cfg(test)]
+#[path = "render/environment_image_tests.rs"]
 mod environment_image_tests;
 #[cfg(test)]
+#[path = "render/environment_preset_tests.rs"]
 mod environment_preset_tests;
 #[cfg(test)]
+#[path = "render/environment_ui_tests.rs"]
 mod environment_ui_tests;
 #[cfg(test)]
+#[path = "view/extend_handles_tests.rs"]
 mod extend_handles_tests;
 #[cfg(test)]
+#[path = "files/file_chooser_tests.rs"]
 mod file_chooser_tests;
 #[cfg(test)]
+#[path = "files/file_error_tests.rs"]
 mod file_error_tests;
 #[cfg(test)]
+#[path = "menus/handle_style_menu_tests.rs"]
 mod handle_style_menu_tests;
 #[cfg(test)]
+#[path = "view/handle_tips_tests.rs"]
 mod handle_tips_tests;
 #[cfg(test)]
+#[path = "tools/haul_tests.rs"]
 mod haul_tests;
 #[cfg(test)]
+#[path = "graphics/heavy_mesh_frames_tests.rs"]
 mod heavy_mesh_frames_tests;
 #[cfg(test)]
+#[path = "settings/history_limit_more_tests.rs"]
 mod history_limit_more_tests;
 #[cfg(test)]
+#[path = "settings/history_limit_tests.rs"]
 mod history_limit_tests;
 #[cfg(test)]
+#[path = "input_devices/input_focus_tests.rs"]
 mod input_focus_tests;
 #[cfg(test)]
+#[path = "polygons/inset_shift_tests.rs"]
 mod inset_shift_tests;
 #[cfg(test)]
+#[path = "items/item_list_header_tests.rs"]
 mod item_list_header_tests;
 #[cfg(test)]
+#[path = "input_devices/key_toggles_tests.rs"]
 mod key_toggles_tests;
 #[cfg(test)]
+#[path = "selections/lasso_ui_tests.rs"]
 mod lasso_ui_tests;
 #[cfg(test)]
+#[path = "window_layout/layout_keys_tests.rs"]
 mod layout_keys_tests;
 #[cfg(test)]
+#[path = "window_layout/layout_tests.rs"]
 mod layout_tests;
 #[cfg(test)]
+#[path = "window_layout/layouts_edit_tests.rs"]
 mod layouts_edit_tests;
 #[cfg(test)]
+#[path = "window_layout/layouts_tests.rs"]
 mod layouts_tests;
 #[cfg(test)]
+#[path = "render/light_properties_tests.rs"]
 mod light_properties_tests;
 #[cfg(test)]
+#[path = "render/light_view_tests.rs"]
 mod light_view_tests;
 #[cfg(test)]
+#[path = "tools/link_button_tests.rs"]
 mod link_button_tests;
 #[cfg(test)]
+#[path = "tools/mini_properties_tests.rs"]
 mod mini_properties_tests;
 #[cfg(test)]
+#[path = "controls/number_field_tests.rs"]
 mod number_field_tests;
 #[cfg(test)]
+#[path = "tools/numeric_tab_tests.rs"]
 mod numeric_tab_tests;
 #[cfg(test)]
+#[path = "presets/online_library_tests.rs"]
 mod online_library_tests;
 #[cfg(test)]
+#[path = "slicing/path_slice_tools_tests.rs"]
 mod path_slice_tools_tests;
 #[cfg(test)]
+#[path = "create_tools/pen_ui_tests.rs"]
 mod pen_ui_tests;
 #[cfg(test)]
+#[path = "tools/perf_drags_tests.rs"]
 mod perf_drags_tests;
 #[cfg(test)]
+#[path = "view/perf_view_tests.rs"]
 mod perf_view_tests;
 #[cfg(test)]
+#[path = "render/picture_capture_tests.rs"]
 mod picture_capture_tests;
 #[cfg(test)]
+#[path = "view/placement_snap_tests.rs"]
 mod placement_snap_tests;
 #[cfg(test)]
+#[path = "presets/preset_drop_tests.rs"]
 mod preset_drop_tests;
 #[cfg(test)]
+#[path = "presets/preset_ui_tests.rs"]
 mod preset_ui_tests;
 #[cfg(test)]
+#[path = "create_tools/primitive_modifier_tests.rs"]
 mod primitive_modifier_tests;
 #[cfg(test)]
+#[path = "create_tools/primitive_ui_tests.rs"]
 mod primitive_ui_tests;
 #[cfg(test)]
+#[path = "render/render_item_ui_tests.rs"]
 mod render_item_ui_tests;
 #[cfg(test)]
+#[path = "render/render_outputs_save_tests.rs"]
 mod render_outputs_save_tests;
 #[cfg(test)]
+#[path = "tools/reset_tool_tests.rs"]
 mod reset_tool_tests;
 #[cfg(test)]
+#[path = "items/scene_panel_tests.rs"]
 mod scene_panel_tests;
 #[cfg(test)]
+#[path = "files/scenes_tests.rs"]
 mod scenes_tests;
 #[cfg(test)]
+#[path = "anim/scrub_tests.rs"]
 mod scrub_tests;
 #[cfg(test)]
+#[path = "selections/select_tab_tests.rs"]
 mod select_tab_tests;
 #[cfg(test)]
+#[path = "selections/selection_ui_tests.rs"]
 mod selection_ui_tests;
 #[cfg(test)]
+#[path = "nodes/shader_layer_menu_tests.rs"]
 mod shader_layer_menu_tests;
 #[cfg(test)]
+#[path = "materials/shading_panel_tests.rs"]
 mod shading_panel_tests;
 #[cfg(test)]
+#[path = "slicing/slice_tools_tests.rs"]
 mod slice_tools_tests;
 #[cfg(test)]
+#[path = "view/snaps_panel_tests.rs"]
 mod snaps_panel_tests;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]
+#[path = "tools/tool_card_view_tests.rs"]
 mod tool_card_view_tests;
 #[cfg(test)]
+#[path = "tools/tool_field_handoff_tests.rs"]
 mod tool_field_handoff_tests;
+#[path = "tools/tool_info.rs"]
 mod tool_info;
 #[cfg(test)]
+#[path = "presets/tool_presets_tests.rs"]
 mod tool_presets_tests;
 #[cfg(test)]
+#[path = "tools/tool_properties_header_tests.rs"]
 mod tool_properties_header_tests;
 #[cfg(test)]
+#[path = "tools/tool_speed_guard_tests.rs"]
 mod tool_speed_guard_tests;
+#[path = "window_layout/toolbox_form.rs"]
 mod toolbox_form;
 #[cfg(test)]
+#[path = "window_layout/toolbox_form_tests.rs"]
 mod toolbox_form_tests;
 #[cfg(test)]
+#[path = "window_layout/toolbox_sets_tests.rs"]
 mod toolbox_sets_tests;
 #[cfg(test)]
+#[path = "deformers/tweak_tests.rs"]
 mod tweak_tests;
 #[cfg(test)]
+#[path = "polygons/twist_bevel_tests.rs"]
 mod twist_bevel_tests;
 #[cfg(test)]
+#[path = "uv/uv_dialogs_tests.rs"]
 mod uv_dialogs_tests;
 #[cfg(test)]
+#[path = "uv/uv_editing_tests.rs"]
 mod uv_editing_tests;
 #[cfg(test)]
+#[path = "render/viewport_transparency_capture_tests.rs"]
 mod viewport_transparency_capture_tests;
 #[cfg(test)]
+#[path = "deformers/weights_distortion_tests.rs"]
 mod weights_distortion_tests;
+#[path = "window_layout/workbench.rs"]
 mod workbench;
 #[cfg(test)]
+#[path = "window_layout/workbench_tests.rs"]
 mod workbench_tests;
 
 #[cfg(test)]
+#[path = "render/background_ui_tests.rs"]
 mod background_ui_tests;
 #[cfg(test)]
+#[path = "commands/doors_tests.rs"]
 mod doors_tests;
 #[cfg(test)]
+#[path = "deformers/falloff_batch2_tests.rs"]
 mod falloff_batch2_tests;
 #[cfg(test)]
+#[path = "deformers/falloff_batch3_tests.rs"]
 mod falloff_batch3_tests;
 #[cfg(test)]
+#[path = "deformers/falloff_batch4_tests.rs"]
 mod falloff_batch4_tests;
 #[cfg(test)]
+#[path = "deformers/falloff_batch5_tests.rs"]
 mod falloff_batch5_tests;
 #[cfg(test)]
+#[path = "deformers/falloff_batch6_tests.rs"]
 mod falloff_batch6_tests;
 #[cfg(test)]
+#[path = "deformers/falloff_panel_tests.rs"]
 mod falloff_panel_tests;
 #[cfg(test)]
+#[path = "items/mesh_stack_tests.rs"]
 mod mesh_stack_tests;
 #[cfg(test)]
+#[path = "view/snap_service_tests.rs"]
 mod snap_service_tests;
 #[cfg(test)]
+#[path = "view/snapping_tests.rs"]
 mod snapping_tests;
 #[cfg(test)]
+#[path = "deformers/soft_move_falloff_tests.rs"]
 mod soft_move_falloff_tests;
 #[cfg(test)]
+#[path = "controls/tree_list_tests.rs"]
 mod tree_list_tests;
 #[cfg(test)]
+#[path = "view/viewport_center_tests.rs"]
 mod viewport_center_tests;
 
 #[cfg(test)]
+#[path = "polygons/smooth_shift_escape_tests.rs"]
 mod smooth_shift_escape_tests;
 
 #[cfg(test)]
+#[path = "polygons/smooth_shift_picking_freshness_tests.rs"]
 mod smooth_shift_picking_freshness_tests;
 
 #[cfg(test)]
+#[path = "tools/performance_tests.rs"]
 mod performance_tests;
 
 #[cfg(test)]
+#[path = "tools/perf_snapshot_tests.rs"]
 mod perf_snapshot_tests;
 
 #[cfg(test)]
+#[path = "menus/pie_menu_tests.rs"]
 mod pie_menu_tests;
 
 #[cfg(test)]
+#[path = "files/bridge_recovery_save_tests.rs"]
 mod bridge_recovery_save_tests;
 
 #[cfg(test)]
+#[path = "polygons/thicken_shell_live_tests.rs"]
 mod thicken_shell_live_tests;
 
 #[cfg(test)]
+#[path = "deformers/surface_tool_states_live_tests.rs"]
 mod surface_tool_states_live_tests;
 
 #[cfg(test)]
+#[path = "polygons/extrude_numeric_panel_live_tests.rs"]
 mod extrude_numeric_panel_live_tests;
 
 #[cfg(test)]
+#[path = "polygons/extrude_spike_chain_tests.rs"]
 mod extrude_spike_chain_tests;
 
+#[path = "commands/identity_audit.rs"]
 mod identity_audit;
 
 #[cfg(test)]
+#[path = "files/new_scene_empty_mesh_tests.rs"]
 mod new_scene_empty_mesh_tests;
 
 #[cfg(test)]
+#[path = "files/cone_new_document_retention_tests.rs"]
 mod cone_new_document_retention_tests;
 
 #[cfg(test)]
+#[path = "create_tools/cone_numeric_repeat_history_tests.rs"]
 mod cone_numeric_repeat_history_tests;
 
 #[cfg(test)]
+#[path = "polygons/polygon_align_tests.rs"]
 mod polygon_align_tests;
 #[cfg(test)]
+#[path = "materials/polygon_material_tests.rs"]
 mod polygon_material_tests;
 #[cfg(test)]
+#[path = "polygons/polygon_part_dialog_tests.rs"]
 mod polygon_part_dialog_tests;
 #[cfg(test)]
+#[path = "polygons/polygon_quadruple_tests.rs"]
 mod polygon_quadruple_tests;
 #[cfg(test)]
+#[path = "polygons/polygon_spin_tests.rs"]
 mod polygon_spin_tests;
 #[cfg(test)]
+#[path = "polygons/polygon_split_tests.rs"]
 mod polygon_split_tests;
 #[cfg(test)]
+#[path = "polygons/polygon_unify_tests.rs"]
 mod polygon_unify_tests;
 
 #[cfg(test)]
+#[path = "polygons/polygon_triple_tests.rs"]
 mod polygon_triple_tests;
 
 #[cfg(test)]
+#[path = "topology_tools/topology_mode_tests.rs"]
 mod topology_mode_tests;
 #[cfg(test)]
+#[path = "topology_tools/topology_pen_ui_tests.rs"]
 mod topology_pen_ui_tests;
 #[cfg(test)]
+#[path = "topology_tools/topology_tools_ui_tests.rs"]
 mod topology_tools_ui_tests;
 
 #[cfg(test)]
+#[path = "polygons/polygon_reduction_tests.rs"]
 mod polygon_reduction_tests;
 
 #[cfg(test)]
+#[path = "polygons/flip_basic_tests.rs"]
 mod flip_basic_tests;
 #[cfg(test)]
+#[path = "graphics/gl_count_tests.rs"]
 mod gl_count_tests;
 #[cfg(test)]
+#[path = "items/statistics_ui_tests.rs"]
 mod statistics_ui_tests;
 #[cfg(test)]
+#[path = "polygons/subdivision_tests.rs"]
 mod subdivision_tests;
 
 #[cfg(test)]
+#[path = "polygons/polygon_remove_tests.rs"]
 mod polygon_remove_tests;
 
 #[cfg(test)]
+#[path = "edges/edge_loop_delete_tests.rs"]
 mod edge_loop_delete_tests;
 
 #[cfg(test)]
+#[path = "polygons/polygon_collapse_tests.rs"]
 mod polygon_collapse_tests;
 
 #[cfg(test)]
+#[path = "create_tools/pen_interactive_tests.rs"]
 mod pen_interactive_tests;
 #[cfg(test)]
+#[path = "create_tools/solid_sketch_ui_tests.rs"]
 mod solid_sketch_ui_tests;
 
 #[cfg(test)]
+#[path = "transforms/scale_offset_tests.rs"]
 mod scale_offset_tests;
 #[cfg(test)]
+#[path = "transforms/set_position_tests.rs"]
 mod set_position_tests;
 
 #[cfg(test)]
+#[path = "polygons/flatten_ngons_ui_tests.rs"]
 mod flatten_ngons_ui_tests;
 
 #[cfg(test)]
+#[path = "edges/vertex_panel_tests.rs"]
 mod vertex_panel_tests;
 
 #[cfg(test)]
+#[path = "slicing/add_loop_slide_options_tests.rs"]
 mod add_loop_slide_options_tests;
 #[cfg(test)]
+#[path = "items/group_eye_tests.rs"]
 mod group_eye_tests;
 #[cfg(test)]
+#[path = "files/journal_tests.rs"]
 mod journal_tests;
 #[cfg(test)]
+#[path = "input_devices/look_around_tests.rs"]
 mod look_around_tests;
 #[cfg(test)]
+#[path = "materials/material_editing_tests.rs"]
 mod material_editing_tests;
 #[cfg(test)]
+#[path = "input_devices/nav_lock_hide_tests.rs"]
 mod nav_lock_hide_tests;
 #[cfg(test)]
+#[path = "transforms/symmetry_tests.rs"]
 mod symmetry_tests;
 #[cfg(test)]
+#[path = "view/zoom_to_surface_tests.rs"]
 mod zoom_to_surface_tests;

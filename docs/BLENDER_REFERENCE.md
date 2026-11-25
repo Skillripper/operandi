@@ -21,7 +21,7 @@ use.
 | --- | --- |
 | UV unwrap (LSCM, ABF++, SLIM) and packing | `crates/operandi-uv` |
 | Sculpt brush maths, Kelvinlets | `crates/operandi-core/src/sculpt_blender/` |
-| Viewport principled material (EEVEE approximation) | `crates/operandi-core/src/blender_principled.rs` |
+| Viewport principled material (EEVEE approximation) | `crates/operandi-core/src/materials/blender_principled.rs` |
 | Cycles scene sync (Apache-2.0 reference) | `crates/operandi-cycles` |
 
 ## Being ported (own branches, 2026-11-11)

@@ -204,7 +204,7 @@ debug builds.
   `command_record.rs` fails until it has one.
 - Command, tool and argument names follow the reference name map so scripts
   port (the maintainer, 2026-11-06). Renames and the deprecated old names live in
-  `operandi-core/src/command_names.rs`; every entry point (`execute`, the
+  `operandi-core/src/commands/command_names.rs`; every entry point (`execute`, the
   MCP bridge) resolves through it. New tools take the map's name when it has
   one. See `docs/COMMAND_NAMES.md`.
 - **One file per tool, one sorted line per shared list** (the maintainer,
@@ -220,13 +220,18 @@ debug builds.
     `protocol.rs` `NON_EDITING_TOOLS`.
   - `mod` lines in `operandi-core/src/lib.rs` and `operandi-app/src/main.rs`:
     add yours inside an existing block of `mod` lines; `cargo fmt` sorts
-    each block.
+    each block. Source files live in area folders (`polygons/`, `render/`,
+    `window_layout/` ...; the list is in
+    [docs/CODEMAP.md](docs/CODEMAP.md)): put a new file in its area's
+    folder and give its `mod` line a `#[path = "<area>/<file>.rs"]`, as
+    its neighbours have. The folders are only for filing; module paths
+    stay `crate::<module>`.
   - Not sorted yet (put your line in sorted place within its section if
     there is one, but don't reorder them in a feature branch):
     `COMMANDS` (one file per area under
     `command_registry/commands/`, joined in the order `commands.rs` lists
     them; that order is the `command.list` and help order), the icon table in
-    `operandi-app/src/icons.rs` (about 280 lines plus the `Icon` enum,
+    `operandi-app/src/controls/icons.rs` (about 280 lines plus the `Icon` enum,
     which derives `Ord`), the MCP `tools/list` definitions in `bridge.rs`
     (the order clients see), and the handler registrations in
     `command_handlers.rs`.
@@ -278,7 +283,7 @@ so the whole set shares one camera, light rig and set of materials. Read
   (`<slug> <Icon variant>`, in sorted place) to `icons.txt` in that folder;
   the app's build embeds the listed PNGs. A brand-new icon has no SVG: add its
   `Icon` variant and put it under `rendered only:` in the icon table in
-  `operandi-app/src/icons.rs`; forms and presets name it by its slug.
+  `operandi-app/src/controls/icons.rs`; forms and presets name it by its slug.
 - **Review:** show the maintainer the contact sheet. New or changed artwork
   needs their visual approval.
 - Change the shared look (camera, lights, materials) only in the studio, and

@@ -53,7 +53,7 @@ bottleneck: a frame step would re-pose and re-check everything.
 
 From the approved audit remediation (`hardening` branch, batch 4):
 
-- **Document state** (`operandi-core/src/document_state.rs`, Astra
+- **Document state** (`operandi-core/src/commands/document_state.rs`, Astra
   P2-001): every `Editor` field is sorted into **Document** (this scene's
   data, history, open tool, ids and caches of its items) or **Shared**
   (app-wide settings and tool context), with an exhaustive list that

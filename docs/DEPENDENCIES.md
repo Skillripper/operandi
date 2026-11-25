@@ -699,7 +699,7 @@ file. No ArtCraft names or logos are used.
   `bake/curvature.rs` (from `crates/bake/src/map/curvature.rs`),
   `uv_atlas.rs` (from `crates/geom/src/unwrap.rs`) and
   `interchange/threemf.rs` (structure of craft-libs `crates/mesh/src/threemf.rs`).
-- `operandi-core/src/time_tick.rs` (exact time: `Tick`, `FrameRate`), from
+- `operandi-core/src/anim/time_tick.rs` (exact time: `Tick`, `FrameRate`), from
   craft-libs `crates/time/src/lib.rs` at 42bb9d35, cut to the Tick and
   FrameRate part (phase 0 doors, 2026-11-17).
 - FBX export (`interchange/fbx_write.rs`) is Operandi's own; the header and
@@ -749,7 +749,7 @@ bump and normal-map nodes (`gpu_shader_material_bump.bsl.hh`,
 `source/blender/gpu/shaders/material` and
 `source/blender/draw/engines/eevee/shaders` at commit
 b4eed6fd498e76a7e93404bac2326e9f84deba22. Rewritten as WGSL and Rust in
-one file, `crates/operandi-core/src/blender_principled.rs`, which carries
+one file, `crates/operandi-core/src/materials/blender_principled.rs`, which carries
 Blender's notice and the GPL-2.0-or-later SPDX header; the GPL v2 text is
 in `docs/licenses/blender-gpu-shaders/`. The reflection table is
 Operandi's own integration. Thank you to the Blender developers. No new
@@ -773,7 +773,7 @@ inside it (MikkTSpace, sky model, OSL shader code) are in
 
 The viewport's drawing of node graph layers (MaterialX stage 5,
 2026-11-20) rewrites some of Cycles' kernel sums in Operandi's own
-source, in every build: `operandi-core/src/cycles_noise.rs` (hashes,
+source, in every build: `operandi-core/src/materials/cycles_noise.rs` (hashes,
 Perlin noise and the Noise, White Noise, Checker, Gradient and Wave
 textures; the Perlin part is BSD-3-Clause, from Open Shading Language via
 Cycles' `noise.h`), `shader_func.rs` (Math, Vector Math, colour blends,
@@ -888,7 +888,7 @@ Imath, OpenEXR, OpenImageIO, OpenColorIO, OpenJPH) are the same files.
 | OpenVDB | 13.0.0 | Apache-2.0 | libopenvdb | [source](https://github.com/AcademySoftwareFoundation/openvdb) |
 | CPython | 3.13.13 | PSF-2.0 | inside liboperandi_usd (symbols only) | [source](https://github.com/python/cpython) |
 
-## Booleans (2026-11-11, `operandi-core/src/boolean.rs`)
+## Booleans (2026-11-11, `operandi-core/src/slicing/boolean.rs`)
 
 | Crate | Version | Licence | Use |
 |---|---|---|---|
@@ -944,7 +944,7 @@ lists every Operandi change.
 
 QuadriFlow's optional "aggressive SAT" pass runs an external `minisat`
 program; Operandi never turns it on. Voxel Remesh (`sculpt.remesh`) and
-Blocks / Smooth / Sharp (`operandi.remesh`) are Operandi's own Rust code (`crates/operandi-core/src/remesh_voxel.rs`) and
+Blocks / Smooth / Sharp (`operandi.remesh`) are Operandi's own Rust code (`crates/operandi-core/src/sculpting/remesh_voxel.rs`) and
 uses no outside code; the exact orientation tests come from the `robust`
 crate already listed. Thank you to the QuadriFlow authors and the Blender
 developers.
@@ -965,7 +965,7 @@ which the app bundles copy to `Resources/licenses`).
 | OpenPBR Surface reference | 1.1.2 (commit 51b14a8a) | Apache-2.0 | `open_pbr_surface.mtlx` |
 | roxmltree (crate) | 0.21.1 | MIT OR Apache-2.0 | XML reading (already in the tree through the app; now also a core dependency) |
 
-## Free memory (2026-11-12, `operandi-app/src/free_memory.rs`)
+## Free memory (2026-11-12, `operandi-app/src/graphics/free_memory.rs`)
 
 | Crate | Version | Licence | Use |
 |---|---|---|---|
@@ -985,7 +985,7 @@ docs, tests and fixtures are not used. No new crates.
 
 ## Curve fitting from VectorCraft (2026-11-17)
 
-`crates/operandi-core/src/curve_fit.rs` is adapted from VectorCraft
+`crates/operandi-core/src/curve_tools/curve_fit.rs` is adapted from VectorCraft
 (`crates/pathops/src/fit.rs` at commit
 36b5a5920c50d0818d1b3994527f5349b3484dbe; Copyright (c) 2026 ArtCraft Team
 and the VectorCraft contributors; MIT OR Apache-2.0, used here under MIT).

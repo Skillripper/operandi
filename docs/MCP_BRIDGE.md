@@ -74,7 +74,7 @@ claude mcp add operandi-live -- /path/to/target/debug/operandi-mcp --attach
   Operandi leaves a live socket alone; a stale one from a crash is replaced.
   macOS and Linux only for now.
 - **Threads:** socket threads only move JSON lines. Each request runs on the
-  UI thread between frames (`crates/operandi-app/src/mcp.rs`), against the
+  UI thread between frames (`crates/operandi-app/src/commands/mcp.rs`), against the
   app's own `Editor`, so undo labels, the viewport and the person's Undo all
   see the agent's steps.
 - **The person at the keyboard wins.** Editing calls are refused (as
