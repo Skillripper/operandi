@@ -484,7 +484,7 @@ fn falloff_section(f: &mut ToolForm<Parameters>, app: &Operandi, tool: Tool) {
                 Ok(())
             },
         )
-        .tip("The rings' size where the falloff is full; 100% leaves them as they are"),
+        .tip("The rings' size where the falloff is full (starts at 50%); 100% leaves them as they are"),
     ];
     items.extend(tf::vector(
         "falloff_offset",

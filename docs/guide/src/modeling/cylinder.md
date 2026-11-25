@@ -81,7 +81,7 @@ smoother result.
 
 | Name | What it does | Default |
 |---|---|---|
-| **Scale** | The rings' size where the weight is full. | 100% |
+| **Scale** | The rings' size where the weight is full; 100% leaves them as they are. | 50% |
 | **Offset** | How far the rings move where the weight is full (X, Y, Z). | 0 m |
 | **Twist** | How far the rings turn about the axis where the weight is full. | 0° |
 | **Sample At** | **Spine** reads one weight per ring on the axis, so rings stay round. **Points** reads each point's own weight, so a Noise or Radial falloff dents the rings. | Spine |

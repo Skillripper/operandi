@@ -55,8 +55,10 @@ impl FalloffSpacing {
     }
 }
 
-/// What the weight drives: the Falloff section's values. The defaults
-/// change nothing, so a primitive only reacts to a falloff once one is set.
+/// What the weight drives: the Falloff section's values. Scale starts at
+/// 50% so turning a falloff on visibly tapers the shape (Jason's QA,
+/// 2026-11-25: neutral defaults looked like no effect). With Falloff None
+/// nothing changes.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ShapeFalloff {
     /// The rings' size at weight 1 (1.0 = 100%, unchanged).
@@ -71,7 +73,7 @@ pub struct ShapeFalloff {
 impl Default for ShapeFalloff {
     fn default() -> Self {
         Self {
-            scale: 1.,
+            scale: 0.5,
             offset: DVec3::ZERO,
             twist: 0.,
             sample: FalloffSample::Spine,
@@ -298,7 +300,17 @@ mod tests {
     #[test]
     fn neutral_values_change_nothing() {
         let mesh = tall_cylinder(4);
-        assert_eq!(shaped(ShapeFalloff::default(), mesh.clone(), &ramp()), mesh);
+        let neutral = ShapeFalloff {
+            scale: 1.,
+            ..Default::default()
+        };
+        assert_eq!(shaped(neutral, mesh.clone(), &ramp()), mesh);
+    }
+
+    #[test]
+    fn the_defaults_taper_visibly() {
+        let mesh = shaped(ShapeFalloff::default(), tall_cylinder(4), &ramp());
+        assert!((radius_at(&mesh, 0.75) - 0.25).abs() < 1e-9);
     }
 
     #[test]
@@ -319,6 +331,7 @@ mod tests {
     #[test]
     fn twist_and_offset_move_only_the_upper_rings() {
         let f = ShapeFalloff {
+            scale: 1.,
             twist: 90.,
             offset: DVec3::new(0.2, 0., 0.),
             ..Default::default()
