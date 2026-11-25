@@ -1,4 +1,4 @@
-use crate::{Mesh, Result};
+use crate::{Mesh, Mode, Result};
 use glam::{DMat4, DVec3};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
@@ -242,14 +242,6 @@ pub struct Item {
     /// `mesh` holds now and every level's detail. Native version 64.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub multires: Option<crate::Shared<crate::multires::Multires>>,
-}
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
-pub enum Mode {
-    Vertex,
-    Edge,
-    #[default]
-    Polygon,
-    Item,
 }
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

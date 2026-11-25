@@ -14,53 +14,14 @@
 //!   closed adds out_n and in0 at the end. Spans are cubic.
 //!
 //! Freezing samples each span with [`FREEZE_STEPS`] segments.
+pub use crate::polygon_kind::CurveKind;
 use glam::DVec3;
-use serde::{Deserialize, Serialize};
 
 /// Segments for each span, by span index.
 type Steps<'a> = &'a dyn Fn(usize) -> usize;
 
 /// Segments per span when a curve is drawn or frozen (seen: 36).
 pub const FREEZE_STEPS: usize = 36;
-
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
-pub enum CurveKind {
-    /// Straight spans between the points: an ordinary polyline.
-    #[default]
-    Line,
-    Curve {
-        start_control: bool,
-        end_control: bool,
-    },
-    BSpline,
-    Bezier,
-}
-impl CurveKind {
-    pub fn is_line(&self) -> bool {
-        *self == CurveKind::Line
-    }
-    /// Fewest control points the curve needs (DRW-Q08: fewer is removed on
-    /// Drop). Bezier counts stored points: two anchors with their handles.
-    pub fn minimum_points(&self) -> usize {
-        match self {
-            CurveKind::Line => 2,
-            CurveKind::Curve {
-                start_control,
-                end_control,
-            } => 2 + usize::from(*start_control) + usize::from(*end_control),
-            CurveKind::BSpline => 4,
-            CurveKind::Bezier => 4,
-        }
-    }
-    pub fn label(&self) -> &'static str {
-        match self {
-            CurveKind::Line => "Polyline",
-            CurveKind::Curve { .. } => "Curve",
-            CurveKind::BSpline => "B-Spline",
-            CurveKind::Bezier => "Bezier Curve",
-        }
-    }
-}
 
 /// The curve drawn through `points`, `steps` segments per span. A closed
 /// curve's result does not repeat its first point. Too few points give the

@@ -372,7 +372,6 @@ core/commands -> core/meshops
 core/commands -> core/nodes
 core/commands -> core/polygons
 core/commands -> core/preset
-core/commands -> core/primitives
 core/commands -> core/render
 core/commands -> core/rigging
 core/commands -> core/scene_items
@@ -402,7 +401,6 @@ core/deformers -> core/edges
 core/deformers -> core/editor
 core/deformers -> core/geometry
 core/deformers -> core/polygons
-core/deformers -> core/primitives
 core/deformers -> core/scene_items
 core/deformers -> core/tools
 core/deformers -> core/transforms
@@ -425,7 +423,6 @@ core/edges -> core/editor
 core/edges -> core/geometry
 core/edges -> core/interchange
 core/edges -> core/polygons
-core/edges -> core/primitives
 core/edges -> core/scene_items
 core/edges -> core/tools
 core/edges -> core/transforms
@@ -456,12 +453,6 @@ core/editor -> core/tools
 core/editor -> core/transforms
 core/editor -> core/uv
 core/geometry -> core/curve_tools
-core/geometry -> core/edges
-core/geometry -> core/editor
-core/geometry -> core/polygons
-core/geometry -> core/primitives
-core/geometry -> core/scene_items
-core/geometry -> core/selections
 core/interchange -> core/command_registry
 core/interchange -> core/geometry
 core/interchange -> core/lxo
@@ -475,7 +466,6 @@ core/lxo -> core/curve_tools
 core/lxo -> core/geometry
 core/lxo -> core/interchange
 core/lxo -> core/materials
-core/lxo -> core/primitives
 core/lxo -> core/render
 core/lxo -> core/rigging
 core/lxo -> core/scene_items
@@ -502,7 +492,6 @@ core/meshblend -> core/geometry
 core/meshblend -> core/meshblend_spike
 core/meshblend -> core/meshops
 core/meshblend -> core/polygons
-core/meshblend -> core/primitives
 core/meshblend -> core/scene_items
 core/meshblend -> core/slicing
 core/meshblend -> core/subdivision
@@ -547,7 +536,6 @@ core/painting -> core/geometry
 core/painting -> core/materials
 core/painting -> core/meshops
 core/painting -> core/polygons
-core/painting -> core/primitives
 core/painting -> core/render
 core/painting -> core/scene_items
 core/painting -> core/sculpting
@@ -563,7 +551,6 @@ core/polygons -> core/editor
 core/polygons -> core/geometry
 core/polygons -> core/materials
 core/polygons -> core/meshops
-core/polygons -> core/primitives
 core/polygons -> core/scene_items
 core/polygons -> core/selections
 core/polygons -> core/tools
@@ -607,7 +594,6 @@ core/rigging -> core/curve_tools
 core/rigging -> core/editor
 core/rigging -> core/geometry
 core/rigging -> core/meshops
-core/rigging -> core/primitives
 core/rigging -> core/render
 core/rigging -> core/scene_items
 core/scene_items -> core/anim
@@ -621,7 +607,6 @@ core/scene_items -> core/materialx
 core/scene_items -> core/meshops
 core/scene_items -> core/painting
 core/scene_items -> core/polygons
-core/scene_items -> core/primitives
 core/scene_items -> core/render
 core/scene_items -> core/rigging
 core/scene_items -> core/sculpting
@@ -660,15 +645,12 @@ core/slicing -> core/tools
 core/slicing -> core/transforms
 core/solid_sketch -> core/curve_tools
 core/solid_sketch -> core/geometry
-core/solid_sketch -> core/primitives
 core/solid_sketch -> core/subdivision
 core/subdivision -> core/curve_tools
 core/subdivision -> core/editor
 core/subdivision -> core/geometry
 core/subdivision -> core/interchange
 core/subdivision -> core/polygons
-core/subdivision -> core/primitives
-core/subdivision -> core/scene_items
 core/tools -> core/commands
 core/tools -> core/curve_tools
 core/tools -> core/deformers
@@ -689,7 +671,6 @@ core/transforms -> core/editor
 core/transforms -> core/geometry
 core/transforms -> core/interchange
 core/transforms -> core/polygons
-core/transforms -> core/primitives
 core/transforms -> core/scene_items
 core/transforms -> core/selections
 core/transforms -> core/slicing

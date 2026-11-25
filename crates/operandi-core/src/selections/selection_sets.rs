@@ -10,8 +10,7 @@
 //!
 //! Provisional choices are logged as SET-Q01..Q08 in
 //! `docs/SPECIFICATION_QUESTIONS.md`.
-use crate::{Editor, Mesh, Mode, Result, Scene};
-use serde::{Deserialize, Serialize};
+use crate::{Editor, Mesh, Result, Scene, SetKind, SetRef};
 use std::collections::{BTreeMap, BTreeSet};
 
 /// Polygon sets Operandi itself names that were renamed: (old, new).
@@ -21,40 +20,6 @@ const RENAMED_POLYGON_SETS: &[(&str, &str)] = &[
     // Retopo Edge Flow's set (TC-53) before 2026-11-23, to match RetopoEdgeLock.
     ("RetopoFlow", "RetopoEdgeFlow"),
 ];
-
-/// Which components a selection set holds.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub enum SetKind {
-    Vertex,
-    Edge,
-    Polygon,
-}
-impl SetKind {
-    /// The set kind of a component selection mode; none in Item mode.
-    pub fn of_mode(mode: Mode) -> Option<Self> {
-        match mode {
-            Mode::Vertex => Some(Self::Vertex),
-            Mode::Edge => Some(Self::Edge),
-            Mode::Polygon => Some(Self::Polygon),
-            Mode::Item => None,
-        }
-    }
-    pub fn label(self) -> &'static str {
-        match self {
-            Self::Vertex => "vertex",
-            Self::Edge => "edge",
-            Self::Polygon => "polygon",
-        }
-    }
-}
-
-/// One member of a selection set group: a set named by kind and name.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct SetRef {
-    pub kind: SetKind,
-    pub name: String,
-}
 
 /// How Use Selection Set changes the live selection (SEL-082).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
