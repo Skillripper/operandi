@@ -132,9 +132,7 @@ impl ConeParameters {
         // A Quad Grid cap adds an inner ring of quads and its grid cells
         // (odd sides use the grid for one more side, cone_grid.rs).
         let grid = if self.bottom_cap == ConeCap::QuadGrid && n >= 5 {
-            let m = n + n % 2;
-            let p = m / 4;
-            n + p * (p + u64::from(m % 4 == 2))
+            crate::cone_grid::grid_cap_faces(n)
         } else {
             0
         };

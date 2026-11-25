@@ -87,6 +87,9 @@ pub struct BlendSource {
     #[serde(default, rename = "keepCage")]
     pub keep_cage: bool,
 }
+fn twenty_percent() -> f64 {
+    0.2
+}
 fn yes() -> bool {
     true
 }
@@ -106,7 +109,23 @@ impl BlendSource {
     }
 }
 
-/// Output modes (SB-50). B1 builds Closed; the others are saved for B2.
+/// One strip's own settings (SB-36): used while `enabled` ("Override
+/// Defaults" on). Width is always a distance (provisional MB-Q09).
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StripOverride {
+    pub id: String,
+    #[serde(default = "yes")]
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub width: Option<f64>,
+    /// Profile as a fraction (1.0 = 100 %).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile: Option<f64>,
+}
+
+/// Output modes (SB-50), the `output` value's names. New MeshBlends use
+/// Closed, clean (provisional MB-Q07).
 pub const OUTPUTS: [&str; 6] = [
     "Draft",
     "Closed",
@@ -127,6 +146,10 @@ pub struct Recipe {
     /// Strip Width (Q05: crease to each band edge, on the surface).
     #[serde(rename = "stripWidth")]
     pub strip_width: f64,
+    /// Strip Width with relative units: a fraction (0.2 = 20 %) of the
+    /// sources' average cage edge length (SB-31b, MB-Q08).
+    #[serde(rename = "stripWidthRel", default = "twenty_percent")]
+    pub strip_width_rel: f64,
     /// Strip Profile as a fraction (1.0 = 100 %, round).
     #[serde(rename = "stripProfile")]
     pub strip_profile: f64,
@@ -138,9 +161,10 @@ pub struct Recipe {
     /// Narrow sharp strips for speed and diagnosis (ST-16).
     #[serde(rename = "designMode")]
     pub design_mode: bool,
-    /// Per-strip overrides by stable strip id (ST-07); filled in B3.
+    /// Per-strip overrides by stable strip id (ST-07, SB-36). An override
+    /// whose strip is gone is kept and applies again if the strip returns.
     #[serde(default)]
-    pub strips: Vec<serde_json::Value>,
+    pub strips: Vec<StripOverride>,
 }
 impl Default for Recipe {
     fn default() -> Self {
@@ -148,9 +172,10 @@ impl Default for Recipe {
             sources: Vec::new(),
             width_units: 0,
             strip_width: 0.02,
+            strip_width_rel: 0.2,
             strip_profile: 1.,
             strip_rows: 3,
-            output: 1,
+            output: 2,
             design_mode: false,
             strips: Vec::new(),
         }
@@ -175,11 +200,25 @@ impl Recipe {
         if !self.strip_width.is_finite() || self.strip_width < 0. {
             return Err("MeshBlend Strip Width must be zero or more".into());
         }
+        if !self.strip_width_rel.is_finite() || self.strip_width_rel < 0. {
+            return Err("MeshBlend relative Strip Width must be zero or more".into());
+        }
         if !self.strip_profile.is_finite() || !(0. ..=2.).contains(&self.strip_profile) {
             return Err("MeshBlend Strip Profile must be 0% to 200%".into());
         }
         if !(1..=16).contains(&self.strip_rows) {
             return Err("MeshBlend Strip Rows must be 1 to 16".into());
+        }
+        for o in &self.strips {
+            if o.width.is_some_and(|w| !w.is_finite() || w < 0.)
+                || o.profile
+                    .is_some_and(|p| !p.is_finite() || !(0. ..=2.).contains(&p))
+            {
+                return Err(format!(
+                    "MeshBlend strip {} has a setting out of range",
+                    o.id
+                ));
+            }
         }
         if self.width_units > 1 || self.output as usize >= OUTPUTS.len() {
             return Err("MeshBlend has a setting out of range".into());
@@ -187,6 +226,10 @@ impl Recipe {
         Ok(())
     }
 
+    /// The enabled override for strip `id`, if any.
+    pub fn strip_override(&self, id: &str) -> Option<&StripOverride> {
+        self.strips.iter().find(|o| o.id == id && o.enabled)
+    }
     pub fn source(&self, item: u64) -> Option<&BlendSource> {
         self.sources.iter().find(|s| s.item == item)
     }

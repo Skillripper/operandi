@@ -5,7 +5,8 @@
 //! materials), Type, Color, Diffuse, Specular, then the Smoothing, Make
 //! Default and Add to Library checkboxes. OK and Cancel sit on the right.
 //! OK assigns the tag and stores the settings in one undo step. Every row
-//! shows the named material's stored settings, so none is remembered
+//! shows the named material's current settings (its Shader Tree Material
+//! when it has one), so none is remembered
 //! between openings (the material is the memory).
 use super::*;
 use operandi_core::{Material, MaterialKind};
@@ -15,6 +16,10 @@ pub(super) struct SetMaterialDialog {
     /// The name whose stored settings the rows last showed, so editing the
     /// name to another existing material loads that material's settings.
     loaded: String,
+    /// The settings the rows were loaded with. OK with them untouched on an
+    /// existing material assigns the tag only, so the Shader Tree's own
+    /// edits to that Material are kept (GitHub #12).
+    shown: Material,
 }
 impl SetMaterialDialog {
     /// The Name field's text.
@@ -92,12 +97,13 @@ impl Operandi {
                             preferred.to_owned()
                         }
                     });
-                let material = self.editor.scene.material_or_default(&name);
+                let material = self.editor.scene.material_shown(&name);
                 let rows = rows(&name, self.editor.scene.material_names());
                 let mut dialog = SetMaterialDialog {
                     form: self.form_dialog("Set Material", rows).focus("name"),
                     loaded: name,
                     target,
+                    shown: material.clone(),
                 };
                 dialog.show_material(&material);
                 self.set_material = Some(dialog);
@@ -142,8 +148,13 @@ impl Operandi {
         // a new name keeps the current ones.
         let name = dialog.name();
         if name != dialog.loaded {
-            if let Some(stored) = self.editor.scene.material(&name).cloned() {
+            let scene = &self.editor.scene;
+            if scene.material(&name).is_some()
+                || scene.shader_tree.material_for_tag(&name).is_some()
+            {
+                let stored = scene.material_shown(&name);
                 dialog.show_material(&stored);
+                dialog.shown = stored;
             }
             dialog.loaded = name;
         }
@@ -151,11 +162,15 @@ impl Operandi {
             form::Outcome::Cancel => self.status = "Set Material canceled".into(),
             form::Outcome::Ok => {
                 let material = dialog.material();
-                if !self.assign_material_with(
-                    dialog.name(),
-                    Some(dialog.target.clone()),
-                    Some(material),
-                ) {
+                let name = dialog.name();
+                let existing = self
+                    .editor
+                    .scene
+                    .shader_tree
+                    .material_for_tag(&name)
+                    .is_some();
+                let material = (!existing || material != dialog.shown).then_some(material);
+                if !self.assign_material_with(name, Some(dialog.target.clone()), material) {
                     dialog.form.error = Some(self.status.clone());
                     self.set_material = Some(dialog);
                 }

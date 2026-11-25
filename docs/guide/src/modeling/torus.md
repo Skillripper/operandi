@@ -51,6 +51,7 @@ size.
 
 ## Tips
 
+- Right-drag in the **3D view**, away from the handles: left and right change **Sides**, up and down change **Segments**.
 - **Radius**, **Ring Radius**, **Cross Section**, **Height** and **Hole
   Size** are linked: change one and the others that depend on it follow.
   A **Hole Size** of 1 closes the hole to the axis.

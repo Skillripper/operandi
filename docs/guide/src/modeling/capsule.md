@@ -48,6 +48,10 @@ size.
 - **Cancel** throws the preview away.
 - **Reset** puts every value back to its starting value.
 
+## Tips
+
+- Right-drag in the **3D view**, away from the handles: left and right change **Sides**, up and down change **Segments**.
+
 ## In the Mesh Stack
 
 You can also add a Capsule as a step of a mesh's **Mesh Stack**: choose

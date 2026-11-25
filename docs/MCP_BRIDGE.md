@@ -654,6 +654,13 @@ used in the app; `primitive_add` always starts from the Reset values.
   - `enabled` (boolean): In the result or not.
   - `subdivision` (integer): 0 to 3; 0 uses the cage as it is.
   - `keepCage` (boolean): Use the cage's points instead of the smooth surface.
+- **`meshblend.strip`** — Give one strip of a MeshBlend Item its own Width and Profile (Override Defaults), by the strip's stable id as the MeshBlend panel lists it. clear removes the override.
+  - `item` (integer): Item id; default the active item.
+  - `id` (string, required): The strip, like 3-7-0 (its two sources' ids and its place).
+  - `override` (boolean): Override Defaults on or off; default on for a new override.
+  - `width` (number): Its Strip Width, a distance.
+  - `profile` (number): Its Strip Profile in percent, 0 to 200.
+  - `clear` (boolean): Remove the override.
 - **`meshblend.convert`** — Freeze a MeshBlend Item's result into an ordinary mesh: in place, or as a new mesh item with duplicate.
   - `item` (integer): Item id; default the active item.
   - `duplicate` (boolean): Make a new mesh item; default false.

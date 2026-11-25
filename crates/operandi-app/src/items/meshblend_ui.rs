@@ -10,22 +10,25 @@
 //! Strip settings are left out until strips exist (B2; UIC-117: features
 //! not built yet are left out, not greyed).
 use crate::form::{Unit, rows};
+use crate::unavailable::Gate;
 use eframe::egui::Ui;
 use operandi_core::Command;
 use operandi_core::mesh_stack::OpStatus;
 use operandi_core::meshblend::{MeshBlendCommand as C, Role, recipe_of};
 use operandi_core::scene::Item;
 
-/// The rows; returns the commands the user's clicks asked for.
+/// The rows; returns the commands the user's clicks asked for, and
+/// whether a field is being dragged (one undo step per drag, SAFE-13).
 pub(crate) fn sections(
     ui: &mut Ui,
     scene: &operandi_core::Scene,
     item: &Item,
     status: Option<&OpStatus>,
-) -> Vec<Command> {
+) -> (Vec<Command>, bool) {
     let mut out = Vec::new();
+    let mut dragged = false;
     let Some((_, recipe)) = recipe_of(scene, item.id) else {
-        return out;
+        return (out, false);
     };
     let blend = Some(item.id);
     let name = |id: u64| {
@@ -147,6 +150,75 @@ pub(crate) fn sections(
             }
         });
     }
+    // SB-36: each strip by its stable id, with its own Width and Profile.
+    let values = item
+        .mesh_stack
+        .as_ref()
+        .and_then(|s| s.ops.first())
+        .map(|o| o.kind.values())
+        .unwrap_or_default();
+    let strips = operandi_core::meshblend::op::last_strips(&values);
+    if !strips.is_empty() {
+        rows::section(ui, "MeshBlend Strips", false, |ui| {
+            for s in &strips {
+                let over = recipe.strips.iter().find(|o| o.id == s.id);
+                let on = over.is_some_and(|o| o.enabled);
+                let n: usize =
+                    s.id.rsplit('-')
+                        .next()
+                        .and_then(|n| n.parse().ok())
+                        .unwrap_or(0);
+                let title = format!("{} / {} {}", name(s.items.0), name(s.items.1), n + 1);
+                rows::value(ui, "Strip", &title).on_hover_text(format!("Strip id {}", s.id));
+                let mut own = on;
+                if rows::check_d(
+                    ui,
+                    "Override Defaults",
+                    &mut own,
+                    false,
+                    "Give this strip its own Width and Profile (meshblend.strip)",
+                )
+                .changed()
+                {
+                    out.push(strip(blend, &s.id, Some(own), None, None));
+                }
+                let why = crate::unavailable::unless(
+                    on,
+                    "Tick Override Defaults to give this strip its own settings",
+                );
+                ui.gated_ui(why, |ui| {
+                    let mut w = over.and_then(|o| o.width).unwrap_or(recipe.strip_width);
+                    let r = rows::number_d(
+                        ui,
+                        "Width",
+                        &mut w,
+                        recipe.strip_width,
+                        Unit::Distance,
+                        0.0..=1e9,
+                        "This strip's Strip Width (meshblend.strip width)",
+                    );
+                    dragged |= r.dragged();
+                    if r.changed() {
+                        out.push(strip(blend, &s.id, None, Some(w), None));
+                    }
+                    let mut p = over.and_then(|o| o.profile).unwrap_or(recipe.strip_profile) * 100.;
+                    let r = rows::number_d(
+                        ui,
+                        "Profile",
+                        &mut p,
+                        recipe.strip_profile * 100.,
+                        Unit::Percent,
+                        0.0..=200.0,
+                        "This strip's Strip Profile: 0 % chamfer, 100 % round (meshblend.strip profile)",
+                    );
+                    dragged |= r.dragged();
+                    if r.changed() {
+                        out.push(strip(blend, &s.id, None, None, Some(p / 100.)));
+                    }
+                });
+            }
+        });
+    }
     rows::section(ui, "MeshBlend", false, |ui| {
         // Meshes that could be added: not sources yet, not this item.
         let mut candidates: Vec<(u64, String)> = vec![(0, "(choose a mesh)".into())];
@@ -207,7 +279,24 @@ pub(crate) fn sections(
             }));
         }
     });
-    out
+    (out, dragged)
+}
+
+fn strip(
+    blend: Option<u64>,
+    id: &str,
+    enabled: Option<bool>,
+    width: Option<f64>,
+    profile: Option<f64>,
+) -> Command {
+    Command::MeshBlend(C::Strip {
+        blend,
+        id: id.into(),
+        enabled,
+        width,
+        profile,
+        clear: false,
+    })
 }
 
 fn source(

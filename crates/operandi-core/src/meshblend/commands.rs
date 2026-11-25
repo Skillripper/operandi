@@ -11,6 +11,7 @@
 //! | `meshblend.clearRole` | Takes a source out; it is an ordinary mesh again (SB-12) |
 //! | `meshblend.source` | Per-source settings: enabled, Subdivision, Keep cage points |
 //! | `meshblend.convert` | Freezes the result into an ordinary mesh, in place or as a copy (SB-53) |
+//! | `meshblend.strip` | One strip's own Width and Profile, by its stable id (SB-36, ST-07) |
 //!
 //! Each names the MeshBlend Item with `item:<id>` or works on the selected
 //! one. Strip settings are set with `item.channel` on the op.
@@ -56,6 +57,16 @@ pub enum MeshBlendCommand {
     Convert {
         blend: Option<u64>,
         duplicate: bool,
+    },
+    /// One strip's own settings (SB-36): `enabled` is Override Defaults;
+    /// `clear` removes the override.
+    Strip {
+        blend: Option<u64>,
+        id: String,
+        enabled: Option<bool>,
+        width: Option<f64>,
+        profile: Option<f64>,
+        clear: bool,
     },
 }
 
@@ -177,6 +188,46 @@ impl Editor {
                 if let Some(v) = keep_cage {
                     s.keep_cage = v;
                 }
+                Ok(())
+            }),
+            MeshBlendCommand::Strip {
+                blend,
+                id,
+                enabled,
+                width,
+                profile,
+                clear,
+            } => self.meshblend_edit(blend, "MeshBlend Strip", |_, _, r| {
+                if id.trim().is_empty() {
+                    return Err("Name the strip by its id, like 3-7-0".into());
+                }
+                if clear {
+                    r.strips.retain(|o| o.id != id);
+                    return Ok(());
+                }
+                let o = match r.strips.iter().position(|o| o.id == id) {
+                    Some(i) => &mut r.strips[i],
+                    None => {
+                        r.strips.push(super::recipe::StripOverride {
+                            id: id.clone(),
+                            enabled: true,
+                            width: None,
+                            profile: None,
+                        });
+                        r.strips.last_mut().expect("just pushed")
+                    }
+                };
+                if let Some(v) = enabled {
+                    o.enabled = v;
+                }
+                if let Some(v) = width {
+                    o.width = Some(v);
+                }
+                if let Some(v) = profile {
+                    o.profile = Some(v);
+                }
+                // Keep the list in id order so saved files repeat.
+                r.strips.sort_by(|a, b| a.id.cmp(&b.id));
                 Ok(())
             }),
             MeshBlendCommand::Convert { blend, duplicate } => {
@@ -431,6 +482,20 @@ pub(crate) fn parse(
                 .map(|v| u8::try_from(v).map_err(|_| "Subdivision must be 0 to 3".to_string()))
                 .transpose()?,
             keep_cage: opt_bool(a, "keepCage")?,
+        },
+        "meshblend.strip" => MeshBlendCommand::Strip {
+            blend,
+            id: opt_str(a, "id")?
+                .ok_or("id is required: the strip, like 3-7-0")?
+                .to_string(),
+            enabled: opt_bool(a, "override")?,
+            width: a.get("width").map(crate::command_exec::num).transpose()?,
+            profile: a
+                .get("profile")
+                .map(crate::command_exec::num)
+                .transpose()?
+                .map(|p| p / 100.),
+            clear: opt_bool(a, "clear")?.unwrap_or(false),
         },
         "meshblend.convert" => MeshBlendCommand::Convert {
             blend,

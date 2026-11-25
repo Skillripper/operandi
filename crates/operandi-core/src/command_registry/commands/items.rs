@@ -294,6 +294,20 @@ pub(super) const COMMANDS: &[Entry] = &[
                 jopt("keepCage", "boolean", "Use the cage's points instead of the smooth surface."),
             ],
         ),
+    script("meshblend.strip", Modeling, "Sets one MeshBlend strip's own width and profile.")
+        .operandi()
+        .undo()
+        .headless(
+            "Give one strip of a MeshBlend Item its own Width and Profile (Override Defaults), by the strip's stable id as the MeshBlend panel lists it. clear removes the override.",
+            &[
+                JSON_ITEM,
+                jreq("id", "string", "The strip, like 3-7-0 (its two sources' ids and its place)."),
+                jopt("override", "boolean", "Override Defaults on or off; default on for a new override."),
+                jopt("width", "number", "Its Strip Width, a distance."),
+                jopt("profile", "number", "Its Strip Profile in percent, 0 to 200."),
+                jopt("clear", "boolean", "Remove the override."),
+            ],
+        ),
     script("meshblend.convert", Modeling, "Turns a MeshBlend Item into an ordinary mesh.")
         .operandi()
         .undo()

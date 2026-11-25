@@ -282,9 +282,10 @@ fn radial_form(f: &mut ToolForm<Parameters>, tool: Tool, p: &Parameters) {
     if tool == Tool::Cylinder {
         // PRIM-Y-01: each end can be None, Single, Quads or Radial.
         let options = CylinderCap::ALL.map(|cap| (cap, cap.label()));
-        for (end, label) in [(1, "Cap Top"), (0, "Cap Bottom")] {
+        // Labelled like the Cone's (GitHub #18); the keys stay as they were.
+        for (end, key, label) in [(1, "Cap Top", "Top Cap"), (0, "Cap Bottom", "Bottom Cap")] {
             f.field(tf::choice(
-                label,
+                key,
                 label,
                 &options,
                 move |p: &Parameters| p.cylinder_caps[end],
