@@ -2744,8 +2744,11 @@ Polygon Slice (Shift+C).
   never kept as a hanging chain: on an open path each loose end runs on to
   its polygon's nearest corner (as the reference's preview does); when both
   ends would meet the same corner, that stretch isn't cut. Closed, the loop
-  runs back through the leading inside points. Replaces SL-Q07's "a path
-  starts on an edge".
+  runs back through the leading inside points. A loop closed wholly inside
+  one polygon becomes a polygon of its own, and the rest is joined to it
+  by two links from the loop points nearest two different corners (no
+  holes, as PS-13's builder note). Replaces SL-Q07's "a path starts on an
+  edge".
 - **SL-Q17 (forum report, 2026-11-25).** A click within 8 pt of an existing
   point puts the cut through that point (it wins over the edges meeting
   there); a path can end or close on a point. Two points on one edge (or

@@ -72,6 +72,9 @@ Each line: do this → expect that.
 11. Add Support Edges on, cut once across one polygon of a grid → the
     polygon next to each end of the cut is split into a quad and a
     triangle; no polygon has more than four sides (SL-Q18).
+12. Click four points inside one face of a cube and close on the first →
+    the outline stays a polygon of its own, linked to two corners; Q keeps
+    it (SL-Q16).
 
 ## Polygon Slice (Shift+C)
 

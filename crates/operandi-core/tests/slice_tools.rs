@@ -438,19 +438,39 @@ fn edge_slice_starts_inside_a_polygon() {
     let bytes = persistence::encode(&e.scene).unwrap();
     let reopened = persistence::decode(&bytes).unwrap();
     assert_eq!(reopened.active().unwrap().mesh, *mesh(&e));
-    // A closed path with no edge or point on it changes nothing.
+    // A loop closed wholly inside one polygon (Jason's check 2026-11-25):
+    // the loop becomes its own polygon and the rest is joined to it at two
+    // corners, so nothing is lost on Drop and no polygon has a hole.
+    let ring = [(0.3, 0.3), (0.7, 0.35), (0.75, 0.7), (0.4, 0.65)];
     let mut e = editor(grid(1), Mode::Polygon);
     e.dispatch(Command::Activate(Tool::EdgeSlice)).unwrap();
     let mut p = params(&e);
-    p.slice.edge_slice.points = [0.2, 0.5, 0.8]
-        .map(|x| SlicePoint::Inside {
+    p.slice.edge_slice.points = ring
+        .map(|(x, z)| SlicePoint::Inside {
             face: 0,
-            at: DVec3::new(x, 0., 0.3),
+            at: DVec3::new(x, 0., z),
         })
         .to_vec();
     p.slice.edge_slice.closed = true;
+    preview(&mut e, p.clone());
+    let m = mesh(&e).clone();
+    assert!(m.validate().is_ok());
+    assert_eq!(m.vertices.len(), 8);
+    assert_eq!(m.faces.len(), 3);
+    let loop_ids: Vec<u32> = (4..8).collect();
+    assert!(
+        m.faces
+            .iter()
+            .any(|f| f.vertices.len() == 4 && f.vertices.iter().all(|v| loop_ids.contains(v))),
+        "the loop is a polygon of its own"
+    );
+    // With Add Support Edges, nothing has more than four sides.
+    p.slice.edge_slice.support_edges = true;
     preview(&mut e, p);
-    assert_eq!(mesh(&e).faces.len(), 1);
+    assert!(mesh(&e).faces.iter().all(|f| f.vertices.len() <= 4));
+    assert!(mesh(&e).validate().is_ok());
+    e.dispatch(Command::Drop).unwrap();
+    assert!(mesh(&e).faces.len() > 3, "the cut stays after Drop");
 }
 
 #[test]

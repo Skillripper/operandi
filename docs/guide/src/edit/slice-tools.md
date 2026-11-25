@@ -69,6 +69,9 @@ Drag a point on an edge to slide it along the edge.
 
 - A cut never leaves a loose end inside a polygon. If you stop with an end
   inside one, that end runs on to the polygon's nearest corner.
+- To cut a shape into a polygon, click its outline inside the polygon and
+  close it on the first point. The shape becomes a polygon of its own,
+  joined to the outer polygon's corners by two new edges.
 - Turn on **Add Support Edges** to keep a mesh in quads for subdivision.
   The cut's neighbours that pick up a point on their edge are tidied too.
 

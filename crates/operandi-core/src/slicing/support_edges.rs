@@ -62,8 +62,8 @@ pub(crate) fn support_chords(mesh: &Mesh, new_points: &BTreeSet<u32>) -> Vec<Cho
     chords
 }
 
-/// The corners of polygon `face` in its own plane.
-fn flatten(mesh: &Mesh, face: usize) -> Vec<DVec2> {
+/// Polygon `face`'s plane: a map from mesh space into it.
+fn plane_of(mesh: &Mesh, face: usize) -> impl Fn(DVec3) -> DVec2 {
     let normal = mesh.normal(face);
     let normal = if normal.length_squared() > 0. {
         normal.normalize()
@@ -73,14 +73,25 @@ fn flatten(mesh: &Mesh, face: usize) -> Vec<DVec2> {
     let u = normal.any_orthonormal_vector();
     let w = normal.cross(u);
     let origin = mesh.center(face);
+    move |p: DVec3| {
+        let d = p - origin;
+        DVec2::new(d.dot(u), d.dot(w))
+    }
+}
+
+/// The corners of polygon `face` in its own plane.
+fn flatten(mesh: &Mesh, face: usize) -> Vec<DVec2> {
+    let to_plane = plane_of(mesh, face);
     mesh.faces[face]
         .vertices
         .iter()
-        .map(|&v| {
-            let d = mesh.vertices[v as usize] - origin;
-            DVec2::new(d.dot(u), d.dot(w))
-        })
+        .map(|&v| to_plane(mesh.vertices[v as usize]))
         .collect()
+}
+
+/// Whether `at`, seen in polygon `face`'s plane, lies inside it.
+pub(crate) fn contains(mesh: &Mesh, face: usize, at: DVec3) -> bool {
+    inside(&flatten(mesh, face), plane_of(mesh, face)(at))
 }
 
 fn cross(o: DVec2, a: DVec2, b: DVec2) -> f64 {

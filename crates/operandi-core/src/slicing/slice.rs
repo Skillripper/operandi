@@ -1282,6 +1282,25 @@ pub fn edge_slice_geometry(mesh: &Mesh, o: &EdgeSlice) -> Result<(Mesh, Vec<(u32
             }
         }
     }
+    // A closed loop that never leaves one polygon.
+    if o.split_polygons && o.closed && o.points.len() >= 3 {
+        let inside: Vec<(u32, DVec3)> = o
+            .points
+            .iter()
+            .filter_map(|p| match *p {
+                SlicePoint::Inside { face, at } => Some((face, at)),
+                _ => None,
+            })
+            .collect();
+        if inside.len() == o.points.len() {
+            let face = inside[0].0;
+            if inside.iter().any(|p| p.0 != face) {
+                return Err("Each slice point must be on a polygon next to the last one".into());
+            }
+            let at: Vec<DVec3> = inside.iter().map(|p| p.1).collect();
+            return closed_inside_loop(mesh, face as usize, &at, o);
+        }
+    }
     let mut inner: Vec<InnerPoint> = Vec::new();
     let mut chords: Vec<Chord> = Vec::new();
     if o.split_polygons {
@@ -1407,23 +1426,136 @@ pub fn edge_slice_geometry(mesh: &Mesh, o: &EdgeSlice) -> Result<(Mesh, Vec<(u32
         }
     }
     let r = cut(mesh, &cuts, &inner, &chords)?;
-    if !(o.support_edges && o.split_polygons) {
-        return Ok((r.mesh, r.new_edges));
-    }
     let new_points: BTreeSet<u32> = r
         .cut_points
         .iter()
         .chain(&r.inner_points)
         .copied()
         .collect();
-    let support = crate::support_edges::support_chords(&r.mesh, &new_points);
-    if support.is_empty() {
-        return Ok((r.mesh, r.new_edges));
+    with_support(o, r.mesh, r.new_edges, &new_points)
+}
+
+/// Add Support Edges (SL-Q18) on a cut's result when it is on.
+fn with_support(
+    o: &EdgeSlice,
+    mesh: Mesh,
+    mut new_edges: Vec<(u32, u32)>,
+    new_points: &BTreeSet<u32>,
+) -> Result<(Mesh, Vec<(u32, u32)>)> {
+    if !(o.support_edges && o.split_polygons) {
+        return Ok((mesh, new_edges));
     }
-    let s = cut(&r.mesh, &[], &[], &support)?;
-    let mut new_edges = r.new_edges;
+    let support = crate::support_edges::support_chords(&mesh, new_points);
+    if support.is_empty() {
+        return Ok((mesh, new_edges));
+    }
+    let s = cut(&mesh, &[], &[], &support)?;
     new_edges.extend(s.new_edges);
     Ok((s.mesh, new_edges))
+}
+
+/// A closed Edge Slice loop lying wholly inside polygon `face` (SL-Q16,
+/// Jason 2026-11-25): the loop becomes a polygon of its own, and the rest
+/// of `face` is joined to it at two corners so no polygon has a hole (as
+/// PS-13's builder note does). The two links run from the loop points
+/// nearest two different corners: first corner A through the loop to
+/// corner B, then the loop's other side closes inside the right piece.
+fn closed_inside_loop(
+    mesh: &Mesh,
+    face: usize,
+    at: &[DVec3],
+    o: &EdgeSlice,
+) -> Result<(Mesh, Vec<(u32, u32)>)> {
+    let n = at.len();
+    let corners = &mesh.faces[face].vertices;
+    let distance = |i: usize, c: u32| at[i].distance(mesh.vertices[c as usize]);
+    // The two loop points and corners with the shortest links.
+    let mut best: Option<(f64, usize, u32, usize, u32)> = None;
+    for i in 0..n {
+        for j in 0..n {
+            if i == j {
+                continue;
+            }
+            for &a in corners {
+                for &b in corners {
+                    let d = distance(i, a) + distance(j, b);
+                    if a != b && best.is_none_or(|x| d < x.0) {
+                        best = Some((d, i, a, j, b));
+                    }
+                }
+            }
+        }
+    }
+    let (_, i, a, j, b) = best.ok_or("The loop needs a polygon with two corners")?;
+    // A to B through the loop from point i forward to point j.
+    let mut forward = vec![i];
+    while forward[forward.len() - 1] != j {
+        forward.push((forward[forward.len() - 1] + 1) % n);
+    }
+    let inner: Vec<InnerPoint> = forward
+        .iter()
+        .map(|&k| InnerPoint { face, at: at[k] })
+        .collect();
+    let first = cut(
+        mesh,
+        &[],
+        &inner,
+        &[Chord {
+            face,
+            from: Node::Point(a),
+            to: Node::Point(b),
+            through: (0..inner.len()).collect(),
+        }],
+    )?;
+    let (pi, pj) = (
+        first.inner_points[0],
+        *first.inner_points.last().unwrap_or(&0),
+    );
+    // The loop's other side: from point j on round to point i, inside the
+    // piece that holds it.
+    let rest: Vec<usize> = ((j + 1)..(j + n))
+        .map(|k| k % n)
+        .take_while(|&k| k != i)
+        .collect();
+    let probe = rest.first().map_or((at[i] + at[j]) / 2., |&k| at[k]);
+    let piece = first
+        .pieces
+        .iter()
+        .map(|&f| f as usize)
+        .find(|&f| {
+            let vs = &first.mesh.faces[f].vertices;
+            vs.contains(&pi)
+                && vs.contains(&pj)
+                && crate::support_edges::contains(&first.mesh, f, probe)
+        })
+        .ok_or("The loop crosses the links to its polygon's corners")?;
+    let inner: Vec<InnerPoint> = rest
+        .iter()
+        .map(|&k| InnerPoint {
+            face: piece,
+            at: at[k],
+        })
+        .collect();
+    let second = cut(
+        &first.mesh,
+        &[],
+        &inner,
+        &[Chord {
+            face: piece,
+            from: Node::Point(pj),
+            to: Node::Point(pi),
+            through: (0..inner.len()).collect(),
+        }],
+    )?;
+    let mut new_edges = first.new_edges;
+    new_edges.extend(second.new_edges);
+    let new_points: BTreeSet<u32> = first
+        .inner_points
+        .iter()
+        .chain(&second.inner_points)
+        .copied()
+        .collect();
+    with_support(o, second.mesh, new_edges, &new_points)
 }
 
 /// How far each side of a Split's cut moves away from the plane.
