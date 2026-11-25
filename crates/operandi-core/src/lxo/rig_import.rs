@@ -39,9 +39,13 @@ pub fn handled(kind: &str) -> bool {
     ) || quiet(kind)
 }
 
-/// LXA-170: schematic layout items, skipped without a report line.
+/// Schematic layout items: read by schematic_import.rs (SC-72), which
+/// reports what it leaves out itself.
 fn quiet(kind: &str) -> bool {
-    matches!(kind, "schmNode" | "elbow" | "backdropSchm" | "noteSchm")
+    matches!(
+        kind,
+        "schmNode" | "elbow" | "backdropSchm" | "noteSchm" | "assembly"
+    )
 }
 
 /// One skin to build (LXA-61).

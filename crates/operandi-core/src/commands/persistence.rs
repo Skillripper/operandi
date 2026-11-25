@@ -19,7 +19,13 @@ const MAX_LOAD_BYTES: u64 = 256 << 30;
 /// Newest native version this build reads and writes.
 // Version numbers: renumber here (and in the tests that name them) when
 // branches merge in another order.
-const CURRENT_VERSION: u32 = CHANNEL_SETS_VERSION;
+const CURRENT_VERSION: u32 = SCHEMATIC_PAGES_VERSION;
+/// Version 67: Schematic workspaces and node places (`Rig::workspaces`,
+/// schematic_pages.rs, SC-91). A v66 build would refuse the unknown field.
+const SCHEMATIC_PAGES_VERSION: u32 = 67;
+fn has_v67_workspaces(scene: &Scene) -> bool {
+    !scene.animation.rig.workspaces.is_empty()
+}
 /// Version 66: channel sets (`Animation::channel_sets`, channel_sets.rs,
 /// CP-70). A v65 build would refuse the unknown field.
 const CHANNEL_SETS_VERSION: u32 = 66;
@@ -627,7 +633,9 @@ fn encode_document(scene: &Scene, preset: Option<&crate::preset::PresetHeader>) 
     let data = serde_json::to_vec_pretty(&Document {
         format: "Operandi".into(),
         preset: preset.cloned(),
-        version: if has_v66_channel_sets(scene) {
+        version: if has_v67_workspaces(scene) {
+            SCHEMATIC_PAGES_VERSION
+        } else if has_v66_channel_sets(scene) {
             CHANNEL_SETS_VERSION
         } else if !material_graphs.is_empty() {
             SAVED_GRAPHS_VERSION
@@ -799,6 +807,9 @@ fn decode_document(
     }
     if doc.version < RENDER_OUTPUTS_D_VERSION && has_v55_outputs(&doc.scene) {
         return Err("These Render Outputs require native version 55".into());
+    }
+    if doc.version < SCHEMATIC_PAGES_VERSION && has_v67_workspaces(&doc.scene) {
+        return Err("Schematic workspaces require native version 67".into());
     }
     if doc.version < CHANNEL_SETS_VERSION && has_v66_channel_sets(&doc.scene) {
         return Err("Channel sets require native version 66".into());

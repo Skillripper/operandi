@@ -108,6 +108,7 @@ fn the_schematic_draws_and_its_drops_become_rig_lines() {
             id,
             piece: false,
             kind: None,
+            detail: None,
             inputs: vec![],
             outputs: vec![],
             broken: false,
@@ -143,4 +144,76 @@ fn the_schematic_draws_and_its_drops_become_rig_lines() {
         1
     );
     frames(&mut a, &ctx, 1);
+}
+
+#[test]
+fn the_schematic_shows_one_page_and_saves_it_when_asked() {
+    use operandi_core::schematic_pages::PageId;
+    crate::anim_switch::set_for_test(true);
+    let ctx = Context::default();
+    let mut a = box_app();
+    a.editor.scene.new_mesh().unwrap();
+    let ids: Vec<u64> = a.editor.scene.items.iter().map(|i| i.id).collect();
+    a.execute(&format!(
+        "operandi.rig.modifierAdd kind:expression item:{}",
+        ids[1]
+    ));
+    a.execute("operandi.rig.schematicView");
+    frames(&mut a, &ctx, 2);
+    // No workspace yet: the whole rig on one unsaved page (SC-74).
+    assert_eq!(a.schematic.page, Some(PageId::All));
+    a.execute("operandi.rig.workspaceAdd name:Arms");
+    frames(&mut a, &ctx, 1);
+    let ws = a.editor.scene.animation.rig.workspaces[0].id;
+    assert_eq!(
+        a.schematic.page,
+        Some(PageId::Saved(ws)),
+        "the saved page replaces it"
+    );
+    // Fit runs with or without its argument (the button passes one).
+    for line in [
+        "operandi.rig.schematicFit",
+        "operandi.rig.schematicFit selected:false",
+    ] {
+        a.execute(line);
+        assert_eq!(a.schematic.fit, Some(false), "{line}");
+        frames(&mut a, &ctx, 1);
+        assert_eq!(a.schematic.fit, None, "consumed by the next frame");
+    }
+    a.execute("operandi.rig.schematicFit selected:true");
+    assert_eq!(a.schematic.fit, Some(true));
+}
+
+#[test]
+fn schematic_add_selected_lands_mid_view_and_says_what_it_did() {
+    use operandi_core::schematic_pages::PageId;
+    crate::anim_switch::set_for_test(true);
+    let ctx = Context::default();
+    let mut a = box_app();
+    a.editor.scene.new_mesh().unwrap();
+    let ids: Vec<u64> = a.editor.scene.items.iter().map(|i| i.id).collect();
+    a.execute(&format!(
+        "operandi.rig.workspaceAdd name:Arms place:{{item:{}@0/0}}",
+        ids[0]
+    ));
+    let ws = a.editor.scene.animation.rig.workspaces[0].id;
+    a.execute("operandi.rig.schematicView");
+    frames(&mut a, &ctx, 2);
+    assert_eq!(a.schematic.page, Some(PageId::Saved(ws)));
+    let view = a.schematic_page(PageId::Saved(ws));
+    let keys = [format!("item:{}", ids[0]), format!("item:{}", ids[1])];
+    let mut lines = Vec::new();
+    a.schematic_add(Some(PageId::Saved(ws)), &view, &keys, &mut lines);
+    a.schematic_run(lines);
+    let nodes = &a.editor.scene.animation.rig.workspaces[0].nodes;
+    assert_eq!(nodes.len(), 2, "only the one not there yet");
+    assert_eq!(
+        a.schematic.note.as_deref(),
+        Some("Added 1 node to this page")
+    );
+    let view = a.schematic_page(PageId::Saved(ws));
+    let mut lines = Vec::new();
+    a.schematic_add(Some(PageId::Saved(ws)), &view, &keys, &mut lines);
+    assert!(lines.is_empty());
+    assert_eq!(a.schematic.note.as_deref(), Some("Already on this page"));
 }

@@ -20,6 +20,10 @@ pub struct Node {
     pub piece: bool,
     /// Pieces: the kind (`position`, `link`, `mod.expression`...).
     pub kind: Option<String>,
+    /// A second header line saying what this node does when its kind
+    /// alone doesn't: an expression's formula.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub detail: Option<String>,
     /// Input ports (channels for items; inputs for pieces).
     pub inputs: Vec<String>,
     /// Output ports.
@@ -116,6 +120,10 @@ pub fn build(scene: &Scene) -> Schematic {
             id: p.id,
             piece: true,
             kind: Some(p.kind.clone()),
+            detail: (p.kind == "mod.expression")
+                .then(|| p.names.get("expr").map(|x| x.trim().to_owned()))
+                .flatten()
+                .filter(|x| !x.is_empty()),
             inputs: Vec::new(),
             outputs: vec!["out".into()],
             broken: broken.contains(&p.id) || p.is_missing(),
@@ -173,6 +181,7 @@ pub fn build(scene: &Scene) -> Schematic {
             id: item,
             piece: false,
             kind: None,
+            detail: None,
             inputs,
             outputs,
             broken: scene.item(item).is_none(),
