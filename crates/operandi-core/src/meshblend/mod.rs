@@ -12,6 +12,7 @@ pub mod evaluate;
 pub mod op;
 pub mod recipe;
 pub mod strips;
+mod tidy;
 
 pub use commands::{MeshBlendCommand, recipe_of};
 pub use evaluate::{Blend, Input, Note, Origin, evaluate};

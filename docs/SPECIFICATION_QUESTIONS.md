@@ -9785,3 +9785,6 @@ Spec meshblend-2026-11-24. Readings where the spec is silent:
 - MB-Q04 When the polygons rebuilt from provenance break a mesh rule, the result falls back to the engine's triangles for that rebuild (seen once in random sequences); the cause is open.
 - MB-Q05 A rebuild that fails shows the failure on the op's row and passes the (empty) Base Mesh through, as every Mesh Stack op does; ST-04's "keep the last good result" isn't built yet.
 - MB-Q06 Sources are read as the viewport shows them (SB-23): subdivision polygons as their smooth surface at the source's Subdivision level, plain Face polygons as they are. SB-20 says every source is smoothed; read literally, a plain 1-segment cube blended as a ball and a cylinder's n-gon cap came to a point (Jason's QA, 2026-11-24).
+- MB-Q07 New MeshBlends use the Closed, clean output (SB-50 lists Closed as the default); Closed keeps the cut faces as triangles.
+- MB-Q08 Relative Strip Width is a share of the average cage edge length of all enabled sources (SB-31b says the two sources at that join).
+- MB-Q09 A strip's own Width is always a distance, whatever Width Units says; Rows stay shared so corner patches always fit. Overrides apply only while Strip Width is above 0.

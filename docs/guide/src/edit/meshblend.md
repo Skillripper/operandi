@@ -1,4 +1,4 @@
-<!-- help-ids: meshblend.new, meshblend.addSource, meshblend.role, meshblend.trim, meshblend.untrim, meshblend.clearRole, meshblend.source, meshblend.convert, meshblend.item ; template: tool ; since: 0.1.0 -->
+<!-- help-ids: meshblend.new, meshblend.strip, meshblend.addSource, meshblend.role, meshblend.trim, meshblend.untrim, meshblend.clearRole, meshblend.source, meshblend.convert, meshblend.item ; template: tool ; since: 0.1.0 -->
 # MeshBlend
 
 **MeshBlend** builds a live boolean of ordinary meshes. The meshes stay
@@ -45,12 +45,26 @@ The strip settings are at the top of the **MeshBlend** properties.
 
 | Name | What it does | Default |
 |---|---|---|
+| **Width Units** | **Distance** uses **Strip Width**; **Percent of Polygon Size** uses **Strip Width %**, a share of the meshes' average edge length, so the strips follow the meshes' density. The other width is greyed. | Distance |
 | **Strip Width** | How far each edge of the strip lies from the old crease, measured along the surface. Set it to 0 for sharp joins. | 2 % of the meshes' size when the MeshBlend is made |
+| **Strip Width %** | The width as a percent of the meshes' average edge length. | 20 % |
 | **Strip Profile** | The strip's cross-section: 0 % is a flat chamfer, 100 % a round that meets both surfaces smoothly, up to 200 % for a slight groove. | 100 % |
 | **Strip Rows** | Rows of polygons across the strip: each row adds two quads across. | 3 |
 | **Design Mode** | Narrow flat strips that build quickly while you work out the shape; your settings are kept. | Off |
+| **Output** | **Draft**: no strips, quickest. **Closed**: strips, the cut faces as triangles. **Closed, clean**: the same with triangle pairs turned into quads. **Closed with parts per patch** / **per source**: also puts each area between strips (or each source) and all the strips in their own parts, ready for materials. **Strips only**: just the strips, as an open band. | Closed, clean |
 
-Where three strips meet, a corner patch of quads joins them.
+Where three strips meet, a corner patch of quads joins them. Faces the
+strips cut are re-meshed into even triangles, then paired into quads
+where they can be.
+
+## One strip on its own
+
+Every strip is listed under **MeshBlend Strips**, named after the two
+meshes it joins. Tick **Override Defaults** to give that strip its own
+**Width** and **Profile**; untick it to go back to the item's settings
+(your values are kept). A strip keeps its name when you move the meshes,
+so its settings stay with it. Scripts use `meshblend.strip` with the id
+in the strip's tooltip.
 
 If a strip is too wide to fit on the meshes, MeshBlend narrows it and the
 **MeshBlend** row's tooltip says the width it used. If no strip fits at all,

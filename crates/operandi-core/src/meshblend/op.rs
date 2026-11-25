@@ -12,6 +12,27 @@ use crate::meshop_types::{Field, FieldKind, OpContext, OpDef, OpNote};
 use crate::{Mesh, Result};
 use std::sync::Arc;
 
+/// The strips each recipe last made, for the panel's strip list (keyed by
+/// a hash of the op's values; a cache, never saved).
+static STRIPS: std::sync::LazyLock<
+    std::sync::Mutex<std::collections::HashMap<u64, Vec<super::strips::StripInfo>>>,
+> = std::sync::LazyLock::new(Default::default);
+
+fn values_key(values: &serde_json::Value) -> u64 {
+    use std::hash::{Hash, Hasher};
+    let mut h = std::collections::hash_map::DefaultHasher::new();
+    values.to_string().hash(&mut h);
+    h.finish()
+}
+
+/// The strips the MeshBlend op with these values made when it last ran.
+pub fn last_strips(values: &serde_json::Value) -> Vec<super::strips::StripInfo> {
+    STRIPS
+        .lock()
+        .map(|m| m.get(&values_key(values)).cloned().unwrap_or_default())
+        .unwrap_or_default()
+}
+
 /// The saved type id.
 pub const MESHBLEND_OP: &str = "meshblend.item";
 
@@ -59,6 +80,19 @@ impl OpDef for MeshBlendOp {
             })
             .unwrap_or_default()
     }
+    /// Only the width in the chosen units applies (UIC-117).
+    fn field_unavailable(&self, key: &str, values: &serde_json::Value) -> Option<String> {
+        let relative = values["widthUnits"].as_u64() == Some(1);
+        match key {
+            "stripWidth" if relative => {
+                Some("Width Units is Percent of Polygon Size: Strip Width % applies".into())
+            }
+            "stripWidthRel" if !relative => {
+                Some("Width Units is Distance: Strip Width applies".into())
+            }
+            _ => None,
+        }
+    }
     fn run(&self, ctx: &OpContext, values: &serde_json::Value) -> Result<Mesh> {
         let recipe: Recipe = serde_json::from_value(values.clone()).map_err(|e| e.to_string())?;
         if recipe.sources.is_empty() {
@@ -92,6 +126,12 @@ impl OpDef for MeshBlendOp {
             .map(|l| l.item)
             .collect();
         let blend = evaluate(&recipe, &inputs)?;
+        if let Ok(mut m) = STRIPS.lock() {
+            if m.len() > 256 {
+                m.clear();
+            }
+            m.insert(values_key(values), blend.strips.clone());
+        }
         for n in blend.notes {
             if n.problem && failed.contains(&n.item) {
                 continue;
@@ -108,15 +148,20 @@ impl OpDef for MeshBlendOp {
 
 /// The op's table entry. The strip settings use the generic op form; the
 /// sources are drawn by the MeshBlend panel section (meshblend_ui.rs), and
-/// what isn't built yet (relative width, output modes, per-strip
-/// overrides) stays hidden (UIC-117).
+/// what isn't built yet (relative width, per-strip overrides) stays
+/// hidden (UIC-117).
 pub(crate) fn entries() -> Vec<Arc<dyn OpDef>> {
     let hidden = |key: &'static str| Field::new(key, key, FieldKind::Hidden);
     vec![Arc::new(MeshBlendOp {
         fields: vec![
             hidden("sources"),
-            hidden("widthUnits"),
+            Field::new(
+                "widthUnits",
+                "Width Units",
+                FieldKind::Choice(vec!["Distance".into(), "Percent of Polygon Size".into()]),
+            ),
             Field::new("stripWidth", "Strip Width", FieldKind::Distance),
+            Field::new("stripWidthRel", "Strip Width %", FieldKind::Percent),
             Field::new("stripProfile", "Strip Profile", FieldKind::Percent),
             Field::new(
                 "stripRows",
@@ -124,7 +169,11 @@ pub(crate) fn entries() -> Vec<Arc<dyn OpDef>> {
                 FieldKind::Count { min: 1, max: 16 },
             ),
             Field::new("designMode", "Design Mode", FieldKind::Check),
-            hidden("output"),
+            Field::new(
+                "output",
+                "Output",
+                FieldKind::Choice(super::recipe::OUTPUTS.iter().map(|&o| o.into()).collect()),
+            ),
             hidden("strips"),
         ],
     })]

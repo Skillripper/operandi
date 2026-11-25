@@ -675,6 +675,7 @@ impl Operandi {
         let mut selop_open: Option<egui::Rect> = None;
         let mut dragged = false;
         let mut blend_commands = Vec::new();
+        let mut blend_dragged = false;
         rows::scope(ui, "mesh-op-properties", |ui| {
             rows::section(ui, &op.kind.label(), false, |ui| {
                 // The form comes from the op's type (KIT-4: kits describe
@@ -688,138 +689,146 @@ impl Operandi {
                     let value = values.get(key).cloned().unwrap_or_default();
                     let default = defaults.get(key).cloned().unwrap_or_default();
                     let tip = format!("{label} ({key})");
-                    let response = match &f.kind {
-                        FieldKind::Check => {
-                            let mut on = value.as_bool().unwrap_or(false);
-                            let d = default.as_bool().unwrap_or(false);
-                            let r = rows::check_d(ui, label, &mut on, d, &tip);
-                            if r.changed() {
-                                changes.insert(key.into(), on.into());
-                            }
-                            r
-                        }
-                        FieldKind::Choice(names) => {
-                            let mut i = value.as_u64().unwrap_or(0) as usize;
-                            let d = default.as_u64().unwrap_or(0) as usize;
-                            let options: Vec<(usize, &str)> = names
-                                .iter()
-                                .enumerate()
-                                .map(|(i, n)| (i, n.as_ref()))
-                                .collect();
-                            let r = rows::choice_d(ui, label, &mut i, &d, &options, &tip);
-                            if r.changed() {
-                                changes.insert(key.into(), (i as u64).into());
-                            }
-                            r
-                        }
-                        FieldKind::Count { min, max } => {
-                            let mut n = value.as_u64().unwrap_or(0) as u32;
-                            let d = default.as_u64().unwrap_or(0) as u32;
-                            let r = rows::number_d(
-                                ui,
-                                label,
-                                &mut n,
-                                d,
-                                Unit::Count,
-                                *min..=*max,
-                                &tip,
-                            );
-                            if r.changed() {
-                                changes.insert(key.into(), n.into());
-                            }
-                            r
-                        }
-                        FieldKind::Text => {
-                            let mut t = value.as_str().unwrap_or_default().to_string();
-                            let d = default.as_str().unwrap_or_default();
-                            let r = rows::text_d(ui, label, &mut t, d, &tip);
-                            if r.changed() {
-                                changes.insert(key.into(), t.into());
-                            }
-                            r
-                        }
-                        FieldKind::Item => {
-                            let mut id = value.as_u64().unwrap_or(0);
-                            let options = item_options(&meshes, id);
-                            let r = rows::choice_d(ui, label, &mut id, &0, &options, &tip);
-                            if r.changed() {
-                                changes.insert(key.into(), id.into());
-                            }
-                            r
-                        }
-                        FieldKind::Items => {
-                            // One row per linked item ("(none)" removes it)
-                            // and an Add row.
-                            let mut ids: Vec<u64> = value
-                                .as_array()
-                                .into_iter()
-                                .flatten()
-                                .filter_map(|v| v.as_u64())
-                                .collect();
-                            let mut changed = None;
-                            for (n, id) in ids.clone().iter().enumerate() {
-                                let mut pick = *id;
-                                let options = item_options(&meshes, pick);
-                                let row = format!("{label} {}", n + 1);
-                                let r = rows::choice_d(ui, &row, &mut pick, id, &options, &tip);
+                    let why = def.field_unavailable(key, &values);
+                    let response = ui
+                        .gated_ui(why.as_deref(), |ui| match &f.kind {
+                            FieldKind::Check => {
+                                let mut on = value.as_bool().unwrap_or(false);
+                                let d = default.as_bool().unwrap_or(false);
+                                let r = rows::check_d(ui, label, &mut on, d, &tip);
                                 if r.changed() {
-                                    ids[n] = pick;
+                                    changes.insert(key.into(), on.into());
                                 }
-                                changed =
-                                    Some(changed.map_or(r.clone(), |c: egui::Response| c | r));
+                                r
                             }
-                            let mut pick = 0u64;
-                            let options = item_options(&meshes, 0);
-                            let r = rows::choice_d(
-                                ui,
-                                &format!("Add {label}"),
-                                &mut pick,
-                                &0,
-                                &options,
-                                &tip,
-                            );
-                            if pick != 0 {
-                                ids.push(pick);
+                            FieldKind::Choice(names) => {
+                                let mut i = value.as_u64().unwrap_or(0) as usize;
+                                let d = default.as_u64().unwrap_or(0) as usize;
+                                let options: Vec<(usize, &str)> = names
+                                    .iter()
+                                    .enumerate()
+                                    .map(|(i, n)| (i, n.as_ref()))
+                                    .collect();
+                                let r = rows::choice_d(ui, label, &mut i, &d, &options, &tip);
+                                if r.changed() {
+                                    changes.insert(key.into(), (i as u64).into());
+                                }
+                                r
                             }
-                            let r = changed.map_or(r.clone(), |c| c | r);
-                            ids.retain(|&id| id != 0);
-                            let before: Vec<u64> = value
-                                .as_array()
-                                .into_iter()
-                                .flatten()
-                                .filter_map(|v| v.as_u64())
-                                .collect();
-                            if ids != before {
-                                changes.insert(key.into(), ids.into());
+                            FieldKind::Count { min, max } => {
+                                let mut n = value.as_u64().unwrap_or(0) as u32;
+                                let d = default.as_u64().unwrap_or(0) as u32;
+                                let r = rows::number_d(
+                                    ui,
+                                    label,
+                                    &mut n,
+                                    d,
+                                    Unit::Count,
+                                    *min..=*max,
+                                    &tip,
+                                );
+                                if r.changed() {
+                                    changes.insert(key.into(), n.into());
+                                }
+                                r
                             }
-                            r
-                        }
-                        FieldKind::Hidden => continue,
-                        FieldKind::Number
-                        | FieldKind::Distance
-                        | FieldKind::Angle
-                        | FieldKind::Percent => {
-                            let (unit, shown, back): (Unit, Convert, Convert) = match f.kind {
-                                FieldKind::Angle => (Unit::Angle, f64::to_degrees, f64::to_radians),
-                                FieldKind::Percent => (Unit::Percent, |v| v * 100., |v| v / 100.),
-                                FieldKind::Number => (Unit::Scalar, |v| v, |v| v),
-                                _ => (Unit::Distance, |v| v, |v| v),
-                            };
-                            let mut x = shown(value.as_f64().unwrap_or(0.));
-                            let d = shown(default.as_f64().unwrap_or(0.));
-                            let r = rows::number_d(ui, label, &mut x, d, unit, -1e9..=1e9, &tip);
-                            if r.changed() {
-                                changes.insert(key.into(), back(x).into());
+                            FieldKind::Text => {
+                                let mut t = value.as_str().unwrap_or_default().to_string();
+                                let d = default.as_str().unwrap_or_default();
+                                let r = rows::text_d(ui, label, &mut t, d, &tip);
+                                if r.changed() {
+                                    changes.insert(key.into(), t.into());
+                                }
+                                r
                             }
-                            r
-                        }
-                    };
+                            FieldKind::Item => {
+                                let mut id = value.as_u64().unwrap_or(0);
+                                let options = item_options(&meshes, id);
+                                let r = rows::choice_d(ui, label, &mut id, &0, &options, &tip);
+                                if r.changed() {
+                                    changes.insert(key.into(), id.into());
+                                }
+                                r
+                            }
+                            FieldKind::Items => {
+                                // One row per linked item ("(none)" removes it)
+                                // and an Add row.
+                                let mut ids: Vec<u64> = value
+                                    .as_array()
+                                    .into_iter()
+                                    .flatten()
+                                    .filter_map(|v| v.as_u64())
+                                    .collect();
+                                let mut changed = None;
+                                for (n, id) in ids.clone().iter().enumerate() {
+                                    let mut pick = *id;
+                                    let options = item_options(&meshes, pick);
+                                    let row = format!("{label} {}", n + 1);
+                                    let r = rows::choice_d(ui, &row, &mut pick, id, &options, &tip);
+                                    if r.changed() {
+                                        ids[n] = pick;
+                                    }
+                                    changed =
+                                        Some(changed.map_or(r.clone(), |c: egui::Response| c | r));
+                                }
+                                let mut pick = 0u64;
+                                let options = item_options(&meshes, 0);
+                                let r = rows::choice_d(
+                                    ui,
+                                    &format!("Add {label}"),
+                                    &mut pick,
+                                    &0,
+                                    &options,
+                                    &tip,
+                                );
+                                if pick != 0 {
+                                    ids.push(pick);
+                                }
+                                let r = changed.map_or(r.clone(), |c| c | r);
+                                ids.retain(|&id| id != 0);
+                                let before: Vec<u64> = value
+                                    .as_array()
+                                    .into_iter()
+                                    .flatten()
+                                    .filter_map(|v| v.as_u64())
+                                    .collect();
+                                if ids != before {
+                                    changes.insert(key.into(), ids.into());
+                                }
+                                r
+                            }
+                            FieldKind::Hidden => ui.label(""),
+                            FieldKind::Number
+                            | FieldKind::Distance
+                            | FieldKind::Angle
+                            | FieldKind::Percent => {
+                                let (unit, shown, back): (Unit, Convert, Convert) = match f.kind {
+                                    FieldKind::Angle => {
+                                        (Unit::Angle, f64::to_degrees, f64::to_radians)
+                                    }
+                                    FieldKind::Percent => {
+                                        (Unit::Percent, |v| v * 100., |v| v / 100.)
+                                    }
+                                    FieldKind::Number => (Unit::Scalar, |v| v, |v| v),
+                                    _ => (Unit::Distance, |v| v, |v| v),
+                                };
+                                let mut x = shown(value.as_f64().unwrap_or(0.));
+                                let d = shown(default.as_f64().unwrap_or(0.));
+                                let r =
+                                    rows::number_d(ui, label, &mut x, d, unit, -1e9..=1e9, &tip);
+                                if r.changed() {
+                                    changes.insert(key.into(), back(x).into());
+                                }
+                                r
+                            }
+                        })
+                        .inner;
                     dragged |= response.dragged();
                 }
             });
             if def.id() == operandi_core::meshblend::MESHBLEND_OP {
                 let status = evaluated.and_then(|e| e.statuses.get(index));
-                blend_commands =
+                (blend_commands, blend_dragged) =
                     crate::meshblend_ui::sections(ui, &self.editor.scene, item, status);
             }
             if op.kind.takes_selection() {
@@ -862,8 +871,19 @@ impl Operandi {
                 });
             }
         });
-        for c in blend_commands {
-            self.run(c);
+        if !blend_commands.is_empty() {
+            // One undo step per drag, as for the form's own fields.
+            let dragging = blend_dragged || ui.input(|i| i.pointer.any_down());
+            let gesture = match self.mesh_stack_gesture {
+                Some(g) if dragging => g,
+                _ => crate::colour_field::next_gesture(),
+            };
+            self.mesh_stack_gesture = dragging.then_some(gesture);
+            let previous = self.editor.undo_fold.replace(gesture);
+            for c in blend_commands {
+                self.run(c);
+            }
+            self.editor.undo_fold = previous;
         }
         if let Some(edit) = index_edit {
             self.run(Command::MeshOpIndex { op: r, edit });

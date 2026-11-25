@@ -45,6 +45,9 @@ operandi-remesh = { path = "../operandi-remesh" }
 manifold-csg = { version = "0.4.1", default-features = false }
 boolmesh = { version = "0.2.2", default-features = false }
 robust = "1"
+# MeshBlend tidy (meshblend/tidy.rs): constrained Delaunay triangulation
+# with refinement for the faces cut beside strips; MIT OR Apache-2.0.
+spade = "2.15"
 # 3D painting's images (PNT stage 1); only with the `painting` feature.
 operandi-paint = { path = "../operandi-paint", optional = true }
 

@@ -46,6 +46,29 @@ pub struct Joined {
     /// Per triangle: its polygon in that source's surface.
     pub face: Vec<u32>,
     pub names: Vec<String>,
+    /// Per source: its item id (names stable strip ids, ST-07).
+    pub items: Vec<u64>,
+}
+
+/// One strip's settings.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct StripParams {
+    /// Distance from the old crease to each band edge.
+    pub width: f64,
+    /// Profile in percent (0 chamfer, 100 round).
+    pub profile: f64,
+}
+
+/// A strip the builder laid, for the panel's list and per-strip edits.
+#[derive(Clone, Debug, PartialEq)]
+pub struct StripInfo {
+    /// Stable id (ST-07): the two source items, lower first, and the join's
+    /// place among that pair's joins, ordered by lowest point (Y, then X,
+    /// then Z) and then length: `"<a>-<b>-<n>"`.
+    pub id: String,
+    pub items: (u64, u64),
+    /// Length of the join line.
+    pub length: f64,
 }
 
 /// What the builder made.
@@ -61,6 +84,8 @@ pub struct Strips {
     pub face: Vec<u32>,
     /// Strips or corners that couldn't be built, in plain words.
     pub problems: Vec<String>,
+    /// Every join's strip, in join order.
+    pub strips: Vec<StripInfo>,
 }
 
 /// A join line between two sources.
@@ -231,10 +256,64 @@ fn chains(sharp: &Joined, problems: &mut Vec<String>) -> Vec<Chain> {
     out
 }
 
-/// Prototype D on a sharp result.
+/// Strips of one width and profile on every join.
 pub fn build(sharp: &Joined, width: f64, profile: f64, rows: u32) -> Strips {
+    build_with(sharp, rows, |_| StripParams { width, profile })
+}
+
+/// The stable id of every chain (ST-07).
+fn strip_ids(sharp: &Joined, chains: &[Chain]) -> Vec<StripInfo> {
+    let item = |s: u32| sharp.items.get(s as usize).copied().unwrap_or(u64::from(s));
+    let key = |ch: &Chain| {
+        let low = ch
+            .verts
+            .iter()
+            .map(|&v| sharp.pos[v as usize])
+            .min_by(|a, b| {
+                a.y.total_cmp(&b.y)
+                    .then(a.x.total_cmp(&b.x))
+                    .then(a.z.total_cmp(&b.z))
+            })
+            .unwrap_or_default();
+        (low.y, low.x, low.z, ch.length())
+    };
+    let mut order: Vec<usize> = (0..chains.len()).collect();
+    order.sort_by(|&x, &y| {
+        let (a, b) = (key(&chains[x]), key(&chains[y]));
+        a.0.total_cmp(&b.0)
+            .then(a.1.total_cmp(&b.1))
+            .then(a.2.total_cmp(&b.2))
+            .then(a.3.total_cmp(&b.3))
+    });
+    let mut out: Vec<Option<StripInfo>> = vec![None; chains.len()];
+    let mut seen: HashMap<(u64, u64), usize> = HashMap::new();
+    for c in order {
+        let (x, y) = (item(chains[c].sides.0), item(chains[c].sides.1));
+        let pair = (x.min(y), x.max(y));
+        let n = seen.entry(pair).or_default();
+        out[c] = Some(StripInfo {
+            id: format!("{}-{}-{}", pair.0, pair.1, *n),
+            items: pair,
+            length: chains[c].length(),
+        });
+        *n += 1;
+    }
+    out.into_iter().map(|s| s.expect("every chain")).collect()
+}
+
+/// Strips on every join, each with the settings `params` gives its id.
+/// Rows are shared, so corner patches always meet strips of the same row
+/// count (SB-34).
+pub fn build_with(sharp: &Joined, rows: u32, params: impl Fn(&StripInfo) -> StripParams) -> Strips {
     let mut problems = Vec::new();
     let chains = chains(sharp, &mut problems);
+    let infos = strip_ids(sharp, &chains);
+    let chain_params: Vec<StripParams> = infos.iter().map(&params).collect();
+    let widest = chain_params.iter().map(|p| p.width).fold(0., f64::max);
+    let narrowest = chain_params
+        .iter()
+        .map(|p| p.width)
+        .fold(f64::INFINITY, f64::min);
     let pos = &sharp.pos;
     let nv = pos.len();
 
@@ -307,7 +386,7 @@ pub fn build(sharp: &Joined, width: f64, profile: f64, rows: u32) -> Strips {
         best[v as usize] = (0., join_segs[&v][0]);
         heap.push(Reverse((0u64, v)));
     }
-    let reach = 3. * width;
+    let reach = 3. * widest;
     while let Some(Reverse((dbits, v))) = heap.pop() {
         let d = f64::from_bits(dbits);
         if d > best[v as usize].0 || d > reach {
@@ -336,12 +415,17 @@ pub fn build(sharp: &Joined, width: f64, profile: f64, rows: u32) -> Strips {
             }
         }
     }
-    // f = distance - width, snapped to 0 near the cut line.
-    let snap = 0.02 * width;
+    // f = distance - width of the nearest join's strip, snapped to 0 near
+    // the cut line.
     let f: Vec<f64> = (0..nv)
         .map(|v| {
-            let x = best[v].0 - width;
-            if x.abs() < snap { 0. } else { x }
+            let (d, seg) = best[v];
+            if seg == usize::MAX {
+                return d;
+            }
+            let width = chain_params[segs[seg].0].width;
+            let x = d - width;
+            if x.abs() < 0.02 * width { 0. } else { x }
         })
         .collect();
 
@@ -447,7 +531,7 @@ pub fn build(sharp: &Joined, width: f64, profile: f64, rows: u32) -> Strips {
         let n = l.len();
         for k in 0..n {
             let (x, y) = (root(&mut alias, l[k]), root(&mut alias, l[(k + 1) % n]));
-            if x != y && b.pos[x as usize].distance(b.pos[y as usize]) < 0.01 * width {
+            if x != y && b.pos[x as usize].distance(b.pos[y as usize]) < 0.01 * narrowest {
                 let mid = (b.pos[x as usize] + b.pos[y as usize]) * 0.5;
                 let (keep, gone) = (x.min(y), x.max(y));
                 alias[gone as usize] = keep;
@@ -662,6 +746,8 @@ pub fn build(sharp: &Joined, width: f64, profile: f64, rows: u32) -> Strips {
         // points whose feet land on the same place (round a bend in the
         // join) are spread out along the rim, so no two stations coincide.
         let positions = &b.pos;
+        let width = chain_params[c].width;
+        let profile = chain_params[c].profile;
         let tie = 0.02 * width / len;
         let ordered = |r: &Run, u: &[f64]| -> Option<(Vec<u32>, Vec<f64>, bool)> {
             let n = u.len();
@@ -985,6 +1071,7 @@ pub fn build(sharp: &Joined, width: f64, profile: f64, rows: u32) -> Strips {
         source,
         face,
         problems,
+        strips: infos,
     }
 }
 
