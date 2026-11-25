@@ -80,18 +80,19 @@ pub struct BevelOptions {
     pub keep_aspect: bool,
     // The three opt-in options below are left out of saved settings while
     // off, so settings saved before them read and write the same.
-    /// Stop Before Fold (TwistBevel notes, 2026-11-25; off by default):
-    /// each cap's inset stops short of the amount where a cap polygon would
-    /// turn over or the cap's edges cross. Off, an inset past the centre is
-    /// kept as asked (PB-C-01/04).
+    /// Twist Bevel's Stop Before Fold (TwistBevel notes, 2026-11-25; off by
+    /// default): each tube's inset stops short of the amount where a cap
+    /// polygon would turn over or the cap's edges cross, instead of the
+    /// tube being refused. Bevel's own panel doesn't offer it (an inset
+    /// past the centre is kept as asked there, PB-C-01/04).
     #[serde(skip_serializing_if = "std::ops::Not::not")]
     pub stop_at_fold: bool,
-    /// Even Interior (off by default): points inside a grouped cap, and
+    /// Twist Bevel's Even Interior (off by default): points inside a grouped cap, and
     /// boundary points along straight runs, move with the inset so the cap
     /// shrinks as a whole instead of only its outline moving.
     #[serde(skip_serializing_if = "std::ops::Not::not")]
     pub even_interior: bool,
-    /// Keep Cap UVs (off by default): with Connected UVs the caps keep
+    /// Twist Bevel's Keep Cap UVs (off by default): with Connected UVs the caps keep
     /// their UVs exactly, seams included; only the walls' corners move.
     #[serde(skip_serializing_if = "std::ops::Not::not")]
     pub keep_cap_uvs: bool,
@@ -404,9 +405,17 @@ fn bevel_draft(
     // Named selection sets ride along (N29, Jason 2026-11-17): Bevel keeps
     // every source point and polygon at its index (new ones are added), so
     // set members still name the same elements; the new side polygons and
-    // points join no set. Typed maps and morphs ride along too (TwistBevel
-    // notes, 2026-11-25; was a BV-Q04 refusal): each new point copies its
-    // source point's values, each new corner its donor corner's.
+    // points join no set. Typed maps and morphs still refuse for Bevel; for
+    // Twist Bevel (a placer) they ride along (TwistBevel notes, 2026-11-25):
+    // each new point copies its source point's values, each new corner its
+    // donor corner's.
+    if placer.is_none()
+        && (!source.attributes.typed_maps.is_empty()
+            || !source.attributes.relative_morphs.is_empty())
+    {
+        // Spec: BV-Q04
+        return Err("Bevel can't keep some of this mesh's map data; nothing changed".into());
+    }
     let estimate: usize = regions
         .iter()
         .map(|r| r.boundary.len().saturating_mul(divisions as usize + 3))
@@ -678,13 +687,18 @@ fn bevel_draft(
                 ),
             );
         }
-        // Even Interior and Stop Before Fold (both off by default) adjust the
-        // inset part of the moves; Twist Bevel's placed rings keep theirs.
-        if p.even_interior && placer.is_none() && !p.auto_weld && !p.edge_rail {
+        // Twist Bevel's Even Interior and Stop Before Fold (both off by
+        // default) adjust the inset part of the moves: each placed ring's
+        // inset is its unit offset times the ring's inset.
+        if p.even_interior && !p.auto_weld && !p.edge_rail {
             even_interior(source, &region, &mut moves);
         }
-        let fold_share = if p.stop_at_fold && placer.is_none() && amount_inset != 0. {
-            let rows: Vec<f64> = if profile.is_some() {
+        let fold_share = if p.stop_at_fold && amount_inset != 0. {
+            let rows: Vec<f64> = if let Some(placer) = placer {
+                (1..=divisions)
+                    .map(|level| placer.inset(region_index, level))
+                    .collect()
+            } else if profile.is_some() {
                 samples.iter().map(|s| s.x).collect()
             } else {
                 vec![samples[samples.len() - 1].x]

@@ -693,7 +693,7 @@ pub use cone::*;
 pub mod inset;
 #[path = "polygons/mesh_cleanup_ops.rs"]
 pub mod mesh_cleanup_ops;
-pub use inset::{InsetOptions, InsetResult, inset_geometry, inset_geometry_with, shift_geometry};
+pub use inset::{InsetResult, inset_geometry, shift_geometry};
 pub use mesh_cleanup_ops::{CleanupOption, CleanupResult, mesh_cleanup_geometry};
 #[path = "geometry/mesh_attributes.rs"]
 pub mod mesh_attributes;

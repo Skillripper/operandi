@@ -675,12 +675,7 @@ impl Editor {
                 // assumed, as for the vertex tools).
                 let scale = crate::scene::uniform_scale(scene.world_matrix(item.id)?);
                 let output = if live.tool == Tool::Inset {
-                    crate::inset_geometry_with(
-                        &item.mesh,
-                        &selected,
-                        p.inset / scale,
-                        p.inset_options,
-                    )?
+                    crate::inset_geometry(&item.mesh, &selected, p.inset / scale)?
                 } else {
                     crate::shift_geometry(&item.mesh, &selected, p.shift / scale)?
                 };
@@ -995,16 +990,6 @@ impl Editor {
                 };
                 let item = scene.active().ok_or("Select an item")?;
                 let weights = self.falloff_weights(&scene, item.id)?;
-                // Distances are world units on the item's own scale, as for
-                // Inset, Shift and Twist Bevel (uniform scale assumed), so
-                // the handles stay on the cap of a scaled item.
-                let scale = crate::scene::uniform_scale(scene.world_matrix(item.id)?);
-                let options = crate::BevelOptions {
-                    shift_range: p.bevel.shift_range / scale,
-                    inset_range: p.bevel.inset_range / scale,
-                    weld_range: p.bevel.weld_range / scale,
-                    ..p.bevel.clone()
-                };
                 let bevel = if apply {
                     crate::bevel_geometry_applied
                 } else {
@@ -1013,10 +998,10 @@ impl Editor {
                 let result = bevel(
                     &item.mesh,
                     &selected,
-                    p.shift / scale,
-                    p.inset / scale,
+                    p.shift,
+                    p.inset,
                     p.group_polygons,
-                    &options,
+                    &p.bevel,
                     weights.as_deref(),
                     self.bevel_profile,
                 )
@@ -1400,16 +1385,25 @@ impl Editor {
         };
         let symmetry = self.active_symmetry();
         let primary = self.symmetry_primary(scene);
+        // World axes in the mesh's coordinates: the action axis falls back
+        // to world Y and the side axis is world X on a rotated item too.
+        let to_local = world.inverse();
+        let world_axes = glam::DMat3::from_cols(
+            to_local.transform_vector3(DVec3::X),
+            to_local.transform_vector3(DVec3::Y),
+            to_local.transform_vector3(DVec3::Z),
+        );
         let action_axis = live
             .action_frame
-            .map(|f| world.inverse().transform_vector3(f.basis.y_axis))
-            .unwrap_or(DVec3::Y);
+            .map(|f| to_local.transform_vector3(f.basis.y_axis))
+            .unwrap_or(world_axes.y_axis);
         let pipe = crate::TwistBevelPipe {
             weight: field
                 .is_some()
                 .then_some(&weight as &dyn Fn(DVec3, &[u32]) -> f64),
             symmetry: symmetry.axis.map(|_| (symmetry, primary)),
             action_axis,
+            world_axes,
         };
         let result = crate::twist_bevel_geometry(&item.mesh, &selected, &options, &pipe)?;
         let topology_changed = result.mesh != *item.mesh;

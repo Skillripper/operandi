@@ -282,8 +282,6 @@ mod ik_two_bone;
 #[path = "incidence_effects.rs"]
 mod incidence_effects;
 #[cfg(operandi_specs)]
-#[path = "inset_bevel_options.rs"]
-mod inset_bevel_options;
 #[path = "inset_clean_spec.rs"]
 mod inset_clean_spec;
 #[path = "inset_shift_tools.rs"]
@@ -737,6 +735,8 @@ mod tree_select_keeps_tool;
 mod tweak_oracles;
 #[path = "twist_bevel.rs"]
 mod twist_bevel;
+#[path = "twist_bevel_options.rs"]
+mod twist_bevel_options;
 #[path = "undo_fold.rs"]
 mod undo_fold;
 #[path = "undo_marks.rs"]

@@ -245,23 +245,14 @@ impl Operandi {
             }),
             // The first selected polygon of the drag's base (polygon 0 when
             // nothing is selected and every polygon is affected).
-            // Shift's handle rides on the moved cap, which keeps its
-            // polygon's slot (TwistBevel notes, 2026-11-25).
-            HandleAnchor::FirstPolygon => {
-                let f = l.base.selection.faces.first().copied().unwrap_or(0) as usize;
-                let on_cap = (l.tool == Tool::Shift)
-                    .then(|| self.editor.scene.active())
-                    .flatten()
-                    .filter(|i| f < i.mesh.faces.len())
-                    .map(|i| i.mesh.center(f));
-                on_cap
-                    .or_else(|| {
-                        l.base
-                            .active()
-                            .and_then(|i| (f < i.mesh.faces.len()).then(|| i.mesh.center(f)))
-                    })
-                    .unwrap_or(DVec3::ZERO)
-            }
+            HandleAnchor::FirstPolygon => l
+                .base
+                .active()
+                .and_then(|i| {
+                    let f = l.base.selection.faces.first().copied().unwrap_or(0) as usize;
+                    (f < i.mesh.faces.len()).then(|| i.mesh.center(f))
+                })
+                .unwrap_or(DVec3::ZERO),
             HandleAnchor::ActionCentre => self.transform_handle_center(),
         };
         // Face-center origins above are item-local; map them to world.

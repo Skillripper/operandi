@@ -45,8 +45,7 @@ Rest the pointer on a handle to see what it does.
 ## Properties
 
 These are in **Tool Properties** while Bevel is active. Distances use your
-**Distance Units** preference and are measured in the scene, so on a
-scaled item an **Inset** of 0.1 m is still 0.1 m.
+**Distance Units** preference.
 
 | Name | What it does | Default |
 |---|---|---|
@@ -62,9 +61,6 @@ scaled item an **Inset** of 0.1 m is still 0.1 m.
 | **Square Corner** | Keeps corners square where one polygon meets the bevel. | Off |
 | **Edge Rail** | Slides the new edges along the existing edges of the group, so the bevel follows them. Needs **Group Polygons**. | Off |
 | **Offset Even** | Keeps the inset the same distance from every edge, so corners stay crisp. Off, each corner moves by **Inset** along its own diagonal. | On |
-| **Stop Before Fold** | Stops each cap's **Inset** just before a cap polygon would turn over or its edges would cross. Off, a big **Inset** carries on past the middle and the cap crosses over. | Off |
-| **Even Interior** | Moves the points inside a grouped cap, and the points along its straight edges, with the inset, so the whole cap shrinks evenly instead of only its outline moving. Greyed while **Edge Rail** or **Auto Weld** is on. | Off |
-| **Keep Cap UVs** | The caps keep their UVs exactly, seams included; only the side polygons get new UVs. Off, the caps' UVs shrink with the inset. Greyed unless **Make UVs** is **Connected** (U and V already keep the caps' UVs). | Off |
 | **Thicken Polygon** | Keeps a reversed copy of the original polygons behind the bevel, so the result is a closed, thick piece. | Off |
 | **Max. Smoothing Angle** | Polygons that meet at less than this angle push out together, as one smooth surface; sharper corners push out separately. | 89.9° |
 | **Use Vertex Normal Map** | Pushes the cap along the mesh's vertex normal map instead of its polygon normals. | Off |
@@ -96,19 +92,10 @@ scaled item an **Inset** of 0.1 m is still 0.1 m.
   studs or panels in one go. A little **+/−** makes them uneven, which
   hides the "made by a computer" look.
 
-- New points keep the map values of the points they came from: weights,
-  colours and morphs, so a morph still moves the cap with the rest of the
-  mesh. The side polygons are the same type as the polygons they came
-  from, so SubD stays SubD.
-- For a field of grouped polygons, **Even Interior** with **Keep Cap UVs**
-  gives a cap that shrinks evenly and keeps its texture whole.
-
 ## Related
 
 - [Getting started](../getting-started.md): selecting, undo and moving
   around the view.
 - [Interface](../interface/window.md): where **Tool Properties** and the
   **Toolbox** are.
-- [Inset and Shift](../polygon/inset.md): the quicker one-polygon-at-a-time
-  versions.
 - Edge Bevel, Vertex Bevel and Twist Bevel (pages not written yet).

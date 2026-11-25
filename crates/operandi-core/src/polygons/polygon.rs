@@ -365,7 +365,8 @@ pub(crate) fn ring_folds(original: &[DVec3], moved: &[DVec3], normal: DVec3) -> 
         // has passed through itself (a square inset past its middle is
         // turned half round, not inside out).
         let (was, now) = (original[j] - original[i], moved[j] - moved[i]);
-        if now.length() < eps || now.dot(was) <= 0. {
+        // Kept well above the zero-length edge test (Mesh::surface_triangles).
+        if now.length() < span * 1e-5 || now.dot(was) <= 0. {
             return true;
         }
         // A straight corner (points along an edge) has no turn to lose.

@@ -14,31 +14,11 @@
 //!
 //! Provisional (Q-IN-03, Q-IN-04): the plane is the polygon's Newell plane;
 //! new polygons keep their polygon's tags; each new corner's UV comes from
-//! the polygon's own corner UVs, mapped affinely across the polygon. Corner
-//! weights and colours copy from the corner each new corner came from; each
-//! new point copies its corner point's weights, colours and morph offsets.
-//! Per-face legacy UVs and corner normals are refused.
-//!
-//! Two options (`InsetOptions`, both off by default; the TwistBevel notes
-//! of 2026-11-25): Stop Before Fold and Keep Cap UVs.
+//! the polygon's own corner UVs, mapped affinely across the polygon. Other
+//! per-corner data is refused.
 use crate::corner_uv::records_from_uvs;
 use crate::{Mesh, Result};
 use glam::{DVec2, DVec3};
-use serde::{Deserialize, Serialize};
-
-/// Inset's options. Both are off by default, which is Inset as specified.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(default)]
-pub struct InsetOptions {
-    /// Each polygon's inset stops short of the amount where its inner copy
-    /// would turn over (a corner flips, edges cross or an edge shrinks to
-    /// nothing). Off, an inset past the middle crosses over (PB-C-01/04).
-    pub stop_at_fold: bool,
-    /// The inner polygon keeps its polygon's UVs exactly, seams included;
-    /// only the side quads' inner corners get new UVs. Off, the inner
-    /// polygon's UVs shrink with it.
-    pub keep_cap_uvs: bool,
-}
 
 #[derive(Clone, Debug)]
 pub struct InsetResult {
@@ -49,30 +29,13 @@ pub struct InsetResult {
 
 /// Inset `selected` polygons (all when empty) by `inset`.
 pub fn inset_geometry(source: &Mesh, selected: &[u32], inset: f64) -> Result<InsetResult> {
-    inset_geometry_with(source, selected, inset, InsetOptions::default())
-}
-
-/// Inset with its options.
-pub fn inset_geometry_with(
-    source: &Mesh,
-    selected: &[u32],
-    inset: f64,
-    options: InsetOptions,
-) -> Result<InsetResult> {
     source.validate()?;
     if !inset.is_finite() {
         return Err("Inset must be a finite distance".into());
     }
-    let corner_normals = source
-        .attributes
-        .corner_normals
-        .values()
-        .flatten()
-        .flatten()
-        .any(Option::is_some);
-    if source.faces.iter().any(|f| f.uv.is_some()) || corner_normals {
+    if crate::corner_uv::has_uncarried_corner_data(source) {
         return Err(
-            "Inset can't carry per-polygon UVs or corner normals yet; nothing changed".into(),
+            "Inset can't carry corner weights, colors or normals yet; nothing changed".into(),
         );
     }
     let mut chosen: Vec<usize> = if selected.is_empty() {
@@ -91,8 +54,6 @@ pub fn inset_geometry_with(
     let mut new_faces: Vec<(Vec<u32>, usize)> = Vec::new();
     // Per selected polygon: its inner corner points and positions.
     let mut inner_of: Vec<(usize, Vec<u32>)> = Vec::new();
-    // Per new point: the corner point it came from (for point maps).
-    let mut origins: Vec<u32> = Vec::new();
     for &f in &chosen {
         let ring = &source.faces[f].vertices;
         let n = ring.len();
@@ -113,8 +74,7 @@ pub fn inset_geometry_with(
         if inward.contains(&DVec3::ZERO) {
             return Err("Inset needs polygons without zero-length edges".into());
         }
-        // Each corner's move for an inset of 1.
-        let mut unit_moves = Vec::with_capacity(n);
+        let mut inner = Vec::with_capacity(n);
         for i in 0..n {
             let (d0, d1) = (inward[(i + n - 1) % n], inward[i]);
             let denominator = 1. + d0.dot(d1);
@@ -122,29 +82,9 @@ pub fn inset_geometry_with(
                 return Err("Inset can't offset a corner whose edges fold back".into());
             }
             // m·d0 = m·d1 = inset: where the two moved edges meet.
-            unit_moves.push((d0 + d1) / denominator);
-        }
-        let original: Vec<DVec3> = ring.iter().map(|&v| p(v)).collect();
-        let at = |amount: f64| -> Vec<DVec3> {
-            original
-                .iter()
-                .zip(&unit_moves)
-                .map(|(&q, &m)| q + m * amount)
-                .collect()
-        };
-        let amount = if options.stop_at_fold {
-            inset
-                * crate::polygon::fold_free_share(|k| {
-                    crate::polygon::ring_folds(&original, &at(inset * k), normal)
-                })
-        } else {
-            inset
-        };
-        let mut inner = Vec::with_capacity(n);
-        for (i, q) in at(amount).into_iter().enumerate() {
+            let q = p(ring[i]) + (d0 + d1) * (inset / denominator);
             let id = u32::try_from(out.vertices.len()).map_err(|_| "Mesh point budget exceeded")?;
             out.vertices.push(q);
-            origins.push(ring[i]);
             inner.push(id);
         }
         for i in 0..n {
@@ -191,11 +131,6 @@ pub fn inset_geometry_with(
                 let Some(fit) = fits.get(&home) else {
                     return rows[fi].clone();
                 };
-                // Keep Cap UVs: the inner polygon (in its polygon's slot,
-                // same corner order) keeps the original corner UVs.
-                if options.keep_cap_uvs && fi == home {
-                    return rows[fi].clone();
-                }
                 face.vertices
                     .iter()
                     .map(|&v| {
@@ -212,7 +147,6 @@ pub fn inset_geometry_with(
     for (name, records) in out.attributes.uv_records.iter_mut() {
         *records = records_from_uvs(&out.faces, &out.uv_maps[name]);
     }
-    carry_maps(source, &mut out, &homes, &origins);
     // Inset 0 builds zero-area side quads on purpose (rule 4); mark them as
     // the deliberate degenerate polygons they are.
     for f in source.faces.len()..out.faces.len() {
@@ -230,84 +164,6 @@ pub fn inset_geometry_with(
             chosen.iter().map(|&f| f as u32).collect()
         },
     })
-}
-
-/// Corner and point maps on the new polygons and points: each corner copies
-/// the original corner at the same point of its polygon (an inner corner
-/// copies the outer corner it came from); each new point copies its corner
-/// point's weights, colours, morph offsets and typed values.
-fn carry_maps(source: &Mesh, out: &mut Mesh, homes: &[usize], origins: &[u32]) {
-    let first_new = source.vertices.len();
-    let origin = |v: u32| -> u32 {
-        (v as usize)
-            .checked_sub(first_new)
-            .map_or(v, |k| origins[k])
-    };
-    // Per output corner: the source corner it copies.
-    let donors: Vec<Vec<(usize, usize)>> = out
-        .faces
-        .iter()
-        .zip(homes)
-        .map(|(face, &home)| {
-            let ring = &source.faces[home].vertices;
-            face.vertices
-                .iter()
-                .enumerate()
-                .map(|(c, &v)| {
-                    let o = origin(v);
-                    (home, ring.iter().position(|&x| x == o).unwrap_or(c))
-                })
-                .collect()
-        })
-        .collect();
-    let a = &source.attributes;
-    let b = &mut out.attributes;
-    macro_rules! corners {
-        ($field:ident) => {
-            for (name, map) in &a.$field {
-                let rows = donors
-                    .iter()
-                    .map(|ds| ds.iter().map(|&(f, c)| map[f][c]).collect())
-                    .collect();
-                b.$field.insert(name.clone(), rows);
-            }
-        };
-    }
-    corners!(corner_weights);
-    corners!(corner_colors);
-    macro_rules! points {
-        ($field:ident) => {
-            for (name, map) in &a.$field {
-                let m = b.$field.get_mut(name).expect("cloned from the source");
-                for (k, &o) in origins.iter().enumerate() {
-                    if let Some(&value) = map.get(&o) {
-                        m.insert((first_new + k) as u32, value);
-                    }
-                }
-            }
-        };
-    }
-    points!(point_weights);
-    points!(point_colors);
-    points!(relative_morphs);
-    for (name, map) in &a.typed_maps {
-        let t = b.typed_maps.get_mut(name).expect("cloned from the source");
-        for (k, &o) in origins.iter().enumerate() {
-            if let Some(value) = map.points.get(&o) {
-                t.points.insert((first_new + k) as u32, value.clone());
-            }
-        }
-        if !map.corners.is_empty() {
-            t.corners = donors
-                .iter()
-                .map(|ds| {
-                    ds.iter()
-                        .map(|&(f, c)| map.corners.get(f).and_then(|r| r.get(c)).cloned().flatten())
-                        .collect()
-                })
-                .collect();
-        }
-    }
 }
 
 /// Shift (tool audit Tier 1, provisional TA1-Q08): each selected polygon
