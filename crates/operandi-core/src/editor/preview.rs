@@ -84,10 +84,8 @@ impl Editor {
                     self.live.as_mut().ok_or("No active primitive")?.params = p;
                     return Ok(());
                 }
-                let mut mesh = crate::primitive::segmented_cube(p.position, p.size, p.segments)?;
-                if p.make_uvs && !mesh.faces.is_empty() {
-                    crate::add_cube_uvs(&mut mesh, p.position, p.size)?;
-                }
+                // The Cube's one generator, shared with its MeshOp (#14).
+                let mesh = p.cube_shape().mesh()?;
                 // SYM-PR-01/02.
                 let mesh = crate::user_defaults::primitive_symmetry(self.active_symmetry())
                     .doubled(mesh)?;

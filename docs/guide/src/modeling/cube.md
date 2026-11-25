@@ -58,6 +58,16 @@ Rows in grey aren't available yet; they show their value only. They are **Radius
 - Change **Segments** before you add bevels or loops, so the sides already
   have the rows you need.
 
+## In the Mesh Stack
+
+You can also add a Cube as a step of a mesh's **Mesh Stack**: choose
+**Cube** under **Create > Primitives** in the stack's **Add Operator**
+list. It has the same properties as the tool, and the tool and the stack
+step build exactly the same cube from the same values, so you can
+change it later without rebuilding the mesh. Rows that only steer the
+tool's handles (**Handle Mode**, **Min** and **Max**) aren't there. Scripts
+add it with `meshop.create type:prim.cube.item`.
+
 ## Related
 
 - [Primitives](../interface/window.md): the **Toolbox** on the **Create** tab

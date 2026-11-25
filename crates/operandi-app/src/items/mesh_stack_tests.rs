@@ -343,6 +343,8 @@ fn every_op_icon_name_is_a_generator_icon() {
         "pmodel.unifyPolygons.item",
         "delete.meshop.item",
         "meshcleanup.tool.item",
+        // Teapot is a menu item with no tool icon.
+        "prim.teapot.item",
         // Relax Mesh is a small text button with no icon (DEFORM §1).
         "sculpt.relaxMesh.item",
     ];

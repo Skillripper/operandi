@@ -63,6 +63,16 @@ Rows in grey aren't available yet; they show their value only. They are **Distor
   **Control** while you draw, or type one value and press **Tab** to the
   next.
 
+## In the Mesh Stack
+
+You can also add a Sphere as a step of a mesh's **Mesh Stack**: choose
+**Sphere** under **Create > Primitives** in the stack's **Add Operator**
+list. It has the same properties as the tool, and the tool and the stack
+step build exactly the same sphere from the same values, so you can
+change it later without rebuilding the mesh. Rows that only steer the
+tool's handles (**Handle Mode**, **Min** and **Max**) aren't there. Scripts
+add it with `meshop.create type:prim.sphere.item`.
+
 ## Related
 
 - [Primitives](../interface/window.md): the **Toolbox** on the **Create** tab

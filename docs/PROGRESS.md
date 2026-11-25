@@ -1,5 +1,15 @@
 # Milestone progress ledger
 
+- **Primitive MeshOps match the tools (2026-11-25, GitHub #14, branch claude/project-thread-8fccr9):**
+  one generator per primitive. Cube, Sphere and Cylinder became shapes
+  (`primitives/primitive_shapes.rs`) that the tools and ops both build
+  from; the other primitives already had one parameter struct each.
+  `meshops/primitive_ops.rs` has eight ops (adds Ellipsoid, Cone, Torus,
+  Capsule, Teapot) with every tool option; op values convert to the
+  tool's parameters with every field named, so a new option doesn't
+  build until its op has it. No old-scene upgrade (nothing released).
+  Provisional: PRIM-OP-Q01..Q03.
+
 - **MeshBlend B2, strips v1 (2026-11-24, branch claude/project-thread-20fok5):**
   rounded strips on every join with the B0 strip builder (now
   `meshblend/strips.rs`): Strip Width, Profile 0–200 %, Rows, Design Mode

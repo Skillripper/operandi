@@ -551,11 +551,16 @@ pub mod persistence;
 pub mod preset;
 #[path = "primitives/primitive.rs"]
 pub mod primitive;
+#[path = "meshops/primitive_ops.rs"]
+mod primitive_ops;
+#[path = "primitives/primitive_shapes.rs"]
+pub mod primitive_shapes;
 #[path = "transforms/transform_repeat.rs"]
 pub mod transform_repeat;
 #[path = "commands/undo_memory.rs"]
 mod undo_memory;
 pub use primitive::*;
+pub use primitive_shapes::*;
 #[path = "uv/primitive_uv.rs"]
 pub mod primitive_uv;
 #[path = "scene_items/project.rs"]

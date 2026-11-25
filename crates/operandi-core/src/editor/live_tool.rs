@@ -470,11 +470,11 @@ impl Editor {
         // Unit primitives ignore the tools' last-used settings and use their
         // reset shapes (unit-primitive-2026-11-05 rules 9 and 11).
         let geometry = if tool == Tool::Box {
-            let mut mesh = crate::primitive::segmented_cube(DVec3::ZERO, DVec3::ONE, [1, 1, 1])?;
-            if make_uvs {
-                crate::add_cube_uvs(&mut mesh, DVec3::ZERO, DVec3::ONE)?;
+            crate::CubeShape {
+                make_uvs,
+                ..Default::default()
             }
-            mesh
+            .mesh()?
         } else {
             let mut radial = tool
                 .initial_radial()

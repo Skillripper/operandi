@@ -60,6 +60,16 @@ Rows in grey aren't available yet; they show their value only. They are **Edge W
 
 - **Cap Top** set to **None** leaves that end open, for a pipe or a cup.
 
+## In the Mesh Stack
+
+You can also add a Cylinder as a step of a mesh's **Mesh Stack**: choose
+**Cylinder** under **Create > Primitives** in the stack's **Add Operator**
+list. It has the same properties as the tool, and the tool and the stack
+step build exactly the same cylinder from the same values, so you can
+change it later without rebuilding the mesh. Rows that only steer the
+tool's handles (**Handle Mode**, **Min** and **Max**) aren't there. Scripts
+add it with `meshop.create type:prim.cylinder.item`.
+
 ## Related
 
 - [Primitives](../interface/window.md): the **Toolbox** on the **Create** tab

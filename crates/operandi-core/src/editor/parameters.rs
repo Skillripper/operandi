@@ -201,3 +201,47 @@ impl Default for Parameters {
         }
     }
 }
+
+/// The Cube, Sphere and Cylinder tools' settings as their shapes, the one
+/// generator each shares with its MeshOp (GitHub #14). Every field is
+/// named, so a new shape option doesn't build until the tool fills it.
+impl Parameters {
+    pub fn cube_shape(&self) -> crate::CubeShape {
+        crate::CubeShape {
+            position: self.position,
+            size: self.size,
+            segments: self.segments,
+            make_uvs: self.make_uvs,
+        }
+    }
+    pub fn sphere_shape(
+        &self,
+        position: DVec3,
+        radial: crate::RadialParameters,
+    ) -> crate::SphereShape {
+        crate::SphereShape {
+            position,
+            radius: radial.radius,
+            sides: radial.sides,
+            segments: radial.segments,
+            axis: self.radial_axis,
+            level: self.sphere_level,
+            make_uvs: self.make_uvs,
+        }
+    }
+    pub fn cylinder_shape(
+        &self,
+        position: DVec3,
+        radial: crate::RadialParameters,
+    ) -> crate::CylinderShape {
+        crate::CylinderShape {
+            position,
+            radius: radial.radius,
+            sides: radial.sides,
+            segments: radial.segments,
+            axis: self.radial_axis,
+            caps: self.cylinder_caps,
+            make_uvs: self.make_uvs,
+        }
+    }
+}
