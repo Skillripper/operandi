@@ -65,7 +65,7 @@ impl fmt::Display for Error {
         if matches!(self.format, Some((major, _)) if major <= 4) && self.category != "cancelled" {
             return write!(
                 f,
-                "This scene was saved by an older version of Modo (10 or earlier) and Operandi couldn't read it. Open it in Modo 16 or 17, save it again, then open the new copy. (Details: {} at byte {}: {}.)",
+                "This scene was saved by an older version of Modo (10 or earlier), and Operandi can't read this one yet. Please report it with the file (Help > Report Bug or Idea) so older scenes can be supported. Until then, saving it again in Modo 16 or 17 lets it open. (Details: {} at byte {}: {}.)",
                 self.category, self.offset, self.detail
             );
         }

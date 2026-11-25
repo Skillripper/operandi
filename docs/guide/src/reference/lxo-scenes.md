@@ -29,7 +29,7 @@ The import report lists everything it didn't bring in, by kind. The common ones:
 
 ## Tips
 
-- **A scene from Modo 10 or earlier won't open?** Operandi reads most older scenes, but some (often ones carrying extra plug-in data) are refused. The message then says the file is from an older version: open it in Modo 16 or 17, save it again, and open the new copy.
+- **A scene from Modo 10 or earlier won't open?** Operandi reads most older scenes, but some (often ones carrying extra plug-in data) are refused. The message then says the file is from an older version. Please report it with the file attached (**Help > Report Bug or Idea…**) so support for older scenes can improve. Until then, saving it again in Modo 16 or 17 lets it open.
 - A rig's custom channels (the sliders that drive it, such as an arm angle or landing gear) are on the **User Channels** tab of the item that holds them, usually the rig's top locator. Drag a slider to pose the rig; with Auto Key on, the change is keyed.
 - An imported two-bone IK chain bends to the side its setup pose bends. If the knee points the wrong way, set a pole target on the IK. A three-bar chain shares its bend the way Operandi's chain IK does, which can differ from the original.
 - **File > Open** and **File > Import** both bring the animation in. Import adds the file's items to your scene; if your scene has no keys yet, it also takes the file's frame rate and time range.

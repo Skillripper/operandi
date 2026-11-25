@@ -360,7 +360,7 @@ fn corruption_still_refuses() {
         "{shown}"
     );
     assert!(
-        shown.contains("save it again") && shown.contains("duplicate_item_id"),
+        shown.contains("report it with the file") && shown.contains("duplicate_item_id"),
         "{shown}"
     );
     // A polygon corner past the last point.
