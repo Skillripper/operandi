@@ -108,6 +108,7 @@ fn the_schematic_draws_and_its_drops_become_rig_lines() {
             id,
             piece: false,
             kind: None,
+            detail: None,
             inputs: vec![],
             outputs: vec![],
             broken: false,
@@ -142,5 +143,33 @@ fn the_schematic_draws_and_its_drops_become_rig_lines() {
             .len(),
         1
     );
+    frames(&mut a, &ctx, 1);
+}
+
+#[test]
+fn the_schematic_shows_one_page_and_saves_it_when_asked() {
+    use operandi_core::schematic_pages::PageId;
+    crate::anim_switch::set_for_test(true);
+    let ctx = Context::default();
+    let mut a = box_app();
+    a.editor.scene.new_mesh().unwrap();
+    let ids: Vec<u64> = a.editor.scene.items.iter().map(|i| i.id).collect();
+    a.execute(&format!(
+        "operandi.rig.modifierAdd kind:expression item:{}",
+        ids[1]
+    ));
+    a.execute("operandi.rig.schematicView");
+    frames(&mut a, &ctx, 2);
+    // No workspace yet: the whole rig on one unsaved page (SC-74).
+    assert_eq!(a.schematic.page, Some(PageId::All));
+    a.execute("operandi.rig.workspaceAdd name:Arms");
+    frames(&mut a, &ctx, 1);
+    let ws = a.editor.scene.animation.rig.workspaces[0].id;
+    assert_eq!(
+        a.schematic.page,
+        Some(PageId::Saved(ws)),
+        "the saved page replaces it"
+    );
+    a.execute("operandi.rig.schematicFit");
     frames(&mut a, &ctx, 1);
 }

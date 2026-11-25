@@ -9785,3 +9785,11 @@ Spec meshblend-2026-11-24. Readings where the spec is silent:
 - MB-Q04 When the polygons rebuilt from provenance break a mesh rule, the result falls back to the engine's triangles for that rebuild (seen once in random sequences); the cause is open.
 - MB-Q05 A rebuild that fails shows the failure on the op's row and passes the (empty) Base Mesh through, as every Mesh Stack op does; ST-04's "keep the last good result" isn't built yet.
 - MB-Q06 Sources are read as the viewport shows them (SB-23): subdivision polygons as their smooth surface at the source's Subdivision level, plain Face polygons as they are. SB-20 says every source is smoothed; read literally, a plain 1-segment cube blended as a ball and a cylinder's n-gon cap came to a point (Jason's QA, 2026-11-24).
+
+## Schematic workspaces (2026-11-24, branch claude/project-thread-mna1o9, provisional)
+
+Spec schematic-2026-11-24 (BEHAVIOR-SCHEMATIC, LXO-SCHEMATIC-FORMAT). Readings where it is silent:
+
+- SC-Q10 LXO places are scaled 6 points per unit, not the suggested 4: Operandi's nodes are 170 points wide with a row per linked channel, so at 4 columns and stacked nodes overlapped. Nodes that still overlap are moved down (each column keeps its order). Check HC-02's CONTROLS page.
+- SC-Q11 SC-16: a new piece on no page shows (unsaved) on the first saved page holding an item it touches, beside that item; it is saved when moved or arranged. Pieces on no page and touching nothing placed show on "Unplaced".
+- SC-Q12 Not built yet: marquee select (SC-69; left-drag on empty space still pans), multi-node selection, collapse (SC-29), backdrops/notes/elbows (imported as counts only), expanded vector rows (VXPD), hover magnify (SC-67). Fit Selected frames the node clicked last.

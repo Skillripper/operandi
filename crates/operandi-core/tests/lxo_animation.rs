@@ -591,3 +591,78 @@ fn text_that_isnt_utf8_is_read_as_windows_1252_with_a_note() {
         c.report.summary()
     );
 }
+
+// --- schematic pages (BEHAVIOR-SCHEMATIC SC-72, LXO-SCHEMATIC-FORMAT) -------
+
+fn tag(id: &[u8; 4], value: &str) -> ([u8; 4], Vec<u8>) {
+    let mut d = id.to_vec();
+    text(&mut d, value);
+    (*b"ITAG", d)
+}
+
+#[test]
+fn sc72_workspaces_and_node_places_come_in_with_their_names_and_order() {
+    let mut f = File::new(&["Default"], &NAMES);
+    f.item(
+        "locator",
+        "A",
+        1,
+        &[link("schmItem", 20), link("schmItem", 22)],
+    );
+    f.item(
+        "locator",
+        "B",
+        2,
+        &[link("schmItem", 21), link("schmItem", 26)],
+    );
+    let workspace = [tag(b"GTYP", "assembly"), tag(b"SGID", "workspace")];
+    f.item("assembly", "CONTROLS", 10, &workspace);
+    f.item("assembly", "Arms", 11, &workspace);
+    // A sub-assembly inside Arms: its nodes flatten onto Arms.
+    f.item(
+        "assembly",
+        "Hand",
+        12,
+        &[tag(b"GTYP", "assembly"), link("parent", 11)],
+    );
+    let record = |ws: u32, pos: &str| vec![link("schmItem", ws), tag(b"NPOS", pos)];
+    f.item("schmNode", "", 20, &record(10, "x=-10 y=4"));
+    // B on CONTROLS right where A is: moved down, not on top of it.
+    f.item("schmNode", "", 26, &record(10, "x=-10 y=5"));
+    f.item("schmNode", "", 22, &record(11, "x=0 y=0"));
+    f.item("schmNode", "", 21, &record(12, "x=5 y=8"));
+    // A record showing nothing, and a backdrop's record.
+    f.item(
+        "schmNode",
+        "",
+        24,
+        &[link("schmItem", 10), tag(b"LOCK", "locked")],
+    );
+    f.item("backdropSchm", "Wings", 30, &[link("schmItem", 25)]);
+    f.item("schmNode", "", 25, &record(10, "x=-20 y=0"));
+    let c = import(&f.bytes()).unwrap();
+    let ws = &c.scene.animation.rig.workspaces;
+    let names: Vec<&str> = ws.iter().map(|w| w.name.as_str()).collect();
+    assert_eq!(names, ["CONTROLS", "Arms"]);
+    let id = |name: &str| c.scene.items.iter().find(|i| i.name == name).unwrap().id;
+    let (a, b) = (format!("item:{}", id("A")), format!("item:{}", id("B")));
+    let at = |w: usize, k: &str| {
+        let p = ws[w].nodes.iter().find(|n| n.key == *k).unwrap();
+        (p.x, p.y)
+    };
+    let s = lxo_schematic_scale();
+    assert_eq!(at(0, &a), (-10. * s, 4. * s));
+    assert!(at(0, &b).1 > at(0, &a).1 + 40., "pushed below A");
+    assert_eq!(at(1, &a), (0., 0.));
+    assert_eq!(at(1, &b), (5. * s, 8. * s));
+    assert_eq!(ws[0].nodes.len(), 2);
+    let notes = c.report.notes.join("\n");
+    assert!(notes.contains("2 workspaces with 4 node places"), "{notes}");
+    assert!(notes.contains("1 backdrops not shown yet"), "{notes}");
+    assert!(notes.contains("sub-assemblies"), "{notes}");
+}
+
+/// Points per reference unit (schematic_import.rs `SCALE`).
+fn lxo_schematic_scale() -> f32 {
+    6.
+}

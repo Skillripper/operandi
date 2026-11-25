@@ -163,6 +163,7 @@
 - [Animation]()
     - [Channel panel](animation/channel-panel.md)
 - [Rigging]()
+    - [Schematic](rigging/schematic.md)
 - [Scripting and the test bridge](scripting/README.md)
     - [Python scripting](scripting/python.md)
     - [Python reference](scripting/python-reference.md)

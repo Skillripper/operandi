@@ -47,6 +47,9 @@ pub struct Rig {
     /// Character rigs (character_rig.rs, ACS-10; saved, native v63).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub characters: Vec<crate::character_rig::CharacterRig>,
+    /// Schematic workspaces (schematic_pages.rs, SC-91; native v67).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub workspaces: Vec<crate::schematic_pages::Workspace>,
     /// On an evaluated copy (rig_eval::apply): the document scene it was
     /// made from, for exports that evaluate other times. Never saved.
     #[serde(skip)]
@@ -255,6 +258,7 @@ impl Rig {
             && !self.ik_disabled
             && self.ik_tasks.is_empty()
             && self.characters.is_empty()
+            && self.workspaces.is_empty()
     }
     pub fn piece(&self, id: u64) -> Option<&Piece> {
         self.pieces.iter().find(|p| p.id == id)

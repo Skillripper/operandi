@@ -1,37 +1,51 @@
-//! The Schematic window (RG-70..72, F12): the rig as nodes and wires,
-//! drawn from `operandi_core::rig_schematic::build` each frame. Wiring,
-//! unwiring, adding modifiers and deleting pieces each run one
-//! `operandi.rig.*` line (UIC-160), so undo, scripts and the bridge agree.
-//! A floating window (UIC-183), hidden with the animation switch.
+//! The Schematic window (RG-70..72, BEHAVIOR-SCHEMATIC, F12): one
+//! workspace page at a time (SC-01, SC-75), its nodes at their saved
+//! places (SC-91), wires between them and marked stubs for wires leaving
+//! the page (SC-14). Pages, places, wiring, unwiring, adding modifiers
+//! and deleting pieces each run one `operandi.rig.*` line (UIC-160), so
+//! undo, scripts and the bridge agree. Pan and zoom are the view's own,
+//! per page, for the session (SC-68). A floating window (UIC-183),
+//! hidden with the animation switch.
 use super::*;
 use crate::command_handlers::Commands;
 use operandi_core::command_registry::{self as table, Area};
-use operandi_core::rig_schematic::{self, Node, Schematic, WORLD};
+use operandi_core::rig_schematic::{self, Schematic, WORLD};
+use operandi_core::schematic_layout::{ADD, Metrics};
+use operandi_core::schematic_pages::{self, PageId, PageView};
 use std::collections::BTreeMap;
 
-const NODE_W: f32 = 170.;
-const ROW_H: f32 = 18.;
-const HEAD_H: f32 = 22.;
-/// The "add channel" port on items (RG-70).
-const ADD: &str = "+";
+/// Zoom limits (SC-65).
+const ZOOM: (f32, f32) = (0.1, 3.);
 
 #[derive(Default)]
 pub(crate) struct SchematicView {
     pub(crate) open: bool,
-    /// Node positions the user dragged to, by key.
-    positions: BTreeMap<String, Pos2>,
-    /// Items added to the view by hand (RG-70), shown even unwired.
-    extra_items: Vec<u64>,
-    pan: Vec2,
-    /// A wire being drawn: from node key and output port, and where.
+    /// The page shown; `None` until one is picked (then the first, SC-75).
+    pub(crate) page: Option<PageId>,
+    /// Pan (points) and zoom per page, for the session (SC-68).
+    views: BTreeMap<PageId, (Vec2, f32)>,
+    /// The shown page and the scene state it was worked out for (a hash).
+    cache: Option<(u64, PageId, PageView)>,
+    /// A wire being drawn: from node key and output port.
     drawing: Option<(String, String)>,
-    moving: Option<(String, Vec2)>,
+    /// A node being dragged: its key, the grab offset and where it is now
+    /// (page units); the place is saved when the drag ends.
+    moving: Option<(String, Vec2, Pos2)>,
+    /// The node last clicked (Delete takes it off the page, SC-41).
+    selected_node: Option<String>,
     selected_wire: Option<(u64, String)>,
     /// A drop on an "add channel" port waits for a channel pick: the
     /// line to finish, with `{}` for the channel.
     pick: Option<(u64, String, Pos2)>,
-    /// What the right-click menu is for.
+    /// What the right-click menu is for (a node key, or "" for the page).
     menu: Option<(String, Pos2)>,
+    /// A workspace name being typed: (renaming which, the text).
+    naming: Option<(Option<u64>, String)>,
+    /// Lines that need the workspace a page save just made: `{ws}` in
+    /// them is replaced by its id.
+    after_save: Vec<String>,
+    /// Fit on the next frame: all nodes, or only the selected (SC-66).
+    fit: Option<bool>,
 }
 
 pub(crate) fn register(r: &mut Commands) {
@@ -39,7 +53,7 @@ pub(crate) fn register(r: &mut Commands) {
         table::script(
             "operandi.rig.schematicView",
             Area::Items,
-            "Shows or hides the Schematic (RG-70): rig pieces and the items they use as nodes and wires.",
+            "Shows or hides the Schematic (RG-70): workspace pages of rig pieces and items as nodes and wires.",
         )
         .operandi()
         .ui(),
@@ -52,6 +66,27 @@ pub(crate) fn register(r: &mut Commands) {
         },
     )
     .unwrap_or_else(|e| panic!("{e}"));
+    r.add_host_command(
+        table::script(
+            "operandi.rig.schematicFit",
+            Area::Items,
+            "Frames the Schematic page's nodes (SC-66): all of them, or with selected:true only the selected node.",
+        )
+        .operandi()
+        .ui(),
+        |a, args| {
+            let rest = args.rest.to_lowercase();
+            let selected = rest.contains("selected:true") || rest.contains("selected:1");
+            a.schematic.fit = Some(selected);
+        },
+    )
+    .unwrap_or_else(|e| panic!("{e}"));
+}
+
+impl SchematicView {
+    fn view(&self, page: PageId) -> (Vec2, f32) {
+        self.views.get(&page).copied().unwrap_or((Vec2::ZERO, 1.))
+    }
 }
 
 /// The line that joins an output port to an input port, or why not.
@@ -108,6 +143,23 @@ pub(crate) fn connect_line(
     }
 }
 
+/// `key@x/y` pairs for `schematicPlace` / `workspaceAdd`.
+fn place_arg<'a>(places: impl IntoIterator<Item = (&'a String, &'a [f32; 2])>) -> String {
+    let list: Vec<String> = places
+        .into_iter()
+        .map(|(k, p)| format!("{k}@{}/{}", p[0].round(), p[1].round()))
+        .collect();
+    format!("{{{}}}", list.join(","))
+}
+
+/// The name an unsaved page is saved under.
+fn page_name(page: PageId) -> &'static str {
+    match page {
+        PageId::Unplaced => "Unplaced",
+        _ => "Workspace",
+    }
+}
+
 impl Operandi {
     pub(super) fn schematic_window(&mut self, ctx: &Context) {
         if !self.schematic.open || !crate::anim_switch::enabled() {
@@ -151,39 +203,113 @@ impl Operandi {
         }
     }
 
-    /// The model, with the hand-added items as nodes too.
-    fn schematic_model(&self) -> Schematic {
-        let mut s = rig_schematic::build(&self.editor.scene);
-        for &id in &self.schematic.extra_items {
-            if s.nodes.iter().any(|n| n.key == format!("item:{id}")) {
-                continue;
-            }
-            if let Some(item) = self.editor.scene.item(id) {
-                s.nodes.push(Node {
-                    key: format!("item:{id}"),
-                    label: item.name.clone(),
-                    id,
-                    piece: false,
-                    kind: None,
-                    inputs: Vec::new(),
-                    outputs: Vec::new(),
-                    broken: false,
-                    column: 0,
-                });
+    /// What the shown page holds, worked out again only when the rig or
+    /// the item names change.
+    fn schematic_page(&mut self, page: PageId) -> PageView {
+        use std::hash::{Hash, Hasher};
+        let scene = &self.editor.scene;
+        let mut h = std::collections::hash_map::DefaultHasher::new();
+        serde_json::to_string(&scene.animation.rig)
+            .unwrap_or_default()
+            .hash(&mut h);
+        for i in &scene.items {
+            (i.id, &i.name).hash(&mut h);
+        }
+        let hash = h.finish();
+        if let Some((k, p, view)) = &self.schematic.cache
+            && *k == hash
+            && *p == page
+        {
+            return view.clone();
+        }
+        let view = schematic_pages::page(scene, page, &Metrics::default());
+        self.schematic.cache = Some((hash, page, view.clone()));
+        view
+    }
+
+    /// The line that saves `places` on the page: a move on a saved page,
+    /// or, on a page not saved yet, the whole page as a new workspace
+    /// (the moved places included), so it is never re-arranged after.
+    fn schematic_save_line(
+        &mut self,
+        page: PageId,
+        view: &PageView,
+        places: &[(String, [f32; 2])],
+    ) -> String {
+        match page {
+            PageId::Saved(ws) => format!(
+                "operandi.rig.schematicPlace workspace:{ws} place:{}",
+                place_arg(places.iter().map(|(k, p)| (k, p)))
+            ),
+            _ => {
+                let mut all = view.positions.clone();
+                for (k, p) in places {
+                    all.insert(k.clone(), *p);
+                }
+                format!(
+                    "operandi.rig.workspaceAdd name:{{{}}} place:{}",
+                    page_name(page),
+                    place_arg(all.iter())
+                )
             }
         }
-        // Every item node offers "add channel" both ways (RG-70).
-        for n in s.nodes.iter_mut().filter(|n| !n.piece) {
-            n.inputs.push(ADD.into());
-            n.outputs.push(ADD.into());
+    }
+
+    /// Runs `line` on the page's workspace (`{ws}`), saving an unsaved
+    /// page first.
+    fn schematic_on_page(
+        &mut self,
+        page: PageId,
+        view: &PageView,
+        line: String,
+        lines: &mut Vec<String>,
+    ) {
+        match page {
+            PageId::Saved(ws) => lines.push(line.replace("{ws}", &ws.to_string())),
+            _ => {
+                lines.push(self.schematic_save_line(page, view, &[]));
+                self.schematic.after_save.push(line);
+            }
         }
-        s
     }
 
     fn schematic_ui(&mut self, ui: &mut Ui) {
         let mut lines: Vec<String> = Vec::new();
-        let model = self.schematic_model();
+        let pages = schematic_pages::pages(&self.editor.scene);
+        let page = self
+            .schematic
+            .page
+            .filter(|p| pages.iter().any(|(q, _)| q == p))
+            .or(pages.first().map(|p| p.0));
+        self.schematic.page = page;
+        let metrics = Metrics::default();
+        let view = page.map(|p| self.schematic_page(p)).unwrap_or_default();
+        let model = &view.schematic;
+
+        // The top row: page selector, New Workspace…, Add, Add Selected,
+        // Add Rig, Arrange, Fit (SC-02, SC-10, SC-12, SC-17, SC-60, SC-66).
         ui.horizontal(|ui| {
+            let name = page
+                .and_then(|p| pages.iter().find(|q| q.0 == p))
+                .map_or("No workspace", |p| p.1.as_str());
+            egui::ComboBox::from_id_salt("schematic-page")
+                .selected_text(name)
+                .show_ui(ui, |ui| {
+                    for (id, label) in &pages {
+                        if ui.selectable_label(page == Some(*id), label).clicked() {
+                            self.schematic.page = Some(*id);
+                        }
+                    }
+                })
+                .response
+                .on_hover_text("The workspace shown (SC-02): each page shows only the nodes put on it");
+            if ui
+                .button("New Workspace…")
+                .on_hover_text("Add an empty workspace page, asking for its name\noperandi.rig.workspaceAdd")
+                .clicked()
+            {
+                self.schematic.naming = Some((None, "Workspace".into()));
+            }
             let r = ui.button("Add ▾").on_hover_text("Add a modifier (RG-71: wire it by hand)");
             egui::Popup::menu(&r).show(|ui| {
                 for kind in operandi_core::rig::MODIFIERS {
@@ -202,16 +328,60 @@ impl Operandi {
                     }
                 }
             });
+            let selected: Vec<String> = self
+                .editor
+                .scene
+                .selected_items()
+                .into_iter()
+                .map(|id| format!("item:{id}"))
+                .collect();
             if ui
-                .button("Add Selected Item")
-                .on_hover_text("Show the selected items as nodes (their linked channels and an add-channel port)")
+                .button("Add Selected")
+                .on_hover_text("Put the selected items on this page (SC-10)\noperandi.rig.schematicPlace")
                 .clicked()
             {
-                for id in self.editor.scene.selected_items() {
-                    if !self.schematic.extra_items.contains(&id) {
-                        self.schematic.extra_items.push(id);
+                self.schematic_add(page, &view, &selected, &mut lines);
+            }
+            if ui
+                .button("Add Rig")
+                .on_hover_text("Put the selected items' rig pieces on this page with the items they use, arranged (SC-17)\noperandi.rig.schematicPlace")
+                .clicked()
+            {
+                let full = rig_schematic::build(&self.editor.scene);
+                let mut keys = selected.clone();
+                for w in &full.wires {
+                    let piece = if selected.contains(&w.from) {
+                        &w.to
+                    } else if selected.contains(&w.to) {
+                        &w.from
+                    } else {
+                        continue;
+                    };
+                    for x in full.wires.iter().filter(|x| &x.from == piece || &x.to == piece) {
+                        for k in [&x.from, &x.to] {
+                            if !keys.contains(k) {
+                                keys.push(k.clone());
+                            }
+                        }
                     }
                 }
+                self.schematic_add(page, &view, &keys, &mut lines);
+            }
+            if let Some(p) = page
+                && ui
+                    .button("Arrange")
+                    .on_hover_text("Lay the page out by data flow; nodes you moved by hand stay put (SC-60)\noperandi.rig.schematicArrange")
+                    .clicked()
+            {
+                self.schematic_on_page(p, &view, "operandi.rig.schematicArrange workspace:{ws}".into(), &mut lines);
+            }
+            if ui
+                .button("Fit")
+                .on_hover_text("Frame every node on the page; Shift: only the selected node (SC-66)\noperandi.rig.schematicFit")
+                .clicked()
+            {
+                let only = ui.input(|i| i.modifiers.shift);
+                lines.push(format!("operandi.rig.schematicFit selected:{only}"));
             }
             if let Some((piece, port)) = self.schematic.selected_wire.clone()
                 && ui
@@ -223,43 +393,99 @@ impl Operandi {
                 self.schematic.selected_wire = None;
             }
         });
+
         let (rect, response) = ui.allocate_exact_size(ui.available_size(), Sense::click_and_drag());
         let painter = ui.painter_at(rect);
         painter.rect_filled(rect, 0., ui.visuals().extreme_bg_color);
-        // Layout: columns, then the user's moves.
-        let mut column_rows = [0usize; 3];
+        let Some(page) = page else {
+            painter.text(
+                rect.center(),
+                egui::Align2::CENTER_CENTER,
+                "No rig yet. Select items and use Add Selected, or New Workspace…",
+                egui::FontId::proportional(13.),
+                ui.visuals().weak_text_color(),
+            );
+            self.schematic_popups(ui, &view, None, &mut lines);
+            self.schematic_run(lines);
+            return;
+        };
+        let (mut pan, mut zoom) = self.schematic.view(page);
+        let origin = rect.min + vec2(20., 20.);
+
+        // Fit (SC-66): frame all nodes, or the selected one.
+        if let Some(only) = self.schematic.fit.take() {
+            let keys: Vec<&String> = view
+                .positions
+                .keys()
+                .filter(|k| !only || self.schematic.selected_node.as_ref() == Some(*k))
+                .collect();
+            let mut bounds = Rect::NOTHING;
+            for k in keys {
+                let p = view.positions[k];
+                let h = model
+                    .nodes
+                    .iter()
+                    .find(|n| &n.key == k)
+                    .map_or(40., |n| metrics.height(n));
+                bounds = bounds.union(Rect::from_min_size(
+                    pos2(p[0], p[1]),
+                    vec2(metrics.node_w, h),
+                ));
+            }
+            if bounds.is_positive() {
+                let room = rect.shrink(30.).size();
+                zoom = (room.x / bounds.width())
+                    .min(room.y / bounds.height())
+                    .clamp(ZOOM.0, 1.5);
+                pan = rect.center() - origin - bounds.center().to_vec2() * zoom;
+            }
+        }
+
+        // Zoom about the pointer (wheel or pinch); pan with the middle
+        // button or Alt-drag, or left-drag on empty space (SC-65).
+        let pointer = response.hover_pos();
+        if response.hovered() {
+            let (scroll, pinch) = ui.input(|i| (i.smooth_scroll_delta, i.zoom_delta()));
+            let factor = pinch * (scroll.y * 0.002).exp();
+            if (factor - 1.).abs() > 1e-4
+                && let Some(p) = pointer
+            {
+                let new = (zoom * factor).clamp(ZOOM.0, ZOOM.1);
+                let at = (p - origin - pan) / zoom;
+                pan = p - origin - at * new;
+                zoom = new;
+            }
+        }
+        let to_screen = |p: [f32; 2]| origin + pan + vec2(p[0], p[1]) * zoom;
+        let to_page = |p: Pos2| ((p - origin - pan) / zoom).to_pos2();
+
+        // Node rectangles: saved or shown places, then a drag in progress.
         let mut at: BTreeMap<String, Rect> = BTreeMap::new();
         for n in &model.nodes {
-            let rows = n.inputs.len().max(n.outputs.len()).max(1);
-            let h = HEAD_H + rows as f32 * ROW_H + 6.;
-            let col = n.column.min(2) as usize;
-            let default = rect.min
-                + vec2(
-                    20. + col as f32 * (NODE_W + 90.),
-                    20. + column_rows[col] as f32 * 12.,
-                )
-                + self.schematic.pan;
-            column_rows[col] += (h / 12.).ceil() as usize + 2;
-            let pos = self
-                .schematic
-                .positions
-                .get(&n.key)
-                .map_or(default, |p| *p + self.schematic.pan);
-            at.insert(n.key.clone(), Rect::from_min_size(pos, vec2(NODE_W, h)));
+            let mut p = view.positions.get(&n.key).copied().unwrap_or([0., 0.]);
+            if let Some((k, _, now)) = &self.schematic.moving
+                && k == &n.key
+            {
+                p = [now.x, now.y];
+            }
+            at.insert(
+                n.key.clone(),
+                Rect::from_min_size(to_screen(p), vec2(metrics.node_w, metrics.height(n)) * zoom),
+            );
         }
         let port_pos = |key: &str, port: &str, output: bool| -> Option<Pos2> {
             let n = model.nodes.iter().find(|n| n.key == key)?;
             let r = at.get(key)?;
-            let list = if output { &n.outputs } else { &n.inputs };
-            let i = list.iter().position(|p| p == port)?;
+            let y = metrics.port_y(n, port, output)?;
             Some(pos2(
                 if output { r.right() } else { r.left() },
-                r.top() + HEAD_H + (i as f32 + 0.5) * ROW_H,
+                r.top() + y * zoom,
             ))
         };
-        let pointer = response.hover_pos();
-        // Wires (UIC: bezier from output to input).
+
+        // Wires (bezier from output to input, SC-33).
         let mut nearest: Option<(f32, (u64, String))> = None;
+        let wire_w = (1.5 * zoom).clamp(0.6, 2.5);
         for w in &model.wires {
             let (Some(a), Some(b)) = (
                 port_pos(&w.from, &w.from_port, true),
@@ -267,7 +493,7 @@ impl Operandi {
             ) else {
                 continue;
             };
-            let dx = ((b.x - a.x).abs() * 0.5).max(40.);
+            let dx = ((b.x - a.x).abs() * 0.5).max(40. * zoom);
             let pts = [a, a + vec2(dx, 0.), b - vec2(dx, 0.), b];
             let port = if w.from.starts_with("piece:") {
                 "out".to_owned()
@@ -284,7 +510,7 @@ impl Operandi {
                 pts,
                 false,
                 Color32::TRANSPARENT,
-                Stroke::new(if selected { 2.5f32 } else { 1.5f32 }, colour),
+                Stroke::new(if selected { wire_w + 1. } else { wire_w }, colour),
             ));
             if let Some(p) = pointer {
                 let d = (0..=16)
@@ -303,10 +529,15 @@ impl Operandi {
                 }
             }
         }
+
         // Nodes.
         let text = ui.visuals().text_color();
+        let accent = crate::theme::orange();
+        let selected_item = self.editor.scene.selection.item;
         let mut hovered_port: Option<(String, String, bool)> = None;
         let mut hovered_node: Option<String> = None;
+        let mut hovered_stub: Option<&schematic_pages::Stub> = None;
+        let labels = zoom >= 0.45;
         for n in &model.nodes {
             let r = at[&n.key];
             let fill = if n.broken {
@@ -316,98 +547,262 @@ impl Operandi {
             } else {
                 ui.visuals().widgets.noninteractive.bg_fill
             };
-            painter.rect_filled(r, 4., fill);
+            painter.rect_filled(r, 4. * zoom, fill);
+            // Its item selected (SC-70) or the node picked: accent outline (UIC-01).
+            let lit = (!n.piece && selected_item == Some(n.id))
+                || self.schematic.selected_node.as_ref() == Some(&n.key);
             painter.rect_stroke(
                 r,
-                4.,
-                Stroke::new(1f32, ui.visuals().widgets.noninteractive.bg_stroke.color),
+                4. * zoom,
+                if lit {
+                    Stroke::new(2f32, accent)
+                } else {
+                    Stroke::new(1f32, ui.visuals().widgets.noninteractive.bg_stroke.color)
+                },
                 egui::StrokeKind::Inside,
             );
             painter.text(
-                r.min + vec2(6., 4.),
+                r.min + vec2(6., 4.) * zoom,
                 egui::Align2::LEFT_TOP,
                 &n.label,
-                egui::FontId::proportional(13.),
+                egui::FontId::proportional(13. * zoom),
                 text,
             );
+            if labels && let Some(detail) = &n.detail {
+                // The formula, cut to the node's width (the tooltip has it all).
+                let fits = ((metrics.node_w - 12.) / 6.2).floor().max(4.) as usize;
+                let shown: String = if detail.chars().count() > fits {
+                    detail.chars().take(fits - 1).chain(['…']).collect()
+                } else {
+                    detail.clone()
+                };
+                painter.text(
+                    r.min + vec2(6., metrics.head_h - 2.) * zoom,
+                    egui::Align2::LEFT_TOP,
+                    shown,
+                    egui::FontId::monospace(10. * zoom),
+                    ui.visuals().weak_text_color(),
+                );
+            }
             if pointer.is_some_and(|p| r.contains(p)) {
                 hovered_node = Some(n.key.clone());
             }
+            let add_port = [ADD.to_owned()];
+            let add: &[String] = if n.piece { &[] } else { &add_port };
             for (output, list) in [(false, &n.inputs), (true, &n.outputs)] {
-                for port in list {
+                for port in list.iter().chain(add) {
                     let Some(p) = port_pos(&n.key, port, output) else {
                         continue;
                     };
-                    painter.circle_filled(p, 4., crate::theme::orange());
-                    let label_at = if output {
-                        p - vec2(8., 0.)
-                    } else {
-                        p + vec2(8., 0.)
-                    };
-                    let align = if output {
-                        egui::Align2::RIGHT_CENTER
-                    } else {
-                        egui::Align2::LEFT_CENTER
-                    };
-                    painter.text(label_at, align, port, egui::FontId::proportional(11.), text);
+                    let stub = view
+                        .stubs
+                        .iter()
+                        .find(|s| s.node == n.key && &s.port == port && s.output == output);
+                    let radius = (4. * zoom).max(2.);
+                    if stub.is_some() {
+                        // SC-14: a wire to a node not on this page.
+                        painter.circle_stroke(p, radius + 2., Stroke::new(1.5f32, accent));
+                    }
+                    painter.circle_filled(p, radius, accent);
+                    if labels {
+                        let (label_at, align) = if output {
+                            (p - vec2(8. * zoom, 0.), egui::Align2::RIGHT_CENTER)
+                        } else {
+                            (p + vec2(8. * zoom, 0.), egui::Align2::LEFT_CENTER)
+                        };
+                        painter.text(
+                            label_at,
+                            align,
+                            port,
+                            egui::FontId::proportional(11. * zoom),
+                            text,
+                        );
+                    }
                     if pointer.is_some_and(|q| (q - p).length() < 7.) {
                         hovered_port = Some((n.key.clone(), port.clone(), output));
+                        hovered_stub = stub;
                     }
                 }
             }
         }
+
         // Gestures: drag from an output port draws a wire; drag a node
-        // moves it; drag the background pans; click a wire selects it.
-        if response.drag_started() {
+        // moves it; middle, Alt or empty-space drag pans; click selects.
+        let panning = response.dragged_by(egui::PointerButton::Middle)
+            || (response.dragged() && ui.input(|i| i.modifiers.alt));
+        if response.drag_started_by(egui::PointerButton::Primary) && !ui.input(|i| i.modifiers.alt)
+        {
             if let Some((key, port, true)) = hovered_port.clone() {
                 self.schematic.drawing = Some((key, port));
             } else if let Some(key) = hovered_node.clone()
                 && let Some(p) = pointer
             {
-                self.schematic.moving = Some((key.clone(), p - at[&key].min));
+                let r = at[&key];
+                let grab = (p - r.min) / zoom;
+                self.schematic.moving = Some((key, grab, to_page(r.min)));
             }
         }
         if response.dragged() {
-            if let (Some((key, grab)), Some(p)) = (self.schematic.moving.clone(), pointer) {
-                self.schematic
-                    .positions
-                    .insert(key, p - grab - self.schematic.pan);
+            if let (Some((key, grab, _)), Some(p), false) =
+                (self.schematic.moving.clone(), pointer, panning)
+            {
+                self.schematic.moving = Some((key, grab, to_page(p) - grab));
             } else if self.schematic.drawing.is_none() {
-                self.schematic.pan += response.drag_delta();
+                pan += response.drag_delta();
             }
         }
         if let (Some((key, port)), Some(p)) = (&self.schematic.drawing, pointer)
             && let Some(a) = port_pos(key, port, true)
         {
-            painter.line_segment([a, p], Stroke::new(1.5f32, crate::theme::orange()));
+            painter.line_segment([a, p], Stroke::new(1.5f32, accent));
         }
         if response.drag_stopped() {
             if let Some((from, from_port)) = self.schematic.drawing.take()
                 && let Some((to, to_port, false)) = hovered_port.clone()
             {
-                self.schematic_drop(
-                    &model, &from, &from_port, &to, &to_port, pointer, &mut lines,
-                );
+                self.schematic_drop(model, &from, &from_port, &to, &to_port, pointer, &mut lines);
             }
-            self.schematic.moving = None;
+            if let Some((key, _, now)) = self.schematic.moving.take() {
+                let line = self.schematic_save_line(page, &view, &[(key, [now.x, now.y])]);
+                lines.push(line);
+            }
         }
-        if response.clicked() {
+        if response.double_clicked()
+            && let Some(stub) = hovered_stub
+            && let Some(p) = view.positions.get(&stub.node)
+        {
+            // SC-14: bring the other end onto the page beside this node.
+            let side = if stub.output { 1. } else { -1. };
+            let x = p[0] + side * (metrics.node_w + metrics.gap_x);
+            let line = self.schematic_save_line(page, &view, &[(stub.other.clone(), [x, p[1]])]);
+            lines.push(line);
+        } else if response.clicked() {
             self.schematic.selected_wire = nearest.map(|n| n.1);
+            self.schematic.selected_node = hovered_node.clone();
+            // SC-70: clicking an item's node selects the item.
+            if let Some(key) = &hovered_node
+                && let Some(id) = key.strip_prefix("item:")
+            {
+                lines.push(format!("select.item {id}"));
+            }
         }
         if response.secondary_clicked()
-            && let (Some(key), Some(p)) = (hovered_node.clone(), pointer)
+            && let Some(p) = pointer
         {
-            self.schematic.menu = Some((key, p));
+            self.schematic.menu = Some((hovered_node.clone().unwrap_or_default(), p));
         }
-        if self.schematic.selected_wire.is_some()
-            && ui.input(|i| i.key_pressed(egui::Key::Delete) || i.key_pressed(egui::Key::Backspace))
-            && let Some((piece, port)) = self.schematic.selected_wire.take()
+        let delete =
+            ui.input(|i| i.key_pressed(egui::Key::Delete) || i.key_pressed(egui::Key::Backspace));
+        if delete && response.hovered() {
+            if let Some((piece, port)) = self.schematic.selected_wire.take() {
+                lines.push(format!("operandi.rig.unwire piece:{piece} port:{{{port}}}"));
+                self.status = "Deleted the wire".into();
+            } else if let Some(key) = self.schematic.selected_node.take() {
+                // SC-41: keys take a node off the page, never out of the scene.
+                self.schematic_on_page(
+                    page,
+                    &view,
+                    format!("operandi.rig.schematicRemove workspace:{{ws}} nodes:{{{key}}}"),
+                    &mut lines,
+                );
+                self.status = "Took the node off this page (the scene keeps it)".into();
+            }
+        }
+        // Hovering a piece says what it is and what it drives.
+        if self.schematic.moving.is_none()
+            && self.schematic.drawing.is_none()
+            && let Some(key) = &hovered_node
+            && let Some(n) = model.nodes.iter().find(|n| &n.key == key && n.piece)
         {
-            lines.push(format!("operandi.rig.unwire piece:{piece} port:{{{port}}}"));
+            let label = |k: &str| {
+                model
+                    .nodes
+                    .iter()
+                    .find(|n| n.key == k)
+                    .map_or_else(|| k.to_owned(), |n| n.label.clone())
+            };
+            let mut tip = n.label.clone();
+            if let Some(d) = &n.detail {
+                tip.push_str(&format!("\n{d}"));
+            }
+            for w in model.wires.iter().filter(|w| w.from == n.key) {
+                tip.push_str(&format!("\nDrives {} {}", label(&w.to), w.to_port));
+            }
+            response.clone().on_hover_text_at_pointer(tip);
+        } else if let Some(stub) = hovered_stub {
+            response.clone().on_hover_text_at_pointer(format!(
+                "Wired to {}, not on this page. Double-click to bring it here.",
+                stub.other
+            ));
         }
-        // The right-click menu (never empty, UIC-60).
+        self.schematic.views.insert(page, (pan, zoom));
+        self.schematic_popups(ui, &view, Some(page), &mut lines);
+        self.schematic_run(lines);
+    }
+
+    /// Puts `keys` on the page, arranged (SC-10, SC-17); with no page yet,
+    /// a new workspace holding them.
+    fn schematic_add(
+        &mut self,
+        page: Option<PageId>,
+        view: &PageView,
+        keys: &[String],
+        lines: &mut Vec<String>,
+    ) {
+        if keys.is_empty() {
+            self.status = "Select items to put on the page".into();
+            return;
+        }
+        let nodes = format!("{{{}}}", keys.join(","));
+        match page {
+            Some(p) => self.schematic_on_page(
+                p,
+                view,
+                format!("operandi.rig.schematicPlace workspace:{{ws}} nodes:{nodes}"),
+                lines,
+            ),
+            None => {
+                lines.push("operandi.rig.workspaceAdd name:Workspace".into());
+                self.schematic.after_save.push(format!(
+                    "operandi.rig.schematicPlace workspace:{{ws}} nodes:{nodes}"
+                ));
+            }
+        }
+    }
+
+    /// Runs the frame's lines; a line that made a workspace shows it and
+    /// runs what was waiting for it.
+    fn schematic_run(&mut self, lines: Vec<String>) {
+        for l in lines {
+            let before = self.editor.scene.animation.rig.workspaces.len();
+            self.execute(&l);
+            let rig = &self.editor.scene.animation.rig;
+            if l.starts_with("operandi.rig.workspaceAdd") && rig.workspaces.len() > before {
+                let ws = rig.workspaces.last().expect("added").id;
+                self.schematic.page = Some(PageId::Saved(ws));
+                for waiting in std::mem::take(&mut self.schematic.after_save) {
+                    self.execute(&waiting.replace("{ws}", &ws.to_string()));
+                }
+            }
+        }
+        self.schematic.after_save.clear();
+    }
+
+    /// The right-click menu, the channel pick and the name prompt.
+    fn schematic_popups(
+        &mut self,
+        ui: &mut Ui,
+        view: &PageView,
+        page: Option<PageId>,
+        lines: &mut Vec<String>,
+    ) {
+        // The right-click menu (never empty, UIC-07).
         if let Some((key, at_pos)) = self.schematic.menu.clone() {
             let mut close = false;
+            let saved = match page {
+                Some(PageId::Saved(ws)) => Some(ws),
+                _ => None,
+            };
             egui::Area::new(egui::Id::new("schematic-menu"))
                 .fixed_pos(at_pos)
                 .order(egui::Order::Foreground)
@@ -415,24 +810,69 @@ impl Operandi {
                     egui::Frame::menu(ui.style()).show(ui, |ui| {
                         if let Some(id) = key.strip_prefix("piece:") {
                             if ui
-                                .button("Delete")
-                                .on_hover_text(
-                                    "Delete the piece and its wires\noperandi.rig.remove",
-                                )
+                                .button("Delete Piece")
+                                .on_hover_text("Delete the rig piece and its wires from the scene\noperandi.rig.remove")
                                 .clicked()
                             {
                                 lines.push(format!("operandi.rig.remove piece:{id}"));
                                 close = true;
                             }
-                        } else if let Some(id) = key.strip_prefix("item:") {
-                            if ui.button("Select").clicked() {
-                                lines.push(format!("select.item {id}"));
+                        } else if let Some(id) = key.strip_prefix("item:")
+                            && ui.button("Select").clicked()
+                        {
+                            lines.push(format!("select.item {id}"));
+                            close = true;
+                        }
+                        if !key.is_empty()
+                            && let Some(p) = page
+                            && ui
+                                .button("Remove from Page")
+                                .on_hover_text("Take the node off this page; the scene keeps it (Delete, SC-41)\noperandi.rig.schematicRemove")
+                                .clicked()
+                        {
+                            self.schematic_on_page(
+                                p,
+                                view,
+                                format!("operandi.rig.schematicRemove workspace:{{ws}} nodes:{{{key}}}"),
+                                lines,
+                            );
+                            close = true;
+                        }
+                        if key.is_empty()
+                            && let Some(ws) = saved
+                        {
+                            if ui
+                                .button("Rename Workspace…")
+                                .on_hover_text("operandi.rig.workspaceRename")
+                                .clicked()
+                            {
+                                let name = self
+                                    .editor
+                                    .scene
+                                    .animation
+                                    .rig
+                                    .workspaces
+                                    .iter()
+                                    .find(|w| w.id == ws)
+                                    .map(|w| w.name.clone())
+                                    .unwrap_or_default();
+                                self.schematic.naming = Some((Some(ws), name));
                                 close = true;
                             }
-                            if ui.button("Hide from Schematic").clicked() {
-                                if let Ok(id) = id.parse::<u64>() {
-                                    self.schematic.extra_items.retain(|i| *i != id);
-                                }
+                            if ui
+                                .button("Clear Workspace")
+                                .on_hover_text("Take every node off this page; the scene keeps them (SC-06)\noperandi.rig.workspaceClear")
+                                .clicked()
+                            {
+                                lines.push(format!("operandi.rig.workspaceClear workspace:{ws}"));
+                                close = true;
+                            }
+                            if ui
+                                .button("Delete Workspace")
+                                .on_hover_text("Delete this page; the scene keeps everything on it\noperandi.rig.workspaceRemove")
+                                .clicked()
+                            {
+                                lines.push(format!("operandi.rig.workspaceRemove workspace:{ws}"));
                                 close = true;
                             }
                         }
@@ -479,8 +919,44 @@ impl Operandi {
                 self.schematic.pick = None;
             }
         }
-        for l in lines {
-            self.execute(&l);
+        // New Workspace… / Rename Workspace…: the name (UIC-03).
+        if let Some((renaming, mut name)) = self.schematic.naming.clone() {
+            let mut close = false;
+            egui::Area::new(egui::Id::new("schematic-name"))
+                .anchor(egui::Align2::CENTER_TOP, vec2(0., 40.))
+                .order(egui::Order::Foreground)
+                .show(ui.ctx(), |ui| {
+                    egui::Frame::menu(ui.style()).show(ui, |ui| {
+                        ui.label(if renaming.is_some() {
+                            "Rename Workspace"
+                        } else {
+                            "New Workspace"
+                        });
+                        let edit = ui.text_edit_singleline(&mut name);
+                        edit.request_focus();
+                        let enter =
+                            edit.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
+                        ui.horizontal(|ui| {
+                            if (ui.button("OK").clicked() || enter) && !name.trim().is_empty() {
+                                lines.push(match renaming {
+                                    Some(ws) => format!(
+                                        "operandi.rig.workspaceRename workspace:{ws} name:{{{}}}",
+                                        name.trim()
+                                    ),
+                                    None => format!(
+                                        "operandi.rig.workspaceAdd name:{{{}}}",
+                                        name.trim()
+                                    ),
+                                });
+                                close = true;
+                            }
+                            if ui.button("Cancel").clicked() {
+                                close = true;
+                            }
+                        });
+                    });
+                });
+            self.schematic.naming = (!close).then_some((renaming, name));
         }
     }
 
