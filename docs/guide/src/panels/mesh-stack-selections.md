@@ -53,6 +53,14 @@ the **Source Item** list number them from the bottom (**Polygon Bevel**,
 **Polygon Bevel 2**), so you can tell which one you pick. A Selection Set of the step's own kind (an edge set for an
 Edge step) is used first.
 
+## With Polygon Bevel
+
+A rule or random pick often gives patches that touch only at a corner,
+or every polygon of a closed shape. With **Group Polygons** on, a
+**Polygon Bevel** step bevels each patch as its own group, and a patch
+that can't be grouped (a whole closed shape) polygon by polygon. A rule
+that picks nothing leaves the mesh as it is.
+
 ## Order
 
 Selection steps are listed in the order they apply, first at the top, each

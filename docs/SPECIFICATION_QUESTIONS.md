@@ -8786,6 +8786,14 @@ extrude, smooth-shift-thicken, split, quadruple and flip case).
   ignoring the item transforms; the exact cases replaced that reading on
   2026-11-18.) Unclear: what the switch does change in the reference,
   perhaps falloff sampling as FAL-B2-07's Use World Transforms.
+- **MOQ-31 Grouped Bevel op on regions it can't group (GitHub #25, #29).**
+  A Polygon Bevel op with Group Polygons on whose selection (from
+  selection ops) has islands touching only at a corner, a whole closed
+  part, or a pinched outline used to fail and pass its input through.
+  It now bevels each edge-connected region as a group, and a region it
+  still can't group polygon by polygon [provisional]. Unmeasured: what
+  the reference does with corner-touching islands (one shared new point,
+  as Extrude's PE-N-03, or one each).
 - **UVN-O-grow-quads-seam with corner UVs only, provisional.** Spec:
   new-point-uvs-2026-11-02 (UVN-T-06). Start: the seam grid, read as corner
   UVs only (how Operandi and imported meshes keep UVs); Grow Quads on edges

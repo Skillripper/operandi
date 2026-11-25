@@ -226,10 +226,96 @@ impl TypedOp for BevelOp {
             // A whole closed mesh has no region edge to group by; bevel
             // each polygon instead (MOQ-11, provisional).
             Err(_) if whole && o.group => bevel(false)?,
+            // GitHub #25/#29: a rule or random selection often picks
+            // regions a grouped bevel can't take in one go (islands
+            // touching at a corner, a whole closed part). Bevel each
+            // region on its own instead of failing (MOQ-31, provisional).
+            Err(e) if o.group => match bevel_by_region(ctx.input, &faces, o, &options) {
+                Some(r) => r,
+                None => return Err(e),
+            },
             Err(e) => return Err(e),
         };
         Ok(front_and_sides(ctx, r.mesh, &r.selected))
     }
+}
+
+/// Polygon Bevel with Group Polygons on, one edge-connected region at a
+/// time (MOQ-31): each region is bevelled as a group, and a region a
+/// grouped bevel refuses (a whole closed part, a pinched outline) is
+/// bevelled polygon by polygon. Bevel keeps the input's polygon numbers
+/// and adds the new polygons after them, so the regions still to go keep
+/// their numbers; `None` when that doesn't hold or a region still fails.
+fn bevel_by_region(
+    input: &Mesh,
+    faces: &[u32],
+    o: &BevelOp,
+    options: &crate::BevelOptions,
+) -> Option<crate::BevelResult> {
+    let regions = edge_connected_regions(input, faces);
+    let mut mesh = input.clone();
+    let mut fronts = Vec::new();
+    for region in regions {
+        let run = |m: &Mesh, group: bool| {
+            crate::bevel_geometry_applied(m, &region, o.shift, o.inset, group, options, None, None)
+        };
+        let r = run(&mesh, true).or_else(|_| run(&mesh, false)).ok()?;
+        let mut kept = r.selected.clone();
+        kept.sort_unstable();
+        let mut want = region.clone();
+        want.sort_unstable();
+        if kept != want || r.mesh.faces.len() < mesh.faces.len() {
+            return None;
+        }
+        fronts.extend(r.selected);
+        mesh = r.mesh;
+    }
+    Some(crate::BevelResult {
+        mesh,
+        selected: fronts,
+    })
+}
+
+/// `faces` split into groups joined by shared edges, each in `faces`'
+/// order.
+fn edge_connected_regions(mesh: &Mesh, faces: &[u32]) -> Vec<Vec<u32>> {
+    use std::collections::HashMap;
+    let mut by_edge: HashMap<(u32, u32), Vec<usize>> = HashMap::new();
+    for (i, &f) in faces.iter().enumerate() {
+        let v = &mesh.faces[f as usize].vertices;
+        for c in 0..v.len() {
+            let (a, b) = (v[c], v[(c + 1) % v.len()]);
+            by_edge.entry((a.min(b), a.max(b))).or_default().push(i);
+        }
+    }
+    // Union-find over positions in `faces`.
+    let mut parent: Vec<usize> = (0..faces.len()).collect();
+    fn root(parent: &mut [usize], mut i: usize) -> usize {
+        while parent[i] != i {
+            parent[i] = parent[parent[i]];
+            i = parent[i];
+        }
+        i
+    }
+    for users in by_edge.values() {
+        for w in users.windows(2) {
+            let (a, b) = (root(&mut parent, w[0]), root(&mut parent, w[1]));
+            parent[a.max(b)] = a.min(b);
+        }
+    }
+    let mut order: Vec<usize> = Vec::new();
+    let mut groups: HashMap<usize, Vec<u32>> = HashMap::new();
+    for (i, &f) in faces.iter().enumerate() {
+        let r = root(&mut parent, i);
+        if !groups.contains_key(&r) {
+            order.push(r);
+        }
+        groups.entry(r).or_default().push(f);
+    }
+    order
+        .into_iter()
+        .filter_map(|r| groups.remove(&r))
+        .collect()
 }
 impl TypedOp for SmoothShiftOp {
     fn run(&self, ctx: &OpContext) -> Result<Mesh> {
