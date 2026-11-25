@@ -101,11 +101,16 @@ You can also add a Sphere as a step of a mesh's **Mesh Stack**: choose
 list. It has the same properties as the tool, and the tool and the stack
 step build exactly the same sphere from the same values, so you can
 change it later without rebuilding the mesh. If a falloff is on when you
-add it, the step keeps its own copy; **Use Active Falloff** and **Clear
-Falloff** in its properties change that copy, and its **Falloff** rows
-work as above. Rows that only steer the
+add it, the step keeps its own copy; Its **Falloff Type** row and the
+falloff's own values (Start and End, Center and Size, Shape) edit that
+copy, and changes show at once. **Use Active Falloff** and **Clear
+Falloff** copy one in or remove it, and its other **Falloff** rows work as
+above. Rows that only steer the
 tool's handles (**Handle Mode**, **Min** and **Max**) aren't there. Scripts
 add it with `meshop.create type:prim.sphere.item`.
+
+With the step selected in the stack and no tool on, its handles show in the
+**3D view**. Drag the centre to move it, a square to resize it, and its falloff's points to move the falloff. Each drag is one undo step.
 
 ## Related
 

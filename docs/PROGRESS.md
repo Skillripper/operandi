@@ -1,5 +1,11 @@
 # Milestone progress ledger
 
+- **Live MeshOp falloffs and primitive op handles (2026-11-25, branch claude/project-thread-8fccr9):**
+  primitive ops edit their own falloff (type plus its values) in the op
+  panel, live; selecting a primitive op shows its centre, size squares and
+  falloff points in the view (`viewport/meshop_handles.rs`), and a drag
+  edits the op with one undo step. Provisional: MOP-H-Q01, Q02.
+
 - **Mesh Stack selection rules batch 1 (2026-11-25, GitHub #19, branch claude/project-thread-8fccr9):**
   thirteen rules from Steve Hill's list in `meshop_selection.rs`: Vertex
   Count (Triangles/Quads/N-gons), Area, Edge Length, Convex/Concave

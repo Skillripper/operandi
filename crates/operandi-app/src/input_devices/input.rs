@@ -43,6 +43,8 @@ pub enum GestureKind {
     ItemHandle(crate::camera_light_handles::Grab),
     /// Dragging falloff handle `handle` from the falloff as it was at the press.
     Falloff(usize, operandi_core::Falloff),
+    /// Dragging a handle of the selected primitive MeshOp (meshop_handles.rs).
+    MeshOpHandle(Box<crate::viewport::meshop_handles::OpGrab>),
     /// Drawing a numeric Cone (`cone`) or Ellipsoid on construction plane
     /// `plane` from `anchor` (Jason, 2026-11-02).
     SolidDraw {

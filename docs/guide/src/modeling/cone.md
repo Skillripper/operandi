@@ -66,6 +66,9 @@ change it later without rebuilding the mesh. **Min** and **Max**
 aren't there. Scripts
 add it with `meshop.create type:prim.cone.item`.
 
+With the step selected in the stack and no tool on, its handles show in the
+**3D view**. Drag the centre to move it, a square to resize it. Each drag is one undo step.
+
 ## Related
 
 - [Primitives](../interface/window.md): the **Toolbox** on the **Create** tab

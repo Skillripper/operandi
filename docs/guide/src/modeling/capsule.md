@@ -61,6 +61,9 @@ step build exactly the same capsule from the same values, so you can
 change it later without rebuilding the mesh. Scripts
 add it with `meshop.create type:prim.capsule.item`.
 
+With the step selected in the stack and no tool on, its handles show in the
+**3D view**. Drag the centre to move it, a square to resize it. Each drag is one undo step.
+
 ## Related
 
 - [Primitives](../interface/window.md): the **Toolbox** on the **Create** tab
