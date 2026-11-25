@@ -97,7 +97,7 @@ pub struct UiPreferences {
     /// the preference key: `pref.value ui.original_compatible`.
     pub original_compatible: bool,
     /// Slider Min/Max Labels: number fields with both limits show a range
-    /// bar and their limits under them (form/range_labels.rs; an approved
+    /// bar and their limits under them (controls/range_labels.rs; an approved
     /// change to UIC-90). Off by default, which keeps every row as before.
     pub slider_min_max_labels: bool,
     /// Rendered Icon Outline (Display > Colors): which rendered icon set

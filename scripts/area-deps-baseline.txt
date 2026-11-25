@@ -39,7 +39,6 @@ app/anim -> app/commands
 app/anim -> app/controls
 app/anim -> app/files
 app/anim -> app/render
-app/anim -> app/tools
 app/anim -> app/view
 app/anim -> app/window_layout
 app/commands -> app/(root)
@@ -60,7 +59,6 @@ app/commands -> app/view
 app/commands -> app/window_layout
 app/controls -> app/files
 app/controls -> app/theme
-app/controls -> app/tools
 app/create_tools -> app/(root)
 app/create_tools -> app/controls
 app/create_tools -> app/graphics
@@ -91,7 +89,6 @@ app/files -> app/presets
 app/files -> app/render
 app/files -> app/settings
 app/files -> app/theme
-app/files -> app/tools
 app/files -> app/view
 app/files -> app/window_layout
 app/graphics -> app/(root)
@@ -148,7 +145,6 @@ app/materials -> app/graphics
 app/materials -> app/presets
 app/materials -> app/render
 app/materials -> app/theme
-app/materials -> app/tools
 app/materials -> app/view
 app/materials -> app/window_layout
 app/menus -> app/(root)
@@ -164,7 +160,6 @@ app/nodes -> app/anim
 app/nodes -> app/controls
 app/nodes -> app/files
 app/nodes -> app/render
-app/nodes -> app/tools
 app/nodes -> app/window_layout
 app/painting_ui -> app/(root)
 app/painting_ui -> app/commands
@@ -175,7 +170,6 @@ app/painting_ui -> app/items
 app/painting_ui -> app/menus
 app/painting_ui -> app/settings
 app/painting_ui -> app/theme
-app/painting_ui -> app/tools
 app/painting_ui -> app/uv_view
 app/painting_ui -> app/view
 app/painting_ui -> app/window_layout
@@ -192,7 +186,6 @@ app/presets -> app/graphics
 app/presets -> app/materials
 app/presets -> app/settings
 app/presets -> app/theme
-app/presets -> app/tools
 app/presets -> app/view
 app/presets -> app/window_layout
 app/render -> app/(root)
@@ -206,15 +199,14 @@ app/render -> app/materials
 app/render -> app/rigging
 app/render -> app/settings
 app/render -> app/theme
-app/render -> app/tools
 app/render -> app/view
 app/render -> app/window_layout
 app/rigging -> app/(root)
 app/rigging -> app/anim
 app/rigging -> app/commands
+app/rigging -> app/controls
 app/rigging -> app/render
 app/rigging -> app/theme
-app/rigging -> app/tools
 app/rigging -> app/window_layout
 app/sculpting -> app/(root)
 app/sculpting -> app/commands
@@ -222,7 +214,6 @@ app/sculpting -> app/controls
 app/sculpting -> app/files
 app/sculpting -> app/input_devices
 app/sculpting -> app/theme
-app/sculpting -> app/tools
 app/sculpting -> app/view
 app/sculpting -> app/window_layout
 app/selections -> app/(root)
@@ -238,7 +229,6 @@ app/settings -> app/input_devices
 app/settings -> app/painting_ui
 app/settings -> app/render
 app/settings -> app/theme
-app/settings -> app/tools
 app/settings -> app/view
 app/settings -> app/window_layout
 app/slicing -> app/(root)
@@ -248,7 +238,6 @@ app/slicing -> app/tools
 app/slicing -> app/window_layout
 app/theme -> app/controls
 app/tools -> app/(root)
-app/tools -> app/anim
 app/tools -> app/controls
 app/tools -> app/create_tools
 app/tools -> app/duplication

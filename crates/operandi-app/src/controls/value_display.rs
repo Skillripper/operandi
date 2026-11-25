@@ -44,6 +44,8 @@ pub enum FactorDisplay {
 }
 
 thread_local! {
+    /// The next value field shows "(mixed)" (UIC-118).
+    static MIXED_NEXT: Cell<bool> = const { Cell::new(false) };
     static CURRENT: Cell<(ColorUnits, FactorDisplay)> =
         const { Cell::new((ColorUnits::FloatingPoint, FactorDisplay::Percentage)) };
     /// "Display colour values in display space" (A7): colour numbers are
@@ -53,6 +55,22 @@ thread_local! {
     /// app to write into Preferences (it is the same preference).
     static PICKED_UNITS: Cell<Option<ColorUnits>> = const { Cell::new(None) };
 }
+/// The next value field (number box, checkbox, dropdown) shows "(mixed)"
+/// because the selected items disagree (UIC-118). Editing it writes the new
+/// value to every selected item.
+pub(crate) fn mixed(mixed: bool) {
+    MIXED_NEXT.with(|c| c.set(mixed));
+}
+/// Takes the pending "(mixed)" flag (value fields call this once).
+pub(crate) fn take_mixed() -> bool {
+    MIXED_NEXT.with(|c| c.replace(false))
+}
+/// Whether the next value field is "(mixed)", without taking the flag.
+pub(crate) fn is_mixed() -> bool {
+    MIXED_NEXT.with(Cell::get)
+}
+/// What a mixed field shows (UIC-118).
+pub(crate) const MIXED: &str = "(mixed)";
 pub fn set(color: ColorUnits, factor: FactorDisplay) {
     CURRENT.with(|c| c.set((color, factor)));
 }

@@ -403,15 +403,15 @@ impl Widget for DragValue<'_> {
         let (arrows, field) = crate::scrub::split(cell);
         // UIC-118: the selected items disagree; typing or dragging writes
         // one value to all of them.
-        let mixed = crate::form::rows::take_mixed();
+        let mixed = crate::value_display::take_mixed();
         // The min/max labels' text, read before `inner` is handed to egui.
         let (lo, hi) = (*self.range.start(), *self.range.end());
-        let labels = crate::form::range_labels::shown(lo, hi)
+        let labels = crate::range_labels::shown(lo, hi)
             .filter(|_| self.ranged)
             .map(|limits| (limits, self.limit_text(lo), self.limit_text(hi)));
         let inner = if mixed {
             self.inner
-                .custom_formatter(|_, _| crate::form::rows::MIXED.to_owned())
+                .custom_formatter(|_, _| crate::value_display::MIXED.to_owned())
                 .suffix("")
         } else {
             self.inner
@@ -478,8 +478,8 @@ impl Widget for DragValue<'_> {
                     hi_text.clone()
                 }
             };
-            crate::form::range_labels::paint(ui, cell, at, limits, text);
-            crate::form::range_labels::reserve(ui, cell);
+            crate::range_labels::paint(ui, cell, at, limits, text);
+            crate::range_labels::reserve(ui, cell);
         }
         response | drag.with_new_rect(arrows)
     }

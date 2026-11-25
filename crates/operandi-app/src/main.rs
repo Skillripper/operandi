@@ -152,7 +152,7 @@ mod cut_dialogs;
 mod defaults_preferences;
 #[path = "deformers/deform_panel.rs"]
 mod deform_panel;
-#[path = "tools/detents.rs"]
+#[path = "controls/detents.rs"]
 mod detents;
 #[path = "polygons/detriangulate_dialog.rs"]
 mod detriangulate_dialog;
@@ -353,7 +353,7 @@ mod native_menu;
 mod navigation_preferences;
 #[path = "tools/numeric_draft.rs"]
 mod numeric_draft;
-#[path = "tools/numeric_tab.rs"]
+#[path = "controls/numeric_tab.rs"]
 mod numeric_tab;
 #[path = "presets/online_library.rs"]
 mod online_library;
@@ -461,6 +461,8 @@ mod python_ui_tests;
 #[cfg(feature = "qa")]
 #[path = "commands/qa.rs"]
 mod qa;
+#[path = "controls/range_labels.rs"]
+mod range_labels;
 #[path = "polygons/reduction_panel.rs"]
 mod reduction_panel;
 #[path = "polygons/relax_mesh_dialog.rs"]
@@ -498,7 +500,7 @@ mod scale_offset_dialog;
 mod scenes;
 #[path = "rigging/schematic_ui.rs"]
 mod schematic_ui;
-#[path = "anim/scrub.rs"]
+#[path = "controls/scrub.rs"]
 mod scrub;
 #[path = "sculpting/sculpt_ui.rs"]
 mod sculpt_ui;
@@ -4460,7 +4462,7 @@ mod mini_properties_tests;
 #[path = "controls/number_field_tests.rs"]
 mod number_field_tests;
 #[cfg(test)]
-#[path = "tools/numeric_tab_tests.rs"]
+#[path = "controls/numeric_tab_tests.rs"]
 mod numeric_tab_tests;
 #[cfg(test)]
 #[path = "presets/online_library_tests.rs"]
@@ -4511,7 +4513,7 @@ mod scene_panel_tests;
 #[path = "files/scenes_tests.rs"]
 mod scenes_tests;
 #[cfg(test)]
-#[path = "anim/scrub_tests.rs"]
+#[path = "controls/scrub_tests.rs"]
 mod scrub_tests;
 #[cfg(test)]
 #[path = "selections/select_tab_tests.rs"]
