@@ -66,8 +66,8 @@ Drag a point on an edge to slide it along the edge.
 
 ### Tips
 
-- A cut that starts inside a polygon only cuts that first polygon once you
-  close the loop. Until then, the cut begins at the first edge or point.
+- A cut never leaves a loose end inside a polygon. If you stop with an end
+  inside one, that end runs on to the polygon's nearest corner.
 
 ## Related
 

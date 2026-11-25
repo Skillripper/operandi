@@ -24,6 +24,20 @@ pub type SliceResult = (Mesh, Vec<(u32, u32)>, Vec<u32>);
 /// through, the inside points so far, and the start point.
 type ChordStart = (Node, Vec<usize>, Vec<(usize, DVec3)>, SlicePoint);
 
+/// The corner of polygon `face` nearest `at`.
+fn nearest_corner(mesh: &Mesh, face: usize, at: DVec3) -> u32 {
+    let corners = &mesh.faces[face].vertices;
+    corners
+        .iter()
+        .copied()
+        .min_by(|&x, &y| {
+            let dx = mesh.vertices[x as usize].distance_squared(at);
+            let dy = mesh.vertices[y as usize].distance_squared(at);
+            dx.total_cmp(&dy)
+        })
+        .unwrap_or(corners[0])
+}
+
 /// Whether Edge Slice points `p` and `q` (edge or vertex points) both lie
 /// on one boundary edge of polygon `face`, so a chord between them would
 /// run along that edge instead of across the polygon.
@@ -1280,25 +1294,34 @@ pub fn edge_slice_geometry(mesh: &Mesh, o: &EdgeSlice) -> Result<(Mesh, Vec<(u32
                     .collect(),
             }
         };
-        // A path may start inside a polygon (provisional, SL-Q16). Open,
-        // its leading inside points wait (no slits, PS-12); closed, the
-        // walk starts at the first point on an edge or a vertex and comes
-        // back round to it, so the leading inside points join the cut.
+        // A path may start inside a polygon (SL-Q16, Jason 2026-11-25).
+        // Closed, the walk starts at the first point on an edge or a vertex
+        // and comes back round to it, so the leading inside points join the
+        // cut. Open, an end left inside a polygon is joined to that
+        // polygon's nearest corner, so no loose chain is ever left (no
+        // slits, PS-12).
         let anchor = o
             .points
             .iter()
             .position(|p| !matches!(p, SlicePoint::Inside { .. }));
+        let looped = o.closed && o.points.len() >= 3;
         let mut order: Vec<usize> = (0..o.points.len()).collect();
-        if o.closed
-            && o.points.len() >= 3
-            && let Some(k) = anchor
-        {
+        if looped && let Some(k) = anchor {
             order.rotate_left(k);
             order.push(k);
         }
         // The chord being built: start node, its candidate polygons and
         // the inside points so far.
         let mut start: Option<ChordStart> = None;
+        if !looped && let Some(&SlicePoint::Inside { face, at }) = o.points.first() {
+            let v = nearest_corner(mesh, face as usize, at);
+            start = Some((
+                Node::Point(v),
+                vec![face as usize],
+                Vec::new(),
+                SlicePoint::Vertex { v },
+            ));
+        }
         for &i in &order {
             let point = o.points[i];
             let candidates = faces_of(&point);
@@ -1352,6 +1375,30 @@ pub fn edge_slice_geometry(mesh: &Mesh, o: &EdgeSlice) -> Result<(Mesh, Vec<(u32
                     }
                     start = Some((node, candidates, Vec::new(), point));
                 }
+            }
+        }
+        // An open path's loose end inside a polygon: on to its nearest
+        // corner, unless that is where this stretch began.
+        if !looped
+            && let Some((from, faces, through, _)) = start
+            && let (Some(&(face, at)), Some(&f)) = (through.last(), faces.first())
+            && f == face
+        {
+            let to = Node::Point(nearest_corner(mesh, face, at));
+            if to != from {
+                let through_ids = through
+                    .iter()
+                    .map(|&(face, at)| {
+                        inner.push(InnerPoint { face, at });
+                        inner.len() - 1
+                    })
+                    .collect();
+                chords.push(Chord {
+                    face,
+                    from,
+                    to,
+                    through: through_ids,
+                });
             }
         }
     }

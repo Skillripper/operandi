@@ -325,19 +325,21 @@ fn edge_slice_inside_points_cut_into_a_polygon() {
         SlicePoint::Edge { a: 0, b: 1, t: 0.5 },
         SlicePoint::Inside {
             face: 0,
-            at: DVec3::new(0.3, 0., 0.5),
+            at: DVec3::new(0.3, 0., 0.4),
         },
     ];
-    // Until the path leaves the polygon, the inside point changes nothing.
+    // Until the path leaves the polygon, its loose end runs on to the
+    // nearest corner (0): no loose chain is left (SL-Q16).
     preview(&mut e, p.clone());
-    assert_eq!(mesh(&e).faces.len(), 1);
+    assert_eq!(mesh(&e).faces.len(), 2);
+    assert!(mesh(&e).validate().is_ok());
     p.slice
         .edge_slice
         .points
         .push(SlicePoint::Edge { a: 2, b: 3, t: 0.5 });
     preview(&mut e, p);
     assert_eq!(mesh(&e).faces.len(), 2);
-    assert!(has_point(mesh(&e), DVec3::new(0.3, 0., 0.5)));
+    assert!(has_point(mesh(&e), DVec3::new(0.3, 0., 0.4)));
 }
 
 #[test]
@@ -421,10 +423,11 @@ fn edge_slice_starts_inside_a_polygon() {
         SlicePoint::Edge { a: 4, b: 7, t: 0.5 },
         SlicePoint::Edge { a: 3, b: 4, t: 0.5 },
     ];
-    // Open, the starting inside point waits (no slits) and the rest cuts.
+    // Open, the start runs back to polygon 0's nearest corner (4), so that
+    // polygon is cut too.
     preview(&mut e, p.clone());
-    assert_eq!(mesh(&e).faces.len(), 7);
-    assert!(!has_point(mesh(&e), DVec3::new(0.6, 0., 0.6)));
+    assert_eq!(mesh(&e).faces.len(), 8);
+    assert!(has_point(mesh(&e), DVec3::new(0.6, 0., 0.6)));
     // Closed on it, the last stretch runs through it and the loop is whole.
     p.slice.edge_slice.closed = true;
     preview(&mut e, p.clone());
@@ -448,6 +451,45 @@ fn edge_slice_starts_inside_a_polygon() {
     p.slice.edge_slice.closed = true;
     preview(&mut e, p);
     assert_eq!(mesh(&e).faces.len(), 1);
+}
+
+#[test]
+fn edge_slice_never_leaves_a_loose_chain() {
+    // Jason's check on one quad (2026-11-25): a chain of inside points is
+    // joined at both loose ends to the nearest corners and splits the quad.
+    let at = |x: f64, z: f64| SlicePoint::Inside {
+        face: 0,
+        at: DVec3::new(x, 0., z),
+    };
+    let mut e = editor(grid(1), Mode::Polygon);
+    e.dispatch(Command::Activate(Tool::EdgeSlice)).unwrap();
+    let mut p = params(&e);
+    // One click inside: nothing to cut yet.
+    p.slice.edge_slice.points = vec![at(0.2, 0.2)];
+    preview(&mut e, p.clone());
+    assert_eq!(mesh(&e).faces.len(), 1);
+    assert_eq!(mesh(&e).vertices.len(), 4);
+    // Corner (0,0) to the chain to corner (1,1): two polygons.
+    p.slice.edge_slice.points = vec![at(0.2, 0.2), at(0.5, 0.6), at(0.8, 0.8)];
+    preview(&mut e, p.clone());
+    assert_eq!(mesh(&e).faces.len(), 2);
+    assert_eq!(mesh(&e).vertices.len(), 7);
+    // Ending on an edge or a corner instead also splits it.
+    for end in [
+        SlicePoint::Edge { a: 2, b: 3, t: 0.5 },
+        SlicePoint::Vertex { v: 3 },
+    ] {
+        p.slice.edge_slice.points = vec![at(0.2, 0.2), at(0.5, 0.6), end];
+        preview(&mut e, p.clone());
+        assert_eq!(mesh(&e).faces.len(), 2);
+        assert!(mesh(&e).validate().is_ok());
+    }
+    // Both ends nearest the same corner: no cut rather than a loose chain.
+    p.slice.edge_slice.points = vec![at(0.2, 0.2), at(0.3, 0.1)];
+    preview(&mut e, p.clone());
+    assert_eq!(mesh(&e).faces.len(), 1);
+    assert_eq!(mesh(&e).vertices.len(), 4);
+    e.dispatch(Command::Drop).unwrap();
 }
 
 fn cut_at_z(z: f64, from: f64, to: f64) -> PlaneCut {
