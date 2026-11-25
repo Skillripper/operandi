@@ -304,7 +304,7 @@ mod light_tier3_ui;
 mod link_mode;
 #[path = "tools/live_fields.rs"]
 mod live_fields;
-#[path = "files/log_ring.rs"]
+#[path = "controls/log_ring.rs"]
 mod log_ring;
 #[path = "render/lpe_rows.rs"]
 mod lpe_rows;
