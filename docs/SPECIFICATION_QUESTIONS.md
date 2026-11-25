@@ -2738,6 +2738,16 @@ Polygon Slice (Shift+C).
   Duplicate tab yet). Its buttons are text rows until their icons are
   generated and approved. New theme colours: Slice Bar and Line, Slice
   Points, Slice Closing Point (Highlights).
+- **SL-Q16 (forum report, 2026-11-25).** Edge Slice may start inside a
+  polygon (Inside Polygons on). Open, the leading inside points wait (no
+  slits, PS-12); closed, the loop runs back through them to the first edge
+  or point. Replaces SL-Q07's "a path starts on an edge". Does the
+  reference allow a start inside a polygon, and what does an open one do?
+- **SL-Q17 (forum report, 2026-11-25).** A click within 8 pt of an existing
+  point puts the cut through that point (it wins over the edges meeting
+  there); a path can end or close on a point. Two points on one edge (or
+  a point and an edge point on the edge it ends) make no cut. Does the
+  reference snap to points, and from how far?
 
 ## Items list header (item-list-header, 2026-11-06)
 

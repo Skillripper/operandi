@@ -21,8 +21,27 @@ use std::collections::{BTreeMap, BTreeSet};
 pub type SliceResult = (Mesh, Vec<(u32, u32)>, Vec<u32>);
 
 /// Edge Slice's chord being built: its start node, the polygons it may run
-/// through, the inside points so far, and the start's edge.
-type ChordStart = (Node, Vec<usize>, Vec<(usize, DVec3)>, (u32, u32));
+/// through, the inside points so far, and the start point.
+type ChordStart = (Node, Vec<usize>, Vec<(usize, DVec3)>, SlicePoint);
+
+/// Whether Edge Slice points `p` and `q` (edge or vertex points) both lie
+/// on one boundary edge of polygon `face`, so a chord between them would
+/// run along that edge instead of across the polygon.
+fn along_one_edge(mesh: &Mesh, face: usize, p: SlicePoint, q: SlicePoint) -> bool {
+    let vs = &mesh.faces[face].vertices;
+    let n = vs.len();
+    let next_to =
+        |v: u32, w: u32| (0..n).any(|i| edge_key(vs[i], vs[(i + 1) % n]) == edge_key(v, w));
+    match (p, q) {
+        (SlicePoint::Edge { a, b, .. }, SlicePoint::Edge { a: c, b: d, .. }) => {
+            edge_key(a, b) == edge_key(c, d)
+        }
+        (SlicePoint::Edge { a, b, .. }, SlicePoint::Vertex { v })
+        | (SlicePoint::Vertex { v }, SlicePoint::Edge { a, b, .. }) => v == a || v == b,
+        (SlicePoint::Vertex { v }, SlicePoint::Vertex { v: w }) => v == w || next_to(v, w),
+        _ => false,
+    }
+}
 
 /// Loop Slice's Mode: where the slices sit across the ring.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -224,6 +243,8 @@ pub enum SlicePoint {
     Edge { a: u32, b: u32, t: f64 },
     /// Inside polygon `face` at mesh-local `at` (Inside Polygons).
     Inside { face: u32, at: DVec3 },
+    /// On existing point `v`: the cut runs through it (provisional, SL-Q17).
+    Vertex { v: u32 },
 }
 
 /// Edge Slice's Show readout.
@@ -1235,6 +1256,12 @@ pub fn edge_slice_geometry(mesh: &Mesh, o: &EdgeSlice) -> Result<(Mesh, Vec<(u32
                 }
                 nodes.push(None);
             }
+            SlicePoint::Vertex { v } => {
+                if v as usize >= mesh.vertices.len() {
+                    return Err("A slice point is no longer in the mesh".into());
+                }
+                nodes.push(Some(Node::Point(v)));
+            }
         }
     }
     let mut inner: Vec<InnerPoint> = Vec::new();
@@ -1245,13 +1272,29 @@ pub fn edge_slice_geometry(mesh: &Mesh, o: &EdgeSlice) -> Result<(Mesh, Vec<(u32
             match *p {
                 SlicePoint::Edge { a, b, .. } => faces_of_edge(mesh, &point_faces, a, b),
                 SlicePoint::Inside { face, .. } => vec![face as usize],
+                SlicePoint::Vertex { v } => point_faces
+                    .of(v)
+                    .iter()
+                    .map(|&f| f as usize)
+                    .filter(|&f| !mesh.is_polyline(f))
+                    .collect(),
             }
         };
+        // A path may start inside a polygon (provisional, SL-Q16). Open,
+        // its leading inside points wait (no slits, PS-12); closed, the
+        // walk starts at the first point on an edge or a vertex and comes
+        // back round to it, so the leading inside points join the cut.
+        let anchor = o
+            .points
+            .iter()
+            .position(|p| !matches!(p, SlicePoint::Inside { .. }));
         let mut order: Vec<usize> = (0..o.points.len()).collect();
-        let close =
-            o.closed && o.points.len() >= 3 && matches!(o.points[0], SlicePoint::Edge { .. });
-        if close {
-            order.push(0);
+        if o.closed
+            && o.points.len() >= 3
+            && let Some(k) = anchor
+        {
+            order.rotate_left(k);
+            order.push(k);
         }
         // The chord being built: start node, its candidate polygons and
         // the inside points so far.
@@ -1260,33 +1303,38 @@ pub fn edge_slice_geometry(mesh: &Mesh, o: &EdgeSlice) -> Result<(Mesh, Vec<(u32
             let point = o.points[i];
             let candidates = faces_of(&point);
             match (point, start.take()) {
-                (SlicePoint::Inside { face, at }, Some((node, faces, mut through, edge))) => {
+                (SlicePoint::Inside { face, at }, Some((node, faces, mut through, from_point))) => {
                     if !faces.contains(&(face as usize)) {
                         return Err(
                             "Each slice point must be on a polygon next to the last one".into()
                         );
                     }
                     through.push((face as usize, at));
-                    start = Some((node, vec![face as usize], through, edge));
+                    start = Some((node, vec![face as usize], through, from_point));
                 }
                 (SlicePoint::Inside { .. }, None) => {
-                    // A path can't start inside a polygon; the point waits.
+                    // Before the first edge or vertex point of an open
+                    // path: the point waits.
                 }
-                (SlicePoint::Edge { a, b, .. }, previous) => {
+                (_, previous) => {
                     let node = nodes[i].ok_or("Missing slice point")?;
-                    if let Some((from, faces, through, edge)) = previous {
+                    if let Some((from, faces, through, from_point)) = previous {
                         let shared: Vec<usize> = faces
                             .iter()
                             .copied()
                             .filter(|f| candidates.contains(f))
                             .collect();
-                        let Some(&face) = shared.first() else {
+                        if shared.is_empty() {
                             return Err(
                                 "Each slice point must be on a polygon next to the last one".into(),
                             );
-                        };
-                        // Two points on one edge with nothing between: no cut.
-                        if edge_key(a, b) != edge || !through.is_empty() {
+                        }
+                        // Two points on one edge (or one point twice) with
+                        // nothing between: no cut.
+                        let across = shared.iter().copied().find(|&f| {
+                            !through.is_empty() || !along_one_edge(mesh, f, from_point, point)
+                        });
+                        if let Some(face) = across {
                             let through_ids = through
                                 .iter()
                                 .map(|&(face, at)| {
@@ -1302,7 +1350,7 @@ pub fn edge_slice_geometry(mesh: &Mesh, o: &EdgeSlice) -> Result<(Mesh, Vec<(u32
                             });
                         }
                     }
-                    start = Some((node, candidates, Vec::new(), edge_key(a, b)));
+                    start = Some((node, candidates, Vec::new(), point));
                 }
             }
         }
@@ -1749,6 +1797,7 @@ fn mirrored_edge_slice(
         cuts.push(match *q {
             SlicePoint::Edge { a, b, t } => at(a)?.lerp(at(b)?, t),
             SlicePoint::Inside { at, .. } => at,
+            SlicePoint::Vertex { v } => at(v)?,
         });
     }
     let mirrored: Vec<DVec3> = cuts.iter().map(|&q| symmetry.mirror(q)).collect();
@@ -1776,6 +1825,11 @@ fn mirrored_edge_slice(
                     face: found[0]?,
                     at: symmetry.mirror(at),
                 }
+            }
+            SlicePoint::Vertex { v } => {
+                let mirrored = [symmetry.mirror(at(v)?)];
+                let found = crate::symmetry_sides::points_at(after, &mirrored, tolerance);
+                SlicePoint::Vertex { v: found[0]? }
             }
         });
     }

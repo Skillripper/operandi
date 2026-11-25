@@ -163,7 +163,40 @@ impl Operandi {
                 crate::subdivision_view::path_point(&path, if a <= b { t } else { 1. - t })?
             }
             SlicePoint::Inside { at, .. } => matrix.transform_point3(at),
+            SlicePoint::Vertex { v } => {
+                if v as usize >= item.mesh.vertices.len() {
+                    return None;
+                }
+                matrix.transform_point3(self.subdivision_cache.shown_point(&item, v)?)
+            }
         })
+    }
+
+    /// Nearest point of the base mesh within [`GRAB`] of `p`, where it
+    /// shows (provisional, SL-Q17). With `raycast`, points hidden behind
+    /// the surface are skipped.
+    fn slice_pick_vertex(&self, p: Pos2, r: Rect, raycast: bool) -> Option<u32> {
+        let (item, matrix) = self.slice_base_item()?;
+        let surface = self.pick_surface();
+        let mut candidates = crate::picking::PickCandidates::default();
+        self.item_pick_candidates(
+            &item,
+            matrix,
+            Mode::Vertex,
+            Rect::from_center_size(p, Vec2::splat(2. * GRAB)),
+            &|_| true,
+            &self.camera.projector(r),
+            &mut candidates,
+        );
+        candidates
+            .points
+            .iter()
+            .map(|&(_, v, q, world)| (q.distance(p), v, world))
+            .filter(|&(d, _, world)| {
+                d <= GRAB && (!raycast || surface.visible(&self.camera, world, r))
+            })
+            .min_by(|a, b| a.0.total_cmp(&b.0))
+            .map(|(_, v, _)| v)
     }
 
     fn slice_point_screen(&self, point: &SlicePoint, r: Rect) -> Option<Pos2> {
@@ -394,6 +427,13 @@ impl Operandi {
         }
         let raycast = o.always_raycast
             || self.display.settings.active.style != view_display::Style::Wireframe;
+        // A press on an existing point cuts through it (provisional,
+        // SL-Q17); it wins over the edges that meet there.
+        if let Some(v) = self.slice_pick_vertex(pos, r, raycast) {
+            p.slice.edge_slice.points.push(SlicePoint::Vertex { v });
+            self.slice_publish(p);
+            return None;
+        }
         if let Some((a, b, t)) = self.slice_pick_edge(pos, r, raycast) {
             let middle = mods.ctrl || o.split_middle;
             let t = if middle { 0.5 } else { o.snapped(t) };
@@ -417,20 +457,30 @@ impl Operandi {
             return None;
         }
         self.status = if o.points.is_empty() {
-            "Edge Slice: click an edge to start".into()
+            "Edge Slice: click an edge, a point or inside a polygon to start".into()
         } else {
-            "Edge Slice: click an edge of a polygon next to the last point".into()
+            "Edge Slice: click an edge or point of a polygon next to the last point".into()
         };
         None
     }
 
     /// Inside Polygons: the point under `pos` inside a base polygon next to
-    /// the last cut point (a path can't start inside a polygon).
+    /// the last cut point, or inside the nearest polygon under the pointer
+    /// when the path is empty (a path may start inside one, SL-Q16).
     fn slice_inside_point(&self, p: &Parameters, pos: Pos2, r: Rect) -> Option<SlicePoint> {
         let (mesh, matrix) = self.slice_base()?;
-        let last = p.slice.edge_slice.points.last()?;
-        let candidates: Vec<usize> = match *last {
-            SlicePoint::Edge { a, b, .. } => mesh
+        let candidates: Vec<usize> = match p.slice.edge_slice.points.last() {
+            // One ray test per polygon, once per click.
+            None => (0..mesh.faces.len())
+                .filter(|&f| !mesh.is_polyline(f))
+                .collect(),
+            Some(&SlicePoint::Vertex { v }) => mesh
+                .point_faces()
+                .of(v)
+                .iter()
+                .map(|&f| f as usize)
+                .collect(),
+            Some(&SlicePoint::Edge { a, b, .. }) => mesh
                 .point_faces()
                 .of(a)
                 .iter()
@@ -444,11 +494,13 @@ impl Operandi {
                     })
                 })
                 .collect(),
-            SlicePoint::Inside { face, .. } => vec![face as usize],
+            Some(&SlicePoint::Inside { face, .. }) => vec![face as usize],
         };
         let local = matrix.inverse();
         let (o, d) = self.camera.ray(pos, r);
         let (o, d) = (local.transform_point3(o), local.transform_vector3(d));
+        // The nearest polygon the ray enters in front of the camera.
+        let mut best: Option<(f64, SlicePoint)> = None;
         for face in candidates {
             let n = mesh.normal(face);
             let c = mesh.center(face);
@@ -456,7 +508,11 @@ impl Operandi {
             if denom.abs() < 1e-12 {
                 continue;
             }
-            let at = o + d * (n.dot(c - o) / denom);
+            let along = n.dot(c - o) / denom;
+            if along <= 0. || best.is_some_and(|(b, _)| along >= b) {
+                continue;
+            }
+            let at = o + d * along;
             // Inside test: the hit is on the inner side of every edge.
             let vs = &mesh.faces[face].vertices;
             let inside = (0..vs.len()).all(|i| {
@@ -467,13 +523,14 @@ impl Operandi {
                 (y - x).cross(at - x).dot(n) >= 0.
             });
             if inside {
-                return Some(SlicePoint::Inside {
+                let point = SlicePoint::Inside {
                     face: face as u32,
                     at,
-                });
+                };
+                best = Some((along, point));
             }
         }
-        None
+        best.map(|(_, point)| point)
     }
 
     /// Edge Slice's Show readout for point `index`, beside the pointer.

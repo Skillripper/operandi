@@ -63,6 +63,12 @@ Each line: do this → expect that.
 7. Split Polygons off → points only, no new edges. Multi Slice on → dashed
    line from the last point to the pointer.
 8. Cmd+Z inside the tool removes the last click; Esc cancels everything.
+9. Click a corner point, then the opposite corner of the same quad → the
+   quad splits along its diagonal. Click from an edge to a corner point →
+   a triangle and a quad (SL-Q17).
+10. Start by clicking inside a polygon, click round through its neighbours'
+    edges and back to the first point → a closed loop that also cuts the
+    first polygon (SL-Q16).
 
 ## Polygon Slice (Shift+C)
 
