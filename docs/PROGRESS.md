@@ -9,6 +9,33 @@
   and the Action Axis fallback are world axes on rotated items, in the
   geometry and the handles. Plain Inset and Bevel unchanged.
 
+- **Mesh Stack selections of edges and points (2026-11-25, GitHub #19, branch claude/project-thread-8fccr9):**
+  ops say what their Selection input picks (`SelElement`; Edge ops edges,
+  Vertex ops points); every selection op answers in that kind;
+  Select by Index captures from Edge/Vertex mode with the count it was
+  made on and a row hint when that changes; four rule ops (Edges by Angle,
+  Border, Polygon Sides, Facing); Move Up/Down reorders selection ops.
+  Guide: panels/mesh-stack-selections.md. Provisional: SEL-Q01..Q04.
+
+- **Falloffs on primitives (2026-11-25, GitHub #15, branch claude/project-thread-8fccr9):**
+  the global falloff (Linear, Radial, Cylinder, Noise) shapes the Cube,
+  Sphere and Cylinder inside their shared generator. The Falloff menu
+  and handles stay usable while the tool is live, and the preview follows.
+  The folded Falloff section has Scale, Offset, Twist, Sample At (Spine
+  or Points), Spacing (Follow Falloff) and Fit Falloff to Shape. The
+  primitive ops keep their own copy of the falloff layers (taken when
+  added; Use Active Falloff, Clear Falloff). Not yet: Cone and Capsule.
+  Provisional: PRIM-FO-Q01..Q04, PRIM-OP-Q04.
+
+- **Primitive MeshOps match the tools (2026-11-25, GitHub #14, branch claude/project-thread-8fccr9):**
+  one generator per primitive. Cube, Sphere and Cylinder became shapes
+  (`primitives/primitive_shapes.rs`) that the tools and ops both build
+  from; the other primitives already had one parameter struct each.
+  `meshops/primitive_ops.rs` has eight ops (adds Ellipsoid, Cone, Torus,
+  Capsule, Teapot) with every tool option; op values convert to the
+  tool's parameters with every field named, so a new option doesn't
+  build until its op has it. No old-scene upgrade (nothing released).
+  Provisional: PRIM-OP-Q01..Q03.
 - **MeshBlend strips, round 2 (2026-11-24, branch claude/project-thread-20fok5):**
   flat faces cut beside strips are re-meshed (`meshblend/tidy.rs`, spade
   constrained Delaunay + seeded points, kept only if ST-10 passes), then

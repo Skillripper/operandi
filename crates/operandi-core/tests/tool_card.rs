@@ -12,7 +12,8 @@ fn old_supports_falloff(tool: Tool) -> bool {
     use Tool::*;
     matches!(
         tool,
-        Bevel
+        Box | Sphere | Cylinder // added 2026-11-25 (#15)
+            | Bevel
             | TwistBevel // added 2026-11-15
             | Move
             | Rotate
@@ -325,7 +326,7 @@ fn the_falloff_refusal_names_the_falloff_tools() {
     assert_eq!(
         tool_card::falloff_refusal(),
         "This tool doesn't work with a falloff yet; set Falloff to None, or use \
-         Bevel, Twist Bevel, Transform, Move, Rotate, Scale, Slide, Edge Bevel, Edge Chamfer, \
+         Cube, Sphere, Cylinder, Bevel, Twist Bevel, Transform, Move, Rotate, Scale, Slide, Edge Bevel, Edge Chamfer, \
          Vertex Bevel, Vertex Extrude, Push, Smooth, Jitter, Quantize, Radial Align, \
          Linear Align, Bend, UV Relax, Unwrap & Relax or Box Transform"
     );

@@ -4494,6 +4494,9 @@ mod preset_drop_tests;
 #[path = "presets/preset_ui_tests.rs"]
 mod preset_ui_tests;
 #[cfg(test)]
+#[path = "create_tools/primitive_falloff_tests.rs"]
+mod primitive_falloff_tests;
+#[cfg(test)]
 #[path = "create_tools/primitive_modifier_tests.rs"]
 mod primitive_modifier_tests;
 #[cfg(test)]

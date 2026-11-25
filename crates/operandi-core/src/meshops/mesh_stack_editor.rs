@@ -4,6 +4,7 @@
 //! Base Mesh (SAFE-13); evaluation never records undo.
 use crate::mesh_stack::{MeshOp, MeshStack, OpKind, OpStatus, SelectByIndex};
 use crate::meshop_selection::{SelKind, SelOp};
+use crate::meshop_types::SelElement;
 use crate::{Editor, Mode, Result};
 
 /// An op in a stack: its mesh item and its id there. Scripts write it
@@ -66,9 +67,39 @@ pub enum SelOpEdit {
     /// Replace the `n`th (bottom = 0).
     Set(usize, SelOp),
     Remove(usize),
+    /// Move the `n`th to position `to` (bottom = 0); the order matters for
+    /// Subtract and Multiply (#19).
+    Move(usize, usize),
 }
 
 impl Editor {
+    /// The elements of kind `element` selected on mesh `item` (its Base
+    /// Mesh), numbered as the op's Selection input numbers them (edges as
+    /// `Mesh::edges`), with that mesh's count of them; `None` unless the
+    /// selection mode matches.
+    fn picked_on(&self, item: u64, element: SelElement) -> Option<(Vec<u32>, u32)> {
+        let sel = &self.scene.selection;
+        if sel.item != Some(item) {
+            return None;
+        }
+        let mesh = &self.scene.item(item)?.mesh;
+        let mut picked: Vec<u32> = match (element, sel.mode) {
+            (SelElement::Polygon, Mode::Polygon) => sel.faces.clone(),
+            (SelElement::Point, Mode::Vertex) => sel.vertices.clone(),
+            (SelElement::Edge, Mode::Edge) => {
+                let edges = mesh.edges();
+                sel.edges
+                    .iter()
+                    .filter_map(|&(a, b)| edges.binary_search(&(a.min(b), a.max(b))).ok())
+                    .map(|i| i as u32)
+                    .collect()
+            }
+            _ => return None,
+        };
+        picked.sort_unstable();
+        picked.dedup();
+        Some((picked, element.count(mesh) as u32))
+    }
     fn stack_item(&self, item: u64) -> Result<&crate::Item> {
         self.scene
             .item(item)
@@ -135,19 +166,19 @@ impl Editor {
         // MO-20 auto-capture: the components selected on the mesh become a
         // Select by Index. They number the Base Mesh, so they're captured
         // only when the op's input is the Base Mesh (provisional, MOQ-01).
-        let selection = (kind.takes_selection()
-            && at == 0
-            && self.scene.selection.item == Some(id)
-            && self.scene.selection.mode == Mode::Polygon
-            && !self.scene.selection.faces.is_empty())
-        .then(|| SelectByIndex {
-            polygons: {
-                let mut f = self.scene.selection.faces.clone();
-                f.sort_unstable();
-                f.dedup();
-                f
-            },
-        });
+        // #19: in the kind the op picks (polygons, edges or points), from
+        // the matching selection mode.
+        let element = kind
+            .def()
+            .map_or(SelElement::Polygon, |d| d.selection_element());
+        let selection = (kind.takes_selection() && at == 0)
+            .then(|| self.picked_on(id, element))
+            .flatten()
+            .filter(|(p, _)| !p.is_empty())
+            .map(|(polygons, made_on)| SelectByIndex {
+                polygons,
+                made_on: Some(made_on),
+            });
         // The other items selected with it (BOP-10: Boolean's driver).
         let kind = match (&kind, kind.def()) {
             (OpKind::Op { type_id, values }, Some(def)) => {
@@ -159,6 +190,13 @@ impl Editor {
                     .collect();
                 let mut values = values.clone();
                 def.created(&mut values, &picked);
+                // #15: a primitive op takes a copy of the active falloff
+                // (primitive_ops.rs, `falloff`).
+                if values.get("falloff").is_some_and(|v| v.is_null())
+                    && let Some(w) = self.primitive_weights()
+                {
+                    values["falloff"] = serde_json::to_value(w).map_err(|e| e.to_string())?;
+                }
                 OpKind::Op {
                     type_id: type_id.clone(),
                     values,
@@ -327,15 +365,16 @@ impl Editor {
         if !op.kind.takes_selection() {
             return Err(format!("{} has no Selection input", op.kind.label()));
         }
-        let picked: Vec<u32> = if self.scene.selection.item == Some(r.item)
-            && self.scene.selection.mode == Mode::Polygon
-        {
-            self.scene.selection.faces.clone()
-        } else {
-            Vec::new()
-        };
+        let element = op
+            .kind
+            .def()
+            .map_or(SelElement::Polygon, |d| d.selection_element());
+        let (picked, made_on) = self.picked_on(r.item, element).unwrap_or_default();
         if edit != IndexEdit::Clear && picked.is_empty() {
-            return Err("Select polygons on the Base Mesh first (Edit Base Mesh)".into());
+            return Err(format!(
+                "Select {} on the Base Mesh first (Edit Base Mesh)",
+                element.plural()
+            ));
         }
         let mut polygons = op.selection.clone().unwrap_or_default().polygons;
         match edit {
@@ -346,8 +385,10 @@ impl Editor {
         }
         polygons.sort_unstable();
         polygons.dedup();
-        let next = (!polygons.is_empty() || edit != IndexEdit::Clear)
-            .then_some(SelectByIndex { polygons });
+        let next = (!polygons.is_empty() || edit != IndexEdit::Clear).then_some(SelectByIndex {
+            polygons,
+            made_on: Some(made_on),
+        });
         let before = self.scene.clone();
         let stack = self.stack_mut(r.item);
         if stack.ops[i].selection == next {
@@ -406,6 +447,14 @@ impl Editor {
                 }
                 selops.remove(n);
                 "Remove Selection Operation".into()
+            }
+            SelOpEdit::Move(n, to) => {
+                if n >= selops.len() || to >= selops.len() {
+                    return Err("That selection operation doesn't exist".into());
+                }
+                let s = selops.remove(n);
+                selops.insert(to, s);
+                "Reorder Selection Operations".into()
             }
         };
         let before = self.scene.clone();
@@ -795,6 +844,12 @@ pub(crate) fn script_command(
                 Command::MeshOpSelOp {
                     op,
                     edit: SelOpEdit::Remove(n),
+                }
+            } else if let Some(to) = opt_u64(a, "position")? {
+                // #19: `selop.edit index:<n> position:<m>` reorders.
+                Command::MeshOpSelOp {
+                    op,
+                    edit: SelOpEdit::Move(n, to as usize),
                 }
             } else {
                 let item = e

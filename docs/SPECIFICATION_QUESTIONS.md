@@ -9788,3 +9788,24 @@ Spec meshblend-2026-11-24. Readings where the spec is silent:
 - MB-Q07 New MeshBlends use the Closed, clean output (SB-50 lists Closed as the default); Closed keeps the cut faces as triangles.
 - MB-Q08 Relative Strip Width is a share of the average cage edge length of all enabled sources (SB-31b says the two sources at that join).
 - MB-Q09 A strip's own Width is always a distance, whatever Width Units says; Rows stay shared so corner patches always fit. Overrides apply only while Strip Width is above 0.
+
+## Primitive MeshOps with the tools' options (2026-11-25, GitHub #14, branch claude/project-thread-8fccr9, provisional)
+
+- PRIM-OP-Q01 The eight primitive ops (Cube, Sphere, Ellipsoid, Cone, Torus, Cylinder, Capsule, Teapot) run their tools' generators (primitive_ops.rs). Value names the map doesn't give are Operandi's own: `makeUVs`, `axis`, `method` (Sphere Mode), `level`, `capTop`/`capBottom`, `polType`, `edgeWeight`, `compensation`, `gaps`, `uvMap`, `endSegments`, `endSize`, `ends`, `bulge`, `bulgeTop`/`bulgeSide`, `ringRadius`, `crossSection`, `height`, `size`. Rename when the map has the reference's.
+- PRIM-OP-Q02 Not op values: the tools' handle rows (Handle Mode, Min/Max, Show Corner), Torus Hole Size (derived) and Ellipsoid Numeric Symmetry (a Symmetrize op does it). Sphere Mode offers Globe and Tessellated only (Quad Ball isn't built). The op form can't grey a row yet, so Subdivision Level shows in Globe mode too and is ignored there.
+- PRIM-OP-Q03 An op's primitive keeps the "Texture" UV map name and no material; the tools rename to the Default Texture Map and add the Default Material (user preferences, which would make a saved stack evaluate differently per machine).
+
+## Falloffs on primitives (2026-11-25, GitHub #15, branch claude/project-thread-8fccr9, provisional)
+
+- PRIM-FO-Q01 The global falloff shapes the Cube, Sphere and Cylinder while they're made (shape_falloff.rs); only Linear, Radial, Cylinder, Noise and Invert layers can weigh new points, and the others grey the Falloff section with a reason. The weight scales (about the axis), moves and turns each ring; at weight w a value changes by w of its full amount.
+- PRIM-FO-Q02 Follow Falloff spacing re-spaces rings by 1 + 4 × |slope| of the spine weight (Operandi's own number); greyed on the Sphere.
+- PRIM-FO-Q03 Cone and Capsule don't take the falloff yet (their tools run their own sessions); the next step.
+- PRIM-OP-Q04 A primitive op's falloff copy reads the op's own positions (the item's local space) whether its layers have Use World Transforms on or off.
+- PRIM-FO-Q04 Fit Falloff to Shape puts the Linear Start on the top of the shape, where the tool's top size handle is; there the tool's handle wins the press (TP-19), so the falloff's Start is moved with its axis arrows or by typing.
+
+## Mesh Stack selections of edges and points (2026-11-25, GitHub #19, branch claude/project-thread-8fccr9, provisional)
+
+- SEL-Q01 Edge ops pick edges (numbered as `Mesh::edges`, the sorted unique point pairs) and Vertex ops points; other ops polygons. Supersedes MOQ-21/MOQ-25. Selection ops picking in another kind convert: edge if one of its polygons, polygon if one of its edges, point if on a picked polygon or edge.
+- SEL-Q02 Rule ops are Operandi's own (`operandi.edgeAngle.selop`, `operandi.border.selop`, `operandi.sides.selop`, `operandi.facing.selop`); Edges by Angle measures between the two polygons' normals (0° flat), an edge with one or three+ polygons is never picked by it.
+- SEL-Q03 A captured Select by Index keeps the element count it was made on (`select_by_index_count` in the file); a different count below shows a hint on the op row, and the op still runs. Indexes typed into Select by Index have no count.
+- SEL-Q04 Selection Set reads a set of the op's own kind first, then a polygon set of that name.

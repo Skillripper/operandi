@@ -89,6 +89,8 @@ pub struct Parameters {
     pub radial_axis: usize,
     /// Sphere mode: None is Globe, Some(level) Tessellated (PRIM-S-02).
     pub sphere_level: Option<u32>,
+    /// What the falloff's weight does to a Cube, Sphere or Cylinder (#15).
+    pub shape_falloff: crate::ShapeFalloff,
     /// Push's Selection Normals; its Distance is `shift`.
     pub push_normals: crate::PushNormals,
     /// Smooth's options.
@@ -178,6 +180,7 @@ impl Default for Parameters {
             cylinder_caps: [crate::CylinderCap::Single; 2],
             radial_axis: 1,
             sphere_level: None,
+            shape_falloff: Default::default(),
             push_normals: Default::default(),
             smooth: Default::default(),
             jitter: Default::default(),
@@ -198,6 +201,54 @@ impl Default for Parameters {
             uv_pelt: Default::default(),
             uv_peel: Default::default(),
             uv_box: Default::default(),
+        }
+    }
+}
+
+/// The Cube, Sphere and Cylinder tools' settings as their shapes, the one
+/// generator each shares with its MeshOp (GitHub #14). Every field is
+/// named, so a new shape option doesn't build until the tool fills it.
+impl Parameters {
+    pub fn cube_shape(&self) -> crate::CubeShape {
+        crate::CubeShape {
+            position: self.position,
+            size: self.size,
+            segments: self.segments,
+            make_uvs: self.make_uvs,
+            axis: self.radial_axis,
+            falloff: self.shape_falloff,
+        }
+    }
+    pub fn sphere_shape(
+        &self,
+        position: DVec3,
+        radial: crate::RadialParameters,
+    ) -> crate::SphereShape {
+        crate::SphereShape {
+            position,
+            radius: radial.radius,
+            sides: radial.sides,
+            segments: radial.segments,
+            axis: self.radial_axis,
+            level: self.sphere_level,
+            make_uvs: self.make_uvs,
+            falloff: self.shape_falloff,
+        }
+    }
+    pub fn cylinder_shape(
+        &self,
+        position: DVec3,
+        radial: crate::RadialParameters,
+    ) -> crate::CylinderShape {
+        crate::CylinderShape {
+            position,
+            radius: radial.radius,
+            sides: radial.sides,
+            segments: radial.segments,
+            axis: self.radial_axis,
+            caps: self.cylinder_caps,
+            make_uvs: self.make_uvs,
+            falloff: self.shape_falloff,
         }
     }
 }

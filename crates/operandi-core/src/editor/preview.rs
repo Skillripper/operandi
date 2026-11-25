@@ -61,33 +61,40 @@ impl Editor {
                 if !radial.radius.is_finite() || radial.radius.min_element() < 0. {
                     return Err("Radius must be finite and nonnegative".into());
                 }
-                let mesh = crate::user_defaults::primitive_symmetry(self.symmetry)
-                    .doubled(radial_mesh(live.tool, p.position, radial, &p)?)?;
                 let item = scene.active().ok_or("Select a mesh")?;
                 if !scene.shows(item) {
                     return Err(
                         "The selected mesh is hidden; show it before creating geometry".into(),
                     );
                 }
+                // #15: the tool falloff shapes the primitive as it's made.
+                let weights = self.primitive_weights();
+                let weigh = weights
+                    .as_ref()
+                    .map(|w| w.weigher(scene.world_to_local(item.id).unwrap_or_default()));
+                let weight = weigh.as_ref().map(|f| f as &dyn Fn(DVec3) -> f64);
+                let mesh = crate::user_defaults::primitive_symmetry(self.symmetry)
+                    .doubled(radial_mesh(live.tool, p.position, radial, &p, weight)?)?;
                 // Drawn in world space; the mesh is local.
                 let mesh = scene.mesh_world_to_local(item.id, mesh)?;
                 crate::append_geometry(&mut scene.active_mut().ok_or("Select a mesh")?.mesh, mesh)?;
             }
             Tool::Box => {
-                if !apply
-                    && !live.applied
-                    && p.position == live.params.position
-                    && p.size == live.params.size
-                    && p.segments == live.params.segments
-                    && p.make_uvs == live.params.make_uvs
-                {
+                if !apply && !live.applied && p.cube_shape() == live.params.cube_shape() {
                     self.live.as_mut().ok_or("No active primitive")?.params = p;
                     return Ok(());
                 }
-                let mut mesh = crate::primitive::segmented_cube(p.position, p.size, p.segments)?;
-                if p.make_uvs && !mesh.faces.is_empty() {
-                    crate::add_cube_uvs(&mut mesh, p.position, p.size)?;
-                }
+                // The Cube's one generator, shared with its MeshOp (#14),
+                // shaped by the tool falloff (#15).
+                let to_local = scene
+                    .active()
+                    .map(|i| scene.world_to_local(i.id).unwrap_or_default())
+                    .unwrap_or_default();
+                let weights = self.primitive_weights();
+                let weigh = weights.as_ref().map(|w| w.weigher(to_local));
+                let mesh = p
+                    .cube_shape()
+                    .mesh_weighted(weigh.as_ref().map(|f| f as &dyn Fn(DVec3) -> f64))?;
                 // SYM-PR-01/02.
                 let mesh = crate::user_defaults::primitive_symmetry(self.active_symmetry())
                     .doubled(mesh)?;

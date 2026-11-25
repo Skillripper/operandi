@@ -399,40 +399,19 @@ fn primitive_slot(tool: Tool) -> usize {
     }
 }
 
-/// Sphere or Cylinder geometry from the live settings (`p`'s Make UVs,
-/// axis, Cylinder caps and Sphere mode); `radial` gives size and resolution.
-/// One flat `sides`-gon when exactly one radius is 0, facing that axis.
-fn flat_disc(position: DVec3, radial: crate::RadialParameters) -> Result<Option<crate::Mesh>> {
-    let zero: Vec<usize> = (0..3).filter(|&a| radial.radius[a] == 0.).collect();
-    let [normal] = zero[..] else {
-        return Ok(None);
-    };
-    crate::flat_ngon(
-        position,
-        normal,
-        radial.radius[(normal + 1) % 3],
-        radial.radius[(normal + 2) % 3],
-        radial.sides,
-    )
-    .map(Some)
-}
-
+/// Sphere or Cylinder geometry from the live settings, through the shape's
+/// one generator (primitive_shapes.rs, shared with its MeshOp); `radial`
+/// gives size and resolution.
 fn radial_mesh(
     tool: Tool,
     position: DVec3,
     radial: crate::RadialParameters,
     p: &Parameters,
+    weight: crate::primitive_shapes::Weight,
 ) -> Result<crate::Mesh> {
-    // Drag creation's flat base (spec drag-creation-2026-11-06 rule 1): with
-    // one radius 0 the shape is one Sides-gon disc in the other two axes.
-    if let Some(disc) = flat_disc(position, radial)? {
-        return Ok(disc);
-    }
-    if tool != Tool::Sphere {
-        crate::cylinder_geometry_with(position, radial, p.cylinder_caps, p.radial_axis, p.make_uvs)
-    } else if let Some(level) = p.sphere_level {
-        crate::tessellated_sphere(position, radial.radius, level, p.radial_axis, p.make_uvs)
+    if tool == Tool::Sphere {
+        p.sphere_shape(position, radial).mesh_weighted(weight)
     } else {
-        crate::globe_geometry_with(position, radial, p.radial_axis, p.make_uvs)
+        p.cylinder_shape(position, radial).mesh_weighted(weight)
     }
 }

@@ -365,6 +365,7 @@ fn select_randomly_same_seed_same_polygons() {
             probability: 50.0,
         })],
         &mesh,
+        operandi_core::meshop_types::SelElement::Polygon,
     )
     .unwrap()
     .unwrap();

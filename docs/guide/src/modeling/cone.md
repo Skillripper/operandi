@@ -56,6 +56,16 @@ size.
 
 - Right-drag in the **3D view**, away from the handles: left and right change **Sides**, up and down change **Segments**.
 
+## In the Mesh Stack
+
+You can also add a Cone as a step of a mesh's **Mesh Stack**: choose
+**Cone** under **Create > Primitives** in the stack's **Add Operator**
+list. It has the same properties as the tool, and the tool and the stack
+step build exactly the same cone from the same values, so you can
+change it later without rebuilding the mesh. **Min** and **Max**
+aren't there. Scripts
+add it with `meshop.create type:prim.cone.item`.
+
 ## Related
 
 - [Primitives](../interface/window.md): the **Toolbox** on the **Create** tab

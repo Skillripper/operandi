@@ -67,10 +67,17 @@ fn selection_ops(
     below: &[operandi_core::mesh_stack::MeshOp],
 ) -> (Option<SelOpEdit>, Option<egui::Rect>) {
     use crate::form::{Unit, rows};
+    // #19: what this op's selection numbers (polygons, edges or points).
+    let what = op
+        .kind
+        .def()
+        .map_or("polygons", |d| d.selection_element().plural());
+    let count = op.selops.len();
     let mut edit = None;
     for (n, s) in op.selops.iter().enumerate() {
         let mut next = s.clone();
         let mut remove = false;
+        let mut moved = None;
         ui.push_id(("selop", n), |ui| {
             rows::value(ui, &format!("{}. {}", n + 1, s.kind.label()), "");
             rows::check_d(
@@ -98,7 +105,8 @@ fn selection_ops(
             );
             match &mut next.kind {
                 SelKind::Index { index } => {
-                    rows::text_d(ui, "Index", index, "", "Polygon numbers, like 0-9,12");
+                    let tip = format!("Numbers of the {what} it picks, like 0-9,12");
+                    rows::text_d(ui, "Index", index, "", &tip);
                 }
                 SelKind::Range { start, end, step } => {
                     rows::number_d(
@@ -108,7 +116,7 @@ fn selection_ops(
                         0,
                         Unit::Count,
                         0..=u32::MAX,
-                        "First polygon",
+                        "The first number",
                     );
                     rows::number_d(
                         ui,
@@ -117,7 +125,7 @@ fn selection_ops(
                         0,
                         Unit::Count,
                         0..=u32::MAX,
-                        "Last polygon; 0 = the last one",
+                        "The last number; 0 = the last one",
                     );
                     rows::number_d(
                         ui,
@@ -126,7 +134,7 @@ fn selection_ops(
                         1,
                         Unit::Count,
                         1..=u32::MAX,
-                        "Every nth polygon",
+                        "Every nth one",
                     );
                 }
                 SelKind::Pattern { pattern } => {
@@ -182,7 +190,7 @@ fn selection_ops(
                         "Selection Set",
                         name,
                         "",
-                        "A polygon selection set on the mesh below",
+                        "A selection set on the mesh below, of this kind or of polygons",
                     );
                 }
                 SelKind::Random { seed, probability } => {
@@ -202,14 +210,95 @@ fn selection_ops(
                         50.0,
                         Unit::Percent,
                         0.0..=100.0,
-                        "The chance each polygon is picked",
+                        "The chance each one is picked",
+                    );
+                }
+                // #19: rule ops, answered again on every evaluation.
+                SelKind::EdgeAngle { min, max } => {
+                    rows::number_d(
+                        ui,
+                        "Min Angle",
+                        min,
+                        30.,
+                        Unit::Angle,
+                        0.0..=180.0,
+                        "Edges whose polygons meet at least this sharply (0° = flat)",
+                    );
+                    rows::number_d(
+                        ui,
+                        "Max Angle",
+                        max,
+                        180.,
+                        Unit::Angle,
+                        0.0..=180.0,
+                        "and at most this sharply",
+                    );
+                }
+                SelKind::Border {} => {
+                    rows::note(ui, "Edges with a polygon on one side only.");
+                }
+                SelKind::Sides { sides } => {
+                    rows::choice_d(
+                        ui,
+                        "Sides",
+                        sides,
+                        &1,
+                        &[(0, "Triangles"), (1, "Quads"), (2, "N-gons")],
+                        "Polygons with this many corners",
+                    );
+                }
+                SelKind::Facing { x, y, z, angle } => {
+                    for (label, v, d) in [("Direction X", x, 0.), ("Y", y, 1.), ("Z", z, 0.)] {
+                        rows::number_d(
+                            ui,
+                            label,
+                            v,
+                            d,
+                            Unit::Scalar,
+                            -1e9..=1e9,
+                            "The direction polygons face",
+                        );
+                    }
+                    rows::number_d(
+                        ui,
+                        "Angle",
+                        angle,
+                        45.,
+                        Unit::Angle,
+                        0.0..=180.0,
+                        "How far from that direction they may face",
                     );
                 }
             }
+            // #19: the order matters for Subtract and Multiply.
+            ui.gated_ui(
+                crate::unavailable::unless(n + 1 < count, "Already at the top"),
+                |ui| {
+                    if rows::button(ui, "Move Up")
+                        .on_hover_text("Apply it after the one above it")
+                        .clicked()
+                    {
+                        moved = Some(n + 1);
+                    }
+                },
+            );
+            ui.gated_ui(
+                crate::unavailable::unless(n > 0, "Already at the bottom"),
+                |ui| {
+                    if rows::button(ui, "Move Down")
+                        .on_hover_text("Apply it before the one below it")
+                        .clicked()
+                    {
+                        moved = Some(n - 1);
+                    }
+                },
+            );
             remove = rows::button(ui, "Remove").clicked();
         });
         if remove {
             edit = Some(SelOpEdit::Remove(n));
+        } else if let Some(to) = moved {
+            edit = Some(SelOpEdit::Move(n, to));
         } else if next != *s {
             edit = Some(SelOpEdit::Set(n, next));
         }
@@ -254,6 +343,10 @@ pub(crate) fn op_icon(id: &str) -> Option<crate::icons::Icon> {
         "operandi.skin.item" => "skin-mesh",
         "prim.sphere.item" => "sphere",
         "prim.cylinder.item" => "cylinder",
+        "prim.cone.item" => "cone",
+        "prim.capsule.item" => "capsule",
+        "prim.ellipsoid.item" => "ellipsoid",
+        "prim.toroid.item" => "torus",
         "poly.bevel.item" => "bevel",
         "poly.smshift.item" => "smooth-shift",
         "subdivide.tool.item" => "subdivide-smooth",
@@ -826,6 +919,10 @@ impl Operandi {
                     dragged |= response.dragged();
                 }
             });
+            // #15: a primitive op's own copy of a falloff.
+            if def.fields().iter().any(|f| f.key == "falloff") {
+                op_falloff_section(ui, &self.editor, &values, &mut changes);
+            }
             if def.id() == operandi_core::meshblend::MESHBLEND_OP {
                 let status = evaluated.and_then(|e| e.statuses.get(index));
                 (blend_commands, blend_dragged) =
@@ -929,6 +1026,66 @@ impl Operandi {
         });
         self.editor.undo_fold = previous;
     }
+}
+
+/// A primitive op's Falloff section (#15): which falloff layers the op
+/// keeps, Use Active Falloff and Clear Falloff. The op can't follow the
+/// tool falloff (it isn't scene data), so it keeps a copy.
+fn op_falloff_section(
+    ui: &mut egui::Ui,
+    editor: &operandi_core::Editor,
+    values: &serde_json::Value,
+    changes: &mut serde_json::Map<String, serde_json::Value>,
+) {
+    use crate::form::rows;
+    use crate::unavailable::Gate as _;
+    let kept: Option<operandi_core::ShapeWeights> =
+        serde_json::from_value(values["falloff"].clone())
+            .ok()
+            .flatten();
+    rows::section(ui, "Falloff", false, |ui| {
+        let shown = kept.as_ref().map_or_else(
+            || "None".to_owned(),
+            |w| {
+                let mut names = vec![w.first.label()];
+                names.extend(w.added.iter().map(|a| a.0.label()));
+                names.join(" + ")
+            },
+        );
+        rows::value(ui, "Falloff", &shown);
+        let active = editor.primitive_weights();
+        let why = if editor.spatial_falloff.is_none() {
+            "Turn on a Linear, Radial, Cylinder or Noise falloff from the Falloff menu first"
+                .to_owned()
+        } else {
+            editor.primitive_falloff_note().unwrap_or_default()
+        };
+        ui.gated_ui(crate::unavailable::unless(active.is_some(), &why), |ui| {
+            if rows::button(ui, "Use Active Falloff")
+                .on_hover_text("Copy the falloff from the Falloff menu into this operation")
+                .clicked()
+                && let Some(w) = &active
+                && let Ok(v) = serde_json::to_value(w)
+            {
+                changes.insert("falloff".into(), v);
+            }
+        });
+        ui.gated_ui(
+            crate::unavailable::unless(kept.is_some(), "This operation has no falloff"),
+            |ui| {
+                if rows::button(ui, "Clear Falloff")
+                    .on_hover_text("Remove this operation's falloff; the shape is plain again")
+                    .clicked()
+                {
+                    changes.insert("falloff".into(), serde_json::Value::Null);
+                }
+            },
+        );
+        rows::note(
+            ui,
+            "The Falloff Scale, Offset, Twist, Sample At and Spacing rows say what it does.",
+        );
+    });
 }
 
 #[cfg(test)]

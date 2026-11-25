@@ -174,6 +174,53 @@ impl Editor {
             path: self.falloff_path.clone(),
         })
     }
+    /// The tool falloff as the Cube, Sphere and Cylinder read it (#15), or
+    /// `None` with no falloff or one that can't weigh new points
+    /// ([`Self::primitive_falloff_note`] says why).
+    pub fn primitive_weights(&self) -> Option<crate::ShapeWeights> {
+        crate::ShapeWeights::from_active(&self.active_falloff()?).ok()
+    }
+    /// Fit Falloff to Shape (#15): a Linear falloff along the live Cube,
+    /// Sphere or Cylinder's axis, full at its top and none at its base:
+    /// the spine ramp, in one click. Keeps the Linear preset's Shape and
+    /// Use World Transforms.
+    pub fn primitive_fit_falloff(&self) -> Result<crate::Falloff> {
+        let live = self
+            .live
+            .as_ref()
+            .filter(|l| matches!(l.tool, Tool::Box | Tool::Sphere | Tool::Cylinder))
+            .ok_or("Start a Cube, Sphere or Cylinder first")?;
+        let p = &live.params;
+        let axis = p.radial_axis.min(2);
+        let half = if live.tool == Tool::Box {
+            p.size[axis].abs() * 0.5
+        } else {
+            p.radial.ok_or("Draw the shape first")?.radius[axis].abs()
+        };
+        if !half.is_finite() || half <= 0. {
+            return Err("Give the shape some height along its axis first".into());
+        }
+        let (mut top, mut base) = (p.position, p.position);
+        top[axis] += half;
+        base[axis] -= half;
+        let preset = self.linear_falloff_preset;
+        if !preset.world
+            && let Some(item) = self.scene.active()
+        {
+            let m = self.scene.world_to_local(item.id)?;
+            top = m.transform_point3(top);
+            base = m.transform_point3(base);
+        }
+        Ok(crate::Falloff::Linear(crate::LinearFalloff {
+            start: top,
+            end: base,
+            ..preset
+        }))
+    }
+    /// Why the active falloff can't shape a primitive, if it can't.
+    pub fn primitive_falloff_note(&self) -> Option<String> {
+        crate::ShapeWeights::from_active(&self.active_falloff()?).err()
+    }
     /// The action axes Bend leans along (World when the action axis can't
     /// be had for this selection, e.g. Selection axes without polygons).
     /// BN-45 (BH-Q12, provisional): the status bar text while Bend's axis

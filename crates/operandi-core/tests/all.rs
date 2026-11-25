@@ -399,6 +399,8 @@ mod meshblend;
 mod meshblend_spike;
 #[path = "meshblend_strips.rs"]
 mod meshblend_strips;
+#[path = "meshop_element_selection.rs"]
+mod meshop_element_selection;
 #[path = "mid_tool_undo.rs"]
 mod mid_tool_undo;
 #[path = "mode_availability.rs"]
@@ -544,6 +546,8 @@ mod polygons_m17;
 mod polyscale_offset_clean_spec;
 #[path = "pose_tool.rs"]
 mod pose_tool;
+#[path = "primitive_falloff.rs"]
+mod primitive_falloff;
 #[path = "primitive_moved_mesh.rs"]
 mod primitive_moved_mesh;
 #[path = "primitive_settings.rs"]

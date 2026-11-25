@@ -8,6 +8,7 @@
     - [Items list](panels/items-list.md)
     - [Tool Properties](panels/tool-properties.md)
     - [Properties panel](panels/properties.md)
+    - [Mesh Stack selections](panels/mesh-stack-selections.md)
     - [Shader Tree](panels/shader-tree.md)
     - [Preferences](panels/preferences.md)
     - [Menus](menus/index.md)

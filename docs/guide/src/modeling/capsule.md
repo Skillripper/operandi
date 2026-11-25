@@ -52,6 +52,15 @@ size.
 
 - Right-drag in the **3D view**, away from the handles: left and right change **Sides**, up and down change **Segments**.
 
+## In the Mesh Stack
+
+You can also add a Capsule as a step of a mesh's **Mesh Stack**: choose
+**Capsule** under **Create > Primitives** in the stack's **Add Operator**
+list. It has the same properties as the tool, and the tool and the stack
+step build exactly the same capsule from the same values, so you can
+change it later without rebuilding the mesh. Scripts
+add it with `meshop.create type:prim.capsule.item`.
+
 ## Related
 
 - [Primitives](../interface/window.md): the **Toolbox** on the **Create** tab

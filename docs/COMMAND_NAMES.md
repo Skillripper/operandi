@@ -192,7 +192,9 @@ and degrees. The conversion happens where arguments are parsed
 | deformer.selectBaseMesh item select:<bool> | Edit Base Mesh | |
 | selop.indexcreate, selop.selection mode:set\|clear\|add\|remove | Select by Index | |
 
-Op types (saved): prim.cube.item, prim.sphere.item, prim.cylinder.item,
+Op types (saved): prim.cube.item, prim.sphere.item, prim.ellipsoid.item,
+prim.cone.item, prim.toroid.item, prim.cylinder.item, prim.capsule.item,
+prim.teapot.item (primitive_ops.rs),
 poly.bevel.item, poly.smshift.item, subdivide.tool.item,
 pmodel.triangulate.item, mirror.clone.item, array.clone.item;
 Select by Index index.selop.item. One mapping: `mesh_stack::OP_TYPES`.
