@@ -8,6 +8,9 @@ use eframe::egui;
 use operandi_core::units::{self, DistanceUnits, UnitSystem};
 use serde::{Deserialize, Serialize};
 
+// The colour/factor display choices live with the field code that reads them.
+pub use crate::value_display::{ColorUnits, FactorDisplay};
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum GridType {
     Fixed,
@@ -51,44 +54,6 @@ impl Rounding {
             Self::ForcedFixed => "Force Fixed",
         }
     }
-}
-
-/// Color Unit System: how colour components are shown and typed.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
-pub enum ColorUnits {
-    /// 0–1, may exceed 1. Provisional default: the fields so far.
-    #[default]
-    FloatingPoint,
-    Percentage,
-    /// 0–255.
-    Integer,
-    /// 00–ff per channel.
-    Hexadecimal,
-}
-impl ColorUnits {
-    pub const ALL: [Self; 4] = [
-        Self::FloatingPoint,
-        Self::Percentage,
-        Self::Integer,
-        Self::Hexadecimal,
-    ];
-    pub fn label(self) -> &'static str {
-        match self {
-            Self::FloatingPoint => "Floating Point",
-            Self::Percentage => "Percentage",
-            Self::Integer => "Integer (0–255)",
-            Self::Hexadecimal => "Hexadecimal",
-        }
-    }
-}
-
-/// Factor or Range: 0–1 factors as percentages or plain numbers.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
-pub enum FactorDisplay {
-    /// Provisional default: the fields so far.
-    #[default]
-    Percentage,
-    Float,
 }
 
 /// The three work planes, by the index the views use (0 ground XZ, 1 YZ,

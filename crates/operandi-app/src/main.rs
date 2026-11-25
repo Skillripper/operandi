@@ -367,7 +367,7 @@ mod option_row;
 mod orbit_selected;
 #[path = "controls/original_compatible.rs"]
 mod original_compatible;
-#[path = "settings/os_color.rs"]
+#[path = "controls/os_color.rs"]
 mod os_color;
 #[path = "graphics/outline.rs"]
 mod outline;
