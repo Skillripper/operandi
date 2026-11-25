@@ -315,7 +315,7 @@
 <rect x="515" y="242" width="11" height="11" fill="#555" fill-opacity="0.55"><title>input_devices uses view: 3 files</title></rect>
 <rect x="489" y="242" width="11" height="11" fill="#555" fill-opacity="0.49"><title>input_devices uses files: 2 files</title></rect>
 <rect x="580" y="242" width="11" height="11" fill="#555" fill-opacity="0.42"><title>input_devices uses theme: 1 files</title></rect>
-<rect x="567" y="242" width="11" height="11" fill="#555" fill-opacity="0.55"><title>input_devices uses controls: 3 files</title></rect>
+<rect x="567" y="242" width="11" height="11" fill="#555" fill-opacity="0.49"><title>input_devices uses controls: 2 files</title></rect>
 <rect x="502" y="242" width="11" height="11" fill="#555" fill-opacity="0.42"><title>input_devices uses window_layout: 1 files</title></rect>
 <rect x="385" y="242" width="11" height="11" fill="#555" fill-opacity="0.49"><title>input_devices uses settings: 2 files</title></rect>
 <rect x="385" y="515" width="11" height="11" fill="#d62728" fill-opacity="0.49"><title>view uses settings: 2 files</title></rect>
@@ -378,7 +378,6 @@
 <rect x="554" y="294" width="11" height="11" fill="#555" fill-opacity="0.63"><title>slicing uses (root): 5 files</title></rect>
 <rect x="515" y="437" width="11" height="11" fill="#555" fill-opacity="0.59"><title>graphics uses view: 4 files</title></rect>
 <rect x="398" y="528" width="11" height="11" fill="#d62728" fill-opacity="0.49"><title>tools uses anim: 2 files</title></rect>
-<rect x="242" y="567" width="11" height="11" fill="#d62728" fill-opacity="0.42"><title>controls uses input_devices: 1 files</title></rect>
 <rect x="424" y="216" width="11" height="11" fill="#555" fill-opacity="0.42"><title>sculpting uses commands: 1 files</title></rect>
 <rect x="333" y="151" width="11" height="11" fill="#555" fill-opacity="0.42"><title>painting_ui uses items: 1 files</title></rect>
 <rect x="502" y="359" width="11" height="11" fill="#555" fill-opacity="0.42"><title>menus uses window_layout: 1 files</title></rect>

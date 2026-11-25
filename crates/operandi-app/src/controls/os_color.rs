@@ -3,7 +3,6 @@
 //! Operandi's colour picker. On, it opens the system colour panel (macOS
 //! NSColorPanel) and the field follows it while the panel stays open; other
 //! platforms keep Operandi's picker.
-use crate::native::color_panel;
 use eframe::egui::Id;
 use std::cell::Cell;
 
@@ -83,4 +82,95 @@ mod tests {
         assert_eq!(enabled(), cfg!(target_os = "macos"));
         set_enabled(false);
     }
+}
+
+/// The system color picker (macOS NSColorPanel), used by Set Material's
+/// Color swatch. It is a floating panel, not a modal: the dialog opens it
+/// with a starting color and reads the panel's color back every frame while
+/// the panel is visible. Colors here are sRGB components, 0 to 1.
+#[cfg(target_os = "macos")]
+mod color_panel {
+    use objc2::rc::Retained;
+    use objc2_app_kit::{NSColor, NSColorPanel, NSColorSpace};
+    use objc2_foundation::MainThreadMarker;
+
+    fn panel() -> Option<Retained<NSColorPanel>> {
+        let mtm = MainThreadMarker::new()?;
+        // SAFETY: on the main thread (checked above); the shared panel is
+        // owned by AppKit and lives for the process.
+        Some(unsafe { NSColorPanel::sharedColorPanel(mtm) })
+    }
+    fn ns_color(rgb: [f32; 3]) -> Retained<NSColor> {
+        let [r, g, b] = rgb.map(|c| c.clamp(0.0, 1.0) as f64);
+        // SAFETY: a plain class constructor taking finite components.
+        unsafe { NSColor::colorWithSRGBRed_green_blue_alpha(r, g, b, 1.0) }
+    }
+    /// Shows the panel with `rgb`. False when there is no main thread.
+    pub fn open(rgb: [f32; 3]) -> bool {
+        let Some(panel) = panel() else {
+            return false;
+        };
+        // SAFETY: main-thread AppKit calls on the live shared panel with
+        // an owned NSColor.
+        unsafe {
+            panel.setShowsAlpha(false);
+            panel.setContinuous(true);
+            panel.setColor(&ns_color(rgb));
+        }
+        panel.orderFront(None);
+        true
+    }
+    /// Moves the panel to `rgb` (after the fields changed) without showing it.
+    /// Unused since Set Material moved to the shared form (its colour field
+    /// drives the panel itself); kept for the next caller.
+    #[allow(dead_code)]
+    pub fn set(rgb: [f32; 3]) {
+        if let Some(panel) = panel() {
+            // SAFETY: as in `open`.
+            unsafe { panel.setColor(&ns_color(rgb)) };
+        }
+    }
+    /// The panel's color while it is on screen; `None` once it's closed.
+    pub fn poll() -> Option<[f32; 3]> {
+        let panel = panel()?;
+        if !panel.isVisible() {
+            return None;
+        }
+        // SAFETY: main-thread reads from the live shared panel. The color is
+        // converted to sRGB first, since component accessors are only valid
+        // for RGB colors; a color that can't convert reads as None.
+        unsafe {
+            let color = panel.color();
+            let srgb = color.colorUsingColorSpace(&NSColorSpace::sRGBColorSpace())?;
+            Some(
+                [
+                    srgb.redComponent(),
+                    srgb.greenComponent(),
+                    srgb.blueComponent(),
+                ]
+                .map(|c| c as f32),
+            )
+        }
+    }
+    pub fn close() {
+        if let Some(panel) = panel()
+            && panel.isVisible()
+        {
+            panel.orderOut(None);
+        }
+    }
+}
+/// Other platforms have no native picker hooked up yet; the dialog falls
+/// back to egui's own color picker.
+#[cfg(not(target_os = "macos"))]
+mod color_panel {
+    pub fn open(_: [f32; 3]) -> bool {
+        false
+    }
+    #[allow(dead_code)]
+    pub fn set(_: [f32; 3]) {}
+    pub fn poll() -> Option<[f32; 3]> {
+        None
+    }
+    pub fn close() {}
 }

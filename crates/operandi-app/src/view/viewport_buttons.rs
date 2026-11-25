@@ -1220,7 +1220,7 @@ impl Operandi {
         if root_focused && let Some(p) = ctx.pointer_hover_pos() {
             return Some(p);
         }
-        let screen = crate::native::mouse_location()?;
+        let screen = crate::os_mouse::mouse_location()?;
         let (inner, native, ppp) = self.corner.root_window?;
         Some(screen_to_window(screen, inner, native, ppp))
     }

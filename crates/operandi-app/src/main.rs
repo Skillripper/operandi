@@ -345,7 +345,7 @@ mod multires_ui;
 #[cfg(test)]
 #[path = "sculpting/multires_ui_tests.rs"]
 mod multires_ui_tests;
-#[path = "controls/native.rs"]
+#[path = "input_devices/native.rs"]
 mod native;
 #[path = "menus/native_menu.rs"]
 mod native_menu;
@@ -369,6 +369,8 @@ mod orbit_selected;
 mod original_compatible;
 #[path = "controls/os_color.rs"]
 mod os_color;
+#[path = "controls/os_mouse.rs"]
+mod os_mouse;
 #[path = "graphics/outline.rs"]
 mod outline;
 #[path = "window_layout/panel_close.rs"]
