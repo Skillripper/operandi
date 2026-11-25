@@ -504,6 +504,8 @@ pub use profile::{ProfilePick, ProfilePoint, ProfileShape};
 pub mod slice;
 #[path = "slicing/slice_cut.rs"]
 pub(crate) mod slice_cut;
+#[path = "slicing/support_edges.rs"]
+pub(crate) mod support_edges;
 pub use edge_insert::{
     EdgeInsertOptions, add_loop, add_loop_ring, add_loop_with, add_point, add_point_with,
 };

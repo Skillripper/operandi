@@ -617,3 +617,50 @@ fn sliced_mesh_saves_and_reopens() {
     assert_eq!(back.active().unwrap().mesh, e.scene.active().unwrap().mesh);
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+#[test]
+fn edge_slice_support_edges_leave_only_quads_and_triangles() {
+    let sides = |m: &Mesh| m.faces.iter().map(|f| f.vertices.len()).max().unwrap();
+    // A cut across one polygon of a 2x2 grid: its neighbour above takes
+    // the top point and becomes a five-sided polygon.
+    let mut e = editor(grid(2), Mode::Polygon);
+    e.dispatch(Command::Activate(Tool::EdgeSlice)).unwrap();
+    let mut p = params(&e);
+    assert!(!p.slice.edge_slice.support_edges, "off by default");
+    p.slice.edge_slice.points = vec![
+        SlicePoint::Edge { a: 0, b: 1, t: 0.5 },
+        SlicePoint::Edge { a: 3, b: 4, t: 0.5 },
+    ];
+    preview(&mut e, p.clone());
+    assert_eq!(mesh(&e).faces.len(), 5);
+    assert_eq!(sides(mesh(&e)), 5);
+    p.slice.edge_slice.support_edges = true;
+    preview(&mut e, p.clone());
+    assert_eq!(mesh(&e).faces.len(), 6);
+    assert_eq!(sides(mesh(&e)), 4);
+    assert_eq!(mesh(&e).vertices.len(), 11, "no point is added");
+    assert!(mesh(&e).validate().is_ok());
+    e.dispatch(Command::Drop).unwrap();
+    let bytes = persistence::encode(&e.scene).unwrap();
+    let reopened = persistence::decode(&bytes).unwrap();
+    assert_eq!(reopened.active().unwrap().mesh, *mesh(&e));
+
+    // A chain of inside points from corner to corner leaves two six-sided
+    // polygons; with support edges, quads and triangles.
+    let at = |x: f64, z: f64| SlicePoint::Inside {
+        face: 0,
+        at: DVec3::new(x, 0., z),
+    };
+    let mut e = editor(grid(1), Mode::Polygon);
+    e.dispatch(Command::Activate(Tool::EdgeSlice)).unwrap();
+    let mut p = params(&e);
+    p.slice.edge_slice.points = vec![at(0.2, 0.2), at(0.5, 0.6), at(0.8, 0.8)];
+    preview(&mut e, p.clone());
+    assert_eq!(sides(mesh(&e)), 6);
+    p.slice.edge_slice.support_edges = true;
+    preview(&mut e, p);
+    assert_eq!(sides(mesh(&e)), 4);
+    // The side with two inward corners needs three pieces: five in all.
+    assert_eq!(mesh(&e).faces.len(), 5);
+    assert!(mesh(&e).validate().is_ok());
+}

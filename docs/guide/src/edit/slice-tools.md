@@ -58,6 +58,7 @@ Drag a point on an edge to slide it along the edge.
 |---|---|---|
 | **Split at Middle** | Puts every edge point at the middle of its edge. Hold **Ctrl** for one click. | Off |
 | **Split Polygons** | Joins the points with new edges. Off, it only adds the points. | On |
+| **Add Support Edges** | Splits any polygon the cut leaves with more than four sides into quads and triangles. It adds edges between existing corners, preferring ones that start at the cut's new points, and never adds points. | Off |
 | **Show** | The readout while you place a point: **None**, **Position** or **Distance**. | Position |
 | **Snap Value** | Rounds edge points to steps along the edge. | 0.5% |
 | **Inside Polygons** | Lets you click inside a polygon to add a point there. | On |
@@ -68,6 +69,8 @@ Drag a point on an edge to slide it along the edge.
 
 - A cut never leaves a loose end inside a polygon. If you stop with an end
   inside one, that end runs on to the polygon's nearest corner.
+- Turn on **Add Support Edges** to keep a mesh in quads for subdivision.
+  The cut's neighbours that pick up a point on their edge are tidied too.
 
 ## Related
 

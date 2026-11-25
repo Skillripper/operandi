@@ -279,6 +279,9 @@ pub struct EdgeSlice {
     pub closed: bool,
     pub split_middle: bool,
     pub split_polygons: bool,
+    /// Add Support Edges: split the cut's many-sided polygons into quads
+    /// and triangles (Operandi's own option, off by default).
+    pub support_edges: bool,
     pub show: SliceShow,
     /// Not built (SL-Q08): greyed.
     pub offset: f64,
@@ -295,6 +298,7 @@ impl Default for EdgeSlice {
             closed: false,
             split_middle: false,
             split_polygons: true,
+            support_edges: false,
             show: SliceShow::Position,
             offset: 0.,
             snap: 0.005,
@@ -1403,7 +1407,23 @@ pub fn edge_slice_geometry(mesh: &Mesh, o: &EdgeSlice) -> Result<(Mesh, Vec<(u32
         }
     }
     let r = cut(mesh, &cuts, &inner, &chords)?;
-    Ok((r.mesh, r.new_edges))
+    if !(o.support_edges && o.split_polygons) {
+        return Ok((r.mesh, r.new_edges));
+    }
+    let new_points: BTreeSet<u32> = r
+        .cut_points
+        .iter()
+        .chain(&r.inner_points)
+        .copied()
+        .collect();
+    let support = crate::support_edges::support_chords(&r.mesh, &new_points);
+    if support.is_empty() {
+        return Ok((r.mesh, r.new_edges));
+    }
+    let s = cut(&r.mesh, &[], &[], &support)?;
+    let mut new_edges = r.new_edges;
+    new_edges.extend(s.new_edges);
+    Ok((s.mesh, new_edges))
 }
 
 /// How far each side of a Split's cut moves away from the plane.

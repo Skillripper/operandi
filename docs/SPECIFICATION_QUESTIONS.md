@@ -2751,6 +2751,13 @@ Polygon Slice (Shift+C).
   there); a path can end or close on a point. Two points on one edge (or
   a point and an edge point on the edge it ends) make no cut. Does the
   reference snap to points, and from how far?
+- **SL-Q18 (Jason 2026-11-25, Operandi's own option).** Edge Slice **Add
+  Support Edges** (off): every polygon holding a new cut point with more
+  than four sides is split into quads (one triangle for an odd count) by
+  edges between existing corners; no point is added. Plan: fewest pieces,
+  squarest corners, convex pieces, new edges inside the polygon, cheaper
+  from a new point, never doubling an existing edge. Polygons over 32
+  sides are left as they are.
 
 ## Items list header (item-list-header, 2026-11-06)
 

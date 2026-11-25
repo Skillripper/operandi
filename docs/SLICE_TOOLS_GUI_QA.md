@@ -69,6 +69,9 @@ Each line: do this → expect that.
 10. Start by clicking inside a polygon, click round through its neighbours'
     edges and back to the first point → a closed loop that also cuts the
     first polygon (SL-Q16).
+11. Add Support Edges on, cut once across one polygon of a grid → the
+    polygon next to each end of the cut is split into a quad and a
+    triangle; no polygon has more than four sides (SL-Q18).
 
 ## Polygon Slice (Shift+C)
 

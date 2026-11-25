@@ -380,6 +380,15 @@ fn edge_slice_form(p: &Parameters, f: &mut ToolForm<Parameters>) {
         )
         .tip("Connect the cut points with new edges; off only adds points"),
     )
+    .field(
+        check(
+            "edge_slice_support",
+            "Add Support Edges",
+            |p| p.slice.edge_slice.support_edges,
+            |p, on| p.slice.edge_slice.support_edges = on,
+        )
+        .tip("Split the cut's many-sided polygons into quads and triangles"),
+    )
     .field(pick(
         "edge-slice-show",
         "Show",
