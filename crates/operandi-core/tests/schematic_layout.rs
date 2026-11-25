@@ -205,5 +205,27 @@ fn write_schematic_qa_scene() {
             format!("Part {}", k - 4)
         };
     }
-    std::fs::write(path, persistence::encode(&e.scene).unwrap()).unwrap();
+    std::fs::write(&path, persistence::encode(&e.scene).unwrap()).unwrap();
+    // The old three columns and the new layout, for before/after pictures.
+    let s = rig_schematic::build(&e.scene);
+    let m = Metrics::default();
+    let l = layout(&s, &m);
+    let nodes: Vec<serde_json::Value> = s
+        .nodes
+        .iter()
+        .map(|n| {
+            serde_json::json!({"key": n.key, "label": n.label, "detail": n.detail,
+                "piece": n.piece, "inputs": n.inputs, "outputs": n.outputs,
+                "height": m.height(n), "head": m.head(n)})
+        })
+        .collect();
+    let json = serde_json::json!({
+        "nodes": nodes, "wires": s.wires, "node_w": m.node_w, "row_h": m.row_h,
+        "before": old_columns(&s, &m), "after": l.positions,
+        "crossings": [crossings(&s, &m, &old_columns(&s, &m), &BTreeMap::new()),
+            crossings(&s, &m, &l.positions, &l.bends)],
+    });
+    let mut out = path.clone();
+    out.push(".layouts.json");
+    std::fs::write(out, json.to_string()).unwrap();
 }
