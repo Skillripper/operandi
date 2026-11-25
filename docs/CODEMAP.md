@@ -2,7 +2,9 @@
 
 Where to look for common jobs, so a fix starts in the right file. For what
 each crate is and how an edit flows, read [ARCHITECTURE.md](ARCHITECTURE.md);
-this page is the "which files" companion. Paths are under `crates/`.
+this page is the "which files" companion. For what the data looks like
+(scene, items, meshes, channels, materials, undo, the `.opscene` file),
+read [DATA_MODEL.md](DATA_MODEL.md). Paths are under `crates/`.
 
 ## Finding things fast
 
