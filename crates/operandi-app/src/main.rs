@@ -369,7 +369,7 @@ mod orbit_selected;
 mod original_compatible;
 #[path = "settings/os_color.rs"]
 mod os_color;
-#[path = "controls/outline.rs"]
+#[path = "graphics/outline.rs"]
 mod outline;
 #[path = "window_layout/panel_close.rs"]
 mod panel_close;
