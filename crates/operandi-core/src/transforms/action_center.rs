@@ -275,7 +275,11 @@ pub fn selection_basis(scene: &Scene) -> Result<DMat3> {
     });
     let sum: DVec3 = normals.iter().copied().sum();
     if !sum.is_finite() || sum.length() <= normals.len() as f64 * 1e-10 {
-        return Err("Selection orientation is indeterminate (canceling normals); choose Axis World or Work Plane, or select an outward patch".into());
+        // AC-20: where the normals cancel (a closed piece, or a selection
+        // and its Symmetry mirror whose sides face away from each other),
+        // World axes, as with wires. It used to refuse, which greyed out
+        // Selection and Selection Border in the menu.
+        return Ok(DMat3::IDENTITY);
     }
     Ok(basis_from_up(sum.normalize()))
 }

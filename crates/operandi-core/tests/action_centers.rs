@@ -304,15 +304,14 @@ fn acs_availability_matches_dispatch_without_mutating_stage_or_history() {
         e.validate_action_context(selection).unwrap();
     }
     let mut e = fixture();
-    e.scene.selection.faces = vec![0, 1]; // Opposing normals, no invented fallback.
-    let before = e.clone();
-    let error = e.validate_action_context(selection).unwrap_err();
-    assert!(error.contains("indeterminate"));
-    assert_eq!(
-        e.dispatch(Command::ActionContext(selection)).unwrap_err(),
-        error
-    );
-    assert!(e == before);
+    // AC-20: opposing normals cancel, so the axes fall back to World
+    // instead of refusing (which greyed the menu items out).
+    e.scene.selection.faces = vec![0, 1];
+    e.validate_action_context(selection).unwrap();
+    e.dispatch(Command::ActionContext(selection)).unwrap();
+    e.dispatch(Command::Activate(Tool::Move)).unwrap();
+    let frame = e.live.as_ref().unwrap().action_frame.unwrap();
+    assert!((frame.basis - glam::DMat3::IDENTITY).abs_diff_eq(glam::DMat3::ZERO, 1e-12));
 }
 
 #[test]
