@@ -27,6 +27,7 @@ pub(crate) mod bend_view;
 pub(crate) mod click_start_view;
 pub(crate) mod falloff_screen_view;
 pub(crate) mod falloff_view;
+pub(crate) mod meshop_handles;
 pub(crate) mod tweak_view;
 pub(crate) mod twist_bevel_handles;
 

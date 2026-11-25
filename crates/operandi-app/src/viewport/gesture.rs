@@ -150,6 +150,9 @@ impl Operandi {
             input::GestureKind::Falloff(handle, start) => {
                 self.drag_falloff(*handle, *start, g.start, pos, r)
             }
+            input::GestureKind::MeshOpHandle(grab) => {
+                self.drag_meshop_handle(grab, g.start, pos, r)
+            }
             input::GestureKind::FalloffDraw { origin } => self.falloff_draw_drag(*origin, pos, r),
             input::GestureKind::Airbrush(stroke) => self.airbrush_drag(pos, r, *stroke),
             input::GestureKind::AirbrushSize { layer, start } => {

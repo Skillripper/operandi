@@ -58,6 +58,53 @@ fn item_options(meshes: &[(u64, String)], current: u64) -> Vec<(u64, &str)> {
     out
 }
 
+/// A Minimum and Maximum pair; a Maximum below the Minimum is no limit.
+fn min_max(
+    ui: &mut Ui,
+    min: &mut f64,
+    max: &mut f64,
+    dmin: f64,
+    dmax: f64,
+    unit: crate::form::Unit,
+    what: &str,
+) {
+    use crate::form::rows;
+    rows::number_d(
+        ui,
+        "Minimum",
+        min,
+        dmin,
+        unit,
+        -1e9..=1e9,
+        &format!("Smallest {what}"),
+    );
+    rows::number_d(
+        ui,
+        "Maximum",
+        max,
+        dmax,
+        unit,
+        -1e9..=1e9,
+        &format!("Largest {what}; below Minimum means no limit"),
+    );
+}
+/// Three rows for a direction, "Direction X" then "Y" and "Z" (UIC-114).
+fn direction(ui: &mut Ui, label: &str, x: &mut f64, y: &mut f64, z: &mut f64, d: (f64, f64, f64)) {
+    use crate::form::{Unit, rows};
+    let first = format!("{label} X");
+    for (l, v, dv) in [(first.as_str(), x, d.0), ("Y", y, d.1), ("Z", z, d.2)] {
+        rows::number_d(
+            ui,
+            l,
+            v,
+            dv,
+            Unit::Scalar,
+            -1e9..=1e9,
+            "A direction; only its way matters",
+        );
+    }
+}
+
 /// The op's selection ops (MO-50..53) under its Select by Index: each
 /// with its eye, Invert, Blend Mode and own values, a Remove button, and
 /// an Add Selection menu. Returns the one change made this frame.
@@ -214,60 +261,98 @@ fn selection_ops(
                     );
                 }
                 // #19: rule ops, answered again on every evaluation.
-                SelKind::EdgeAngle { min, max } => {
-                    rows::number_d(
-                        ui,
-                        "Min Angle",
-                        min,
-                        30.,
-                        Unit::Angle,
-                        0.0..=180.0,
-                        "Edges whose polygons meet at least this sharply (0° = flat)",
-                    );
-                    rows::number_d(
-                        ui,
-                        "Max Angle",
-                        max,
-                        180.,
-                        Unit::Angle,
-                        0.0..=180.0,
-                        "and at most this sharply",
-                    );
+                SelKind::EdgeAngle {
+                    min,
+                    max,
+                    convex,
+                    concave,
+                } => {
+                    min_max(ui, min, max, 30., 180., Unit::Angle, "angle between the two polygons (0° = flat)");
+                    rows::check_d(ui, "Convex", convex, true, "Outward bends");
+                    rows::check_d(ui, "Concave", concave, true, "Inward bends");
                 }
                 SelKind::Border {} => {
                     rows::note(ui, "Edges with a polygon on one side only.");
                 }
-                SelKind::Sides { sides } => {
-                    rows::choice_d(
-                        ui,
-                        "Sides",
-                        sides,
-                        &1,
-                        &[(0, "Triangles"), (1, "Quads"), (2, "N-gons")],
-                        "Polygons with this many corners",
-                    );
-                }
-                SelKind::Facing { x, y, z, angle } => {
-                    for (label, v, d) in [("Direction X", x, 0.), ("Y", y, 1.), ("Z", z, 0.)] {
-                        rows::number_d(
-                            ui,
-                            label,
-                            v,
-                            d,
-                            Unit::Scalar,
-                            -1e9..=1e9,
-                            "The direction polygons face",
-                        );
-                    }
+                SelKind::VertexCount { min, max } => {
+                    rows::number_d(ui, "Minimum", min, 3, Unit::Count, 0..=u32::MAX, "Fewest corners");
                     rows::number_d(
                         ui,
-                        "Angle",
-                        angle,
-                        45.,
-                        Unit::Angle,
-                        0.0..=180.0,
-                        "How far from that direction they may face",
+                        "Maximum",
+                        max,
+                        3,
+                        Unit::Count,
+                        0..=u32::MAX,
+                        "Most corners; below Minimum means no limit",
                     );
+                }
+                SelKind::Area { min, max } => {
+                    min_max(ui, min, max, 0., 1., Unit::Distance, "side of a square of the polygon's area");
+                }
+                SelKind::EdgeLength { min, max } => {
+                    min_max(ui, min, max, 0., 1., Unit::Distance, "edge length");
+                }
+                SelKind::Normal { x, y, z, min, max } => {
+                    direction(ui, "Direction", x, y, z, (0., 1., 0.));
+                    min_max(ui, min, max, 0., 45., Unit::Angle, "angle from the direction");
+                }
+                SelKind::Plane {
+                    x,
+                    y,
+                    z,
+                    nx,
+                    ny,
+                    nz,
+                    negative,
+                    include_zero,
+                } => {
+                    for (label, v) in [("Position X", x), ("Y", y), ("Z", z)] {
+                        rows::number_d(ui, label, v, 0., Unit::Distance, -1e9..=1e9, "A point on the plane");
+                    }
+                    direction(ui, "Normal", nx, ny, nz, (0., 1., 0.));
+                    rows::check_d(ui, "Negative Side", negative, false, "Pick the side the normal points away from");
+                    rows::check_d(ui, "Include Zero", include_zero, true, "Elements on the plane count too");
+                }
+                SelKind::Distance { x, y, z, min, max } => {
+                    for (label, v) in [("From X", x), ("Y", y), ("Z", z)] {
+                        rows::number_d(ui, label, v, 0., Unit::Distance, -1e9..=1e9, "Where distance is measured from");
+                    }
+                    min_max(ui, min, max, 0., 1., Unit::Distance, "distance of each element's centre");
+                }
+                SelKind::RandomCount {
+                    seed,
+                    number,
+                    percent,
+                } => {
+                    rows::number_d(ui, "Seed", seed, 0, Unit::Count, 0..=u32::MAX, "Random number generator seed");
+                    rows::number_d(ui, "Number", number, 10, Unit::Count, 0..=u32::MAX, "How many; 0 uses Percentage");
+                    rows::number_d(ui, "Percentage", percent, 50., Unit::Percent, 0.0..=100.0, "The share picked when Number is 0");
+                }
+                SelKind::RandomParts { seed, chance } => {
+                    rows::number_d(ui, "Seed", seed, 0, Unit::Count, 0..=u32::MAX, "Random number generator seed");
+                    rows::number_d(ui, "Chance", chance, 50., Unit::Percent, 0.0..=100.0, "The chance each connected part is picked");
+                }
+                SelKind::VertexEdges { min, max } => {
+                    rows::number_d(ui, "Minimum Edges", min, 5, Unit::Count, 0..=u32::MAX, "Fewest edges at the point");
+                    rows::number_d(
+                        ui,
+                        "Maximum Edges",
+                        max,
+                        0,
+                        Unit::Count,
+                        0..=u32::MAX,
+                        "Most edges; below Minimum means no limit",
+                    );
+                }
+                SelKind::Symmetric { x, y, z, tolerance } => {
+                    rows::check_d(ui, "Reflect X", x, true, "Mirror across X");
+                    rows::check_d(ui, "Reflect Y", y, false, "Mirror across Y");
+                    rows::check_d(ui, "Reflect Z", z, false, "Mirror across Z");
+                    rows::number_d(ui, "Tolerance", tolerance, 0.0001, Unit::Distance, 0.0..=1e9, "How close a mirrored element must be");
+                    rows::note(ui, "Picks the mirror image of the selection below; set Blend Mode to Add to keep both.");
+                }
+                SelKind::UvSeam { map } => {
+                    rows::text_d(ui, "UV Map", map, "Texture", "The UV map whose seams it picks");
                 }
             }
             // #19: the order matters for Subtract and Multiply.
@@ -1053,6 +1138,19 @@ fn op_falloff_section(
             },
         );
         rows::value(ui, "Falloff", &shown);
+        // Steve Hill via Jason (2026-11-25): the op's falloff is its own
+        // and live; every change here re-evaluates the stack at once.
+        if let Some(next) = edit_op_falloff(ui, values, kept.as_ref()) {
+            match next.map(serde_json::to_value) {
+                Some(Ok(v)) => {
+                    changes.insert("falloff".into(), v);
+                }
+                None => {
+                    changes.insert("falloff".into(), serde_json::Value::Null);
+                }
+                Some(Err(_)) => {}
+            }
+        }
         let active = editor.primitive_weights();
         let why = if editor.spatial_falloff.is_none() {
             "Turn on a Linear, Radial, Cylinder or Noise falloff from the Falloff menu first"
@@ -1083,9 +1181,166 @@ fn op_falloff_section(
         );
         rows::note(
             ui,
-            "The Falloff Scale, Offset, Twist, Sample At and Spacing rows say what it does.",
+            "The Falloff Scale, Offset, Twist, Sample At and Spacing rows say what it does. \
+             Drag its points in the view while this operation is selected.",
         );
     });
+}
+
+/// The op's own falloff rows: its type, then that type's values. Returns
+/// the changed falloff (`Some(None)` = turned off), if any.
+fn edit_op_falloff(
+    ui: &mut egui::Ui,
+    values: &serde_json::Value,
+    kept: Option<&operandi_core::ShapeWeights>,
+) -> Option<Option<operandi_core::ShapeWeights>> {
+    use crate::form::{Unit, rows};
+    use operandi_core::{CylinderFalloff, Falloff, FalloffShape, LinearFalloff, RadialFalloff};
+    let kind = |f: &Falloff| match f {
+        Falloff::Linear(_) => 1,
+        Falloff::Radial(_) => 2,
+        Falloff::Cylinder(_) => 3,
+        Falloff::Noise(_) => 4,
+        _ => 5,
+    };
+    let now = kept.map_or(0, |w| kind(&w.first));
+    let mut pick = now;
+    let mut options = vec![
+        (0, "None"),
+        (1, "Linear"),
+        (2, "Radial"),
+        (3, "Cylinder"),
+        (4, "Noise"),
+    ];
+    if now == 5 {
+        options.push((5, "(other)"));
+    }
+    rows::choice_d(
+        ui,
+        "Falloff Type",
+        &mut pick,
+        &0,
+        &options,
+        "This operation's own falloff",
+    );
+    // A new falloff starts fitted to the shape: along its axis, from its
+    // base (none) to its top (full).
+    let f64_of = |k: &str| values.get(k).and_then(|v| v.as_f64()).unwrap_or(0.);
+    let centre = glam::DVec3::new(f64_of("cenX"), f64_of("cenY"), f64_of("cenZ"));
+    let full = values.get("segmentsX").is_some();
+    let size = glam::DVec3::new(f64_of("sizeX"), f64_of("sizeY"), f64_of("sizeZ"))
+        * if full { 0.5 } else { 1. };
+    let size = if size == glam::DVec3::ZERO {
+        glam::DVec3::splat(0.5)
+    } else {
+        size
+    };
+    let axis = values
+        .get("axis")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(1)
+        .min(2) as usize;
+    if pick != now {
+        let mut up = glam::DVec3::ZERO;
+        up[axis] = size[axis];
+        let first = match pick {
+            0 => return Some(None),
+            1 => Falloff::Linear(LinearFalloff {
+                start: centre + up,
+                end: centre - up,
+                ..Default::default()
+            }),
+            2 => Falloff::Radial(RadialFalloff {
+                center: centre,
+                size,
+                ..Default::default()
+            }),
+            3 => Falloff::Cylinder(CylinderFalloff {
+                center: centre,
+                size,
+                axis,
+                ..Default::default()
+            }),
+            4 => Falloff::Noise(Default::default()),
+            _ => return None,
+        };
+        return Some(Some(operandi_core::ShapeWeights {
+            first,
+            added: kept.map(|w| w.added.clone()).unwrap_or_default(),
+        }));
+    }
+    let w = kept?;
+    let mut first = w.first;
+    let shapes = [
+        (FalloffShape::Linear, "Linear"),
+        (FalloffShape::EaseIn, "Ease-In"),
+        (FalloffShape::EaseOut, "Ease-Out"),
+        (FalloffShape::Smooth, "Smooth"),
+    ];
+    let vector = |ui: &mut egui::Ui, label: &str, v: &mut glam::DVec3, tip: &str| {
+        let first = format!("{label} X");
+        for (a, l) in [(0, first.as_str()), (1, "Y"), (2, "Z")] {
+            rows::number_d(ui, l, &mut v[a], 0., Unit::Distance, -1e9..=1e9, tip);
+        }
+    };
+    let shape_row = |ui: &mut egui::Ui, s: &mut FalloffShape| {
+        rows::choice_d(
+            ui,
+            "Shape",
+            s,
+            &FalloffShape::Linear,
+            &shapes,
+            "How the weight fades",
+        );
+    };
+    match &mut first {
+        Falloff::Linear(f) => {
+            vector(ui, "Start", &mut f.start, "Where the weight is full");
+            vector(ui, "End", &mut f.end, "Where the weight is none");
+            shape_row(ui, &mut f.shape);
+        }
+        Falloff::Radial(f) => {
+            vector(ui, "Center", &mut f.center, "Where the weight is full");
+            vector(
+                ui,
+                "Size",
+                &mut f.size,
+                "How far it reaches along X, Y and Z",
+            );
+            shape_row(ui, &mut f.shape);
+        }
+        Falloff::Cylinder(f) => {
+            vector(ui, "Center", &mut f.center, "A point on the tube's axis");
+            vector(ui, "Size", &mut f.size, "The tube's radii");
+            rows::choice_d(
+                ui,
+                "Axis",
+                &mut f.axis,
+                &1,
+                &[(0, "X"), (1, "Y"), (2, "Z")],
+                "The tube's axis",
+            );
+            shape_row(ui, &mut f.shape);
+        }
+        Falloff::Noise(f) => {
+            rows::number_d(
+                ui,
+                "Noise Scale",
+                &mut f.scale,
+                1.,
+                Unit::Distance,
+                -1e9..=1e9,
+                "Size of the noise blobs",
+            );
+        }
+        _ => {}
+    }
+    (first != w.first && first.validate().is_ok()).then(|| {
+        Some(operandi_core::ShapeWeights {
+            first,
+            added: w.added.clone(),
+        })
+    })
 }
 
 #[cfg(test)]

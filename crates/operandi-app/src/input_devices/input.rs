@@ -43,6 +43,8 @@ pub enum GestureKind {
     ItemHandle(crate::camera_light_handles::Grab),
     /// Dragging falloff handle `handle` from the falloff as it was at the press.
     Falloff(usize, operandi_core::Falloff),
+    /// Dragging a handle of the selected primitive MeshOp (meshop_handles.rs).
+    MeshOpHandle(Box<crate::viewport::meshop_handles::OpGrab>),
     /// Drawing a numeric Cone (`cone`) or Ellipsoid on construction plane
     /// `plane` from `anchor` (Jason, 2026-11-02).
     SolidDraw {
@@ -597,7 +599,13 @@ pub const ACTIONS: &[(&str, &str)] = &[
     // Layouts stage 2 (UIC-18, LAY-32): "Ctrl" is the real Control key on
     // macOS (Cmd+Shift+Tab and Cmd+` are the system's).
     (crate::pie_menu::LAYOUTS, "Ctrl+`"),
-    ("Layout Switcher", "Ctrl+Shift+Tab"),
+    // Ctrl+Shift+Tab pages the tool tabs now (tool-tab-cycling v1.1,
+    // Jason 2026-11-25): the switcher keeps Layout > Recent Layouts….
+    ("Layout Switcher", ""),
+    // Tool tab cycling (tool_tab_cycle.rs): the real Control key on a Mac;
+    // Cmd+Tab belongs to the system.
+    (crate::tool_tab_cycle::NEXT, "Ctrl+Tab"),
+    (crate::tool_tab_cycle::PREVIOUS, "Ctrl+Shift+Tab"),
     // Layouts stage 6 (LAY-53, UIC-206).
     ("Toggle Palettes", "`"),
     // Window ▸ Node View (node_view_open.rs): N for nodes; Cmd+Shift+N is
@@ -703,6 +711,14 @@ pub fn load_bindings(path: &std::path::Path) -> std::collections::BTreeMap<Strin
         .and_then(|bytes| serde_json::from_slice(&bytes).ok())
         .unwrap_or_default();
     let mut bindings = default_bindings();
+    // Ctrl+Shift+Tab moved from the Layout Switcher to Previous Tool Tab
+    // (2026-11-25): a map saved with the switcher's old factory key lets
+    // it go, so the new action gets it.
+    if !stored.contains_key(crate::tool_tab_cycle::PREVIOUS)
+        && stored.get("Layout Switcher").map(String::as_str) == Some("Ctrl+Shift+Tab")
+    {
+        stored.insert("Layout Switcher".into(), String::new());
+    }
     // Tweak was renamed Element Move (Jason, 2026-11-06): a saved map keeps
     // its binding under the new name.
     if let Some(old) = stored.remove("Tweak") {
@@ -802,6 +818,8 @@ pub fn load_bindings(path: &std::path::Path) -> std::collections::BTreeMap<Strin
         crate::pie_menu::SELECTION,
         crate::pie_menu::SHADING,
         crate::pie_menu::TOGGLES,
+        crate::tool_tab_cycle::NEXT,
+        crate::tool_tab_cycle::PREVIOUS,
     ]
     .into_iter()
     .chain(NAV_LOCK_HIDE_ACTIONS.iter().copied())

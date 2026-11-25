@@ -9809,3 +9809,18 @@ Spec meshblend-2026-11-24. Readings where the spec is silent:
 - SEL-Q02 Rule ops are Operandi's own (`operandi.edgeAngle.selop`, `operandi.border.selop`, `operandi.sides.selop`, `operandi.facing.selop`); Edges by Angle measures between the two polygons' normals (0° flat), an edge with one or three+ polygons is never picked by it.
 - SEL-Q03 A captured Select by Index keeps the element count it was made on (`select_by_index_count` in the file); a different count below shows a hint on the op row, and the op still runs. Indexes typed into Select by Index have no count.
 - SEL-Q04 Selection Set reads a set of the op's own kind first, then a polygon set of that name.
+- SEL-Q05 Batch 1 rules (Vertex Count with Tris/Quads/N-gons presets, Area, Edge Length, Convex/Concave, Normal, Plane, Distance, N Randomly, Random Parts, Vertices by Edge Count, Symmetric, UV Seam) follow Steve Hill's own descriptions of his kit in #19; they measure in the mesh's own space only (no World Coordinates option or transform input yet). Polygon Sides and Facing were replaced by Vertex Count and Normal.
+- SEL-Q06 Converting points to edges or polygons needs all their points picked; polygons and edges to points take any. Random Parts joins polygons through shared points.
+
+## Live MeshOp falloffs and primitive op handles (2026-11-25, Steve Hill via Jason, branch claude/project-thread-8fccr9, provisional)
+
+- MOP-H-Q01 A primitive op's falloff is its own: its Falloff Type (None, Linear, Radial, Cylinder, Noise) and that type's values are op rows, and changes evaluate at once. A new one starts fitted to the shape (Linear from top to base along its Axis; Radial and Cylinder at its centre and size). Combining several falloffs in the panel is parked (Jason, 2026-11-25).
+- MOP-H-Q02 With a primitive op's row selected and no tool on, the view shows its centre (moves in the view plane), one size square per axis and its falloff's points (Linear Start/End, Radial/Cylinder Center). Drags move by the view-plane delta like the falloff handles (falloff_view.rs); the size square takes the delta along its own axis. Other op types' handles come later, a family at a time.
+## Tool tab cycling (2026-11-25, tool-tab-cycling v1.1, branch claude/project-thread-rjq1h8, provisional)
+
+- TTC-Q01 (spec Q1) Ctrl+Tab in a multi-line text field pages the tool tabs; the field types no tab. Spec default.
+- TTC-Q02 (spec Q2) A hidden or collapsed tool panel (no tab strip drawn) isn't reopened; the keys do nothing. Spec default.
+- TTC-Q03 T1 reads "Create → Edit"; Operandi's Model strip has Select right of Create, so Ctrl+Tab on Create opens Select (rule 1, on-screen order).
+- TTC-Q04 Ctrl+Shift+Tab was the Layout Switcher's key (UIC-18). The switcher now starts with no key (Layout > Recent Layouts… still opens it); a saved key map still holding its old factory key hands it to Previous Tool Tab. UIC-18 updated with Jason's OK (2026-11-25: Ctrl+` already switches layouts).
+- TTC-Q05 Floating panels in their own OS windows don't take the keys (eframe runs no raw-input hook there); the main window does.
+- TTC-Q06 Spec 5 (announce the tab): the switch sends a "<Tab> tab" value-changed event and puts the same text on the message line; a full screen-reader announcement waits for Q4's accessibility work.

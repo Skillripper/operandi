@@ -672,6 +672,8 @@ mod tool_form;
 mod tool_framing;
 #[path = "window_layout/tool_split.rs"]
 mod tool_split;
+#[path = "window_layout/tool_tab_cycle.rs"]
+mod tool_tab_cycle;
 #[path = "window_layout/toolbox.rs"]
 mod toolbox;
 #[path = "controls/tree_list.rs"]
@@ -3261,6 +3263,8 @@ impl Operandi {
         if self.modal_owned_input || self.menu_owned_input || self.has_modal() {
             return;
         }
+        // Next/Previous Tool Tab, also with a field focused (tool_tab_cycle.rs).
+        self.tool_tab_keys(ctx);
         if let Some(action) = ctx.input(|i| input::file_shortcut(&i.events)) {
             match action {
                 input::FileShortcut::Save => {
@@ -3964,6 +3968,8 @@ impl eframe::App for Operandi {
         // A numeric field's Tab moves to the next field (UIC-51); only the
         // rest may become a bound Tab shortcut.
         numeric_tab::take_tab(ctx, input);
+        // Ctrl+Tab / Ctrl+Shift+Tab page the tool tabs (tool_tab_cycle.rs).
+        self.take_tool_tab_keys(ctx, input);
         self.hold_bound_tab(ctx, input);
         // The drag benchmark's scripted pointer events.
         if let Some(bench) = &mut self.drag_bench {
@@ -4557,6 +4563,9 @@ mod tool_properties_header_tests;
 #[cfg(test)]
 #[path = "tools/tool_speed_guard_tests.rs"]
 mod tool_speed_guard_tests;
+#[cfg(test)]
+#[path = "window_layout/tool_tab_cycle_tests.rs"]
+mod tool_tab_cycle_tests;
 #[path = "window_layout/toolbox_form.rs"]
 mod toolbox_form;
 #[cfg(test)]
@@ -4619,6 +4628,9 @@ mod falloff_panel_tests;
 #[cfg(test)]
 #[path = "items/mesh_stack_tests.rs"]
 mod mesh_stack_tests;
+#[cfg(test)]
+#[path = "viewport/meshop_handles_tests.rs"]
+mod meshop_handles_tests;
 #[cfg(test)]
 #[path = "view/snap_service_tests.rs"]
 mod snap_service_tests;

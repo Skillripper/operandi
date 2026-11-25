@@ -49,6 +49,7 @@ pub(super) fn draw_held(
     a.help_mode_take_input(&mut raw);
     // and the one that keeps bound Tab chords.
     crate::numeric_tab::take_tab(ctx, &mut raw);
+    a.take_tool_tab_keys(ctx, &mut raw);
     a.hold_bound_tab(ctx, &mut raw);
     // And the one that hands puck button presses in as keys.
     a.space_mouse_take_events(&mut raw.events);

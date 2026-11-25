@@ -38,3 +38,12 @@ For Jason or Codex, on the QA build. Claude can't click in Operandi.
 11. **Shifted numbers.** Capture a Select by Index, then put a Triangulate
     below it. The op's row shows the "numbers may point at other
     polygons" hint.
+
+## Live op falloffs and op handles
+
+12. Add a Mesh Stack Cylinder and select its row. Its centre dot and three
+    size squares show in the view: drag them, and Undo takes back each drag
+    in one step.
+13. In its Falloff section set Falloff Type to Linear and Falloff Scale to
+    0%. It tapers at once. Drag the falloff's End point in the view, or
+    change Start Y in the panel. The taper follows live.

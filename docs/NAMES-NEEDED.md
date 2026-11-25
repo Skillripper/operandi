@@ -20,8 +20,9 @@ is) and nothing for these, so they are placeholders:
 | `operandi.viewport.saveAs` / `.save` / `.use` / `.revert` / `.delete` | Saved viewports and groups (pieces) |
 | `operandi.panel.kind` | The content arrow: what a slot shows |
 
-Input Map actions: "Layout Switcher" (Ctrl+Shift+Tab) and "Pie: Layouts"
-(Ctrl+`).
+Input Map actions: "Layout Switcher" (no key since 2026-11-25) and "Pie:
+Layouts" (Ctrl+`). "Next Tool Tab" (Ctrl+Tab) and "Previous Tool Tab"
+(Ctrl+Shift+Tab) are Operandi's own (tool-tab-cycling v1.1).
 
 Help menu (Jason 2026-11-16): nothing in the name map, so placeholders:
 

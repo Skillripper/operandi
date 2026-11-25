@@ -306,6 +306,12 @@ fn switching_with_the_held_switcher_leaves_no_stuck_modifier() {
     a.execute("operandi.layout.setKey action:Edges key:H layout:UV");
     a.execute("layout.restore UV");
     a.execute("layout.restore Model");
+    // The switcher's key is the user's choice since 2026-11-25
+    // (Ctrl+Shift+Tab pages the tool tabs by default).
+    a.bindings
+        .insert("Layout Switcher".into(), "Ctrl+Shift+Tab".into());
+    a.bindings
+        .insert(crate::tool_tab_cycle::PREVIOUS.into(), String::new());
     frames(&mut a, &ctx, 1);
     let held = Modifiers {
         ctrl: true,
