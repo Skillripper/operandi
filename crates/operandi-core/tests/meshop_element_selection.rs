@@ -1,6 +1,6 @@
 //! GitHub #19: Mesh Stack selections of edges and points. Edge ops pick
 //! edges and Vertex ops points (Select by Index, Randomly, ...); rule-based
-//! selection ops (Edges by Angle, Border, Polygon Sides, Facing) are worked
+//! selection ops (Edges by Angle, Border, Vertex Count, Normal) are worked
 //! out again on every evaluation; selection ops can be reordered; captured
 //! numbers on a changed mesh say so on the op's row.
 use glam::DVec3;
@@ -63,9 +63,16 @@ fn rule_ops_pick_by_shape() {
     let sharp = SelKind::EdgeAngle {
         min: 30.,
         max: 180.,
+        convex: true,
+        concave: true,
     };
     assert_eq!(picks(sharp, &c, SelElement::Edge).len(), 12);
-    let flat = SelKind::EdgeAngle { min: 0., max: 10. };
+    let flat = SelKind::EdgeAngle {
+        min: 0.,
+        max: 10.,
+        convex: true,
+        concave: true,
+    };
     assert!(picks(flat, &c, SelElement::Edge).is_empty());
     // A closed cube has no border; one polygon has four border edges.
     assert!(picks(SelKind::Border {}, &c, SelElement::Edge).is_empty());
@@ -74,22 +81,44 @@ fn rule_ops_pick_by_shape() {
     assert_eq!(picks(SelKind::Border {}, &quad, SelElement::Point).len(), 4);
     // Quads: all six; triangles: none.
     assert_eq!(
-        picks(SelKind::Sides { sides: 1 }, &c, SelElement::Polygon).len(),
+        picks(
+            SelKind::VertexCount { min: 4, max: 4 },
+            &c,
+            SelElement::Polygon
+        )
+        .len(),
         6
     );
-    assert!(picks(SelKind::Sides { sides: 0 }, &c, SelElement::Polygon).is_empty());
-    // Facing +Y: the top polygon, its 4 edges, its 4 points.
-    let up = SelKind::Facing {
+    assert!(
+        picks(
+            SelKind::VertexCount { min: 3, max: 3 },
+            &c,
+            SelElement::Polygon
+        )
+        .is_empty()
+    );
+    // Normal +Y: each kind uses its own normal. The top polygon faces up;
+    // the top edges lean 45° (their points' average), the top corners
+    // 54.7°.
+    let up = |max| SelKind::Normal {
         x: 0.,
         y: 1.,
         z: 0.,
-        angle: 10.,
+        min: 0.,
+        max,
     };
-    assert_eq!(picks(up.clone(), &c, SelElement::Polygon).len(), 1);
-    assert_eq!(picks(up.clone(), &c, SelElement::Edge).len(), 4);
-    assert_eq!(picks(up, &c, SelElement::Point).len(), 4);
+    assert_eq!(picks(up(10.), &c, SelElement::Polygon).len(), 1);
+    assert!(picks(up(10.), &c, SelElement::Edge).is_empty());
+    assert_eq!(picks(up(50.), &c, SelElement::Edge).len(), 4);
+    assert_eq!(picks(up(60.), &c, SelElement::Point).len(), 4);
     // Bad values are refused, not panics.
-    let bad = SelOp::new(SelKind::Sides { sides: 9 });
+    let bad = SelOp::new(SelKind::Normal {
+        x: 0.,
+        y: 0.,
+        z: 0.,
+        min: 0.,
+        max: 10.,
+    });
     assert!(resolve(None, &[bad], &c, SelElement::Polygon).is_err());
 }
 
@@ -174,17 +203,18 @@ fn reordering_selection_ops_changes_a_subtract_and_undoes() {
     e.dispatch(Command::MeshOpCreate("poly.bevel.item".into()))
         .unwrap();
     let r = last_op(&e, id);
-    let top = SelOp::new(SelKind::Facing {
+    let top = SelOp::new(SelKind::Normal {
         x: 0.,
         y: 1.,
         z: 0.,
-        angle: 10.,
+        min: 0.,
+        max: 10.,
     });
     let all_but_top = SelOp {
         blend: Blend::Subtract,
         ..top.clone()
     };
-    let quads = SelOp::new(SelKind::Sides { sides: 1 });
+    let quads = SelOp::new(SelKind::VertexCount { min: 4, max: 4 });
     for s in [quads, all_but_top] {
         e.dispatch(Command::MeshOpSelOp {
             op: r,
@@ -235,4 +265,204 @@ fn a_vertex_op_captures_points_from_vertex_mode() {
     let sel = stack.ops[0].selection.as_ref().unwrap();
     assert_eq!(sel.polygons, vec![1, 3]);
     assert_eq!(sel.made_on, Some(8));
+}
+
+// ---- Batch 1 rules from Steve Hill's list (#19) ----
+
+fn cylinder() -> Mesh {
+    operandi_core::CylinderShape {
+        sides: 8,
+        ..Default::default()
+    }
+    .mesh()
+    .unwrap()
+}
+fn n(kind: SelKind, mesh: &Mesh, element: SelElement) -> usize {
+    picks(kind, mesh, element).len()
+}
+
+#[test]
+fn shape_rules_count_corners_area_and_length() {
+    let c = cube();
+    assert_eq!(
+        n(
+            SelKind::VertexCount { min: 4, max: 4 },
+            &c,
+            SelElement::Polygon
+        ),
+        6
+    );
+    // N-gons: 5 or more corners, no maximum; the cylinder's two caps.
+    let ngons = SelKind::VertexCount { min: 5, max: 0 };
+    assert_eq!(n(ngons, &cylinder(), SelElement::Polygon), 2);
+    // Each cube side is 1 m²: a 1 m square.
+    assert_eq!(
+        n(
+            SelKind::Area { min: 0.9, max: 1.1 },
+            &c,
+            SelElement::Polygon
+        ),
+        6
+    );
+    assert_eq!(
+        n(SelKind::Area { min: 2., max: 0. }, &c, SelElement::Polygon),
+        0
+    );
+    assert_eq!(
+        n(
+            SelKind::EdgeLength { min: 0.9, max: 1.1 },
+            &c,
+            SelElement::Edge
+        ),
+        12
+    );
+    assert_eq!(
+        n(
+            SelKind::EdgeLength { min: 1.5, max: 9. },
+            &c,
+            SelElement::Edge
+        ),
+        0
+    );
+    // A cube's corners all bend outward.
+    let angle = |convex, concave| SelKind::EdgeAngle {
+        min: 30.,
+        max: 180.,
+        convex,
+        concave,
+    };
+    assert_eq!(n(angle(true, false), &c, SelElement::Edge), 12);
+    assert_eq!(n(angle(false, true), &c, SelElement::Edge), 0);
+    // Every cube corner has three edges.
+    assert_eq!(
+        n(
+            SelKind::VertexEdges { min: 3, max: 3 },
+            &c,
+            SelElement::Point
+        ),
+        8
+    );
+    assert_eq!(
+        n(
+            SelKind::VertexEdges { min: 4, max: 0 },
+            &c,
+            SelElement::Point
+        ),
+        0
+    );
+}
+
+#[test]
+fn space_rules_use_normals_planes_and_distance() {
+    let c = cube();
+    // Corner normals lean 54.7° from Y: within 60° picks the top four.
+    let up = SelKind::Normal {
+        x: 0.,
+        y: 1.,
+        z: 0.,
+        min: 0.,
+        max: 60.,
+    };
+    assert_eq!(n(up, &c, SelElement::Point), 4);
+    let above = |include_zero| SelKind::Plane {
+        x: 0.,
+        y: 0.,
+        z: 0.,
+        nx: 0.,
+        ny: 1.,
+        nz: 0.,
+        negative: false,
+        include_zero,
+    };
+    assert_eq!(n(above(false), &c, SelElement::Point), 4);
+    // The four side polygons' centres lie on the plane.
+    assert_eq!(n(above(true), &c, SelElement::Polygon), 5);
+    assert_eq!(n(above(false), &c, SelElement::Polygon), 1);
+    let corners = SelKind::Distance {
+        x: 0.,
+        y: 0.,
+        z: 0.,
+        min: 0.8,
+        max: 0.9,
+    };
+    assert_eq!(n(corners, &c, SelElement::Point), 8);
+}
+
+#[test]
+fn random_rules_pick_counts_and_whole_parts() {
+    let c = cube();
+    let count = |number, percent| SelKind::RandomCount {
+        seed: 3,
+        number,
+        percent,
+    };
+    assert_eq!(n(count(3, 0.), &c, SelElement::Edge), 3);
+    assert_eq!(n(count(0, 50.), &c, SelElement::Edge), 6);
+    assert_eq!(n(count(99, 0.), &c, SelElement::Edge), 12);
+    // Two cubes: parts are picked whole or not at all.
+    let mut two = cube();
+    let moved = operandi_core::cube_geometry(DVec3::new(3., 0., 0.), DVec3::ONE).unwrap();
+    operandi_core::append_mesh(&mut two, moved).unwrap();
+    let parts = |seed, chance| SelKind::RandomParts { seed, chance };
+    assert_eq!(n(parts(1, 100.), &two, SelElement::Polygon), 12);
+    assert_eq!(n(parts(1, 0.), &two, SelElement::Polygon), 0);
+    for seed in 0..20 {
+        let k = n(parts(seed, 50.), &two, SelElement::Polygon);
+        assert!(k % 6 == 0, "seed {seed}: {k}");
+    }
+}
+
+#[test]
+fn symmetric_mirrors_the_selection_below() {
+    let c = cube();
+    let right = SelOp::new(SelKind::Plane {
+        x: 0.,
+        y: 0.,
+        z: 0.,
+        nx: 1.,
+        ny: 0.,
+        nz: 0.,
+        negative: false,
+        include_zero: false,
+    });
+    let mirror = SelOp::new(SelKind::Symmetric {
+        x: true,
+        y: false,
+        z: false,
+        tolerance: 1e-4,
+    });
+    let left = resolve(
+        None,
+        &[right.clone(), mirror.clone()],
+        &c,
+        SelElement::Point,
+    )
+    .unwrap()
+    .unwrap();
+    assert_eq!(left.len(), 4);
+    assert!(left.iter().all(|&v| c.vertices[v as usize].x < 0.));
+    // Add keeps both halves.
+    let both = SelOp {
+        blend: Blend::Add,
+        ..mirror
+    };
+    let all = resolve(None, &[right, both], &c, SelElement::Point)
+        .unwrap()
+        .unwrap();
+    assert_eq!(all.len(), 8);
+}
+
+#[test]
+fn uv_seams_follow_the_map() {
+    let cyl = cylinder();
+    let seams = n(
+        SelKind::UvSeam {
+            map: "Texture".into(),
+        },
+        &cyl,
+        SelElement::Edge,
+    );
+    assert!(seams > 0 && seams < cyl.edges().len(), "{seams}");
+    let missing = SelOp::new(SelKind::UvSeam { map: "Nope".into() });
+    assert!(resolve(None, &[missing], &cyl, SelElement::Edge).is_err());
 }

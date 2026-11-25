@@ -1,5 +1,12 @@
 # Milestone progress ledger
 
+- **Mesh Stack selection rules batch 1 (2026-11-25, GitHub #19, branch claude/project-thread-8fccr9):**
+  thirteen rules from Steve Hill's list in `meshop_selection.rs`: Vertex
+  Count (Triangles/Quads/N-gons), Area, Edge Length, Convex/Concave
+  Edges by Angle, Normal, Plane, Distance, N Randomly, Random Parts,
+  Vertices by Edge Count, Symmetric, UV Seam. Mesh Stack only; no Select
+  menu commands until Jason polls users. Provisional: SEL-Q05, SEL-Q06.
+
 - **Mesh Stack selections of edges and points (2026-11-25, GitHub #19, branch claude/project-thread-8fccr9):**
   ops say what their Selection input picks (`SelElement`; Edge ops edges,
   Vertex ops points); every selection op answers in that kind;

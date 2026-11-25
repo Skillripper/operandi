@@ -58,6 +58,53 @@ fn item_options(meshes: &[(u64, String)], current: u64) -> Vec<(u64, &str)> {
     out
 }
 
+/// A Minimum and Maximum pair; a Maximum below the Minimum is no limit.
+fn min_max(
+    ui: &mut Ui,
+    min: &mut f64,
+    max: &mut f64,
+    dmin: f64,
+    dmax: f64,
+    unit: crate::form::Unit,
+    what: &str,
+) {
+    use crate::form::rows;
+    rows::number_d(
+        ui,
+        "Minimum",
+        min,
+        dmin,
+        unit,
+        -1e9..=1e9,
+        &format!("Smallest {what}"),
+    );
+    rows::number_d(
+        ui,
+        "Maximum",
+        max,
+        dmax,
+        unit,
+        -1e9..=1e9,
+        &format!("Largest {what}; below Minimum means no limit"),
+    );
+}
+/// Three rows for a direction, "Direction X" then "Y" and "Z" (UIC-114).
+fn direction(ui: &mut Ui, label: &str, x: &mut f64, y: &mut f64, z: &mut f64, d: (f64, f64, f64)) {
+    use crate::form::{Unit, rows};
+    let first = format!("{label} X");
+    for (l, v, dv) in [(first.as_str(), x, d.0), ("Y", y, d.1), ("Z", z, d.2)] {
+        rows::number_d(
+            ui,
+            l,
+            v,
+            dv,
+            Unit::Scalar,
+            -1e9..=1e9,
+            "A direction; only its way matters",
+        );
+    }
+}
+
 /// The op's selection ops (MO-50..53) under its Select by Index: each
 /// with its eye, Invert, Blend Mode and own values, a Remove button, and
 /// an Add Selection menu. Returns the one change made this frame.
@@ -214,60 +261,98 @@ fn selection_ops(
                     );
                 }
                 // #19: rule ops, answered again on every evaluation.
-                SelKind::EdgeAngle { min, max } => {
-                    rows::number_d(
-                        ui,
-                        "Min Angle",
-                        min,
-                        30.,
-                        Unit::Angle,
-                        0.0..=180.0,
-                        "Edges whose polygons meet at least this sharply (0° = flat)",
-                    );
-                    rows::number_d(
-                        ui,
-                        "Max Angle",
-                        max,
-                        180.,
-                        Unit::Angle,
-                        0.0..=180.0,
-                        "and at most this sharply",
-                    );
+                SelKind::EdgeAngle {
+                    min,
+                    max,
+                    convex,
+                    concave,
+                } => {
+                    min_max(ui, min, max, 30., 180., Unit::Angle, "angle between the two polygons (0° = flat)");
+                    rows::check_d(ui, "Convex", convex, true, "Outward bends");
+                    rows::check_d(ui, "Concave", concave, true, "Inward bends");
                 }
                 SelKind::Border {} => {
                     rows::note(ui, "Edges with a polygon on one side only.");
                 }
-                SelKind::Sides { sides } => {
-                    rows::choice_d(
-                        ui,
-                        "Sides",
-                        sides,
-                        &1,
-                        &[(0, "Triangles"), (1, "Quads"), (2, "N-gons")],
-                        "Polygons with this many corners",
-                    );
-                }
-                SelKind::Facing { x, y, z, angle } => {
-                    for (label, v, d) in [("Direction X", x, 0.), ("Y", y, 1.), ("Z", z, 0.)] {
-                        rows::number_d(
-                            ui,
-                            label,
-                            v,
-                            d,
-                            Unit::Scalar,
-                            -1e9..=1e9,
-                            "The direction polygons face",
-                        );
-                    }
+                SelKind::VertexCount { min, max } => {
+                    rows::number_d(ui, "Minimum", min, 3, Unit::Count, 0..=u32::MAX, "Fewest corners");
                     rows::number_d(
                         ui,
-                        "Angle",
-                        angle,
-                        45.,
-                        Unit::Angle,
-                        0.0..=180.0,
-                        "How far from that direction they may face",
+                        "Maximum",
+                        max,
+                        3,
+                        Unit::Count,
+                        0..=u32::MAX,
+                        "Most corners; below Minimum means no limit",
                     );
+                }
+                SelKind::Area { min, max } => {
+                    min_max(ui, min, max, 0., 1., Unit::Distance, "side of a square of the polygon's area");
+                }
+                SelKind::EdgeLength { min, max } => {
+                    min_max(ui, min, max, 0., 1., Unit::Distance, "edge length");
+                }
+                SelKind::Normal { x, y, z, min, max } => {
+                    direction(ui, "Direction", x, y, z, (0., 1., 0.));
+                    min_max(ui, min, max, 0., 45., Unit::Angle, "angle from the direction");
+                }
+                SelKind::Plane {
+                    x,
+                    y,
+                    z,
+                    nx,
+                    ny,
+                    nz,
+                    negative,
+                    include_zero,
+                } => {
+                    for (label, v) in [("Position X", x), ("Y", y), ("Z", z)] {
+                        rows::number_d(ui, label, v, 0., Unit::Distance, -1e9..=1e9, "A point on the plane");
+                    }
+                    direction(ui, "Normal", nx, ny, nz, (0., 1., 0.));
+                    rows::check_d(ui, "Negative Side", negative, false, "Pick the side the normal points away from");
+                    rows::check_d(ui, "Include Zero", include_zero, true, "Elements on the plane count too");
+                }
+                SelKind::Distance { x, y, z, min, max } => {
+                    for (label, v) in [("From X", x), ("Y", y), ("Z", z)] {
+                        rows::number_d(ui, label, v, 0., Unit::Distance, -1e9..=1e9, "Where distance is measured from");
+                    }
+                    min_max(ui, min, max, 0., 1., Unit::Distance, "distance of each element's centre");
+                }
+                SelKind::RandomCount {
+                    seed,
+                    number,
+                    percent,
+                } => {
+                    rows::number_d(ui, "Seed", seed, 0, Unit::Count, 0..=u32::MAX, "Random number generator seed");
+                    rows::number_d(ui, "Number", number, 10, Unit::Count, 0..=u32::MAX, "How many; 0 uses Percentage");
+                    rows::number_d(ui, "Percentage", percent, 50., Unit::Percent, 0.0..=100.0, "The share picked when Number is 0");
+                }
+                SelKind::RandomParts { seed, chance } => {
+                    rows::number_d(ui, "Seed", seed, 0, Unit::Count, 0..=u32::MAX, "Random number generator seed");
+                    rows::number_d(ui, "Chance", chance, 50., Unit::Percent, 0.0..=100.0, "The chance each connected part is picked");
+                }
+                SelKind::VertexEdges { min, max } => {
+                    rows::number_d(ui, "Minimum Edges", min, 5, Unit::Count, 0..=u32::MAX, "Fewest edges at the point");
+                    rows::number_d(
+                        ui,
+                        "Maximum Edges",
+                        max,
+                        0,
+                        Unit::Count,
+                        0..=u32::MAX,
+                        "Most edges; below Minimum means no limit",
+                    );
+                }
+                SelKind::Symmetric { x, y, z, tolerance } => {
+                    rows::check_d(ui, "Reflect X", x, true, "Mirror across X");
+                    rows::check_d(ui, "Reflect Y", y, false, "Mirror across Y");
+                    rows::check_d(ui, "Reflect Z", z, false, "Mirror across Z");
+                    rows::number_d(ui, "Tolerance", tolerance, 0.0001, Unit::Distance, 0.0..=1e9, "How close a mirrored element must be");
+                    rows::note(ui, "Picks the mirror image of the selection below; set Blend Mode to Add to keep both.");
+                }
+                SelKind::UvSeam { map } => {
+                    rows::text_d(ui, "UV Map", map, "Texture", "The UV map whose seams it picks");
                 }
             }
             // #19: the order matters for Subtract and Multiply.

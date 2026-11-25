@@ -554,7 +554,7 @@ fn run_op(
                 text: format!(
                     "Select by Index was made on {made_on} {what}; the mesh below now has {now}, \
                      so the numbers may point at other {what}. A rule-based selection \
-                     (Edges by Angle, Border, Polygon Sides, Facing) follows changes",
+                     (Edges by Angle, Vertex Count, Normal ...) follows changes",
                     what = element.plural()
                 ),
                 problem: false,
