@@ -11,7 +11,7 @@ Clear Layout
   [x] Model
   UV
   Animate
-Recent Layouts…  [Ctrl+Shift+Tab] 
+Recent Layouts…
 ---
 Lock Divider Dragging
 UI Build Mode  [Ctrl+Shift+L] 
@@ -49,7 +49,7 @@ Clear Layout
   [x] Model
   UV
   Animate
-Recent Layouts…  [Ctrl+Shift+Tab] 
+Recent Layouts…
 ---
 Lock Divider Dragging
 UI Build Mode  [Ctrl+Shift+L] 
@@ -87,7 +87,7 @@ Clear Layout
   [x] Model
   UV
   Animate
-Recent Layouts…  [Ctrl+Shift+Tab] 
+Recent Layouts…
 ---
 Lock Divider Dragging
 UI Build Mode  [Ctrl+Shift+L] 
@@ -125,7 +125,7 @@ Clear Layout
   [x] Model
   UV
   Animate
-Recent Layouts…  [Ctrl+Shift+Tab] 
+Recent Layouts…
 ---
 Lock Divider Dragging
 UI Build Mode  [Ctrl+Shift+L] 
@@ -163,7 +163,7 @@ Clear Layout
   [x] Model
   UV
   Animate
-Recent Layouts…  [Ctrl+Shift+Tab] 
+Recent Layouts…
 ---
 Lock Divider Dragging
 UI Build Mode  [Ctrl+Shift+L] 
@@ -201,7 +201,7 @@ Clear Layout
   [x] Model
   UV
   Animate
-Recent Layouts…  [Ctrl+Shift+Tab] 
+Recent Layouts…
 ---
 Lock Divider Dragging
 UI Build Mode  [Ctrl+Shift+L] 
@@ -239,7 +239,7 @@ Clear Layout (greyed: Finish the open dialog, menu or drag first)
   [x] Model (greyed: Finish the open dialog, menu or drag first)
   UV (greyed: Finish the open dialog, menu or drag first)
   Animate (greyed: Finish the open dialog, menu or drag first)
-Recent Layouts…  [Ctrl+Shift+Tab]  (greyed: Finish the open dialog, menu or drag first)
+Recent Layouts… (greyed: Finish the open dialog, menu or drag first)
 ---
 Lock Divider Dragging (greyed: Finish the open dialog, menu or drag first)
 UI Build Mode  [Ctrl+Shift+L]  (greyed: Finish the open dialog, menu or drag first)
@@ -277,7 +277,7 @@ Clear Layout
   [x] Model
   UV
   Animate
-Recent Layouts…  [Ctrl+Shift+Tab] 
+Recent Layouts…
 ---
 Lock Divider Dragging
 UI Build Mode  [Ctrl+Shift+L] 

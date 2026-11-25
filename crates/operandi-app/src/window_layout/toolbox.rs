@@ -923,6 +923,8 @@ impl Operandi {
         // A child, not a scope: a row wider than the drawer (the UV form's
         // in the column layouts, no longer masked by the tab strip's band)
         // must not widen the column frame after frame.
+        self.toolbox_rects
+            .insert(crate::tool_tab_cycle::DRAWER.into(), list_rect);
         let mut list = ui.new_child(UiBuilder::new().id_salt("toolbox-list").max_rect(list_rect));
         list.set_clip_rect(list.clip_rect().intersect(list_rect));
         {
@@ -1154,6 +1156,23 @@ impl Operandi {
                 .data(|data| data.get_temp::<f32>(id))
                 .unwrap_or(0.)
                 .clamp(0., limit);
+            // A tab opened from the keyboard scrolls into sight
+            // (tool_tab_cycle.rs).
+            let reveal = ui.data_mut(|d| d.remove_temp::<bool>(crate::tool_tab_cycle::reveal_id()));
+            if reveal == Some(true) {
+                let mut start = 0.;
+                for &(category, length) in &categories.entries {
+                    let width = (length + 10.).max(46.);
+                    if self.shown_category() == Some(category) {
+                        offset = offset
+                            .max(start + width - visible.width())
+                            .min(start)
+                            .clamp(0., limit);
+                        break;
+                    }
+                    start += width + 2.;
+                }
+            }
             for (direction, glyph, label, rect) in [
                 (
                     -1.,
@@ -1260,7 +1279,8 @@ impl Operandi {
         if response.clicked() && self.confirm_fields() {
             self.category = category;
         }
-        response.on_hover_text(format!("{label} category · changes the toolbox only"));
+        let keys = self.tool_tab_keys_hint();
+        response.on_hover_text(format!("{label} category · changes the toolbox only{keys}"));
     }
 
     /// Whether the message line (the app's status text) sits in a thin
@@ -1393,7 +1413,7 @@ impl Operandi {
 
 impl Operandi {
     /// A tab's name in the strip: a toolbox set names its own (PNT-211).
-    fn category_tab_label(&self, c: Category) -> &'static str {
+    pub(super) fn category_tab_label(&self, c: Category) -> &'static str {
         #[cfg(feature = "painting")]
         if let Some(label) = self.paint_set_label(c) {
             return label;

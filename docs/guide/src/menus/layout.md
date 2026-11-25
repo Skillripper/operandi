@@ -15,7 +15,7 @@ The entries of the **Layout** menu, in order. A **▸** opens a submenu. Keys in
   - **Model** · `layout.restore Model`
   - **UV** · `layout.restore UV`
   - **Animate** · `layout.restore Animate`
-- **Recent Layouts…** (**Control+Shift+Tab**) · `operandi.layout.switcher`
+- **Recent Layouts…** · `operandi.layout.switcher`
 - **Lock Divider Dragging** · `layout.lockDividers`
 - **UI Build Mode** (**Control+Shift+L**) · `operandi.layout.buildMode`
 - **Windows/Palettes ▸**

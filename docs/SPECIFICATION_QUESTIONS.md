@@ -9809,3 +9809,12 @@ Spec meshblend-2026-11-24. Readings where the spec is silent:
 - SEL-Q02 Rule ops are Operandi's own (`operandi.edgeAngle.selop`, `operandi.border.selop`, `operandi.sides.selop`, `operandi.facing.selop`); Edges by Angle measures between the two polygons' normals (0° flat), an edge with one or three+ polygons is never picked by it.
 - SEL-Q03 A captured Select by Index keeps the element count it was made on (`select_by_index_count` in the file); a different count below shows a hint on the op row, and the op still runs. Indexes typed into Select by Index have no count.
 - SEL-Q04 Selection Set reads a set of the op's own kind first, then a polygon set of that name.
+
+## Tool tab cycling (2026-11-25, tool-tab-cycling v1.1, branch claude/project-thread-rjq1h8, provisional)
+
+- TTC-Q01 (spec Q1) Ctrl+Tab in a multi-line text field pages the tool tabs; the field types no tab. Spec default.
+- TTC-Q02 (spec Q2) A hidden or collapsed tool panel (no tab strip drawn) isn't reopened; the keys do nothing. Spec default.
+- TTC-Q03 T1 reads "Create → Edit"; Operandi's Model strip has Select right of Create, so Ctrl+Tab on Create opens Select (rule 1, on-screen order).
+- TTC-Q04 Ctrl+Shift+Tab was the Layout Switcher's key (UIC-18). The switcher now starts with no key (Layout > Recent Layouts… still opens it); a saved key map still holding its old factory key hands it to Previous Tool Tab. UIC-18's text in the bible still names Ctrl+Shift+Tab and needs Jason's update.
+- TTC-Q05 Floating panels in their own OS windows don't take the keys (eframe runs no raw-input hook there); the main window does.
+- TTC-Q06 Spec 5 (announce the tab): the switch sends a "<Tab> tab" value-changed event and puts the same text on the message line; a full screen-reader announcement waits for Q4's accessibility work.

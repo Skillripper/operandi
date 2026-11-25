@@ -2212,6 +2212,19 @@ fn tables(r: &mut Commands) {
     );
     // UIC-18: the switcher while Ctrl+Shift are held (its key binding).
     on(r, &["Layout Switcher"], |a, _| a.open_switcher(true));
+    // Tool tab cycling (tool_tab_cycle.rs).
+    on(r, &["Next Tool Tab"], |a, _| {
+        let ctx = a.frame_ctx.clone();
+        if !a.step_tool_tab(ctx.as_ref(), 1) {
+            a.status = "No other tool tab to open".into();
+        }
+    });
+    on(r, &["Previous Tool Tab"], |a, _| {
+        let ctx = a.frame_ctx.clone();
+        if !a.step_tool_tab(ctx.as_ref(), -1) {
+            a.status = "No other tool tab to open".into();
+        }
+    });
     // Palettes (layouts stage 6, palettes.rs).
     on(
         r,
