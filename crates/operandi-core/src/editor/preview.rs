@@ -1392,16 +1392,25 @@ impl Editor {
         };
         let symmetry = self.active_symmetry();
         let primary = self.symmetry_primary(scene);
+        // World axes in the mesh's coordinates: the action axis falls back
+        // to world Y and the side axis is world X on a rotated item too.
+        let to_local = world.inverse();
+        let world_axes = glam::DMat3::from_cols(
+            to_local.transform_vector3(DVec3::X),
+            to_local.transform_vector3(DVec3::Y),
+            to_local.transform_vector3(DVec3::Z),
+        );
         let action_axis = live
             .action_frame
-            .map(|f| world.inverse().transform_vector3(f.basis.y_axis))
-            .unwrap_or(DVec3::Y);
+            .map(|f| to_local.transform_vector3(f.basis.y_axis))
+            .unwrap_or(world_axes.y_axis);
         let pipe = crate::TwistBevelPipe {
             weight: field
                 .is_some()
                 .then_some(&weight as &dyn Fn(DVec3, &[u32]) -> f64),
             symmetry: symmetry.axis.map(|_| (symmetry, primary)),
             action_axis,
+            world_axes,
         };
         let result = crate::twist_bevel_geometry(&item.mesh, &selected, &options, &pipe)?;
         let topology_changed = result.mesh != *item.mesh;

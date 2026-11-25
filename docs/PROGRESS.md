@@ -8,6 +8,14 @@
   commits on Enter or focus loss. Toolbox and form-row hover text drops
   command lines (UIC-04) and spec codes (`ui_text::hover_text`). Vertex
   Collapse on a cube corner (5 points, 3 quads) is CMD-B3-02, not a bug.
+- **Twist Bevel options from the TwistBevel notes (2026-11-25, branch
+  claude/project-thread-cy3fzd):** opt-in Stop Before Fold (a folding cap
+  stops just short instead of being refused), Even Interior (harmonic
+  interior, straight runs keep their share) and Keep Cap UVs, all off by
+  default and after the spec's rows. Twist Bevel now carries morphs and
+  typed maps (plain Bevel still refuses them, BV-Q04). Side axis (TB-Q04)
+  and the Action Axis fallback are world axes on rotated items, in the
+  geometry and the handles. Plain Inset and Bevel unchanged.
 - **Live MeshOp falloffs and primitive op handles (2026-11-25, branch claude/project-thread-8fccr9):**
   primitive ops edit their own falloff (type plus its values) in the op
   panel, live; selecting a primitive op shows its centre, size squares and

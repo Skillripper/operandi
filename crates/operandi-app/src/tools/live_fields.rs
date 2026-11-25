@@ -2004,5 +2004,35 @@ fn twist_bevel_form(p: &Parameters, f: &mut Form) {
         )
         .tip("Which way the tube curls, as an angle around the normal"),
     )
+    // Three opt-ins from the TwistBevel notes (2026-11-25), off by default;
+    // UIC-115 checkbox rows, after the spec's own rows.
+    .separator()
+    .field(
+        check(
+            "stopAtFold",
+            "Stop Before Fold",
+            |p| p.twist_bevel.stop_at_fold,
+            |p, on| tb(p, |o| o.stop_at_fold = on),
+        )
+        .tip("A tube whose cap would fold over stops its Inset just short of that, instead of being refused"),
+    )
+    .field(
+        check(
+            "evenInterior",
+            "Even Interior",
+            |p| p.twist_bevel.even_interior,
+            |p, on| tb(p, |o| o.even_interior = on),
+        )
+        .tip("Points inside a grouped cap and along its straight edges move with the Inset, so the cap shrinks evenly"),
+    )
+    .field(
+        check(
+            "keepCapUvs",
+            "Keep Cap UVs",
+            |p| p.twist_bevel.keep_cap_uvs,
+            |p, on| tb(p, |o| o.keep_cap_uvs = on),
+        )
+        .tip("The caps keep their UVs exactly, seams included; only the walls get new UVs"),
+    )
     .note("Handles: Shift arrow, Inset and twist ring at the cap; bend arrow and Bend Direction ring at the base. Drag anywhere for Shift; Shift+click starts a new one on the caps. Nothing selected works on every polygon.");
 }
