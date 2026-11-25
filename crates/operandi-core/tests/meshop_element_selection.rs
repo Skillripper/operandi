@@ -408,7 +408,7 @@ fn random_rules_pick_counts_and_whole_parts() {
     assert_eq!(n(parts(1, 0.), &two, SelElement::Polygon), 0);
     for seed in 0..20 {
         let k = n(parts(seed, 50.), &two, SelElement::Polygon);
-        assert!(k % 6 == 0, "seed {seed}: {k}");
+        assert!(k.is_multiple_of(6), "seed {seed}: {k}");
     }
 }
 
