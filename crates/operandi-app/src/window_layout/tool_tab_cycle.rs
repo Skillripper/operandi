@@ -21,7 +21,7 @@
 //! Provisional (questions for Jason): Q1 Ctrl+Tab in a multi-line text
 //! field pages tabs; Q2 a hidden or collapsed tool panel is not reopened.
 //! The keys used to be egui's focus stepping (Ctrl+Tab) and the Layout
-//! Switcher (Ctrl+Shift+Tab, UIC-18); the switcher keeps Layout > Recent
+//! Switcher (Ctrl+Shift+Tab, UIC-18, amended with Jason's OK); it keeps Layout > Recent
 //! Layouts… and the bottom bar's button, and gets no key by default.
 use super::*;
 
