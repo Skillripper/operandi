@@ -9812,6 +9812,10 @@ Spec meshblend-2026-11-24. Readings where the spec is silent:
 - SEL-Q05 Batch 1 rules (Vertex Count with Tris/Quads/N-gons presets, Area, Edge Length, Convex/Concave, Normal, Plane, Distance, N Randomly, Random Parts, Vertices by Edge Count, Symmetric, UV Seam) follow Steve Hill's own descriptions of his kit in #19; they measure in the mesh's own space only (no World Coordinates option or transform input yet). Polygon Sides and Facing were replaced by Vertex Count and Normal.
 - SEL-Q06 Converting points to edges or polygons needs all their points picked; polygons and edges to points take any. Random Parts joins polygons through shared points.
 
+## Live MeshOp falloffs and primitive op handles (2026-11-25, Steve Hill via Jason, branch claude/project-thread-8fccr9, provisional)
+
+- MOP-H-Q01 A primitive op's falloff is its own: its Falloff Type (None, Linear, Radial, Cylinder, Noise) and that type's values are op rows, and changes evaluate at once. A new one starts fitted to the shape (Linear from top to base along its Axis; Radial and Cylinder at its centre and size). Combining several falloffs in the panel is parked (Jason, 2026-11-25).
+- MOP-H-Q02 With a primitive op's row selected and no tool on, the view shows its centre (moves in the view plane), one size square per axis and its falloff's points (Linear Start/End, Radial/Cylinder Center). Drags move by the view-plane delta like the falloff handles (falloff_view.rs); the size square takes the delta along its own axis. Other op types' handles come later, a family at a time.
 ## Tool tab cycling (2026-11-25, tool-tab-cycling v1.1, branch claude/project-thread-rjq1h8, provisional)
 
 - TTC-Q01 (spec Q1) Ctrl+Tab in a multi-line text field pages the tool tabs; the field types no tab. Spec default.

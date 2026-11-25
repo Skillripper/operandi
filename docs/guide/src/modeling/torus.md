@@ -66,6 +66,9 @@ change it later without rebuilding the mesh. **Hole Size** isn't there:
 it follows from **Ring Radius** and **Cross Section**, which are. Scripts
 add it with `meshop.create type:prim.toroid.item`.
 
+With the step selected in the stack and no tool on, its handles show in the
+**3D view**. Drag the centre to move it, a square to resize it. Each drag is one undo step.
+
 ## Related
 
 - [Primitives](../interface/window.md): the **Toolbox** on the **Create** tab

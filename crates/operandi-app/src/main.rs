@@ -4629,6 +4629,9 @@ mod falloff_panel_tests;
 #[path = "items/mesh_stack_tests.rs"]
 mod mesh_stack_tests;
 #[cfg(test)]
+#[path = "viewport/meshop_handles_tests.rs"]
+mod meshop_handles_tests;
+#[cfg(test)]
 #[path = "view/snap_service_tests.rs"]
 mod snap_service_tests;
 #[cfg(test)]
