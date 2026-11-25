@@ -217,7 +217,9 @@ fn selection_ops(
                 }
                 SelKind::Previous { source, name } => {
                     let mut sources: Vec<(u64, String)> = vec![(0, "(none)".into())];
-                    sources.extend(below.iter().map(|o| (o.id, o.kind.label())));
+                    // Numbered like the rows, so two of a kind differ.
+                    let labels = operandi_core::mesh_stack::op_labels(below);
+                    sources.extend(below.iter().zip(labels).map(|(o, l)| (o.id, l)));
                     let options: Vec<(u64, &str)> =
                         sources.iter().map(|(id, l)| (*id, l.as_str())).collect();
                     rows::choice_d(
@@ -373,29 +375,33 @@ fn selection_ops(
                     rows::text_d(ui, "UV Map", map, "Texture", "The UV map whose seams it picks");
                 }
             }
-            // #19: the order matters for Subtract and Multiply.
-            ui.gated_ui(
-                crate::unavailable::unless(n + 1 < count, "Already at the top"),
-                |ui| {
-                    if rows::button(ui, "Move Up")
-                        .on_hover_text("Apply it after the one above it")
-                        .clicked()
-                    {
-                        moved = Some(n + 1);
-                    }
-                },
-            );
-            ui.gated_ui(
-                crate::unavailable::unless(n > 0, "Already at the bottom"),
-                |ui| {
-                    if rows::button(ui, "Move Down")
-                        .on_hover_text("Apply it before the one below it")
+            // #19: the order matters for Subtract and Multiply. The
+            // steps are listed first to last, top to bottom, so the arrows
+            // point the way the row moves (Steve Hill, Jason's call
+            // 2026-11-25); the glyphs match the Add browser's ⏶/⏷.
+            ui.horizontal(|ui| {
+                ui.gated_ui(crate::unavailable::unless(n > 0, "Already the first"), |ui| {
+                    if ui
+                        .small_button("⏶")
+                        .on_hover_text("Move earlier: applied before the step above it")
                         .clicked()
                     {
                         moved = Some(n - 1);
                     }
-                },
-            );
+                });
+                ui.gated_ui(
+                    crate::unavailable::unless(n + 1 < count, "Already the last"),
+                    |ui| {
+                        if ui
+                            .small_button("⏷")
+                            .on_hover_text("Move later: applied after the step below it")
+                            .clicked()
+                        {
+                            moved = Some(n + 1);
+                        }
+                    },
+                );
+            });
             remove = rows::button(ui, "Remove").clicked();
         });
         if remove {
@@ -648,8 +654,9 @@ impl Operandi {
         let ops = item.mesh_stack.as_ref().map_or(&[][..], |s| &s.ops[..]);
         let row_sel = self.editor.meshop_row.filter(|r| r.item == item.id);
         let mut rows = Vec::new();
+        let labels = operandi_core::mesh_stack::op_labels(ops);
         for (i, op) in ops.iter().enumerate().rev() {
-            let mut row = TreeRow::new(OpKey::Op(item.id, op.id), 0, op.kind.label(), 2);
+            let mut row = TreeRow::new(OpKey::Op(item.id, op.id), 0, labels[i].clone(), 2);
             row.icon = RowIcon::Icon(crate::icons::Icon::TreeMesh);
             row.draggable = idle;
             row.selected = if row_sel
@@ -873,7 +880,8 @@ impl Operandi {
         let mut blend_commands = Vec::new();
         let mut blend_dragged = false;
         rows::scope(ui, "mesh-op-properties", |ui| {
-            rows::section(ui, &op.kind.label(), false, |ui| {
+            let title = operandi_core::mesh_stack::op_labels(&stack.ops)[index].clone();
+            rows::section(ui, &title, false, |ui| {
                 // The form comes from the op's type (KIT-4: kits describe
                 // their forms, the app draws them).
                 for f in def.fields() {

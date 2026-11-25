@@ -685,6 +685,27 @@ pub fn break_loops(scene: &mut crate::Scene) -> Vec<String> {
     notes
 }
 
+/// Each op's shown name, bottom to top: its type's label, numbered when
+/// the stack has more than one of that type ("Polygon Bevel",
+/// "Polygon Bevel 2", ...), so rows and Select by Previous Operation tell
+/// them apart (Steve Hill, 2026-11-25). The numbers follow the order from
+/// the bottom; a slice of the stack's lower ops numbers them the same.
+pub fn op_labels(ops: &[MeshOp]) -> Vec<String> {
+    let mut seen: HashMap<String, usize> = HashMap::new();
+    ops.iter()
+        .map(|o| {
+            let label = o.kind.label();
+            let n = seen.entry(label.clone()).or_insert(0);
+            *n += 1;
+            if *n == 1 {
+                label
+            } else {
+                format!("{label} {n}")
+            }
+        })
+        .collect()
+}
+
 /// The reason an op shows for a link to an item that isn't a mesh any
 /// more (SAFE-08).
 pub const MISSING_INPUT: &str = "Missing input: the linked mesh item is gone";
@@ -1550,5 +1571,40 @@ mod tests {
             "{:?}",
             a.statuses
         );
+    }
+}
+
+#[cfg(test)]
+mod op_label_tests {
+    use super::*;
+
+    #[test]
+    fn same_type_ops_are_numbered_from_the_bottom() {
+        let op = |id, t: &str| MeshOp {
+            id,
+            enabled: true,
+            kind: OpKind::new(t).unwrap(),
+            selection: None,
+            selops: Vec::new(),
+        };
+        let ops = [
+            op(1, "prim.cube.item"),
+            op(2, "poly.bevel.item"),
+            op(3, "pmodel.triangulate.item"),
+            op(4, "poly.bevel.item"),
+            op(5, "poly.bevel.item"),
+        ];
+        assert_eq!(
+            op_labels(&ops),
+            [
+                "Cube",
+                "Polygon Bevel",
+                "Triangulate",
+                "Polygon Bevel 2",
+                "Polygon Bevel 3"
+            ]
+        );
+        // The ops below one number as the whole stack does.
+        assert_eq!(op_labels(&ops[..4])[3], "Polygon Bevel 2");
     }
 }

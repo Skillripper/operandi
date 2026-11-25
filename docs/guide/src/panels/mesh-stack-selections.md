@@ -48,14 +48,17 @@ A rule picks in its own kind and hands it over in the step's kind. An
 edge is picked when one of its polygons is, a polygon when one of its
 edges is, and a point when it lies on a picked polygon or edge.
 **Select by Previous Operation** and **Select by Selection Set** work the
-same way. A Selection Set of the step's own kind (an edge set for an
+same way. When a stack has more than one step of a kind, the stack and
+the **Source Item** list number them from the bottom (**Polygon Bevel**,
+**Polygon Bevel 2**), so you can tell which one you pick. A Selection Set of the step's own kind (an edge set for an
 Edge step) is used first.
 
 ## Order
 
-Selection steps apply from the bottom up, each by its **Blend Mode**. For
-**Subtract** and **Multiply** the order changes the result. Use
-**Move Up** and **Move Down** to reorder them. Scripts use
+Selection steps are listed in the order they apply, first at the top, each
+combining by its **Blend Mode**. For **Subtract** and **Multiply** the order
+changes the result. The ⏶ and ⏷ arrows on a step move it earlier (up the
+list) or later (down the list). Scripts use
 `selop.edit index:<n> position:<m>`.
 
 ## Related

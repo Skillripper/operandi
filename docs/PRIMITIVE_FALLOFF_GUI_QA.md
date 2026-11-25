@@ -34,7 +34,7 @@ For Jason or Codex, on the QA build. Claude can't click in Operandi.
    random edges bevel, not whole polygons' edges.
 10. **Rule op and reorder.** On a Polygon Bevel, add Select by Polygon Sides
     (Quads), then Select by Facing set to Subtract. Every side but the top
-    bevels. Click Move Down on Facing, and the top is included again.
+    bevels. Click ⏶ on the Normal step to move it first, and the top is included again.
 11. **Shifted numbers.** Capture a Select by Index, then put a Triangulate
     below it. The op's row shows the "numbers may point at other
     polygons" hint.
@@ -47,3 +47,12 @@ For Jason or Codex, on the QA build. Claude can't click in Operandi.
 13. In its Falloff section set Falloff Type to Linear and Falloff Scale to
     0%. It tapers at once. Drag the falloff's End point in the view, or
     change Start Y in the panel. The taper follows live.
+
+## Names and arrows
+
+14. Add two Polygon Bevels to a stack. The rows read "Polygon Bevel" and
+    "Polygon Bevel 2", as do the Source Item choices of a Select by
+    Previous Operation above them.
+15. With two selection steps on an op, ⏶ moves a step up the list (earlier)
+    and ⏷ down (later). The first step's ⏶ and the last step's ⏷ are
+    greyed with a reason.
