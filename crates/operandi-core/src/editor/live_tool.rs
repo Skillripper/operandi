@@ -493,6 +493,7 @@ impl Editor {
                     make_uvs,
                     ..Default::default()
                 },
+                None,
             )?
         };
         geometry.validate()?;

@@ -407,10 +407,11 @@ fn radial_mesh(
     position: DVec3,
     radial: crate::RadialParameters,
     p: &Parameters,
+    weight: crate::primitive_shapes::Weight,
 ) -> Result<crate::Mesh> {
     if tool == Tool::Sphere {
-        p.sphere_shape(position, radial).mesh()
+        p.sphere_shape(position, radial).mesh_weighted(weight)
     } else {
-        p.cylinder_shape(position, radial).mesh()
+        p.cylinder_shape(position, radial).mesh_weighted(weight)
     }
 }

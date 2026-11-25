@@ -7,7 +7,11 @@
 //! A shape is built in its own space: centred on `position`, unmoved by
 //! Symmetry or the target mesh's transform. The tools then double it for
 //! Symmetry and move it into the mesh; a MeshOp appends it as it is.
-use crate::{CylinderCap, Mesh, RadialParameters, Result};
+//!
+//! `falloff` says what a falloff's weight does to the shape (GitHub #15,
+//! shape_falloff.rs); the weights come with [`CubeShape::mesh_weighted`]
+//! and its siblings, from the tool falloff or the op's own copy.
+use crate::{CylinderCap, Mesh, RadialParameters, Result, ShapeFalloff};
 use glam::DVec3;
 
 /// The Cube tool's shape.
@@ -19,6 +23,9 @@ pub struct CubeShape {
     pub segments: [u32; 3],
     /// The "Texture" UV map.
     pub make_uvs: bool,
+    /// The spine a falloff shapes the cube along: 0 X, 1 Y, 2 Z.
+    pub axis: usize,
+    pub falloff: ShapeFalloff,
 }
 impl Default for CubeShape {
     fn default() -> Self {
@@ -27,16 +34,23 @@ impl Default for CubeShape {
             size: DVec3::ONE,
             segments: [1; 3],
             make_uvs: true,
+            axis: 1,
+            falloff: ShapeFalloff::default(),
         }
     }
 }
 impl CubeShape {
     pub fn mesh(&self) -> Result<Mesh> {
+        self.mesh_weighted(None)
+    }
+    /// The cube, shaped by `weight` (a position's falloff weight) when
+    /// given. Follow Falloff spacing moves its segments.
+    pub fn mesh_weighted(&self, weight: Weight) -> Result<Mesh> {
         let mut mesh = crate::segmented_cube(self.position, self.size, self.segments)?;
         if self.make_uvs && !mesh.faces.is_empty() {
             crate::add_cube_uvs(&mut mesh, self.position, self.size)?;
         }
-        Ok(mesh)
+        shaped(mesh, &self.falloff, self.position, self.axis, true, weight)
     }
 }
 
@@ -53,6 +67,7 @@ pub struct SphereShape {
     /// Sphere Mode: `None` is Globe, `Some(level)` Tessellated (PRIM-S-02).
     pub level: Option<u32>,
     pub make_uvs: bool,
+    pub falloff: ShapeFalloff,
 }
 impl Default for SphereShape {
     fn default() -> Self {
@@ -64,6 +79,7 @@ impl Default for SphereShape {
             axis: 1,
             level: None,
             make_uvs: true,
+            falloff: ShapeFalloff::default(),
         }
     }
 }
@@ -76,6 +92,15 @@ impl SphereShape {
         }
     }
     pub fn mesh(&self) -> Result<Mesh> {
+        self.mesh_weighted(None)
+    }
+    /// The sphere, shaped by `weight` when given. Its rings never move
+    /// (Follow Falloff would change the sphere).
+    pub fn mesh_weighted(&self, weight: Weight) -> Result<Mesh> {
+        let mesh = self.plain()?;
+        shaped(mesh, &self.falloff, self.position, self.axis, false, weight)
+    }
+    fn plain(&self) -> Result<Mesh> {
         if let Some(disc) = flat_disc(self.position, self.radial())? {
             return Ok(disc);
         }
@@ -107,6 +132,7 @@ pub struct CylinderShape {
     /// Bottom and top caps (PRIM-Y-01).
     pub caps: [CylinderCap; 2],
     pub make_uvs: bool,
+    pub falloff: ShapeFalloff,
 }
 impl Default for CylinderShape {
     fn default() -> Self {
@@ -118,11 +144,20 @@ impl Default for CylinderShape {
             axis: 1,
             caps: [CylinderCap::Single; 2],
             make_uvs: true,
+            falloff: ShapeFalloff::default(),
         }
     }
 }
 impl CylinderShape {
     pub fn mesh(&self) -> Result<Mesh> {
+        self.mesh_weighted(None)
+    }
+    /// The cylinder, shaped by `weight` when given.
+    pub fn mesh_weighted(&self, weight: Weight) -> Result<Mesh> {
+        let mesh = self.plain()?;
+        shaped(mesh, &self.falloff, self.position, self.axis, true, weight)
+    }
+    fn plain(&self) -> Result<Mesh> {
         let radial = RadialParameters {
             radius: self.radius,
             sides: self.sides,
@@ -133,6 +168,24 @@ impl CylinderShape {
         }
         crate::cylinder_geometry_with(self.position, radial, self.caps, self.axis, self.make_uvs)
     }
+}
+
+/// A falloff weight per position, for the `mesh_weighted` generators.
+pub type Weight<'a> = Option<&'a dyn Fn(glam::DVec3) -> f64>;
+
+fn shaped(
+    mut mesh: Mesh,
+    falloff: &ShapeFalloff,
+    centre: DVec3,
+    axis: usize,
+    respace: bool,
+    weight: Weight,
+) -> Result<Mesh> {
+    falloff.validate()?;
+    if let Some(weight) = weight {
+        falloff.apply(&mut mesh, centre, axis, respace, weight)?;
+    }
+    Ok(mesh)
 }
 
 /// Drag creation's flat base (drag-creation-2026-11-06 rule 1): with exactly

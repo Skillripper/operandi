@@ -19,6 +19,7 @@ use crate::{
     CapsuleEnds, CapsuleParameters, ConeCap, ConeParameters, CubeShape, CylinderCap, CylinderShape,
     EllipsoidParameters, Mesh, PolygonRepresentation, Result, SphereShape, TorusParameters,
 };
+use crate::{FalloffSample, FalloffSpacing, ShapeFalloff, ShapeWeights};
 use glam::DVec3;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -101,6 +102,50 @@ const POLYGONS: [PolygonRepresentation; 3] = [
 ];
 const CAPSULE_ENDS: [CapsuleEnds; 2] = [CapsuleEnds::Polar, CapsuleEnds::QuadGrid];
 
+/// The Cube, Sphere and Cylinder ops' falloff values (#15). The op keeps
+/// its own copy of the falloff layers (`falloff`): the tool falloff isn't
+/// scene data, and a saved stack must evaluate the same everywhere. It is
+/// taken from the active falloff when the op is added, and Use Active
+/// Falloff / Clear Falloff change it (`Editor::meshop_falloff`). Positions
+/// are the op's own (the item's local space), for Use World Transforms
+/// on and off alike (provisional, PRIM-OP-Q04).
+macro_rules! op_falloff {
+    ($($op:ty),*) => {$(
+        impl $op {
+            fn drive(&self) -> Result<ShapeFalloff> {
+                let f = ShapeFalloff {
+                    scale: self.falloff_scale,
+                    offset: vec3(
+                        self.falloff_offset_x,
+                        self.falloff_offset_y,
+                        self.falloff_offset_z,
+                        "Falloff Offset",
+                    )?,
+                    twist: self.falloff_twist.to_degrees(),
+                    sample: pick(&FalloffSample::ALL, self.falloff_sample, "Falloff Sample At")?,
+                    spacing: pick(&FalloffSpacing::ALL, self.falloff_spacing, "Falloff Spacing")?,
+                };
+                f.validate()?;
+                Ok(f)
+            }
+        }
+    )*};
+}
+op_falloff!(CubeOp, SphereOp, CylinderOp);
+
+type Weigher = Option<Box<dyn Fn(DVec3) -> f64>>;
+fn weigher(weights: &Option<ShapeWeights>) -> Result<Weigher> {
+    let Some(w) = weights else {
+        return Ok(None);
+    };
+    w.validate()?;
+    let w = w.clone();
+    Ok(Some(Box::new(move |p| w.weigher(glam::DMat4::IDENTITY)(p))))
+}
+fn as_weight(w: &Weigher) -> crate::primitive_shapes::Weight<'_> {
+    w.as_deref().map(|f| f as &dyn Fn(DVec3) -> f64)
+}
+
 // ---- Cube ----
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -124,8 +169,30 @@ pub struct CubeOp {
     pub segments_y: u32,
     #[serde(rename = "segmentsZ")]
     pub segments_z: u32,
+    /// The spine a falloff shapes the cube along.
+    pub axis: u32,
     #[serde(rename = "makeUVs")]
     pub make_uvs: bool,
+    /// What the op's falloff does (#15); see [`OpFalloff`].
+    #[serde(rename = "falloffScale")]
+    pub falloff_scale: f64,
+    #[serde(rename = "falloffOffsetX")]
+    pub falloff_offset_x: f64,
+    #[serde(rename = "falloffOffsetY")]
+    pub falloff_offset_y: f64,
+    #[serde(rename = "falloffOffsetZ")]
+    pub falloff_offset_z: f64,
+    /// Radians.
+    #[serde(rename = "falloffTwist")]
+    pub falloff_twist: f64,
+    /// 0 Spine, 1 Points.
+    #[serde(rename = "falloffSample")]
+    pub falloff_sample: u32,
+    /// 0 Even, 1 Follow Falloff.
+    #[serde(rename = "falloffSpacing")]
+    pub falloff_spacing: u32,
+    /// The op's own copy of the falloff layers; `null` = none.
+    pub falloff: Option<ShapeWeights>,
 }
 impl CubeOp {
     pub fn shape(&self) -> Result<CubeShape> {
@@ -134,6 +201,8 @@ impl CubeOp {
             size: vec3(self.size_x, self.size_y, self.size_z, "Size")?,
             segments: [self.segments_x, self.segments_y, self.segments_z],
             make_uvs: self.make_uvs,
+            axis: axis_of(self.axis)?,
+            falloff: self.drive()?,
         })
     }
 }
@@ -144,6 +213,8 @@ impl From<&CubeShape> for CubeOp {
             size,
             segments: [sx, sy, sz],
             make_uvs,
+            axis,
+            falloff,
         } = *s;
         Self {
             cen_x: p.x,
@@ -155,7 +226,16 @@ impl From<&CubeShape> for CubeOp {
             segments_x: sx,
             segments_y: sy,
             segments_z: sz,
+            axis: axis as u32,
             make_uvs,
+            falloff_scale: falloff.scale,
+            falloff_offset_x: falloff.offset.x,
+            falloff_offset_y: falloff.offset.y,
+            falloff_offset_z: falloff.offset.z,
+            falloff_twist: falloff.twist.to_radians(),
+            falloff_sample: index_of(&FalloffSample::ALL, &falloff.sample),
+            falloff_spacing: index_of(&FalloffSpacing::ALL, &falloff.spacing),
+            falloff: None,
         }
     }
 }
@@ -166,7 +246,9 @@ impl Default for CubeOp {
 }
 impl TypedOp for CubeOp {
     fn run(&self, ctx: &OpContext) -> Result<Mesh> {
-        generated(ctx, self.shape()?.mesh()?, 1)
+        let s = self.shape()?;
+        let w = weigher(&self.falloff)?;
+        generated(ctx, s.mesh_weighted(as_weight(&w))?, 1)
     }
 }
 
@@ -197,6 +279,26 @@ pub struct SphereOp {
     pub level: u32,
     #[serde(rename = "makeUVs")]
     pub make_uvs: bool,
+    /// What the op's falloff does (#15); see [`OpFalloff`].
+    #[serde(rename = "falloffScale")]
+    pub falloff_scale: f64,
+    #[serde(rename = "falloffOffsetX")]
+    pub falloff_offset_x: f64,
+    #[serde(rename = "falloffOffsetY")]
+    pub falloff_offset_y: f64,
+    #[serde(rename = "falloffOffsetZ")]
+    pub falloff_offset_z: f64,
+    /// Radians.
+    #[serde(rename = "falloffTwist")]
+    pub falloff_twist: f64,
+    /// 0 Spine, 1 Points.
+    #[serde(rename = "falloffSample")]
+    pub falloff_sample: u32,
+    /// 0 Even, 1 Follow Falloff.
+    #[serde(rename = "falloffSpacing")]
+    pub falloff_spacing: u32,
+    /// The op's own copy of the falloff layers; `null` = none.
+    pub falloff: Option<ShapeWeights>,
 }
 impl SphereOp {
     pub fn shape(&self) -> Result<SphereShape> {
@@ -211,6 +313,7 @@ impl SphereOp {
             axis: axis_of(self.axis)?,
             level: (self.method == 1).then_some(self.level),
             make_uvs: self.make_uvs,
+            falloff: self.drive()?,
         })
     }
 }
@@ -224,6 +327,7 @@ impl From<&SphereShape> for SphereOp {
             axis,
             level,
             make_uvs,
+            falloff,
         } = *s;
         Self {
             cen_x: p.x,
@@ -238,6 +342,14 @@ impl From<&SphereShape> for SphereOp {
             method: u32::from(level.is_some()),
             level: level.unwrap_or(0),
             make_uvs,
+            falloff_scale: falloff.scale,
+            falloff_offset_x: falloff.offset.x,
+            falloff_offset_y: falloff.offset.y,
+            falloff_offset_z: falloff.offset.z,
+            falloff_twist: falloff.twist.to_radians(),
+            falloff_sample: index_of(&FalloffSample::ALL, &falloff.sample),
+            falloff_spacing: index_of(&FalloffSpacing::ALL, &falloff.spacing),
+            falloff: None,
         }
     }
 }
@@ -249,7 +361,8 @@ impl Default for SphereOp {
 impl TypedOp for SphereOp {
     fn run(&self, ctx: &OpContext) -> Result<Mesh> {
         let s = self.shape()?;
-        generated(ctx, s.mesh()?, s.axis)
+        let w = weigher(&self.falloff)?;
+        generated(ctx, s.mesh_weighted(as_weight(&w))?, s.axis)
     }
 }
 
@@ -279,6 +392,26 @@ pub struct CylinderOp {
     pub cap_bottom: u32,
     #[serde(rename = "makeUVs")]
     pub make_uvs: bool,
+    /// What the op's falloff does (#15); see [`OpFalloff`].
+    #[serde(rename = "falloffScale")]
+    pub falloff_scale: f64,
+    #[serde(rename = "falloffOffsetX")]
+    pub falloff_offset_x: f64,
+    #[serde(rename = "falloffOffsetY")]
+    pub falloff_offset_y: f64,
+    #[serde(rename = "falloffOffsetZ")]
+    pub falloff_offset_z: f64,
+    /// Radians.
+    #[serde(rename = "falloffTwist")]
+    pub falloff_twist: f64,
+    /// 0 Spine, 1 Points.
+    #[serde(rename = "falloffSample")]
+    pub falloff_sample: u32,
+    /// 0 Even, 1 Follow Falloff.
+    #[serde(rename = "falloffSpacing")]
+    pub falloff_spacing: u32,
+    /// The op's own copy of the falloff layers; `null` = none.
+    pub falloff: Option<ShapeWeights>,
 }
 impl CylinderOp {
     pub fn shape(&self) -> Result<CylinderShape> {
@@ -293,6 +426,7 @@ impl CylinderOp {
                 pick(&CylinderCap::ALL, self.cap_top, "Cap Top")?,
             ],
             make_uvs: self.make_uvs,
+            falloff: self.drive()?,
         })
     }
 }
@@ -306,6 +440,7 @@ impl From<&CylinderShape> for CylinderOp {
             axis,
             caps: [bottom, top],
             make_uvs,
+            falloff,
         } = *s;
         Self {
             cen_x: p.x,
@@ -320,6 +455,14 @@ impl From<&CylinderShape> for CylinderOp {
             cap_top: index_of(&CylinderCap::ALL, &top),
             cap_bottom: index_of(&CylinderCap::ALL, &bottom),
             make_uvs,
+            falloff_scale: falloff.scale,
+            falloff_offset_x: falloff.offset.x,
+            falloff_offset_y: falloff.offset.y,
+            falloff_offset_z: falloff.offset.z,
+            falloff_twist: falloff.twist.to_radians(),
+            falloff_sample: index_of(&FalloffSample::ALL, &falloff.sample),
+            falloff_spacing: index_of(&FalloffSpacing::ALL, &falloff.spacing),
+            falloff: None,
         }
     }
 }
@@ -331,7 +474,8 @@ impl Default for CylinderOp {
 impl TypedOp for CylinderOp {
     fn run(&self, ctx: &OpContext) -> Result<Mesh> {
         let s = self.shape()?;
-        generated(ctx, s.mesh()?, s.axis)
+        let w = weigher(&self.falloff)?;
+        generated(ctx, s.mesh_weighted(as_weight(&w))?, s.axis)
     }
 }
 
@@ -824,6 +968,23 @@ fn polygon_type() -> Field {
         &["Face", "Subdivs", "Catmull-Clark"],
     )
 }
+/// The Falloff rows (#15): what the op's own falloff copy drives.
+fn falloff_fields() -> Vec<Field> {
+    let mut f = vec![Field::new(
+        "falloffScale",
+        "Falloff Scale",
+        FieldKind::Percent,
+    )];
+    f.extend(xyz("falloffOffset", "Falloff Offset", FieldKind::Distance));
+    f.extend([
+        Field::new("falloffTwist", "Falloff Twist", FieldKind::Angle),
+        choice("falloffSample", "Sample At", &["Spine", "Points"]),
+        choice("falloffSpacing", "Spacing", &["Even", "Follow Falloff"]),
+        // The layers themselves: set by Use Active Falloff, not typed.
+        Field::new("falloff", "Falloff", FieldKind::Hidden),
+    ]);
+    f
+}
 /// The Cone's and Ellipsoid's UV rows.
 fn uv_rows() -> [Field; 4] {
     [
@@ -848,7 +1009,8 @@ pub(crate) fn entries() -> Vec<Arc<dyn OpDef>> {
         "Segments",
         FieldKind::Count { min: 1, max: BIG },
     ));
-    cube.push(make_uvs());
+    cube.extend([axis(), make_uvs()]);
+    cube.extend(falloff_fields());
 
     let mut sphere = position().to_vec();
     sphere.extend(size("Radius"));
@@ -861,6 +1023,7 @@ pub(crate) fn entries() -> Vec<Arc<dyn OpDef>> {
         axis(),
         make_uvs(),
     ]);
+    sphere.extend(falloff_fields());
 
     let mut cylinder = position().to_vec();
     cylinder.extend(size("Radius"));
@@ -872,6 +1035,7 @@ pub(crate) fn entries() -> Vec<Arc<dyn OpDef>> {
         axis(),
         make_uvs(),
     ]);
+    cylinder.extend(falloff_fields());
 
     let mut cone = position().to_vec();
     cone.extend(size("Size"));

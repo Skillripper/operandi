@@ -13,6 +13,9 @@ blends smoothly into place.
 - The falloff's settings appear under the tool's own in **Tool
   Properties**, and its handles in the 3D view.
 - **Esc** in the view clears the falloff while no edit is in progress.
+- Falloffs also shape the [Cube](../modeling/cube.md),
+  [Sphere](../modeling/sphere.md) and [Cylinder](../modeling/cylinder.md)
+  while you make them.
 - Each drag is one undo step. With nothing selected, a tool works on the
   whole mesh.
 

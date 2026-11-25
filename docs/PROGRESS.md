@@ -1,5 +1,15 @@
 # Milestone progress ledger
 
+- **Falloffs on primitives (2026-11-25, GitHub #15, branch claude/project-thread-8fccr9):**
+  the global falloff (Linear, Radial, Cylinder, Noise) shapes the Cube,
+  Sphere and Cylinder inside their shared generator. The Falloff menu
+  and handles stay usable while the tool is live, and the preview follows.
+  The folded Falloff section has Scale, Offset, Twist, Sample At (Spine
+  or Points), Spacing (Follow Falloff) and Fit Falloff to Shape. The
+  primitive ops keep their own copy of the falloff layers (taken when
+  added; Use Active Falloff, Clear Falloff). Not yet: Cone and Capsule.
+  Provisional: PRIM-FO-Q01..Q04, PRIM-OP-Q04.
+
 - **Primitive MeshOps match the tools (2026-11-25, GitHub #14, branch claude/project-thread-8fccr9):**
   one generator per primitive. Cube, Sphere and Cylinder became shapes
   (`primitives/primitive_shapes.rs`) that the tools and ops both build

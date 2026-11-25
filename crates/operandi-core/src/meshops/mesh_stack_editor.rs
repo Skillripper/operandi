@@ -159,6 +159,13 @@ impl Editor {
                     .collect();
                 let mut values = values.clone();
                 def.created(&mut values, &picked);
+                // #15: a primitive op takes a copy of the active falloff
+                // (primitive_ops.rs, `falloff`).
+                if values.get("falloff").is_some_and(|v| v.is_null())
+                    && let Some(w) = self.primitive_weights()
+                {
+                    values["falloff"] = serde_json::to_value(w).map_err(|e| e.to_string())?;
+                }
                 OpKind::Op {
                     type_id: type_id.clone(),
                     values,

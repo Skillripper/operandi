@@ -821,6 +821,10 @@ impl Operandi {
                     dragged |= response.dragged();
                 }
             });
+            // #15: a primitive op's own copy of a falloff.
+            if def.fields().iter().any(|f| f.key == "falloff") {
+                op_falloff_section(ui, &self.editor, &values, &mut changes);
+            }
             if def.id() == operandi_core::meshblend::MESHBLEND_OP {
                 let status = evaluated.and_then(|e| e.statuses.get(index));
                 blend_commands =
@@ -913,6 +917,66 @@ impl Operandi {
         });
         self.editor.undo_fold = previous;
     }
+}
+
+/// A primitive op's Falloff section (#15): which falloff layers the op
+/// keeps, Use Active Falloff and Clear Falloff. The op can't follow the
+/// tool falloff (it isn't scene data), so it keeps a copy.
+fn op_falloff_section(
+    ui: &mut egui::Ui,
+    editor: &operandi_core::Editor,
+    values: &serde_json::Value,
+    changes: &mut serde_json::Map<String, serde_json::Value>,
+) {
+    use crate::form::rows;
+    use crate::unavailable::Gate as _;
+    let kept: Option<operandi_core::ShapeWeights> =
+        serde_json::from_value(values["falloff"].clone())
+            .ok()
+            .flatten();
+    rows::section(ui, "Falloff", false, |ui| {
+        let shown = kept.as_ref().map_or_else(
+            || "None".to_owned(),
+            |w| {
+                let mut names = vec![w.first.label()];
+                names.extend(w.added.iter().map(|a| a.0.label()));
+                names.join(" + ")
+            },
+        );
+        rows::value(ui, "Falloff", &shown);
+        let active = editor.primitive_weights();
+        let why = if editor.spatial_falloff.is_none() {
+            "Turn on a Linear, Radial, Cylinder or Noise falloff from the Falloff menu first"
+                .to_owned()
+        } else {
+            editor.primitive_falloff_note().unwrap_or_default()
+        };
+        ui.gated_ui(crate::unavailable::unless(active.is_some(), &why), |ui| {
+            if rows::button(ui, "Use Active Falloff")
+                .on_hover_text("Copy the falloff from the Falloff menu into this operation")
+                .clicked()
+                && let Some(w) = &active
+                && let Ok(v) = serde_json::to_value(w)
+            {
+                changes.insert("falloff".into(), v);
+            }
+        });
+        ui.gated_ui(
+            crate::unavailable::unless(kept.is_some(), "This operation has no falloff"),
+            |ui| {
+                if rows::button(ui, "Clear Falloff")
+                    .on_hover_text("Remove this operation's falloff; the shape is plain again")
+                    .clicked()
+                {
+                    changes.insert("falloff".into(), serde_json::Value::Null);
+                }
+            },
+        );
+        rows::note(
+            ui,
+            "The Falloff Scale, Offset, Twist, Sample At and Spacing rows say what it does.",
+        );
+    });
 }
 
 #[cfg(test)]

@@ -431,10 +431,26 @@ impl<P> ToolForm<P> {
         walk(&self.items, &mut out);
         out
     }
-    /// The draft (number and words) fields' keys.
+    /// The draft (number and words) fields' keys, outside sections that
+    /// start folded (UIC-106: their rows are drawn once opened).
     #[cfg(test)]
     pub(crate) fn draft_keys(&self) -> Vec<String> {
-        self.fields()
+        fn walk<'a, P>(items: &'a [Item<P>], out: &mut Vec<&'a Field<P>>) {
+            for item in items {
+                match item {
+                    Item::Field(f) => out.push(&**f),
+                    Item::Section {
+                        items,
+                        folded: false,
+                        ..
+                    } => walk(items, out),
+                    _ => {}
+                }
+            }
+        }
+        let mut fields = Vec::new();
+        walk(&self.items, &mut fields);
+        fields
             .into_iter()
             .filter(|f| matches!(f.bind, Bind::Number { .. } | Bind::Text { .. }))
             .map(|f| f.row.key.clone())
