@@ -406,7 +406,7 @@ impl Operandi {
         let surface = self.pick_surface();
         // Edges pick where they show: on a smooth surface, traced in
         // pieces, each naming its cage edge.
-        let mut candidates = crate::viewport::PickCandidates::default();
+        let mut candidates = crate::picking::PickCandidates::default();
         let reach = Rect::from_center_size(p, Vec2::splat(24.));
         self.item_pick_candidates(
             item,

@@ -80,7 +80,6 @@ pub use clipboard::{Clipboard, PastePlacement};
 #[path = "curve_tools/text.rs"]
 pub mod text;
 pub use curve_edit::{AddGeometry, CurveEdit};
-pub use curves::CurveKind;
 pub use text::{TextJustification, TextLocation, TextParameters};
 #[path = "primitives/unit_insert.rs"]
 pub mod unit_insert;
@@ -136,6 +135,8 @@ pub mod units;
 #[path = "commands/user_defaults.rs"]
 pub mod user_defaults;
 pub use history_settings::*;
+#[path = "geometry/component_modes.rs"]
+pub mod component_modes;
 #[path = "polygons/flip.rs"]
 mod flip;
 #[path = "polygons/flip_it.rs"]
@@ -146,11 +147,15 @@ pub mod freeze;
 pub mod fxhash;
 pub mod interchange;
 pub mod lxo;
+pub use component_modes::{Mode, SetKind, SetRef};
 #[path = "geometry/mesh.rs"]
 pub mod mesh;
+#[path = "geometry/polygon_kind.rs"]
+pub mod polygon_kind;
+pub use polygon_kind::{CurveKind, PolygonRepresentation};
 #[path = "sculpting/multires.rs"]
 pub mod multires;
-#[path = "geometry/polygon.rs"]
+#[path = "polygons/polygon.rs"]
 pub mod polygon;
 #[path = "render/render_settings.rs"]
 pub mod render_settings;
@@ -595,7 +600,7 @@ pub use active_task::ActiveTask;
 pub mod selection;
 #[path = "selections/selection_sets.rs"]
 pub mod selection_sets;
-pub use selection_sets::{SetKind, SetRef, UseSetMode};
+pub use selection_sets::UseSetMode;
 #[path = "selections/selection_continuation.rs"]
 mod selection_continuation;
 #[path = "selections/selection_neighbour_loop.rs"]
@@ -620,7 +625,7 @@ pub mod falloff;
 pub mod mesh_stack_deform;
 #[path = "selections/select_tools.rs"]
 pub mod select_tools;
-#[path = "geometry/topology_cleanup.rs"]
+#[path = "polygons/topology_cleanup.rs"]
 pub mod topology_cleanup;
 #[path = "curve_tools/topology_pen.rs"]
 pub mod topology_pen;

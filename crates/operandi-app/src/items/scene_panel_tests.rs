@@ -477,9 +477,12 @@ fn free_center_handle_and_click_away_center() {
 #[test]
 fn items_rows_alternate_shading_under_selection() {
     // Scene root (row 0) plain, first item striped, and so on.
-    assert_eq!(workspace::row_fill(0), theme::workspace::list());
-    assert_eq!(workspace::row_fill(1), theme::workspace::list_stripe());
-    assert_eq!(workspace::row_fill(2), theme::workspace::list());
+    assert_eq!(crate::tree_list::row_fill(0), theme::workspace::list());
+    assert_eq!(
+        crate::tree_list::row_fill(1),
+        theme::workspace::list_stripe()
+    );
+    assert_eq!(crate::tree_list::row_fill(2), theme::workspace::list());
     assert_ne!(theme::workspace::list(), theme::workspace::list_stripe());
     // Selection fills must stay distinct from both stripes.
     for fill in [theme::workspace::selected(), theme::workspace::primary()] {

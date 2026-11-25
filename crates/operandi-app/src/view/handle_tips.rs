@@ -9,7 +9,7 @@
 //! Tweak's element, an armed Click to Start tool, and camera and light
 //! handles. [`ALL_KINDS`] lists every kind for the coverage test.
 use crate::camera_light_handles::Grab;
-use crate::viewport::falloff_view::FalloffHandle;
+use crate::handle_ids::FalloffHandle;
 use operandi_core::tool_card::HandleKind;
 use operandi_core::{Falloff, Tool};
 
@@ -47,7 +47,7 @@ pub(crate) fn all_kinds() -> Vec<TipKind> {
     ] {
         out.extend((0..count).map(|a| TipKind::Live(kind, a)));
     }
-    use crate::viewport::twist_bevel_handles as tb;
+    use crate::handle_ids as tb;
     for id in [
         tb::TB_SHIFT,
         tb::TB_INSET,
@@ -131,7 +131,7 @@ fn live(kind: HandleKind, axis: usize) -> String {
 }
 
 fn spine(id: usize) -> &'static str {
-    use crate::viewport::twist_bevel_handles as tb;
+    use crate::handle_ids as tb;
     match id {
         tb::TB_SHIFT => "Shift arrow at the cap: drag to lengthen or shorten the tube",
         tb::TB_INSET => "Inset square at the cap: drag to taper the tube (Inset)",

@@ -159,7 +159,9 @@ contribute.
    fast-drag rules every interactive tool follows.
    To find your way around first, the
    [code map](https://operandi3d.org/architecture) shows every module and
-   file with a one-line description and what connects to what.
+   file with a one-line description and what connects to what, and
+   [docs/DATA_MODEL.md](docs/DATA_MODEL.md) shows what a scene is made of
+   (items, meshes, channels, materials, undo and the `.opscene` file).
 4. Interface work follows the project's UI conventions,
    [docs/UI_BIBLE.md](docs/UI_BIBLE.md). Read the section for what you're
    changing before you start, and mention the rule numbers (UIC-nn) when

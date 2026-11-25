@@ -26,8 +26,8 @@
 //! B1 makes sharp joins; strips along them come in B2 (the strip builder
 //! picked in B0).
 use super::recipe::{Recipe, Role};
+use crate::PolygonRepresentation;
 use crate::boolean::{Tri, guarded, manifold_solid, self_intersection};
-use crate::cone::PolygonRepresentation;
 use crate::subdivision::SubdivisionSettings;
 use crate::{Face, Mesh, Result};
 use glam::DVec3;

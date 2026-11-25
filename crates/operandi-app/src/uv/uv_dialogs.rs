@@ -378,10 +378,7 @@ impl Operandi {
             .scene
             .active()
             .map(|i| {
-                operandi_core::selection_sets::set_names(
-                    &i.mesh,
-                    operandi_core::selection_sets::SetKind::Edge,
-                )
+                operandi_core::selection_sets::set_names(&i.mesh, operandi_core::SetKind::Edge)
             })
             .unwrap_or_default();
         let rows = unwrap_rows(&self.editor.uv_unwrap_preset, sets);

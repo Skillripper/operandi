@@ -13,30 +13,8 @@
 //! is not built (Q-CN-04); Distortion Compensation and Gaps keep their
 //! current layouts (Q-CN-05, Q-CN-07); zero or negative radii are refused
 //! (Q-CN-12).
-use crate::{Face, Mesh, Result};
+use crate::{Face, Mesh, PolygonRepresentation, Result};
 use glam::{DVec2, DVec3};
-use serde::{Deserialize, Serialize};
-
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
-pub enum PolygonRepresentation {
-    #[default]
-    Face,
-    Subdivs,
-    CatmullClark,
-    /// Ordered line element; closure adds a span, never another point.
-    /// `curve` says how the points are drawn: straight (a polyline) or as
-    /// a smooth Curve, B-Spline or Bezier through or near them.
-    Polyline {
-        closed: bool,
-        #[serde(default, skip_serializing_if = "crate::curves::CurveKind::is_line")]
-        curve: crate::curves::CurveKind,
-    },
-    /// A live patch (G7 PC-7): the polygon lists only its 3 or 4 corner
-    /// points; its surface is a Coons patch over the open curves joining
-    /// each pair of neighbouring corners (patch.rs), tessellated when the
-    /// scene is evaluated. Edits treat it as a plain polygon.
-    Patch,
-}
 
 /// Fill of one end of the cone.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

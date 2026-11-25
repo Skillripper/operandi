@@ -7,32 +7,6 @@ use theme::workspace as palette;
 /// GL-13: a Group Locator's own Properties tab.
 pub(super) const GROUP_LOCATOR_TAB: &str = "Group Locator";
 use operandi_core::locator::PARENT_TO_GROUP_LOCATOR;
-/// LCK-03 padlock, drawn as a glyph (body and shackle) until the icon
-/// generator has a padlock icon (provisional). About three quarters of the
-/// row height, between text size (easy to miss) and the full row (too
-/// heavy), in the "Locked mesh elements" colour so item and geometry lock
-/// share one colour; not the accent, which only means on/active/selected
-/// (UIC-01).
-pub(super) fn paint_padlock(painter: &egui::Painter, centre: Pos2, color: Color32) {
-    let body = Rect::from_center_size(centre + vec2(0., 2.5), vec2(9.5, 7.5));
-    painter.rect_filled(body, 1.2, color);
-    let shackle: Vec<Pos2> = (0..=10)
-        .map(|i| {
-            let a = std::f32::consts::PI * i as f32 / 10.;
-            centre + vec2(-3.1 * a.cos(), -1.2 - 3.4 * a.sin())
-        })
-        .collect();
-    painter.add(egui::Shape::line(shackle, Stroke::new(1.6f32, color)));
-}
-
-/// Items-list zebra stripes: even rows plain, odd rows a touch lighter.
-pub(super) fn row_fill(row: usize) -> Color32 {
-    if row % 2 == 1 {
-        palette::list_stripe()
-    } else {
-        palette::list()
-    }
-}
 pub(super) fn number_text(value: f64, unit: &str) -> String {
     // Distances show in the user's Distance Units.
     if unit == " m" {

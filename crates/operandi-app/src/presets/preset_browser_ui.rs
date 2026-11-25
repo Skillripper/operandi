@@ -1500,7 +1500,7 @@ impl Operandi {
         if (items || shading) && ctx.input(|i| i.pointer.any_released()) {
             let at = if self.preset_browser.folder_rects_in_window {
                 // The pointer in the browser window's coordinates.
-                crate::native::mouse_location().and_then(|screen| {
+                crate::os_mouse::mouse_location().and_then(|screen| {
                     let (inner, native, ppp) = self.preset_browser.window_native?;
                     Some(crate::viewport_buttons::screen_to_window(
                         screen, inner, native, ppp,

@@ -70,7 +70,7 @@ use crate::prefs_file::PrefsFile;
 use snaps_panel::SnapPreset;
 #[path = "view/action_center_click.rs"]
 mod action_center_click;
-#[path = "controls/app_environment.rs"]
+#[path = "files/app_environment.rs"]
 mod app_environment;
 #[path = "menus/app_menu.rs"]
 mod app_menu;
@@ -94,7 +94,7 @@ mod bridge_panel;
 mod bug_report;
 #[path = "files/bug_report_capture.rs"]
 mod bug_report_capture;
-#[path = "controls/button_variants.rs"]
+#[path = "window_layout/button_variants.rs"]
 mod button_variants;
 #[path = "view/camera.rs"]
 mod camera;
@@ -152,7 +152,7 @@ mod cut_dialogs;
 mod defaults_preferences;
 #[path = "deformers/deform_panel.rs"]
 mod deform_panel;
-#[path = "tools/detents.rs"]
+#[path = "controls/detents.rs"]
 mod detents;
 #[path = "polygons/detriangulate_dialog.rs"]
 mod detriangulate_dialog;
@@ -244,6 +244,8 @@ mod guide_python_tests;
 #[cfg(test)]
 #[path = "commands/guide_shortcuts_tests.rs"]
 mod guide_shortcuts_tests;
+#[path = "view/handle_ids.rs"]
+mod handle_ids;
 #[path = "settings/handle_preferences.rs"]
 mod handle_preferences;
 #[path = "view/handle_tips.rs"]
@@ -304,7 +306,7 @@ mod light_tier3_ui;
 mod link_mode;
 #[path = "tools/live_fields.rs"]
 mod live_fields;
-#[path = "files/log_ring.rs"]
+#[path = "controls/log_ring.rs"]
 mod log_ring;
 #[path = "render/lpe_rows.rs"]
 mod lpe_rows;
@@ -345,7 +347,7 @@ mod multires_ui;
 #[cfg(test)]
 #[path = "sculpting/multires_ui_tests.rs"]
 mod multires_ui_tests;
-#[path = "controls/native.rs"]
+#[path = "input_devices/native.rs"]
 mod native;
 #[path = "menus/native_menu.rs"]
 mod native_menu;
@@ -353,7 +355,7 @@ mod native_menu;
 mod navigation_preferences;
 #[path = "tools/numeric_draft.rs"]
 mod numeric_draft;
-#[path = "tools/numeric_tab.rs"]
+#[path = "controls/numeric_tab.rs"]
 mod numeric_tab;
 #[path = "presets/online_library.rs"]
 mod online_library;
@@ -361,15 +363,17 @@ mod online_library;
 mod online_library_ui;
 #[path = "files/open_documents.rs"]
 mod open_documents;
-#[path = "controls/option_row.rs"]
+#[path = "window_layout/option_row.rs"]
 mod option_row;
 #[path = "view/orbit_selected.rs"]
 mod orbit_selected;
 #[path = "controls/original_compatible.rs"]
 mod original_compatible;
-#[path = "settings/os_color.rs"]
+#[path = "controls/os_color.rs"]
 mod os_color;
-#[path = "controls/outline.rs"]
+#[path = "controls/os_mouse.rs"]
+mod os_mouse;
+#[path = "graphics/outline.rs"]
 mod outline;
 #[path = "window_layout/panel_close.rs"]
 mod panel_close;
@@ -459,6 +463,8 @@ mod python_ui_tests;
 #[cfg(feature = "qa")]
 #[path = "commands/qa.rs"]
 mod qa;
+#[path = "controls/range_labels.rs"]
+mod range_labels;
 #[path = "polygons/reduction_panel.rs"]
 mod reduction_panel;
 #[path = "polygons/relax_mesh_dialog.rs"]
@@ -496,7 +502,7 @@ mod scale_offset_dialog;
 mod scenes;
 #[path = "rigging/schematic_ui.rs"]
 mod schematic_ui;
-#[path = "anim/scrub.rs"]
+#[path = "controls/scrub.rs"]
 mod scrub;
 #[path = "sculpting/sculpt_ui.rs"]
 mod sculpt_ui;
@@ -4308,7 +4314,7 @@ mod absolute_scaling_tests;
 #[path = "view/active_mesh_pick_tests.rs"]
 mod active_mesh_pick_tests;
 #[cfg(test)]
-#[path = "controls/button_variants_tests.rs"]
+#[path = "window_layout/button_variants_tests.rs"]
 mod button_variants_tests;
 #[cfg(test)]
 #[path = "render/camera_props_tests.rs"]
@@ -4458,7 +4464,7 @@ mod mini_properties_tests;
 #[path = "controls/number_field_tests.rs"]
 mod number_field_tests;
 #[cfg(test)]
-#[path = "tools/numeric_tab_tests.rs"]
+#[path = "controls/numeric_tab_tests.rs"]
 mod numeric_tab_tests;
 #[cfg(test)]
 #[path = "presets/online_library_tests.rs"]
@@ -4512,7 +4518,7 @@ mod scene_panel_tests;
 #[path = "files/scenes_tests.rs"]
 mod scenes_tests;
 #[cfg(test)]
-#[path = "anim/scrub_tests.rs"]
+#[path = "controls/scrub_tests.rs"]
 mod scrub_tests;
 #[cfg(test)]
 #[path = "selections/select_tab_tests.rs"]

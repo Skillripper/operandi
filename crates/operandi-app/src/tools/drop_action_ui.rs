@@ -4,8 +4,8 @@
 //! over another item applies the action; the scene work is
 //! `Command::DropAction` in operandi-core.
 use eframe::egui::{self, Button, Modifiers, Pos2, Rect, Ui};
+use operandi_core::Mode;
 use operandi_core::editor::Command;
-use operandi_core::scene::Mode;
 use operandi_core::{Component, DropAction};
 use serde::{Deserialize, Serialize};
 use std::{fs, io, path::Path};
