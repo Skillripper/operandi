@@ -138,6 +138,7 @@
     - [Polygon tab](polygon/index.md)
         - [Twist Bevel](polygon/twist-bevel.md)
         - [Extrude](polygon/extrude.md)
+        - [Inset and Shift](polygon/inset.md)
         - [Smooth Shift and Thicken](polygon/smooth-shift.md)
         - [Spike](polygon/spike.md)
         - [Polygon Reduction](polygon/reduction.md)

@@ -282,6 +282,8 @@ mod ik_two_bone;
 #[path = "incidence_effects.rs"]
 mod incidence_effects;
 #[cfg(operandi_specs)]
+#[path = "inset_bevel_options.rs"]
+mod inset_bevel_options;
 #[path = "inset_clean_spec.rs"]
 mod inset_clean_spec;
 #[path = "inset_shift_tools.rs"]

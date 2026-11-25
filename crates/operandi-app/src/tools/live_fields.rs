@@ -836,6 +836,26 @@ impl Operandi {
             }
             Tool::Inset => {
                 f.field(dist("inset", "Inset", |p| p.inset, |p, v| p.inset = v))
+                    // UIC-115 checkbox rows; both off by default (TwistBevel
+                    // notes, 2026-11-25).
+                    .field(
+                        check(
+                            "inset_stop_fold",
+                            "Stop Before Fold",
+                            |p| p.inset_options.stop_at_fold,
+                            |p, on| p.inset_options.stop_at_fold = on,
+                        )
+                        .tip("Each polygon's inset stops just before its inner copy would turn over; off, a big Inset crosses over"),
+                    )
+                    .field(
+                        check(
+                            "inset_keep_cap_uvs",
+                            "Keep Cap UVs",
+                            |p| p.inset_options.keep_cap_uvs,
+                            |p, on| p.inset_options.keep_cap_uvs = on,
+                        )
+                        .tip("The inner polygons keep their UVs exactly, seams included; only the side polygons get new UVs"),
+                    )
                     .note("Each polygon gets a smaller copy inside it; negative grows. Nothing selected insets every polygon.");
             }
             Tool::Shift => {
@@ -1177,6 +1197,43 @@ impl Operandi {
                 |p| p.bevel.offset_even,
                 |p, on| p.bevel.offset_even = on,
             ))
+            // TwistBevel notes (2026-11-25): three opt-in rows, off by
+            // default; greyed, not hidden, where they can't apply (UIC-117).
+            .field(
+                check(
+                    "bevel_stop_fold",
+                    "Stop Before Fold",
+                    |p| p.bevel.stop_at_fold,
+                    |p, on| p.bevel.stop_at_fold = on,
+                )
+                .tip("Each cap's inset stops just before a cap polygon would turn over or its edges cross; off, a big Inset crosses over"),
+            )
+            .field(
+                check(
+                    "bevel_even_interior",
+                    "Even Interior",
+                    |p| p.bevel.even_interior,
+                    |p, on| p.bevel.even_interior = on,
+                )
+                .enabled_if(
+                    !p.bevel.edge_rail && !p.bevel.auto_weld,
+                    "Even Interior works without Edge Rail and Auto Weld",
+                )
+                .tip("Points inside a grouped cap and along its straight edges move with the inset, so the cap shrinks evenly"),
+            )
+            .field(
+                check(
+                    "bevel_keep_cap_uvs",
+                    "Keep Cap UVs",
+                    |p| p.bevel.keep_cap_uvs,
+                    |p, on| p.bevel.keep_cap_uvs = on,
+                )
+                .enabled_if(
+                    p.bevel.uvs == BevelUvs::Connected,
+                    "U and V UVs already keep the caps' UVs",
+                )
+                .tip("The caps keep their UVs exactly, seams included; only the walls get new UVs"),
+            )
             .field(check(
                 "bevel_thicken",
                 "Thicken Polygon",

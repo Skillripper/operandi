@@ -328,6 +328,90 @@ impl Mesh {
     }
 }
 
+/// Stop Before Fold's test for one polygon ring (Inset and Bevel, an
+/// optional guard; without it an Inset past the centre is kept as asked,
+/// PB-C-01/04). True when `moved` has turned over against `original` in the
+/// plane of `normal`: its area changed sign, a corner that turned one way
+/// now turns the other, an edge shrank to nothing or runs backwards, or (rings of up to 64
+/// corners) two of its edges cross.
+pub(crate) fn ring_folds(original: &[DVec3], moved: &[DVec3], normal: DVec3) -> bool {
+    let n = original.len();
+    if n < 3 || moved.len() != n {
+        return false;
+    }
+    let span = (0..n)
+        .map(|i| original[i].distance(original[(i + 1) % n]))
+        .fold(0., f64::max);
+    if span <= 0. {
+        return false;
+    }
+    let eps = span * 1e-9;
+    let turn = |r: &[DVec3], i: usize| {
+        let (a, b, c) = (r[(i + n - 1) % n], r[i], r[(i + 1) % n]);
+        (b - a).cross(c - b).dot(normal)
+    };
+    let area = |r: &[DVec3]| {
+        (1..n - 1)
+            .map(|i| (r[i] - r[0]).cross(r[i + 1] - r[0]).dot(normal))
+            .sum::<f64>()
+    };
+    let before = area(original);
+    if before.abs() > eps * span && area(moved) * before.signum() <= 0. {
+        return true;
+    }
+    for i in 0..n {
+        let j = (i + 1) % n;
+        // An edge that shrank to nothing or now runs backwards: the copy
+        // has passed through itself (a square inset past its middle is
+        // turned half round, not inside out).
+        let (was, now) = (original[j] - original[i], moved[j] - moved[i]);
+        if now.length() < eps || now.dot(was) <= 0. {
+            return true;
+        }
+        // A straight corner (points along an edge) has no turn to lose.
+        let t0 = turn(original, i);
+        if t0.abs() > eps * span && turn(moved, i) * t0.signum() <= 0. {
+            return true;
+        }
+    }
+    if n <= 64 {
+        let flat = |p: DVec3| p - normal * p.dot(normal);
+        let side = |a: DVec3, b: DVec3, c: DVec3| (b - a).cross(c - a).dot(normal);
+        for i in 0..n {
+            for j in i + 2..n {
+                if i == 0 && j == n - 1 {
+                    continue;
+                }
+                let (a, b) = (flat(moved[i]), flat(moved[(i + 1) % n]));
+                let (c, d) = (flat(moved[j]), flat(moved[(j + 1) % n]));
+                if side(a, b, c) * side(a, b, d) < 0. && side(c, d, a) * side(c, d, b) < 0. {
+                    return true;
+                }
+            }
+        }
+    }
+    false
+}
+
+/// Stop Before Fold: the largest share of the asked move (0..=1) that
+/// `folds` still accepts, found by halving. 1 when the whole move is fine
+/// or when even the start fails (nothing to protect).
+pub(crate) fn fold_free_share(folds: impl Fn(f64) -> bool) -> f64 {
+    if !folds(1.) || folds(0.) {
+        return 1.;
+    }
+    let (mut lo, mut hi) = (0., 1.);
+    for _ in 0..48 {
+        let mid = 0.5 * (lo + hi);
+        if folds(mid) {
+            hi = mid;
+        } else {
+            lo = mid;
+        }
+    }
+    lo
+}
+
 pub(crate) fn validate_cap_edges(
     mesh: &Mesh,
     region: &Region,

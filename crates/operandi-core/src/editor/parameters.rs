@@ -24,6 +24,8 @@ pub struct Parameters {
     pub position: DVec3,
     pub size: DVec3,
     pub inset: f64,
+    /// Inset's options (Stop Before Fold, Keep Cap UVs).
+    pub inset_options: crate::InsetOptions,
     pub shift: f64,
     pub extent: DVec3,
     pub group_polygons: bool,
@@ -143,6 +145,7 @@ impl Default for Parameters {
             position: DVec3::ZERO,
             size: DVec3::ONE,
             inset: 0.,
+            inset_options: crate::InsetOptions::default(),
             shift: 0.,
             extent: DVec3::ZERO,
             group_polygons: true,

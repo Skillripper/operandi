@@ -675,7 +675,12 @@ impl Editor {
                 // assumed, as for the vertex tools).
                 let scale = crate::scene::uniform_scale(scene.world_matrix(item.id)?);
                 let output = if live.tool == Tool::Inset {
-                    crate::inset_geometry(&item.mesh, &selected, p.inset / scale)?
+                    crate::inset_geometry_with(
+                        &item.mesh,
+                        &selected,
+                        p.inset / scale,
+                        p.inset_options,
+                    )?
                 } else {
                     crate::shift_geometry(&item.mesh, &selected, p.shift / scale)?
                 };
@@ -990,6 +995,16 @@ impl Editor {
                 };
                 let item = scene.active().ok_or("Select an item")?;
                 let weights = self.falloff_weights(&scene, item.id)?;
+                // Distances are world units on the item's own scale, as for
+                // Inset, Shift and Twist Bevel (uniform scale assumed), so
+                // the handles stay on the cap of a scaled item.
+                let scale = crate::scene::uniform_scale(scene.world_matrix(item.id)?);
+                let options = crate::BevelOptions {
+                    shift_range: p.bevel.shift_range / scale,
+                    inset_range: p.bevel.inset_range / scale,
+                    weld_range: p.bevel.weld_range / scale,
+                    ..p.bevel.clone()
+                };
                 let bevel = if apply {
                     crate::bevel_geometry_applied
                 } else {
@@ -998,10 +1013,10 @@ impl Editor {
                 let result = bevel(
                     &item.mesh,
                     &selected,
-                    p.shift,
-                    p.inset,
+                    p.shift / scale,
+                    p.inset / scale,
                     p.group_polygons,
-                    &p.bevel,
+                    &options,
                     weights.as_deref(),
                     self.bevel_profile,
                 )

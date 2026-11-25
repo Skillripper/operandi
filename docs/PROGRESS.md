@@ -1,5 +1,16 @@
 # Milestone progress ledger
 
+- **Inset/Bevel options from the TwistBevel notes (2026-11-25, branch
+  claude/project-thread-cy3fzd):** opt-in Stop Before Fold (Inset, Bevel;
+  each cap stops just before it turns over, edges cross or run backwards),
+  Even Interior (Bevel; harmonic interior, straight runs keep their share)
+  and Keep Cap UVs (Inset, Bevel Connected), all off by default. Inset now
+  carries corner weights/colours and point weights/colours/morphs/typed
+  values; Bevel carries morphs and typed maps (was a BV-Q04 refusal).
+  Bevel's distances are world units on scaled items, like Inset and Twist
+  Bevel; Shift's handle rides on the moved cap. Twist Bevel keeps its own
+  fold refusal. Even Interior is greyed with Edge Rail or Auto Weld.
+
 - **MeshBlend strips, round 2 (2026-11-24, branch claude/project-thread-20fok5):**
   flat faces cut beside strips are re-meshed (`meshblend/tidy.rs`, spade
   constrained Delaunay + seeded points, kept only if ST-10 passes), then
