@@ -62,7 +62,6 @@ app/controls -> app/files
 app/controls -> app/input_devices
 app/controls -> app/theme
 app/controls -> app/tools
-app/controls -> app/window_layout
 app/create_tools -> app/(root)
 app/create_tools -> app/controls
 app/create_tools -> app/graphics
@@ -214,7 +213,6 @@ app/render -> app/window_layout
 app/rigging -> app/(root)
 app/rigging -> app/anim
 app/rigging -> app/commands
-app/rigging -> app/controls
 app/rigging -> app/render
 app/rigging -> app/theme
 app/rigging -> app/tools

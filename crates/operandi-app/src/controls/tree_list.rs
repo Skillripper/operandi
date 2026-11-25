@@ -18,6 +18,33 @@ use std::fmt::Debug;
 use std::hash::Hash;
 use theme::workspace as palette;
 
+/// LCK-03 padlock, drawn as a glyph (body and shackle) until the icon
+/// generator has a padlock icon (provisional). About three quarters of the
+/// row height, between text size (easy to miss) and the full row (too
+/// heavy), in the "Locked mesh elements" colour so item and geometry lock
+/// share one colour; not the accent, which only means on/active/selected
+/// (UIC-01).
+fn paint_padlock(painter: &egui::Painter, centre: Pos2, color: Color32) {
+    let body = Rect::from_center_size(centre + vec2(0., 2.5), vec2(9.5, 7.5));
+    painter.rect_filled(body, 1.2, color);
+    let shackle: Vec<Pos2> = (0..=10)
+        .map(|i| {
+            let a = std::f32::consts::PI * i as f32 / 10.;
+            centre + vec2(-3.1 * a.cos(), -1.2 - 3.4 * a.sin())
+        })
+        .collect();
+    painter.add(egui::Shape::line(shackle, Stroke::new(1.6f32, color)));
+}
+
+/// Items-list zebra stripes: even rows plain, odd rows a touch lighter.
+pub(crate) fn row_fill(row: usize) -> Color32 {
+    if row % 2 == 1 {
+        palette::list_stripe()
+    } else {
+        palette::list()
+    }
+}
+
 /// Row height of the tree body: the compact list height (UIC-139).
 pub(crate) const ROW: f32 = 17.;
 /// Height of the column header row and of the tool rows.
@@ -1125,7 +1152,7 @@ fn body<K: Copy + Eq + Hash + Debug + 'static>(
         }
         let painter = ui.painter().with_clip_rect(rect.intersect(ui.clip_rect()));
         // Background: stripe, tint, selection (UIC-33/34, UIC-142).
-        let mut fill = crate::workspace::row_fill(index);
+        let mut fill = row_fill(index);
         match row.selected {
             Selected::Primary => fill = palette::primary(),
             Selected::Yes => fill = palette::selected(),
@@ -1292,7 +1319,7 @@ fn body<K: Copy + Eq + Hash + Debug + 'static>(
                         x += 14.;
                     }
                     Badge::Locked => {
-                        crate::workspace::paint_padlock(&painter, at, theme::viewport::locked());
+                        paint_padlock(&painter, at, theme::viewport::locked());
                         x += 12.;
                     }
                     #[cfg(feature = "painting")]

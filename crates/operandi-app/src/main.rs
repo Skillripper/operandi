@@ -70,7 +70,7 @@ use crate::prefs_file::PrefsFile;
 use snaps_panel::SnapPreset;
 #[path = "view/action_center_click.rs"]
 mod action_center_click;
-#[path = "controls/app_environment.rs"]
+#[path = "files/app_environment.rs"]
 mod app_environment;
 #[path = "menus/app_menu.rs"]
 mod app_menu;
@@ -361,7 +361,7 @@ mod online_library;
 mod online_library_ui;
 #[path = "files/open_documents.rs"]
 mod open_documents;
-#[path = "controls/option_row.rs"]
+#[path = "window_layout/option_row.rs"]
 mod option_row;
 #[path = "view/orbit_selected.rs"]
 mod orbit_selected;
