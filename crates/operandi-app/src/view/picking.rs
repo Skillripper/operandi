@@ -1275,3 +1275,24 @@ mod tests {
         );
     }
 }
+
+/// Points and edges near a pointer path, already projected (see
+/// `Operandi::pick_candidates`), in item and index order.
+#[derive(Default)]
+pub(crate) struct PickCandidates {
+    /// (item, point, screen position, world position).
+    pub(crate) points: Vec<(u64, u32, Pos2, DVec3)>,
+    /// (item, ends, screen position and depth of each end, world ends).
+    #[allow(clippy::type_complexity)]
+    pub(crate) edges: Vec<(u64, u32, u32, [(Pos2, f64); 2], [DVec3; 2])>,
+}
+
+impl PickCandidates {
+    /// Each edge candidate's ends, screen ends and world ends.
+    #[allow(clippy::type_complexity)]
+    pub(crate) fn edge_spans(
+        &self,
+    ) -> impl Iterator<Item = (u32, u32, [(Pos2, f64); 2], [DVec3; 2])> + '_ {
+        self.edges.iter().map(|&(_, a, b, q, w)| (a, b, q, w))
+    }
+}

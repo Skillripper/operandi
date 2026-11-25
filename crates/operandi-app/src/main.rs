@@ -244,6 +244,8 @@ mod guide_python_tests;
 #[cfg(test)]
 #[path = "commands/guide_shortcuts_tests.rs"]
 mod guide_shortcuts_tests;
+#[path = "view/handle_ids.rs"]
+mod handle_ids;
 #[path = "settings/handle_preferences.rs"]
 mod handle_preferences;
 #[path = "view/handle_tips.rs"]

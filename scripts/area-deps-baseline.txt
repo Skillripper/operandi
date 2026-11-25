@@ -71,7 +71,6 @@ app/duplication -> app/window_layout
 app/edges -> app/(root)
 app/edges -> app/tools
 app/edges -> app/view
-app/edges -> app/viewport
 app/edges -> app/window_layout
 app/files -> app/(root)
 app/files -> app/graphics
@@ -244,7 +243,6 @@ app/view -> app/render
 app/view -> app/settings
 app/view -> app/slicing
 app/view -> app/tools
-app/view -> app/viewport
 app/view -> app/window_layout
 app/viewport -> app/create_tools
 app/viewport -> app/files
