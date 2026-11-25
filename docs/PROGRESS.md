@@ -1,5 +1,45 @@
 # Milestone progress ledger
 
+- **Live MeshOp falloffs and primitive op handles (2026-11-25, branch claude/project-thread-8fccr9):**
+  primitive ops edit their own falloff (type plus its values) in the op
+  panel, live; selecting a primitive op shows its centre, size squares and
+  falloff points in the view (`viewport/meshop_handles.rs`), and a drag
+  edits the op with one undo step. Provisional: MOP-H-Q01, Q02.
+
+- **Mesh Stack selection rules batch 1 (2026-11-25, GitHub #19, branch claude/project-thread-8fccr9):**
+  thirteen rules from Steve Hill's list in `meshop_selection.rs`: Vertex
+  Count (Triangles/Quads/N-gons), Area, Edge Length, Convex/Concave
+  Edges by Angle, Normal, Plane, Distance, N Randomly, Random Parts,
+  Vertices by Edge Count, Symmetric, UV Seam. Mesh Stack only; no Select
+  menu commands until Jason polls users. Provisional: SEL-Q05, SEL-Q06.
+
+- **Mesh Stack selections of edges and points (2026-11-25, GitHub #19, branch claude/project-thread-8fccr9):**
+  ops say what their Selection input picks (`SelElement`; Edge ops edges,
+  Vertex ops points); every selection op answers in that kind;
+  Select by Index captures from Edge/Vertex mode with the count it was
+  made on and a row hint when that changes; four rule ops (Edges by Angle,
+  Border, Polygon Sides, Facing); Move Up/Down reorders selection ops.
+  Guide: panels/mesh-stack-selections.md. Provisional: SEL-Q01..Q04.
+
+- **Falloffs on primitives (2026-11-25, GitHub #15, branch claude/project-thread-8fccr9):**
+  the global falloff (Linear, Radial, Cylinder, Noise) shapes the Cube,
+  Sphere and Cylinder inside their shared generator. The Falloff menu
+  and handles stay usable while the tool is live, and the preview follows.
+  The folded Falloff section has Scale, Offset, Twist, Sample At (Spine
+  or Points), Spacing (Follow Falloff) and Fit Falloff to Shape. The
+  primitive ops keep their own copy of the falloff layers (taken when
+  added; Use Active Falloff, Clear Falloff). Not yet: Cone and Capsule.
+  Provisional: PRIM-FO-Q01..Q04, PRIM-OP-Q04.
+
+- **Primitive MeshOps match the tools (2026-11-25, GitHub #14, branch claude/project-thread-8fccr9):**
+  one generator per primitive. Cube, Sphere and Cylinder became shapes
+  (`primitives/primitive_shapes.rs`) that the tools and ops both build
+  from; the other primitives already had one parameter struct each.
+  `meshops/primitive_ops.rs` has eight ops (adds Ellipsoid, Cone, Torus,
+  Capsule, Teapot) with every tool option; op values convert to the
+  tool's parameters with every field named, so a new option doesn't
+  build until its op has it. No old-scene upgrade (nothing released).
+  Provisional: PRIM-OP-Q01..Q03.
 - **MeshBlend strips, round 2 (2026-11-24, branch claude/project-thread-20fok5):**
   flat faces cut beside strips are re-meshed (`meshblend/tidy.rs`, spade
   constrained Delaunay + seeded points, kept only if ST-10 passes), then
@@ -4820,3 +4860,6 @@ Design: docs/MATERIALX_GRAPHS.md (stages 1-5).
 - Workspaces (BEHAVIOR-SCHEMATIC): the Schematic shows one saved page at a time (`Rig::workspaces`, native v67), with commands `operandi.rig.workspaceAdd/Rename/Clear/Remove`, `schematicPlace/Remove/Arrange`, `schematicFit` and the `operandi.rig.workspaces` query. Old scenes show every rig node on an unsaved "Workspace" page; pieces on no page show on "Unplaced". Off-page wires are ringed ports; double-click brings the other end over.
 - Arrange (`schematic_layout.rs`): layered by data flow, crossing-cut ordering, modifiers level with what they drive; used only for nodes with no place and by Arrange (hand-moved nodes stay). Expression nodes show their formula. Zoom about the pointer, middle/Alt pan, Fit.
 - LXO import reads schematic pages (`lxo/schematic_import.rs`): workspace names and order, node places (6 pt per unit), sub-assemblies flattened; backdrops, notes and elbows counted in the report. Provisional SC-Q10..Q12.
+## 2026-11-25 — Tool tab cycling (branch claude/project-thread-rjq1h8)
+
+- Ctrl+Tab opens the next tool tab, Ctrl+Shift+Tab the previous one (the real Control key on a Mac), wrapping at the ends, in strip order; only the strip's tabs count, and one tab or no strip does nothing. Each press switches at once, repeats step one tab each, the active tool stays, fields are confirmed first (as a click). Focus on a control in the old tab's drawer goes back to the viewport; elsewhere it stays. Works with a text or number field focused; a modal dialog, menu, pop-up or pie keeps the keys, and a mouse drag ignores them. Plain Tab is unchanged. Input Map actions "Next Tool Tab" / "Previous Tool Tab" (rebindable, shown in the tab tooltips); egui's Ctrl+Tab focus stepping and the Layout Switcher's default key are gone (tool_tab_cycle.rs). Provisional: TTC-Q01..Q06. GUI check: docs/TOOL_TAB_CYCLING_GUI_QA.md.

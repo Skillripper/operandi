@@ -158,7 +158,12 @@ pub(super) const COMMANDS: &[Entry] = &[
     // Layouts stage 2 (UIC-18, LAY-32): the real Ctrl key on a Mac.
     action("Pie: Layouts", View, "Opens the Layouts pie: each slot shows a layout (Ctrl+`).")
         .operandi().ui(),
-    action("Layout Switcher", View, "The quick layout switcher while Ctrl+Shift are held: each Tab moves the outline on, releasing switches (Ctrl+Shift+Tab, UIC-18).")
+    action("Layout Switcher", View, "The quick layout switcher while Ctrl+Shift are held: each Tab moves the outline on, releasing switches (UIC-18; no key by default since Ctrl+Shift+Tab pages the tool tabs).")
+        .operandi().ui(),
+    // Tool tab cycling (tool-tab-cycling v1.1): the real Ctrl key on a Mac.
+    action("Next Tool Tab", View, "Opens the next tool tab to the right, wrapping to the first (Ctrl+Tab).")
+        .operandi().ui(),
+    action("Previous Tool Tab", View, "Opens the previous tool tab to the left, wrapping to the last (Ctrl+Shift+Tab).")
         .operandi().ui(),
     // Layouts stage 6 (LAY-53, UIC-206): the backtick key.
     // Animation keys (Items mode; the app's anim_ui.rs runs their lines).

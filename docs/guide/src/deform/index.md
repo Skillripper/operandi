@@ -16,6 +16,9 @@ blends smoothly into place.
   end of its field, and the tool's result updates at once (a **Noise**
   falloff's **Scale** sets the size of its lumps).
 - **Esc** in the view clears the falloff while no edit is in progress.
+- Falloffs also shape the [Cube](../modeling/cube.md),
+  [Sphere](../modeling/sphere.md) and [Cylinder](../modeling/cylinder.md)
+  while you make them.
 - Each drag is one undo step. With nothing selected, a tool works on the
   whole mesh.
 

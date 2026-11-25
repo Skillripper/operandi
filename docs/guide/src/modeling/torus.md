@@ -56,6 +56,19 @@ size.
   Size** are linked: change one and the others that depend on it follow.
   A **Hole Size** of 1 closes the hole to the axis.
 
+## In the Mesh Stack
+
+You can also add a Torus as a step of a mesh's **Mesh Stack**: choose
+**Torus** under **Create > Primitives** in the stack's **Add Operator**
+list. It has the same properties as the tool, and the tool and the stack
+step build exactly the same torus from the same values, so you can
+change it later without rebuilding the mesh. **Hole Size** isn't there:
+it follows from **Ring Radius** and **Cross Section**, which are. Scripts
+add it with `meshop.create type:prim.toroid.item`.
+
+With the step selected in the stack and no tool on, its handles show in the
+**3D view**. Drag the centre to move it, a square to resize it. Each drag is one undo step.
+
 ## Related
 
 - [Primitives](../interface/window.md): the **Toolbox** on the **Create** tab

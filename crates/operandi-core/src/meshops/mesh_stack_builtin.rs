@@ -18,46 +18,6 @@ pub(crate) fn finite(values: &[f64], what: &str) -> Result<()> {
     }
 }
 
-/// A generator's result: the input with the new geometry appended, and
-/// its groups (PG table): `all`, and by facing along Y (the primitives'
-/// default axis) `capA` (Top), `capB` (Bottom), `caps` and `sides`.
-fn generated(ctx: &OpContext, g: Mesh) -> Result<Mesh> {
-    let mut out = ctx.input.clone();
-    let first = out.faces.len() as u32;
-    crate::append_mesh(&mut out, g)?;
-    let new: Vec<u32> = (first..out.faces.len() as u32).collect();
-    let facing = |f: u32| -> f64 {
-        let face = &out.faces[f as usize];
-        let mut n = DVec3::ZERO;
-        for i in 0..face.vertices.len() {
-            let a = out.vertices[face.vertices[i] as usize];
-            let b = out.vertices[face.vertices[(i + 1) % face.vertices.len()] as usize];
-            n += a.cross(b);
-        }
-        n.normalize_or_zero().y
-    };
-    let top: Vec<u32> = new
-        .iter()
-        .copied()
-        .filter(|&f| facing(f) > 1. - 1e-9)
-        .collect();
-    let bottom: Vec<u32> = new
-        .iter()
-        .copied()
-        .filter(|&f| facing(f) < -1. + 1e-9)
-        .collect();
-    let sides: Vec<u32> = new
-        .iter()
-        .copied()
-        .filter(|f| !top.contains(f) && !bottom.contains(f))
-        .collect();
-    ctx.tag(&mut out, "all", new.iter().copied());
-    ctx.tag(&mut out, "caps", top.iter().chain(&bottom).copied());
-    ctx.tag(&mut out, "capA", top);
-    ctx.tag(&mut out, "capB", bottom);
-    ctx.tag(&mut out, "sides", sides);
-    Ok(out)
-}
 /// Bevel-like results: `front` = the moved polygons, `sides` = the new
 /// polygons around them (provisional, MOQ-22: new polygons past the
 /// input's count that aren't fronts).
@@ -96,117 +56,6 @@ fn clones(ctx: &OpContext, mut mesh: Mesh, new_faces: usize, per_copy: usize) ->
 // ports. Distances in metres, angles in radians, percents as fractions
 // (1.0 = 100%). Only the attributes Operandi builds are stored; an
 // unknown name is refused.
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct CubeOp {
-    #[serde(rename = "cenX")]
-    pub cen_x: f64,
-    #[serde(rename = "cenY")]
-    pub cen_y: f64,
-    #[serde(rename = "cenZ")]
-    pub cen_z: f64,
-    #[serde(rename = "sizeX")]
-    pub size_x: f64,
-    #[serde(rename = "sizeY")]
-    pub size_y: f64,
-    #[serde(rename = "sizeZ")]
-    pub size_z: f64,
-    #[serde(rename = "segmentsX")]
-    pub segments_x: u32,
-    #[serde(rename = "segmentsY")]
-    pub segments_y: u32,
-    #[serde(rename = "segmentsZ")]
-    pub segments_z: u32,
-}
-impl Default for CubeOp {
-    fn default() -> Self {
-        Self {
-            cen_x: 0.,
-            cen_y: 0.,
-            cen_z: 0.,
-            size_x: 1.,
-            size_y: 1.,
-            size_z: 1.,
-            segments_x: 1,
-            segments_y: 1,
-            segments_z: 1,
-        }
-    }
-}
-
-/// Sphere and Cylinder: `size*` are the half extents (radii; Cylinder's
-/// `sizeY` is half its height), along Y as the direct tools build them.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct RoundOp {
-    #[serde(rename = "cenX")]
-    pub cen_x: f64,
-    #[serde(rename = "cenY")]
-    pub cen_y: f64,
-    #[serde(rename = "cenZ")]
-    pub cen_z: f64,
-    #[serde(rename = "sizeX")]
-    pub size_x: f64,
-    #[serde(rename = "sizeY")]
-    pub size_y: f64,
-    #[serde(rename = "sizeZ")]
-    pub size_z: f64,
-    pub sides: u32,
-    pub segments: u32,
-}
-impl RoundOp {
-    fn sphere() -> Self {
-        Self {
-            cen_x: 0.,
-            cen_y: 0.,
-            cen_z: 0.,
-            size_x: 0.5,
-            size_y: 0.5,
-            size_z: 0.5,
-            sides: 24,
-            segments: 12,
-        }
-    }
-    fn cylinder() -> Self {
-        Self {
-            size_y: 0.75,
-            segments: 1,
-            ..Self::sphere()
-        }
-    }
-    fn centre(&self) -> DVec3 {
-        DVec3::new(self.cen_x, self.cen_y, self.cen_z)
-    }
-    fn parameters(&self) -> Result<crate::RadialParameters> {
-        let radius = DVec3::new(self.size_x, self.size_y, self.size_z);
-        finite(&radius.to_array(), "Size")?;
-        finite(&self.centre().to_array(), "Position")?;
-        Ok(crate::RadialParameters {
-            radius,
-            sides: self.sides,
-            segments: self.segments,
-        })
-    }
-}
-/// Sphere: Round values with the sphere tool's defaults.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct SphereOp(pub RoundOp);
-impl Default for SphereOp {
-    fn default() -> Self {
-        Self(RoundOp::sphere())
-    }
-}
-/// Cylinder: Round values with the cylinder tool's defaults.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct CylinderOp(pub RoundOp);
-impl Default for CylinderOp {
-    fn default() -> Self {
-        Self(RoundOp::cylinder())
-    }
-}
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -360,34 +209,6 @@ pub struct TriangulateOp {}
 
 // ---- running ----
 
-impl TypedOp for CubeOp {
-    fn run(&self, ctx: &OpContext) -> Result<Mesh> {
-        let o = self;
-        let p = DVec3::new(o.cen_x, o.cen_y, o.cen_z);
-        let s = DVec3::new(o.size_x, o.size_y, o.size_z);
-        finite(&p.to_array(), "Position")?;
-        finite(&s.to_array(), "Size")?;
-        let segments = [o.segments_x, o.segments_y, o.segments_z];
-        let g = if segments == [1; 3] {
-            crate::cube_geometry(p, s)?
-        } else {
-            crate::segmented_cube(p, s, segments)?
-        };
-        generated(ctx, g)
-    }
-}
-impl TypedOp for SphereOp {
-    fn run(&self, ctx: &OpContext) -> Result<Mesh> {
-        let g = crate::globe_geometry(self.0.centre(), self.0.parameters()?)?;
-        generated(ctx, g)
-    }
-}
-impl TypedOp for CylinderOp {
-    fn run(&self, ctx: &OpContext) -> Result<Mesh> {
-        let g = crate::cylinder_geometry(self.0.centre(), self.0.parameters()?)?;
-        generated(ctx, g)
-    }
-}
 impl TypedOp for BevelOp {
     fn run(&self, ctx: &OpContext) -> Result<Mesh> {
         let o = self;
@@ -567,7 +388,7 @@ pub(crate) fn faces_centre(mesh: &Mesh, faces: &[usize]) -> DVec3 {
 
 // ---- the table entries ----
 
-fn xyz(prefix: &'static str, label: &'static str, kind: FieldKind) -> [Field; 3] {
+pub(crate) fn xyz(prefix: &'static str, label: &'static str, kind: FieldKind) -> [Field; 3] {
     // Keys like `cenX`; labels like `Position X`.
     let f = |a: &str| Field {
         key: format!("{prefix}{a}").into(),
@@ -576,41 +397,22 @@ fn xyz(prefix: &'static str, label: &'static str, kind: FieldKind) -> [Field; 3]
     };
     [f("X"), f("Y"), f("Z")]
 }
-fn distance(key: &'static str, label: &'static str) -> Field {
+pub(crate) fn distance(key: &'static str, label: &'static str) -> Field {
     Field::new(key, label, FieldKind::Distance)
 }
-fn check(key: &'static str, label: &'static str) -> Field {
+pub(crate) fn check(key: &'static str, label: &'static str) -> Field {
     Field::new(key, label, FieldKind::Check)
 }
-fn count(key: &'static str, label: &'static str, min: u32, max: u32) -> Field {
+pub(crate) fn count(key: &'static str, label: &'static str, min: u32, max: u32) -> Field {
     Field::new(key, label, FieldKind::Count { min, max })
 }
-fn choice(key: &'static str, label: &'static str, names: &[&'static str]) -> Field {
+pub(crate) fn choice(key: &'static str, label: &'static str, names: &[&'static str]) -> Field {
     Field::new(
         key,
         label,
         FieldKind::Choice(names.iter().map(|n| (*n).into()).collect()),
     )
 }
-fn round_fields() -> Vec<Field> {
-    let mut f = Vec::new();
-    f.extend(xyz("cen", "Position", FieldKind::Distance));
-    f.extend(xyz("size", "Size", FieldKind::Distance));
-    f.push(count("sides", "Sides", 3, 100_000));
-    f.push(count("segments", "Segments", 1, 100_000));
-    f
-}
-
-/// Operandi's own op types, in Add Operator order. Ids are the reference
-/// tool ids (registry thread, MESHOPS-NAMES rev 3): what files store and
-/// `meshop.create` takes.
-const PRIMITIVE_GROUPS: &[(&str, &str)] = &[
-    ("all", "All"),
-    ("caps", "Caps"),
-    ("capA", "Top"),
-    ("capB", "Bottom"),
-    ("sides", "Sides"),
-];
 const FRONT_SIDES: &[(&str, &str)] = &[("front", "Front"), ("sides", "Sides")];
 const CLONE_GROUPS: &[(&str, &str)] = &[
     ("clone", "Cloned Polygons"),
@@ -624,19 +426,10 @@ const CLONE_GROUPS: &[(&str, &str)] = &[
     ("clone8", "Clone 8"),
 ];
 
+/// Operandi's own op types, in Add Operator order. Ids are the reference
+/// tool ids (registry thread, MESHOPS-NAMES rev 3): what files store and
+/// `meshop.create` takes.
 pub(crate) fn builtin() -> Vec<Arc<dyn OpDef>> {
-    const PRIMITIVES: &str = "Create/Primitives";
-    let mut cube = Vec::new();
-    cube.extend(xyz("cen", "Position", FieldKind::Distance));
-    cube.extend(xyz("size", "Size", FieldKind::Distance));
-    cube.extend(xyz(
-        "segments",
-        "Segments",
-        FieldKind::Count {
-            min: 1,
-            max: 100_000,
-        },
-    ));
     let mut mirror = vec![choice("axis", "Axis", &["X", "Y", "Z"])];
     mirror.extend(xyz("cen", "Position", FieldKind::Distance));
     mirror.extend([
@@ -658,31 +451,9 @@ pub(crate) fn builtin() -> Vec<Arc<dyn OpDef>> {
         distance("dist", "Distance"),
     ]);
     let max_angle = |key| Field::new(key, "Max Smoothing Angle", FieldKind::Angle);
-    let mut table: Vec<Arc<dyn OpDef>> = vec![
-        Arc::new(
-            Typed::<CubeOp>::new("prim.cube.item", "Cube", PRIMITIVES, false, cube)
-                .with_groups(PRIMITIVE_GROUPS),
-        ),
-        Arc::new(
-            Typed::<SphereOp>::new(
-                "prim.sphere.item",
-                "Sphere",
-                PRIMITIVES,
-                false,
-                round_fields(),
-            )
-            .with_groups(PRIMITIVE_GROUPS),
-        ),
-        Arc::new(
-            Typed::<CylinderOp>::new(
-                "prim.cylinder.item",
-                "Cylinder",
-                PRIMITIVES,
-                false,
-                round_fields(),
-            )
-            .with_groups(PRIMITIVE_GROUPS),
-        ),
+    // The primitives, each through its tool's one generator (primitive_ops.rs).
+    let mut table: Vec<Arc<dyn OpDef>> = crate::primitive_ops::entries();
+    table.extend::<Vec<Arc<dyn OpDef>>>(vec![
         Arc::new(
             Typed::<BevelOp>::new(
                 "poly.bevel.item",
@@ -751,14 +522,21 @@ pub(crate) fn builtin() -> Vec<Arc<dyn OpDef>> {
             Typed::<ArrayOp>::new("array.clone.item", "Array", "Duplicate", true, array)
                 .with_groups(CLONE_GROUPS),
         ),
-    ];
+    ]);
     // Ops that read other items (Boolean, Merge Meshes).
     table.extend(crate::mesh_stack_items::entries());
     table.extend(crate::meshblend::op::entries());
     // Direct tools as ops, by group (mesh_stack_tools.rs).
     table.extend(crate::mesh_stack_tools::polygon_entries());
-    table.extend(crate::mesh_stack_tools::edge_entries());
-    table.extend(crate::mesh_stack_tools::vertex_entries());
+    // Their Selection input picks edges and points (#19).
+    table.extend(crate::meshop_types::with_element(
+        crate::mesh_stack_tools::edge_entries(),
+        crate::meshop_types::SelElement::Edge,
+    ));
+    table.extend(crate::meshop_types::with_element(
+        crate::mesh_stack_tools::vertex_entries(),
+        crate::meshop_types::SelElement::Point,
+    ));
     table.extend(crate::mesh_stack_tools::duplicate_entries());
     table.extend(crate::mesh_stack_tools::edit_entries());
     table.extend(crate::mesh_stack_tools::deform_entries());

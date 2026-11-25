@@ -389,12 +389,13 @@ pub fn card(tool: Tool) -> ToolCard {
     // (SYM3-40); every current tool does.
     match tool {
         // ---- Primitives: Duplicate policy for Symmetry (class E).
-        // Placed corners and handles snap (SN2-41).
+        // Placed corners and handles snap (SN2-41). The falloff shapes the
+        // Cube, Sphere and Cylinder as they're made (#15, shape_falloff.rs).
         Tool::Box => c(tool, F::Primitive, Modes::ALL)
-            .layers(Unused, NO_FALLOFF, Built, Snap::Placement)
+            .layers(Unused, FALLOFF, Built, Snap::Placement)
             .handles(K::Bounds, At::Position, Ax::Tool),
         Tool::Sphere | Tool::Cylinder => c(tool, F::Primitive, Modes::ALL)
-            .layers(Unused, NO_FALLOFF, Built, Snap::Placement)
+            .layers(Unused, FALLOFF, Built, Snap::Placement)
             .handles(K::RadialBounds, At::Position, Ax::Tool),
 
         // ---- Transforms: mirrored edit, handle on the picked side (class A).

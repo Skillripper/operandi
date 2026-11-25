@@ -324,8 +324,13 @@ fn uic18_quick_switcher_lists_by_recent_use_and_switches_on_release() {
     a.execute("layout.restore Model");
     frames(&mut a, &ctx, 1);
     assert_eq!(a.layouts.mru_order(), ["Model", "UV", "Third", "Animate"]);
-    // Ctrl+Shift+Tab is its default key (real Ctrl on a Mac, LAY-32).
-    assert_eq!(a.bindings["Layout Switcher"], "Ctrl+Shift+Tab");
+    // No default key since 2026-11-25 (Ctrl+Shift+Tab pages the tool
+    // tabs); a user who gives it Ctrl+Shift+Tab back gets the held switcher.
+    assert_eq!(a.bindings["Layout Switcher"], "");
+    a.bindings
+        .insert("Layout Switcher".into(), "Ctrl+Shift+Tab".into());
+    a.bindings
+        .insert(crate::tool_tab_cycle::PREVIOUS.into(), String::new());
     let held = Modifiers {
         ctrl: true,
         shift: true,

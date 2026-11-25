@@ -3,6 +3,7 @@
 use super::*;
 use crate::form::Unit;
 use crate::tool_form::{self as tf, Button, ToolFields, ToolForm};
+use operandi_core::{FalloffSample, FalloffSpacing};
 
 /// The live Box, Sphere or Cylinder.
 pub(super) struct PrimitiveFields;
@@ -28,6 +29,7 @@ impl ToolFields for PrimitiveFields {
         } else {
             radial_form(&mut f, tool, p);
         }
+        falloff_section(&mut f, app, tool);
         // Primitives keep their segment settings between uses; this puts
         // them back to the starting values.
         f.buttons(vec![
@@ -453,4 +455,110 @@ pub(super) fn plain_vector<P>(
         set(p, a, v);
         Ok(())
     })
+}
+
+/// The Falloff section (#15, UIC-105/106: folded until opened): what the
+/// global falloff's weight does to the shape. The Falloff menu and the
+/// falloff's handles stay usable while the tool is live, so the falloff
+/// can be turned on, switched and moved without dropping the shape.
+fn falloff_section(f: &mut ToolForm<Parameters>, app: &Operandi, tool: Tool) {
+    let e = &app.editor;
+    // UIC-117: greyed with the reason, never hidden.
+    let why = if e.spatial_falloff.is_none() {
+        Some("Turn on a Linear, Radial, Cylinder or Noise falloff from the Falloff menu".to_owned())
+    } else {
+        e.primitive_falloff_note()
+    };
+    let on = why.is_none();
+    let why = why.unwrap_or_default();
+    let mut items: Vec<tf::Field<Parameters>> = vec![
+        tf::percent(
+            "falloff_scale",
+            "Scale",
+            "%",
+            |p: &Parameters| p.shape_falloff.scale,
+            |p, v| {
+                if !v.is_finite() || v < 0. {
+                    return Err("Scale must be 0% or more".into());
+                }
+                p.shape_falloff.scale = v / 100.;
+                Ok(())
+            },
+        )
+        .tip("The rings' size where the falloff is full (starts at 50%); 100% leaves them as they are"),
+    ];
+    items.extend(tf::vector(
+        "falloff_offset",
+        "Offset",
+        Unit::Distance,
+        |p: &Parameters| p.shape_falloff.offset,
+        |p, a, v| {
+            p.shape_falloff.offset[a] = v;
+            Ok(())
+        },
+    ));
+    items.push(
+        tf::number(
+            "falloff_twist",
+            "Twist",
+            Unit::Angle,
+            |p: &Parameters| p.shape_falloff.twist,
+            |p, v| {
+                p.shape_falloff.twist = v;
+                Ok(())
+            },
+        )
+        .tip("How far the rings turn about the axis where the falloff is full"),
+    );
+    items.push(
+        tf::choice(
+            "falloff_sample",
+            "Sample At",
+            &FalloffSample::ALL.map(|s| (s, s.label())),
+            |p: &Parameters| p.shape_falloff.sample,
+            |p, s| p.shape_falloff.sample = s,
+        )
+        .tip("Spine: one weight per ring, so rings stay round. Points: every point's own weight"),
+    );
+    let spacing = tf::choice(
+        "falloff_spacing",
+        "Spacing",
+        &FalloffSpacing::ALL.map(|s| (s, s.label())),
+        |p: &Parameters| p.shape_falloff.spacing,
+        |p, s| p.shape_falloff.spacing = s,
+    )
+    .tip("Follow Falloff packs the Segments where the falloff changes fastest");
+    items.push(if tool == Tool::Sphere {
+        spacing.enabled_if(false, "Moving a sphere's rings would change the sphere")
+    } else {
+        spacing
+    });
+    if tool == Tool::Box {
+        // The Cube has no Axis of its own; the falloff shapes it along this.
+        items.push(
+            tf::axis(|p: &Parameters| p.radial_axis, |p, a| p.radial_axis = a)
+                .tip("The axis the falloff shapes the cube along"),
+        );
+    }
+    let mut section: Vec<tf::Item<Parameters>> = items
+        .into_iter()
+        .map(|field| {
+            tf::Item::Field(Box::new(if on {
+                field
+            } else {
+                field.enabled_if(false, why.clone())
+            }))
+        })
+        .collect();
+    section.push(tf::Item::Wide(
+        Button::run("Fit Falloff to Shape", |app: &mut Operandi| {
+            let fitted = app.editor.primitive_fit_falloff();
+            match fitted.and_then(|f| app.editor.dispatch(Command::SpatialFalloff(Some(f)))) {
+                Ok(()) => app.status = "Linear falloff fitted to the shape".into(),
+                Err(e) => app.status = e,
+            }
+        })
+        .tip("A Linear falloff from the shape's top (full) to its base (none)"),
+    ));
+    f.section("Falloff", true, section);
 }

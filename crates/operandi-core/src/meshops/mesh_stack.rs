@@ -105,12 +105,16 @@ pub struct MeshOp {
     pub selops: Vec<SelOp>,
 }
 
-/// MO-53 Select by Index: stored polygon numbers, copied into the op when
-/// captured (SAFE-06). They can point at other polygons once something
-/// below changes the topology; the Properties warn about it.
+/// MO-53 Select by Index: stored element numbers (polygons, edges or
+/// points, as the op's Selection input picks, #19), copied into the op when
+/// captured (SAFE-06). They can point at other elements once something
+/// below changes the topology; the op's row then says so.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct SelectByIndex {
     pub polygons: Vec<u32>,
+    /// How many of that kind the mesh had when they were captured; a
+    /// different count below means the numbers may have shifted (#19).
+    pub made_on: Option<u32>,
 }
 impl SelectByIndex {
     /// `0-9,12,18-30` form (MO-53).
@@ -159,7 +163,10 @@ impl SelectByIndex {
         }
         polygons.sort_unstable();
         polygons.dedup();
-        Ok(Self { polygons })
+        Ok(Self {
+            polygons,
+            made_on: None,
+        })
     }
 }
 
@@ -324,6 +331,9 @@ struct RawOp {
     /// Select by Index, `0-9,12` form.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     select_by_index: Option<String>,
+    /// [`SelectByIndex::made_on`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    select_by_index_count: Option<u32>,
     /// Selection ops (native version 50).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     selops: Vec<SelOp>,
@@ -425,6 +435,7 @@ impl Serialize for MeshOp {
             enabled: self.enabled,
             values,
             select_by_index: self.selection.as_ref().map(SelectByIndex::text),
+            select_by_index_count: self.selection.as_ref().and_then(|s| s.made_on),
             selops: self.selops.clone(),
         }
         .serialize(s)
@@ -438,7 +449,11 @@ impl<'de> Deserialize<'de> for MeshOp {
             .as_deref()
             .map(SelectByIndex::parse)
             .transpose()
-            .map_err(serde::de::Error::custom)?;
+            .map_err(serde::de::Error::custom)?
+            .map(|s| SelectByIndex {
+                made_on: raw.select_by_index_count,
+                ..s
+            });
         Ok(Self {
             id: raw.id,
             enabled: raw.enabled,
@@ -520,11 +535,32 @@ fn run_op(
     if def.takes_selection() && input.faces.is_empty() {
         return Ok((input.clone(), Vec::new()));
     }
+    let element = def.selection_element();
     let selection = if def.takes_selection() {
-        crate::meshop_selection::resolve(op.selection.as_ref(), &op.selops, input)?
+        crate::meshop_selection::resolve(op.selection.as_ref(), &op.selops, input, element)?
     } else {
         None
     };
+    // #19: captured numbers on a mesh whose count changed may now name
+    // other elements; say so on the row (they still run).
+    let mut notes = Vec::new();
+    if let Some(made_on) = op.selection.as_ref().and_then(|s| s.made_on)
+        && def.takes_selection()
+    {
+        let now = element.count(input);
+        if now != made_on as usize {
+            notes.push(crate::meshop_types::OpNote {
+                item: 0,
+                text: format!(
+                    "Select by Index was made on {made_on} {what}; the mesh below now has {now}, \
+                     so the numbers may point at other {what}. A rule-based selection \
+                     (Edges by Angle, Vertex Count, Normal ...) follows changes",
+                    what = element.plural()
+                ),
+                problem: false,
+            });
+        }
+    }
     // A Selection input that picked nothing: nothing to do (PG-04).
     if selection.as_ref().is_some_and(Vec::is_empty) {
         return Ok((input.clone(), Vec::new()));
@@ -534,13 +570,15 @@ fn run_op(
         input: &clean,
         op: op.id,
         selection: selection.as_deref(),
+        element,
         links,
         time,
         notes: Default::default(),
     };
     let mut out = def.run(&ctx, values)?;
     crate::meshop_selection::carry_groups(&groups, &clean, &mut out);
-    Ok((out, ctx.notes.into_inner()))
+    notes.extend(ctx.notes.into_inner());
+    Ok((out, notes))
 }
 
 /// SAFE-04: the op inside a guard. A panic, an error, an invalid result or
@@ -1290,7 +1328,10 @@ mod tests {
             OpKind::new("prim.cube.item").unwrap(),
             OpKind::new("poly.bevel.item").unwrap(),
         ]);
-        s.ops[1].selection = Some(SelectByIndex { polygons: vec![0] });
+        s.ops[1].selection = Some(SelectByIndex {
+            polygons: vec![0],
+            made_on: None,
+        });
         let e = evaluate_stack(&empty(), &s);
         assert_eq!(e.statuses, vec![OpStatus::Ok, OpStatus::Ok]);
         // One cap beveled: the cube's 6 plus 4 walls.
@@ -1334,6 +1375,7 @@ mod tests {
         // A polygon number past the end fails the bevel (SAFE-06).
         s.ops[1].selection = Some(SelectByIndex {
             polygons: vec![999],
+            made_on: None,
         });
         let e = evaluate_stack(&empty(), &s);
         assert!(matches!(e.statuses[1], OpStatus::Failed(_)));
@@ -1361,10 +1403,14 @@ mod tests {
         ]);
         s.ops[1].selection = Some(SelectByIndex {
             polygons: vec![2, 40],
+            made_on: None,
         });
         let e = evaluate_stack(&empty(), &s);
         assert!(matches!(&e.statuses[1], OpStatus::Failed(r) if r.contains("40")));
-        s.ops[1].selection = Some(SelectByIndex { polygons: vec![2] });
+        s.ops[1].selection = Some(SelectByIndex {
+            polygons: vec![2],
+            made_on: None,
+        });
         assert_eq!(evaluate_stack(&empty(), &s).mesh.faces.len(), 7);
     }
 

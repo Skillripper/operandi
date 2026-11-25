@@ -486,15 +486,22 @@ pub(crate) fn polygon_entries() -> Vec<Arc<dyn OpDef>> {
 
 // ======== Edge group ========
 //
-// Edge ops' Selection input works on edges (Sel EDGE). Until selection ops
-// pick edges (MOQ-21), an op works on every edge, or on the edges of the
-// polygons its Selection input picked (MOQ-25, provisional).
+// Edge ops' Selection input works on edges (Sel EDGE, #19): every edge,
+// or the edges it picked (numbered as `Mesh::edges`). An op given
+// polygons works on their edges (MOQ-25).
 
 /// The edges an edge op works on.
 fn chosen_edges(ctx: &OpContext) -> Vec<(u32, u32)> {
     let Some(faces) = ctx.selection else {
         return ctx.input.edges();
     };
+    if ctx.element == crate::meshop_types::SelElement::Edge {
+        let all = ctx.input.edges();
+        return faces
+            .iter()
+            .filter_map(|&e| all.get(e as usize).copied())
+            .collect();
+    }
     let mut out = std::collections::BTreeSet::new();
     for &f in faces {
         let v = &ctx.input.faces[f as usize].vertices;
@@ -914,12 +921,15 @@ pub(crate) fn edge_entries() -> Vec<Arc<dyn OpDef>> {
 
 // ======== Vertex group ========
 //
-// Vertex ops work on points (Sel VRTX): every used point, or the points of
-// the polygons the Selection input picked (MOQ-25, provisional).
+// Vertex ops work on points (Sel VRTX, #19): every used point, or the
+// points the Selection input picked.
 
 /// The points a vertex op works on.
 fn chosen_points(ctx: &OpContext) -> Vec<u32> {
     let mut out = std::collections::BTreeSet::new();
+    if let (Some(points), crate::meshop_types::SelElement::Point) = (ctx.selection, ctx.element) {
+        return points.to_vec();
+    }
     match ctx.selection {
         Some(faces) => {
             for &f in faces {

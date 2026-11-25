@@ -230,6 +230,7 @@ fn run_op(id: &str, values: serde_json::Value) -> Mesh {
         input: &input,
         op: 1,
         selection: None,
+        element: Default::default(),
         links: &[],
         time: Default::default(),
         notes: Default::default(),

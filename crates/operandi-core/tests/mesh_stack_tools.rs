@@ -340,7 +340,9 @@ fn vertex_extrude_merge_split_create_and_set_position() {
                 .all(|&v| c.vertices[v as usize].y == 0.5)
         })
         .unwrap();
-    only(&mut e, op, &top.to_string());
+    // A Vertex op's selection numbers points (#19): the top polygon's.
+    let points: Vec<String> = c.faces[top].vertices.iter().map(u32::to_string).collect();
+    only(&mut e, op, &points.join(","));
     let m = ok(&e, id);
     let flat = m.vertices.iter().filter(|p| p.y == 0.).count();
     assert_eq!(flat, 4, "the chosen polygon's four points");

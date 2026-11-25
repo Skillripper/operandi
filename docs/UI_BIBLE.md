@@ -71,14 +71,16 @@ Version 1, 2026-11-07. Behaviour only. Open questions and exceptions are tracked
   leaving a thin strip; clicking the strip brings it back. [ref]
 - **UIC-17** A selector on the bar chooses between layout sets (e.g. the
   current set and an older one). [ref]
-- **UIC-18** Quick layout switcher: hold Ctrl+Shift and press Tab. A popup
-  lists layouts in most-recently-used order with the next one outlined.
-  Each further Tab (keys still held) moves the outline on. Releasing the
-  keys switches to the outlined layout. [ref] The same switcher opens from
-  a Layouts button in the bottom toolbar and from the Layout menu
-  ("Recent Layouts…"); a Layout > Layouts sub-menu lists them all; a pie
-  version opens on Ctrl+` (the backtick/tilde key). On Mac these are the
-  real Ctrl key (Ctrl+Shift+Tab, Ctrl+`), as the reference writes them. [ref]
+- **UIC-18** Quick layout switcher: a popup lists layouts in
+  most-recently-used order with the next one outlined. It opens from a
+  Layouts button in the bottom toolbar and from the Layout menu ("Recent
+  Layouts…"); a Layout > Layouts sub-menu lists them all; a pie version
+  opens on Ctrl+` (the backtick/tilde key), the real Ctrl key on a Mac.
+  [ref] The switcher has **no default key**: Ctrl+Shift+Tab pages the tool
+  tabs instead (Ctrl+Tab next, Ctrl+Shift+Tab previous). A user who binds a
+  held chord to it in the Input Map gets the held behaviour: each further
+  key press moves the outline on, releasing the keys switches.
+  [Owner-approved, 2026-11-25: Ctrl+` already switches layouts]
 - **UIC-19** Pie menus open from a key combination, centred on the
   pointer, with up to 8 entries in a ring. Only the first 8 entries of a
   pie's list are used, and disabled entries still take their slot. The
