@@ -44,14 +44,23 @@ impl ToolFields for SpikeFields {
                 Button::command("Cancel", Command::Cancel),
                 Button::command("Reset Attributes", Command::ResetSpike),
             ])
-            .note("Numeric Apply · each application spikes the current polygons.");
+            .note(if app.editor.spike_step_newest() {
+                // UIC-78: the last Apply stays live.
+                "Applied · Strength reshapes these spikes; Apply or a click in the view spikes again; Q keeps them."
+            } else {
+                "Numeric Apply · each application spikes the current polygons; a click in the view applies too."
+            });
         f
     }
     fn publish(app: &mut Operandi, p: f64) -> Result<()> {
         app.editor.dispatch(Command::ConfigureSpike(p)).map(|_| ())
     }
     fn published(app: &mut Operandi) {
-        app.status = "Spike Strength configured · Apply operates on the current polygons".into();
+        app.status = if app.editor.spike_step_newest() {
+            "Spikes reshaped · Q keeps them".into()
+        } else {
+            "Spike Strength configured · Apply operates on the current polygons".into()
+        };
     }
 }
 
@@ -98,12 +107,17 @@ mod tests {
         let before = a.editor.scene.clone();
         a.run(Command::Apply);
         assert_eq!(a.editor.scene, before);
+        // UIC-78: the first Apply is still live, so the new Strength
+        // reshapes it in the same step.
         a.fields.insert("spi_strength".into(), "1/4".into());
         assert!(a.confirm_fields());
+        let reshaped = a.editor.scene.clone();
+        assert_ne!(reshaped, before);
+        assert_eq!(a.editor.undo.len(), 1);
         a.execute("Spike Apply");
         assert_eq!(a.editor.scene.active().unwrap().mesh.faces.len(), 12);
         a.execute("Undo");
-        assert_eq!(a.editor.scene, before);
+        assert_eq!(a.editor.scene, reshaped);
         a.execute("Redo");
         assert!(a.editor.spike.is_none());
         assert_eq!(a.editor.scene.active().unwrap().mesh.faces.len(), 12);
@@ -156,8 +170,8 @@ mod tests {
         a.run(Command::ResetSpike);
         assert!(a.field_errors.is_empty());
         assert_eq!(a.editor.spike.as_ref().unwrap().requested, 0.);
-        let original = a.editor.scene.clone();
+        // UIC-78: Cancel takes back the spike that is still live.
         a.run(Command::Cancel);
-        assert_eq!(a.editor.scene, original);
+        assert_eq!(a.editor.scene.active().unwrap().mesh.faces.len(), 1);
     }
 }

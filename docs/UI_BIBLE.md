@@ -309,8 +309,12 @@ Version 1, 2026-11-07. Behaviour only. Open questions and exceptions are tracked
   changing a value or dragging remakes that same result live (more
   Segments on the bridge just made), still one undo step. Undo removes it
   and the tool stays on with its values; a new selection or another edit
-  settles it. Drop (Q) keeps the result and turns the tool off; Cancel
-  removes only a result that is still live. Clicks never select while such
+  settles it, and so does another Apply or click, which applies again to
+  what is selected now (Spike spikes again; Bridge has nothing left to
+  join and says so). Drop (Q) keeps the result and turns the tool off;
+  Cancel removes only a result that is still live. Polygon Reduction's
+  result is live before Apply, so its click keeps a changed preview and
+  the next drag reduces again (RED-004). Clicks never select while such
   a tool is on: select first, then pick the tool; for another, drop it,
   select, and pick it again. Drags still drive the tool (UIC-76);
   Shift-click, middle-click and right-click keep their meanings, and

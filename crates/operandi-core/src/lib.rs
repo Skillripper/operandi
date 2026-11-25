@@ -709,6 +709,8 @@ pub use mesh_attributes::*;
 
 #[path = "primitives/cone_editor.rs"]
 pub mod cone_editor;
+#[path = "tools/live_apply.rs"]
+mod live_apply;
 #[path = "tools/numeric_session.rs"]
 mod numeric_session;
 pub use numeric_session::*;

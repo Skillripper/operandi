@@ -18,18 +18,16 @@ impl Operandi {
     /// The release of a plain left click in a 3D view during a numeric
     /// session's press (`drag` is the gesture the press began).
     pub(crate) fn click_finish_numeric(&mut self, drag: &NumericDrag) {
-        if let NumericDrag::Bridge(_) = drag {
-            self.click_apply_bridge();
+        match drag {
+            NumericDrag::Bridge(_) => self.click_apply_bridge(),
+            NumericDrag::Spike(_) => self.click_apply_spike(),
+            NumericDrag::Reduction(..) => self.click_apply_reduction(),
+            _ => {}
         }
     }
 
     /// Bridge: Apply with the panel's values; the tool stays on.
     fn click_apply_bridge(&mut self) {
-        if self.editor.bridge_result_live() {
-            self.status =
-                "Bridge is live: change a value to reshape it; Q keeps it and ends the tool".into();
-            return;
-        }
         // The panel greys Apply for the same reasons (UIC-92).
         if !self.field_errors.is_empty() {
             self.status = format!("Bridge: {}", crate::unavailable::FIELD_ERRORS);
@@ -41,6 +39,34 @@ impl Operandi {
         }
         if self.run_ok(Command::Apply) {
             self.status = "Bridge applied · change a value to reshape it".into();
+        }
+    }
+
+    /// Spike: Apply with the panel's Strength; the tool stays on.
+    fn click_apply_spike(&mut self) {
+        if !self.field_errors.is_empty() {
+            self.status = format!("Spike: {}", crate::unavailable::FIELD_ERRORS);
+            return;
+        }
+        if self.run_ok(Command::Apply) {
+            self.status = "Spike applied · change Strength to reshape it".into();
+        }
+    }
+
+    /// Polygon Reduction: its preview is live before Apply (RED-004), so a
+    /// click keeps a changed preview as Apply does and the tool stays
+    /// armed for the next reduction. A click with nothing changed yet (the
+    /// first one initializes the mesh) keeps nothing.
+    fn click_apply_reduction(&mut self) {
+        let changed = self
+            .editor
+            .reduction
+            .as_ref()
+            .and_then(|r| r.source.as_ref())
+            .is_some_and(|source| source.scene != self.editor.scene);
+        if changed && self.run_ok(Command::Apply) {
+            self.status =
+                "Polygon Reduction applied · drag or type a Number to reduce again".into();
         }
     }
 }

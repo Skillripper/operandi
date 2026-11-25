@@ -182,3 +182,124 @@ fn a_modified_click_does_not_apply() {
     assert_eq!(a.editor.scene, before);
     assert!(a.editor.undo.is_empty());
 }
+
+/// One quad facing the front view, Spike picked.
+fn spike_app(ctx: &Context) -> Operandi {
+    theme::install(ctx);
+    let mut a = Operandi::empty();
+    a.editor.dispatch(Command::NewMesh).unwrap();
+    a.editor.scene.active_mut().unwrap().mesh = operandi_core::Mesh {
+        vertices: vec![
+            DVec3::new(-1., -1., 0.),
+            DVec3::new(1., -1., 0.),
+            DVec3::new(1., 1., 0.),
+            DVec3::new(-1., 1., 0.),
+        ],
+        faces: vec![operandi_core::Face {
+            vertices: vec![0, 1, 2, 3],
+            uv: None,
+            material: "Default".into(),
+            smooth: false,
+            part: None,
+            material_label: None,
+        }]
+        .into(),
+        ..Default::default()
+    }
+    .into();
+    a.camera.view = View::Front;
+    a.editor.undo.clear();
+    a.execute("Spike");
+    assert!(a.editor.spike.is_some(), "{}", a.status);
+    for _ in 0..3 {
+        draw(&mut a, ctx, SIZE, vec![]);
+    }
+    a
+}
+
+fn tip(a: &Operandi) -> f64 {
+    let m = &a.editor.scene.active().unwrap().mesh;
+    m.vertices.iter().map(|v| v.z.abs()).fold(0., f64::max)
+}
+
+/// Spike: the click spikes, the tool stays on, a Strength drag reshapes
+/// the same spike in one undo step, and a second click spikes again.
+#[test]
+fn spike_click_applies_and_strength_reshapes_it() {
+    let ctx = Context::default();
+    let mut a = spike_app(&ctx);
+    let before = a.editor.scene.clone();
+    click(&mut a, &ctx);
+    assert!(a.editor.spike.is_some());
+    assert_eq!(faces(&a), 4, "{}", a.status);
+    assert_eq!(a.editor.undo.len(), 1);
+    assert!(a.editor.spike_result_live());
+    let first = tip(&a);
+    let at = a.viewport_rect.center();
+    drag(&mut a, &ctx, at, vec2(0., -100.), Modifiers::NONE);
+    assert_eq!(faces(&a), 4);
+    assert!(tip(&a) > first + 0.1, "{} -> {}", first, tip(&a));
+    assert_eq!(a.editor.undo.len(), 1);
+    // The whole mesh was the target, so all four triangles spike again.
+    click(&mut a, &ctx);
+    assert_eq!(faces(&a), 12, "{}", a.status);
+    assert_eq!(a.editor.undo.len(), 2);
+    a.run(Command::Cancel);
+    assert_eq!(faces(&a), 4, "Cancel takes back only the live spike");
+    a.execute("undo");
+    assert_eq!(
+        a.editor.scene.active().unwrap().mesh,
+        before.active().unwrap().mesh
+    );
+}
+
+/// Polygon Reduction: the first click only sets the tool up; after a
+/// drag reduces the preview, a click keeps it as Apply does and the tool
+/// stays armed.
+#[test]
+fn reduction_click_after_a_drag_applies() {
+    let ctx = Context::default();
+    theme::install(&ctx);
+    let mut a = super::tests::box_app();
+    // Reduction doesn't remap UVs yet: the box without them.
+    let item = a.editor.scene.active_mut().unwrap();
+    let mut mesh = operandi_core::Mesh::clone(&item.mesh);
+    mesh.uv_maps.clear();
+    mesh.attributes = Default::default();
+    let faces: Vec<operandi_core::Face> = mesh
+        .faces
+        .iter()
+        .cloned()
+        .map(|mut f| {
+            f.uv = None;
+            f
+        })
+        .collect();
+    mesh.faces = faces.into();
+    item.mesh = mesh.into();
+    a.camera.view = View::Front;
+    a.run(Command::Mode(Mode::Polygon));
+    a.editor.undo.clear();
+    a.execute("tool.set poly.reduct on");
+    assert!(a.editor.reduction.is_some(), "{}", a.status);
+    for _ in 0..3 {
+        draw(&mut a, &ctx, SIZE, vec![]);
+    }
+    let before = a.editor.scene.clone();
+    click(&mut a, &ctx);
+    assert!(
+        a.editor.reduction.as_ref().unwrap().initialized(),
+        "{}",
+        a.status
+    );
+    assert_eq!(a.editor.scene, before);
+    assert!(a.editor.undo.is_empty());
+    let at = a.viewport_rect.center();
+    drag(&mut a, &ctx, at, vec2(-120., 0.), Modifiers::NONE);
+    assert_ne!(a.editor.scene, before, "{}", a.status);
+    assert!(a.editor.undo.is_empty());
+    click(&mut a, &ctx);
+    assert_eq!(a.editor.undo.len(), 1, "{}", a.status);
+    assert!(a.editor.reduction.is_some());
+    assert_ne!(a.editor.scene, before);
+}

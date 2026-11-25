@@ -320,9 +320,8 @@ impl ToolFields for BridgeFields {
         let live = app.editor.bridge_step_newest();
         let eligibility = app.bridge_eligibility_cached();
         f.wide(tf::Button::command("Apply", Command::Apply).enabled_if(
-            !live && eligibility.is_ok() && app.field_errors.is_empty(),
+            eligibility.is_ok() && app.field_errors.is_empty(),
             match &eligibility {
-                _ if live => "Applied; change a value to reshape this bridge".to_owned(),
                 Err(e) => e.to_string(),
                 Ok(()) => crate::unavailable::FIELD_ERRORS.to_owned(),
             },

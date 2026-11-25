@@ -328,6 +328,7 @@ impl Editor {
             self.cancel_reduction()?;
         }
         self.cancel_live_bridge()?;
+        self.cancel_live_spike()?;
         self.bridge = None;
         self.spike = None;
         self.ellipsoid = None;

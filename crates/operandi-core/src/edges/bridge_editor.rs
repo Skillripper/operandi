@@ -53,31 +53,22 @@ impl Editor {
         Ok(())
     }
 
-    /// UIC-78: the last Apply's result is still live. It is the newest undo
-    /// step, nothing was undone, and the scene still shows it (a new
-    /// selection or any other edit settles it).
+    /// UIC-78: the last Apply's result is still live (`live_apply.rs`).
     pub fn bridge_result_live(&self) -> bool {
-        self.bridge_step_newest()
-            && self
-                .undo
-                .last()
-                .is_some_and(|last| last.after == self.scene)
+        self.live_step_shown(self.bridge.as_ref().and_then(|s| s.applied_step))
     }
 
-    /// The cheap half of `bridge_result_live` (no scene comparison), for
-    /// the panel's every-frame look: the newest step is this session's
-    /// Apply and nothing was undone.
+    /// The cheap half of `bridge_result_live`, for the panel's every-frame
+    /// look.
     pub fn bridge_step_newest(&self) -> bool {
-        let Some(fold) = self.bridge.as_ref().and_then(|s| s.applied_step) else {
-            return false;
-        };
-        self.redo.is_empty() && self.undo.last().is_some_and(|last| last.fold == Some(fold))
+        self.live_step_newest(self.bridge.as_ref().and_then(|s| s.applied_step))
     }
 
     /// Bridge the live result's starting selection again with `p`, folded
     /// into the same undo step.
     fn remake_bridge(&mut self, p: BridgeParameters) -> Result<()> {
         let fold = self.bridge.as_ref().and_then(|s| s.applied_step);
+        let fold = fold.ok_or("No Bridge result")?;
         let last = self.undo.last().cloned().ok_or("No Bridge result")?;
         let candidate = self.bridged_from(&last.before, p)?;
         candidate.validate()?;
@@ -94,9 +85,7 @@ impl Editor {
             }
         }
         let shown = std::mem::replace(&mut self.scene, candidate);
-        let outer = std::mem::replace(&mut self.undo_fold, fold);
-        self.record("Bridge Apply".into(), shown);
-        self.undo_fold = outer;
+        self.record_folded("Bridge Apply", shown, fold);
         Ok(())
     }
 
@@ -106,22 +95,12 @@ impl Editor {
         if !self.bridge_result_live() {
             return Ok(());
         }
-        if let Some(step) = self.undo.pop() {
-            self.scene = step.before.clone();
-            if let Some(ids) = &step.identity_before {
-                self.identities.current = ids.clone();
-                self.identities.observe(&self.scene)?;
-            }
-            self.history_serial = self.history_serial.wrapping_add(1);
-        }
-        Ok(())
+        self.pop_live_step()
     }
 
     pub(crate) fn apply_bridge(&mut self) -> Result<()> {
-        // UIC-78: the result is already made and live; edits reshape it.
-        if self.bridge_result_live() {
-            return Ok(());
-        }
+        // UIC-78: Apply again settles a live result and applies to what is
+        // selected now (the result's own selection).
         // Nothing or a single polygon selected: nothing happens, no message
         // (bridge-2026-11-05, BR18/BR19). The panel still explains why.
         if self.bridge.is_some()
@@ -144,10 +123,8 @@ impl Editor {
             return Err(e);
         }
         // Its own gesture, so edits while it's live fold into this step.
-        let fold = (1u64 << 63) | self.history_mark;
-        let outer = self.undo_fold.replace(fold);
-        self.record("Bridge Apply".into(), before);
-        self.undo_fold = outer;
+        let fold = self.live_apply_fold();
+        self.record_folded("Bridge Apply", before, fold);
         if let Some(s) = self.bridge.as_mut() {
             s.applied_step = Some(fold);
         }
