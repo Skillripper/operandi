@@ -327,6 +327,7 @@ impl Editor {
         if self.reduction.is_some() {
             self.cancel_reduction()?;
         }
+        self.cancel_live_bridge()?;
         self.bridge = None;
         self.spike = None;
         self.ellipsoid = None;

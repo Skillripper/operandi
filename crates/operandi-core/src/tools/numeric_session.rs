@@ -20,6 +20,10 @@ pub struct NumericSession<P> {
     pub preview: Option<Mesh>,
     /// Why `requested` has no valid result; Apply and Drop refuse while set.
     pub error: Option<String>,
+    /// UIC-78: the undo gesture of the last Apply's result, which stays
+    /// live (value edits reshape it) while it is the newest step and still
+    /// shown. Bridge only for now.
+    pub applied_step: Option<u64>,
 }
 
 pub type NumericCone = NumericSession<ConeParameters>;
@@ -37,6 +41,7 @@ impl<P> NumericSession<P> {
             requested,
             preview: None,
             error: None,
+            applied_step: None,
         }
     }
 

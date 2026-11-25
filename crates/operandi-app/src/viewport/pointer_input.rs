@@ -1608,6 +1608,16 @@ impl Operandi {
                             self.gesture_move(&g, pos, r);
                         }
                         ui.ctx().request_repaint();
+                        // UIC-78: a plain click (no drag) finishes a numeric
+                        // session that waits for Apply.
+                        if let input::GestureKind::Numeric(drag) = &g.kind
+                            && button == PointerButton::Primary
+                            && g.modifiers.is_none()
+                            && g.start.distance(pos) < click_finish::CLICK_SLOP
+                            && g.start.distance(g.last) < click_finish::CLICK_SLOP
+                        {
+                            self.click_finish_numeric(drag);
+                        }
                         if let input::GestureKind::Utility(drag) = &g.kind {
                             self.utility_release(drag, pos, r);
                         }

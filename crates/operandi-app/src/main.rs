@@ -112,6 +112,8 @@ mod channel_panel_ui;
 mod channel_row;
 #[path = "rigging/character_rig_ui.rs"]
 mod character_rig_ui;
+#[path = "tools/click_finish.rs"]
+mod click_finish;
 #[path = "anim/clip_picker.rs"]
 mod clip_picker;
 #[path = "settings/color_theme.rs"]
@@ -4328,6 +4330,9 @@ mod camera_props_tests;
 #[cfg(test)]
 #[path = "view/camera_view_settle_tests.rs"]
 mod camera_view_settle_tests;
+#[cfg(test)]
+#[path = "tools/click_finish_tests.rs"]
+mod click_finish_tests;
 #[cfg(test)]
 #[path = "tools/click_start_tests.rs"]
 mod click_start_tests;
