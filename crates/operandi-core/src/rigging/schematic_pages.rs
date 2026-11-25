@@ -309,6 +309,13 @@ fn block(
         .collect()
 }
 
+/// `keys` laid out together by data flow, the block's top-left at the
+/// origin: places for nodes arriving where the user is looking (SC-13).
+pub fn arranged(scene: &Scene, keys: &[String], m: &Metrics) -> Vec<(String, [f32; 2])> {
+    let keys: BTreeSet<String> = keys.iter().cloned().collect();
+    block(scene, &keys, &BTreeMap::new(), m)
+}
+
 type Args = Map<String, Value>;
 
 fn text<'a>(a: &'a Args, name: &str) -> Result<Option<&'a str>, String> {

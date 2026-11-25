@@ -15,11 +15,14 @@ A scene with a rig but no workspace yet shows everything on one page called **Wo
 
 ## Put nodes on a page
 
-- **Add Selected** puts the selected items on the page.
+- **Add Selected** puts the selected items on the page. Select them first in a 3D view or the Items list; the button is greyed until you do.
 - **Add Rig** puts the selected items' rig pieces on the page, with the items those pieces use.
+- **Add ▾** adds a modifier (Expression, Blend, Math and so on) to the selected item and puts it on the page. Wire it by dragging from port to port.
 - A new rig piece that touches an item on the page shows up beside that item.
 
-Nodes that arrive without a place are laid out together below what is already there. A port with a ring around it has a wire to a node that isn't on this page. Hover it to see which, and double-click it to bring that node onto the page beside this one.
+Added nodes land in the middle of the view, laid out together, and a line at the bottom of the page says what was added. Nodes already on the page aren't added twice.
+
+A port with a ring around it has a wire to a node that isn't on this page. Hover it to see which, and double-click it to bring that node onto the page beside this one.
 
 ## Arrange
 
@@ -27,9 +30,12 @@ Nodes that arrive without a place are laid out together below what is already th
 
 ## Move around
 
-- Scroll or pinch to zoom about the pointer.
-- Drag empty space, middle-drag, or Alt+drag to pan.
-- **Fit** frames every node on the page; Shift-click it to frame just the node you clicked last.
+The Schematic moves like an orthographic 3D view, with the same keys from your navigation preset (Preferences > Input), so your 3D-view habits carry over:
+
+- The wheel or a pinch zooms about the pointer.
+- The preset's pan and zoom drags work here. With the Operandi preset, Alt+Shift+drag pans and Alt+Ctrl+drag zooms. The orbit drag pans too, since a page can't turn.
+- Dragging empty space or middle-dragging also pans.
+- **Fit** frames every node on the page. Shift-click it to frame only the node you clicked last.
 
 ## Work with nodes and wires
 

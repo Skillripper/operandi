@@ -45,8 +45,28 @@ pub(crate) struct SchematicView {
     /// them is replaced by its id.
     after_save: Vec<String>,
     /// Fit on the next frame: all nodes, or only the selected (SC-66).
-    fit: Option<bool>,
+    pub(crate) fit: Option<bool>,
+    /// View navigation in progress: what the press started (from the
+    /// user's navigation preset, as in the 3D views) and where it began.
+    nav: Option<(crate::input::NavigationKind, Pos2)>,
+    /// The middle of the view last frame, in page units: where added
+    /// nodes land (SC-13).
+    centre: [f32; 2],
+    /// What the last Add did, shown on the page (Jason, 2026-11-25: the
+    /// Add buttons gave no sign they had worked).
+    pub(crate) note: Option<String>,
+    /// A modifier just added from Add ▾: it is put on the page in the
+    /// middle of the view once it exists.
+    place_new_piece: bool,
 }
+
+/// `operandi.rig.schematicFit`'s argument.
+const FIT_ARGS: &[table::Arg] = &[table::opt(
+    "selected",
+    table::ArgType::Bool,
+    table::Unit::None,
+    Some("false"),
+)];
 
 pub(crate) fn register(r: &mut Commands) {
     r.add_host_command(
@@ -72,6 +92,7 @@ pub(crate) fn register(r: &mut Commands) {
             Area::Items,
             "Frames the Schematic page's nodes (SC-66): all of them, or with selected:true only the selected node.",
         )
+        .args(FIT_ARGS)
         .operandi()
         .ui(),
         |a, args| {
@@ -205,7 +226,7 @@ impl Operandi {
 
     /// What the shown page holds, worked out again only when the rig or
     /// the item names change.
-    fn schematic_page(&mut self, page: PageId) -> PageView {
+    pub(crate) fn schematic_page(&mut self, page: PageId) -> PageView {
         use std::hash::{Hash, Hasher};
         let scene = &self.editor.scene;
         let mut h = std::collections::hash_map::DefaultHasher::new();
@@ -310,19 +331,23 @@ impl Operandi {
             {
                 self.schematic.naming = Some((None, "Workspace".into()));
             }
-            let r = ui.button("Add ▾").on_hover_text("Add a modifier (RG-71: wire it by hand)");
+            use crate::unavailable::{Gate, unless};
+            let item = self.editor.scene.selection.item;
+            let r = ui
+                .gated(
+                    unless(item.is_some(), "Select the item the modifier will belong to first"),
+                    egui::Button::new("Add ▾"),
+                )
+                .on_hover_text("Add a modifier to the selected item and put it in the middle of this page; then wire it by dragging from port to port (RG-71)\noperandi.rig.modifierAdd");
             egui::Popup::menu(&r).show(|ui| {
                 for kind in operandi_core::rig::MODIFIERS {
                     if ui.button(operandi_core::rig::label(kind)).clicked() {
-                        let item = self.editor.scene.selection.item.or_else(|| {
-                            model.nodes.iter().find(|n| !n.piece).map(|n| n.id)
-                        });
-                        match item {
-                            Some(i) => lines.push(format!(
+                        if let Some(i) = item {
+                            lines.push(format!(
                                 "operandi.rig.modifierAdd kind:{} item:{i}",
                                 &kind[4..]
-                            )),
-                            None => self.status = "Select an item for the modifier to belong to".into(),
+                            ));
+                            self.schematic.place_new_piece = true;
                         }
                         ui.close();
                     }
@@ -335,15 +360,17 @@ impl Operandi {
                 .into_iter()
                 .map(|id| format!("item:{id}"))
                 .collect();
+            let none_selected =
+                unless(!selected.is_empty(), "Select items in a 3D view or the Items list first");
             if ui
-                .button("Add Selected")
-                .on_hover_text("Put the selected items on this page (SC-10)\noperandi.rig.schematicPlace")
+                .gated(none_selected, egui::Button::new("Add Selected"))
+                .on_hover_text("Put the selected items on this page, in the middle of the view (SC-10)\noperandi.rig.schematicPlace")
                 .clicked()
             {
                 self.schematic_add(page, &view, &selected, &mut lines);
             }
             if ui
-                .button("Add Rig")
+                .gated(none_selected, egui::Button::new("Add Rig"))
                 .on_hover_text("Put the selected items' rig pieces on this page with the items they use, arranged (SC-17)\noperandi.rig.schematicPlace")
                 .clicked()
             {
@@ -441,12 +468,14 @@ impl Operandi {
             }
         }
 
-        // Zoom about the pointer (wheel or pinch); pan with the middle
-        // button or Alt-drag, or left-drag on empty space (SC-65).
+        // Navigation as in the orthographic 3D views (SC-65; Jason,
+        // 2026-11-25): the wheel and pinch zoom about the pointer with the
+        // view's wheel settings; drags follow the navigation preset below.
         let pointer = response.hover_pos();
         if response.hovered() {
             let (scroll, pinch) = ui.input(|i| (i.smooth_scroll_delta, i.zoom_delta()));
-            let factor = pinch * (scroll.y * 0.002).exp();
+            let options = &self.input_preferences.options;
+            let factor = pinch / options.wheel_zoom_factor(scroll.y) as f32;
             if (factor - 1.).abs() > 1e-4
                 && let Some(p) = pointer
             {
@@ -456,8 +485,8 @@ impl Operandi {
                 zoom = new;
             }
         }
-        let to_screen = |p: [f32; 2]| origin + pan + vec2(p[0], p[1]) * zoom;
-        let to_page = |p: Pos2| ((p - origin - pan) / zoom).to_pos2();
+        let to_screen = move |p: [f32; 2]| origin + pan + vec2(p[0], p[1]) * zoom;
+        let to_page = move |p: Pos2| ((p - origin - pan) / zoom).to_pos2();
 
         // Node rectangles: saved or shown places, then a drag in progress.
         let mut at: BTreeMap<String, Rect> = BTreeMap::new();
@@ -473,13 +502,14 @@ impl Operandi {
                 Rect::from_min_size(to_screen(p), vec2(metrics.node_w, metrics.height(n)) * zoom),
             );
         }
+        let drawn_zoom = zoom;
         let port_pos = |key: &str, port: &str, output: bool| -> Option<Pos2> {
             let n = model.nodes.iter().find(|n| n.key == key)?;
             let r = at.get(key)?;
             let y = metrics.port_y(n, port, output)?;
             Some(pos2(
                 if output { r.right() } else { r.left() },
-                r.top() + y * zoom,
+                r.top() + y * drawn_zoom,
             ))
         };
 
@@ -626,12 +656,70 @@ impl Operandi {
             }
         }
 
-        // Gestures: drag from an output port draws a wire; drag a node
-        // moves it; middle, Alt or empty-space drag pans; click selects.
-        let panning = response.dragged_by(egui::PointerButton::Middle)
-            || (response.dragged() && ui.input(|i| i.modifiers.alt));
-        if response.drag_started_by(egui::PointerButton::Primary) && !ui.input(|i| i.modifiers.alt)
+        // Gestures: a press the navigation preset claims navigates (as in
+        // an orthographic 3D view: orbit pans, since a page can't turn);
+        // otherwise drag from an output port draws a wire, drag a node moves
+        // it, and drag empty space or middle-drag pans; click selects.
+        let mods = ui.input(|i| i.modifiers);
+        for button in [
+            egui::PointerButton::Primary,
+            egui::PointerButton::Middle,
+            egui::PointerButton::Secondary,
+        ] {
+            if response.drag_started_by(button)
+                && let Some(p) = pointer
+                && let Some(kind) = self.input_preferences.navigation.navigation(button, mods)
+            {
+                self.schematic.nav = Some((kind, p));
+            }
+        }
+        let panning = self.schematic.nav.is_some()
+            || response.dragged_by(egui::PointerButton::Middle)
+            || response.dragged_by(egui::PointerButton::Secondary);
+        if let Some((kind, anchor)) = self.schematic.nav
+            && response.dragged()
         {
+            use crate::input::NavigationKind as K;
+            let delta = response.drag_delta();
+            match kind {
+                K::Pan | K::Orbit | K::Look => pan += delta,
+                K::PanVertical => pan.y += delta.y,
+                K::Zoom => {
+                    let factor = self.input_preferences.options.drag_zoom_factor(delta) as f32;
+                    let new = (zoom / factor).clamp(ZOOM.0, ZOOM.1);
+                    let at = (anchor - origin - pan) / zoom;
+                    pan = anchor - origin - at * new;
+                    zoom = new;
+                }
+                K::BoxZoom => {
+                    if let Some(p) = pointer {
+                        painter.rect_stroke(
+                            Rect::from_two_pos(anchor, p),
+                            0.,
+                            Stroke::new(1f32, accent),
+                            egui::StrokeKind::Inside,
+                        );
+                    }
+                }
+                K::Roll => {}
+            }
+        }
+        if response.drag_stopped()
+            && let Some((kind, anchor)) = self.schematic.nav.take()
+            && kind == crate::input::NavigationKind::BoxZoom
+            && let Some(p) = pointer
+        {
+            // NAV-07: the dragged box fills the view.
+            let b = Rect::from_two_pos(anchor, p);
+            if b.width() > 4. && b.height() > 4. {
+                let new = (zoom * (rect.width() / b.width()).min(rect.height() / b.height()))
+                    .clamp(ZOOM.0, ZOOM.1);
+                let centre = (b.center() - origin - pan) / zoom;
+                pan = rect.center() - origin - centre * new;
+                zoom = new;
+            }
+        }
+        if response.drag_started_by(egui::PointerButton::Primary) && !panning {
             if let Some((key, port, true)) = hovered_port.clone() {
                 self.schematic.drawing = Some((key, port));
             } else if let Some(key) = hovered_node.clone()
@@ -647,7 +735,7 @@ impl Operandi {
                 (self.schematic.moving.clone(), pointer, panning)
             {
                 self.schematic.moving = Some((key, grab, to_page(p) - grab));
-            } else if self.schematic.drawing.is_none() {
+            } else if self.schematic.drawing.is_none() && self.schematic.nav.is_none() {
                 pan += response.drag_delta();
             }
         }
@@ -657,6 +745,7 @@ impl Operandi {
             painter.line_segment([a, p], Stroke::new(1.5f32, accent));
         }
         if response.drag_stopped() {
+            self.schematic.nav = None;
             if let Some((from, from_port)) = self.schematic.drawing.take()
                 && let Some((to, to_port, false)) = hovered_port.clone()
             {
@@ -736,56 +825,108 @@ impl Operandi {
             ));
         }
         self.schematic.views.insert(page, (pan, zoom));
+        let mid = (rect.center() - origin - pan) / zoom;
+        self.schematic.centre = [mid.x, mid.y];
+        if let Some(note) = &self.schematic.note {
+            painter.text(
+                rect.left_bottom() + vec2(8., -8.),
+                egui::Align2::LEFT_BOTTOM,
+                note,
+                egui::FontId::proportional(12.),
+                ui.visuals().weak_text_color(),
+            );
+        }
         self.schematic_popups(ui, &view, Some(page), &mut lines);
         self.schematic_run(lines);
     }
 
     /// Puts `keys` on the page, arranged (SC-10, SC-17); with no page yet,
     /// a new workspace holding them.
-    fn schematic_add(
+    pub(crate) fn schematic_add(
         &mut self,
         page: Option<PageId>,
         view: &PageView,
         keys: &[String],
         lines: &mut Vec<String>,
     ) {
-        if keys.is_empty() {
-            self.status = "Select items to put on the page".into();
+        // Only what isn't on the page yet; it lands in the middle of the
+        // view (SC-13), laid out together (SC-60).
+        let new: Vec<String> = keys
+            .iter()
+            .filter(|k| !view.positions.contains_key(*k))
+            .cloned()
+            .collect();
+        if new.is_empty() {
+            self.schematic.note = Some(if keys.is_empty() {
+                "Nothing to add: select items first".into()
+            } else {
+                "Already on this page".into()
+            });
             return;
         }
-        let nodes = format!("{{{}}}", keys.join(","));
+        let c = self.schematic.centre;
+        let places: Vec<(String, [f32; 2])> =
+            schematic_pages::arranged(&self.editor.scene, &new, &Metrics::default())
+                .into_iter()
+                .map(|(k, p)| (k, [p[0] + c[0] - 100., p[1] + c[1] - 60.]))
+                .collect();
+        let place = place_arg(places.iter().map(|(k, p)| (k, p)));
+        self.schematic.note = Some(format!(
+            "Added {} node{} to this page",
+            new.len(),
+            if new.len() == 1 { "" } else { "s" }
+        ));
         match page {
             Some(p) => self.schematic_on_page(
                 p,
                 view,
-                format!("operandi.rig.schematicPlace workspace:{{ws}} nodes:{nodes}"),
+                format!("operandi.rig.schematicPlace workspace:{{ws}} place:{place} pinned:false"),
                 lines,
             ),
-            None => {
-                lines.push("operandi.rig.workspaceAdd name:Workspace".into());
-                self.schematic.after_save.push(format!(
-                    "operandi.rig.schematicPlace workspace:{{ws}} nodes:{nodes}"
-                ));
-            }
+            None => lines.push(format!(
+                "operandi.rig.workspaceAdd name:Workspace place:{place}"
+            )),
         }
     }
 
     /// Runs the frame's lines; a line that made a workspace shows it and
     /// runs what was waiting for it.
-    fn schematic_run(&mut self, lines: Vec<String>) {
+    pub(crate) fn schematic_run(&mut self, lines: Vec<String>) {
         for l in lines {
-            let before = self.editor.scene.animation.rig.workspaces.len();
-            self.execute(&l);
-            let rig = &self.editor.scene.animation.rig;
-            if l.starts_with("operandi.rig.workspaceAdd") && rig.workspaces.len() > before {
-                let ws = rig.workspaces.last().expect("added").id;
-                self.schematic.page = Some(PageId::Saved(ws));
-                for waiting in std::mem::take(&mut self.schematic.after_save) {
-                    self.execute(&waiting.replace("{ws}", &ws.to_string()));
-                }
-            }
+            self.schematic_run_one(&l);
         }
         self.schematic.after_save.clear();
+    }
+
+    fn schematic_run_one(&mut self, l: &str) {
+        let before = self.editor.scene.animation.rig.workspaces.len();
+        let pieces = self.editor.scene.animation.rig.pieces.len();
+        self.execute(l);
+        // A modifier from Add ▾: onto this page, mid-view.
+        if l.starts_with("operandi.rig.modifierAdd")
+            && std::mem::take(&mut self.schematic.place_new_piece)
+            && self.editor.scene.animation.rig.pieces.len() > pieces
+            && let Some(p) = self.editor.scene.animation.rig.pieces.last()
+        {
+            let key = format!("piece:{}", p.id);
+            let page = self.schematic.page;
+            let view = page.map(|p| self.schematic_page(p)).unwrap_or_default();
+            let mut more = Vec::new();
+            self.schematic_add(page, &view, &[key], &mut more);
+            self.schematic.note = Some("Added the modifier; drag from a port to wire it".into());
+            for m in more {
+                self.schematic_run_one(&m);
+            }
+            return;
+        }
+        let rig = &self.editor.scene.animation.rig;
+        if l.starts_with("operandi.rig.workspaceAdd") && rig.workspaces.len() > before {
+            let ws = rig.workspaces.last().expect("added").id;
+            self.schematic.page = Some(PageId::Saved(ws));
+            for waiting in std::mem::take(&mut self.schematic.after_save) {
+                self.execute(&waiting.replace("{ws}", &ws.to_string()));
+            }
+        }
     }
 
     /// The right-click menu, the channel pick and the name prompt.
