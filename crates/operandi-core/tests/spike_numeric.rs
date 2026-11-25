@@ -122,7 +122,13 @@ fn sa_t09_t12_discrete_apply_history_invalid_recovery_and_exact_roundtrip() {
         first.active().unwrap().transform.scale,
         before.active().unwrap().transform.scale
     );
+    // UIC-78 (Jason, 2026-11-25): the first Apply stays live, so a new
+    // Strength reshapes it in the same undo step (the spec's discrete
+    // Apply left it alone).
     e.dispatch(Command::ConfigureSpike(0.25)).unwrap();
+    let first = e.scene.clone();
+    assert_eq!(first.active().unwrap().mesh.vertices[4], DVec3::Z * 0.5);
+    assert_eq!(e.undo.len(), 1);
     e.dispatch(Command::Apply).unwrap();
     let second = e.scene.clone();
     assert_eq!(second.active().unwrap().mesh.vertices.len(), 9);
