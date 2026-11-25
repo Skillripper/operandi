@@ -968,14 +968,15 @@ def main() -> int:
 
     if args.write_baseline:
         BASELINE.write_text(
-            "# Area links against the flow inside a dependency cycle, accepted as known\n"
-            "# debt (docs/AREA_DEPENDENCIES.md). Written by `scripts/area-deps.py\n"
-            "# --write-baseline`; delete a line when its link is gone. `--check` warns\n"
-            "# about such links that are not listed here.\n"
-            + "\n".join(cycle_lines(g, debt)) + "\n",
+            "# Area links inside a dependency cycle, accepted as known debt\n"
+            "# (docs/AREA_DEPENDENCIES.md). Written by `scripts/area-deps.py\n"
+            "# --write-baseline`; `--check` lists the lines that are no longer\n"
+            "# needed. Every link in a cycle is listed, not only today's links\n"
+            "# against the flow, because the flow order shifts as the code changes.\n"
+            + "\n".join(cycle_lines(g, cycle_edges)) + "\n",
             encoding="utf-8",
         )
-        print(f"wrote {BASELINE.relative_to(REPO)} ({len(debt)} links)")
+        print(f"wrote {BASELINE.relative_to(REPO)} ({len(cycle_edges)} links)")
         return 0
 
     if args.check:
@@ -986,8 +987,8 @@ def main() -> int:
                 if ln.strip() and not ln.startswith("#")
             }
         new = sorted(set(cycle_lines(g, debt)) - known)
-        # Stale: the link is gone or no longer part of a cycle. (A link that
-        # only changed sides of the flow stays listed: the order can shift.)
+        # Warn only about links that are both new to the cycle and against
+        # the flow; stale lines are links gone or no longer in a cycle.
         gone = sorted(known - set(cycle_lines(g, cycle_edges)))
         gh = os.environ.get("GITHUB_ACTIONS") == "true"
         level = "error" if args.strict else "warning"
