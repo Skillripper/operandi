@@ -58,7 +58,6 @@ app/commands -> app/settings
 app/commands -> app/tools
 app/commands -> app/view
 app/commands -> app/window_layout
-app/controls -> app/(root)
 app/controls -> app/files
 app/controls -> app/input_devices
 app/controls -> app/theme

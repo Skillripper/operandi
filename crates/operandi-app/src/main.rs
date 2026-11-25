@@ -94,7 +94,7 @@ mod bridge_panel;
 mod bug_report;
 #[path = "files/bug_report_capture.rs"]
 mod bug_report_capture;
-#[path = "controls/button_variants.rs"]
+#[path = "window_layout/button_variants.rs"]
 mod button_variants;
 #[path = "view/camera.rs"]
 mod camera;
@@ -4308,7 +4308,7 @@ mod absolute_scaling_tests;
 #[path = "view/active_mesh_pick_tests.rs"]
 mod active_mesh_pick_tests;
 #[cfg(test)]
-#[path = "controls/button_variants_tests.rs"]
+#[path = "window_layout/button_variants_tests.rs"]
 mod button_variants_tests;
 #[cfg(test)]
 #[path = "render/camera_props_tests.rs"]
