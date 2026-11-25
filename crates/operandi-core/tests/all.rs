@@ -401,6 +401,8 @@ mod meshblend;
 mod meshblend_spike;
 #[path = "meshblend_strips.rs"]
 mod meshblend_strips;
+#[path = "meshop_bevel_regions.rs"]
+mod meshop_bevel_regions;
 #[path = "meshop_element_selection.rs"]
 mod meshop_element_selection;
 #[path = "mid_tool_undo.rs"]

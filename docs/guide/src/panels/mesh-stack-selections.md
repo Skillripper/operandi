@@ -51,6 +51,14 @@ edges is, and a point when it lies on a picked polygon or edge.
 same way. A Selection Set of the step's own kind (an edge set for an
 Edge step) is used first.
 
+## With Polygon Bevel
+
+A rule or random pick often gives patches that touch only at a corner,
+or every polygon of a closed shape. With **Group Polygons** on, a
+**Polygon Bevel** step bevels each patch as its own group, and a patch
+that can't be grouped (a whole closed shape) polygon by polygon. A rule
+that picks nothing leaves the mesh as it is.
+
 ## Order
 
 Selection steps apply from the bottom up, each by its **Blend Mode**. For
