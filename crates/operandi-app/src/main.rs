@@ -1617,8 +1617,6 @@ impl Operandi {
         app.preferences_ui.scheme = scheme;
         app.undo_autosave =
             undo_autosave::UndoAutosavePreferences::load(&app.environment.paths().undo_autosave());
-        // The animation switch reads its preference before the layouts load.
-        anim_switch::set_preference(app.undo_autosave.animation_preview);
         app.editor.rig_compensation = app.undo_autosave.rig_compensation;
         python_switch::set_preference(app.undo_autosave.python_preview);
         app.update_check.prefs =

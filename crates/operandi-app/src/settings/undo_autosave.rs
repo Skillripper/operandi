@@ -37,15 +37,11 @@ pub struct UndoAutosavePreferences {
     /// `None` uses the default folder in the app's data folder.
     pub backup_dir: Option<PathBuf>,
     pub revisions: u32,
-    /// Experimental: Animation, the animation switch's preference
-    /// (anim_switch.rs). On by default (Jason, 2026-11-23); turning it off
-    /// is saved.
-    ///
-    /// Always written, like every grouped preference: a field left out of
-    /// the JSON is invisible to `pref.value` and to the row-edit diff, and
-    /// a click on its box was undone (prefs-checkbox-refresh).
-    #[serde(default = "yes")]
-    pub animation_preview: bool,
+    /// The old Experimental > Animation preference. Animation is always on
+    /// now (Jason, 2026-11-24; anim_switch.rs): read so older files load
+    /// (`deny_unknown_fields`), never written or used.
+    #[serde(default, skip_serializing)]
+    animation_preview: bool,
     /// RG-11: rig Compensation (Animate > Hierarchy > Compensation), kept
     /// between sessions.
     #[serde(default)]
@@ -88,9 +84,6 @@ fn switch_row(
         }
     }
 }
-fn yes() -> bool {
-    true
-}
 impl Default for UndoAutosavePreferences {
     fn default() -> Self {
         let history = HistorySettings::default();
@@ -108,7 +101,7 @@ impl Default for UndoAutosavePreferences {
             backup_dir: None,
             // Provisional (AS-Q1).
             revisions: 5,
-            animation_preview: crate::anim_switch::DEFAULT_ON,
+            animation_preview: false,
             rig_compensation: false,
             python_preview: false,
         }
@@ -541,17 +534,6 @@ impl super::Operandi {
         rows::section(ui, "Experimental", false, |ui| {
             switch_row(
                 ui,
-                "Animation",
-                &mut p.animation_preview,
-                d.animation_preview,
-                crate::anim_switch::forced(),
-                crate::anim_switch::ENV,
-                "The animation tools: the Animate layout and menu, the timeline, the graph \
-                 editor and keying (on by default; off hides them). OPERANDI_ANIMATION=1 or 0 \
-                 in the environment wins",
-            );
-            switch_row(
-                ui,
                 "Python scripting (preview)",
                 &mut p.python_preview,
                 d.python_preview,
@@ -562,7 +544,6 @@ impl super::Operandi {
             );
         });
         if self.undo_autosave != before {
-            crate::anim_switch::set_preference(self.undo_autosave.animation_preview);
             crate::python_switch::set_preference(self.undo_autosave.python_preview);
             self.save_undo_autosave();
         }
@@ -682,6 +663,25 @@ mod tests {
             interval_minutes: 1,
             ..Default::default()
         }
+    }
+
+    /// Animation is always on (anim_switch.rs): a file saved with the old
+    /// Experimental > Animation box off still loads, keeps its other
+    /// settings, and drops the old field when saved again.
+    #[test]
+    fn an_old_animation_preference_loads_and_is_dropped() {
+        let root = temp_dir("undo-autosave-old-anim");
+        let path = root.join("undo-autosave.json");
+        let mut old = serde_json::to_value(UndoAutosavePreferences::default()).unwrap();
+        old["max_undo_level"] = 250.into();
+        old["animation_preview"] = false.into();
+        fs::write(&path, serde_json::to_vec(&old).unwrap()).unwrap();
+        let p = UndoAutosavePreferences::load(&path);
+        assert_eq!(p.max_undo_level, 250, "the file loaded");
+        p.save(&path).unwrap();
+        let saved: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+        assert!(saved.get("animation_preview").is_none());
+        let _ = fs::remove_dir_all(&root);
     }
 
     #[test]

@@ -189,7 +189,7 @@ fn every_preference_checkbox_shows_its_new_state_after_a_click() {
 }
 
 #[test]
-fn python_and_animation_boxes_tick_and_save() {
+fn python_box_ticks_and_saves_and_animation_has_none() {
     let ctx = context();
     let mut a = Operandi::empty();
     a.open_preferences();
@@ -200,36 +200,21 @@ fn python_and_animation_boxes_tick_and_save() {
             .find(|b| b.0 == label)
             .unwrap_or_else(|| panic!("{label} box"))
     };
-    for (label, get) in [
-        (
-            "Python scripting (preview)",
-            (|a: &Operandi| a.undo_autosave.python_preview) as fn(&Operandi) -> bool,
-        ),
-        ("Animation", |a: &Operandi| {
-            a.undo_autosave.animation_preview
-        }),
-    ] {
-        let before = get(&a);
-        let (_, _, shown, at) = find(&mut a, label);
-        assert_eq!(shown, Some(before.into()), "{label}");
-        click(&mut a, &ctx, at);
-        assert_eq!(get(&a), !before, "{label}: the preference changed");
-        assert_eq!(
-            find(&mut a, label).2,
-            Some((!before).into()),
-            "{label}: drawn"
-        );
-        // The same path as the command (UIC-164).
-        a.execute(&format!(
-            "pref.value application.{} ?",
-            if label == "Animation" {
-                "animation_preview"
-            } else {
-                "python_preview"
-            }
-        ));
-        assert_eq!(a.status, (!before).to_string(), "{label}");
-    }
+    let label = "Python scripting (preview)";
+    let before = a.undo_autosave.python_preview;
+    let (_, _, shown, at) = find(&mut a, label);
+    assert_eq!(shown, Some(before.into()));
+    click(&mut a, &ctx, at);
+    assert_eq!(
+        a.undo_autosave.python_preview, !before,
+        "the preference changed"
+    );
+    assert_eq!(find(&mut a, label).2, Some((!before).into()), "drawn");
+    // The same path as the command (UIC-164).
+    a.execute("pref.value application.python_preview ?");
+    assert_eq!(a.status, (!before).to_string());
+    // Animation is always on now (anim_switch.rs): no box for it.
+    assert!(page_boxes(&mut a, &ctx).iter().all(|b| b.0 != "Animation"));
 }
 
 #[test]
@@ -239,19 +224,14 @@ fn a_switch_forced_by_its_environment_shows_the_forced_state_greyed() {
     a.open_preferences();
     a.preferences_ui.page = Page::Application;
     crate::python_switch::force_for_test(Some(true));
-    crate::anim_switch::force_for_test(Some(false));
     let found = page_boxes(&mut a, &ctx);
     let python = found
         .iter()
         .find(|b| b.0 == "Python scripting (preview)")
         .unwrap();
-    let anim = found.iter().find(|b| b.0 == "Animation").unwrap();
     crate::python_switch::force_for_test(None);
-    crate::anim_switch::force_for_test(None);
     assert!(!a.undo_autosave.python_preview, "the preference is off");
     assert_eq!((python.1, python.2), (false, Some(Toggled::True)));
-    assert!(a.undo_autosave.animation_preview, "the preference is on");
-    assert_eq!((anim.1, anim.2), (false, Some(Toggled::False)));
 }
 
 /// The cause, for every group: a field the JSON leaves out at one value

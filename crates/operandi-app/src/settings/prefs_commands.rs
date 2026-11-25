@@ -354,8 +354,7 @@ pub(crate) static GROUPS: &[Group] = &[
         undo_autosave,
         undo_autosave::UndoAutosavePreferences,
         |a, _| {
-            // The Experimental switches take effect at once, as on the page.
-            crate::anim_switch::set_preference(a.undo_autosave.animation_preview);
+            // The Experimental switch takes effect at once, as on the page.
             crate::python_switch::set_preference(a.undo_autosave.python_preview);
             a.save_undo_autosave()
         }
