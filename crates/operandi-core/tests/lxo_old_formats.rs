@@ -355,12 +355,17 @@ fn corruption_still_refuses() {
     // GitHub #20: the message says the file is old and how to get it in.
     assert_eq!(e.format, Some((2, 1)));
     let shown = e.to_string();
+    // OLD-05: plain words, where it happened, then what to do; no
+    // internal category or "Bounded modeling import only".
     assert!(
-        shown.starts_with("This scene was saved by an older version of Modo"),
+        shown.starts_with("Operandi couldn't open this scene, saved by an older version of Modo"),
         "{shown}"
     );
     assert!(
-        shown.contains("report it with the file") && shown.contains("duplicate_item_id"),
+        shown.contains("ITEM IDs must be unique")
+            && shown.contains("report it with the file")
+            && !shown.contains("duplicate_item_id")
+            && !shown.contains("Bounded"),
         "{shown}"
     );
     // A polygon corner past the last point.

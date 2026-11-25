@@ -196,6 +196,7 @@ fn layer(
     let mut reps: Vec<crate::PolygonRepresentation> = Vec::new();
     for ch in &chunks[1..] {
         c.check("geometry decoding")?;
+        c.at = Some((ch.id, ch.offset));
         let mut r = Reader::new(ch.data, ch.offset);
         match &ch.id {
             b"BBOX" => {
@@ -224,7 +225,9 @@ fn layer(
                 if counts.points > super::MAX_FILE_POINTS {
                     return Err(r.error("point_count_limit", "Global point budget"));
                 }
-                c.charge(n * 96)?;
+                // OLD-06: the same per-point and per-polygon charges as the
+                // format 16/17 reader (phase1.rs), which reads the same data.
+                c.charge(n * 48)?;
                 mesh.vertices
                     .try_reserve_exact(n)
                     .map_err(|_| r.error("allocation_failure", "Point allocation"))?;
@@ -316,7 +319,7 @@ fn layer(
                     {
                         return Err(r.error("resource_limit", "Polygon/corner budget"));
                     }
-                    c.charge(256 + n * 96)?;
+                    c.charge(256 + n * 64)?;
                     let mut vertices = Vec::new();
                     vertices
                         .try_reserve_exact(n)
@@ -400,7 +403,7 @@ fn layer(
                 let mut repeated = false;
                 while !r.done() {
                     c.check("map decoding")?;
-                    c.record(true)?;
+                    // OLD-02: map entries are geometry, not metadata.
                     counts.maps += 1;
                     if counts.maps > super::MAX_FILE_CORNERS {
                         return Err(r.error("resource_limit", "Map entry budget"));
@@ -458,7 +461,6 @@ fn layer(
                 }
                 while !r.done() {
                     c.check("tag decoding")?;
-                    c.record(true)?;
                     c.charge(128)?;
                     ptag.push((kind, r.vx()? + poly_base.unwrap_or(0), r.u16()?));
                 }
@@ -732,6 +734,31 @@ fn layer(
 
 /// `preset`: the file is a mesh preset (`LXPM`): layers with no mesh item
 /// import as meshes of their own, and mesh items with no layer are left out.
+/// Scene, shader and display items: left out with a note, never a
+/// modelling dependency.
+pub(super) const NONMODEL: [&str; 11] = [
+    "scene",
+    "environment",
+    "shaderFolder",
+    "polyRender",
+    "envMaterial",
+    "camera",
+    "light",
+    "material",
+    "advancedMaterial",
+    "mask",
+    "imageMap",
+];
+/// Items whose records shape or place a mesh.
+pub(super) const MODELED: [&str; 6] = [
+    "mesh",
+    "translation",
+    "rotation",
+    "scale",
+    "meshInst",
+    "transform",
+];
+
 pub fn convert(mut raw: Raw<'_>, c: &mut Control<'_>, preset: bool) -> Result<Candidate> {
     c.check("reference resolution")?;
     // Formats 2.x, 3.x and 4.x share the lenient reader.
@@ -768,19 +795,7 @@ pub fn convert(mut raw: Raw<'_>, c: &mut Control<'_>, preset: bool) -> Result<Ca
             counts.subdivision
         ));
     }
-    let nonmodel = [
-        "scene",
-        "environment",
-        "shaderFolder",
-        "polyRender",
-        "envMaterial",
-        "camera",
-        "light",
-        "material",
-        "advancedMaterial",
-        "mask",
-        "imageMap",
-    ];
+    let nonmodel = NONMODEL;
     let mut bad: BTreeMap<u32, Vec<String>> = BTreeMap::new();
     let mut neighbors: BTreeMap<u32, Vec<u32>> = BTreeMap::new();
     let mut transforms: BTreeMap<u32, BTreeMap<i32, u32>> = BTreeMap::new();
@@ -802,7 +817,10 @@ pub fn convert(mut raw: Raw<'_>, c: &mut Control<'_>, preset: bool) -> Result<Ca
         // channel-modifier items are omitted; a mesh that depends on one is
         // refused through its links below.
         if !modeled && legacy && !nonmodel.contains(&item.kind.as_str()) {
-            report.omit(format!("{} items (not modelling)", item.kind));
+            report.omit(format!(
+                "'{}' items not imported (not modelling, or plug-in data)",
+                item.kind
+            ));
         } else if !modeled && !nonmodel.contains(&item.kind.as_str()) {
             return Err(err(
                 "unknown_dependencies",
@@ -1222,14 +1240,10 @@ pub fn convert(mut raw: Raw<'_>, c: &mut Control<'_>, preset: bool) -> Result<Ca
                 *p = rest.transform_point3(*p);
             }
         }
-        c.charge(
-            l.mesh.vertices.len() * 48
-                + l.mesh
-                    .faces
-                    .iter()
-                    .map(|f| 256 + f.vertices.len() * 64)
-                    .sum::<usize>(),
-        )?;
+        // OLD-06: the layer's mesh moves into the scene as it is; its
+        // points and polygons were charged when they were read, so they
+        // aren't charged a second time here (that doubled an old file's
+        // cost against the 16/17 reader's).
         scene.items.push(Item {
             id: u64::from(id) + 1,
             name: source.name.clone(),
@@ -1379,6 +1393,13 @@ pub fn convert(mut raw: Raw<'_>, c: &mut Control<'_>, preset: bool) -> Result<Ca
     c.check("native persistence preflight")?;
     crate::persistence::encode(&scene).map_err(|e| err("native_persistence_limit", &e))?;
     c.check("ready to commit")?;
+    // OLD-03: records past the metadata limit were left out, not the file.
+    if c.cut_short > 0 {
+        report.notes.push(format!(
+            "this file has over a million item and action settings; the rest of {} record group(s) was left out",
+            c.cut_short
+        ));
+    }
     Ok(Candidate { scene, report })
 }
 

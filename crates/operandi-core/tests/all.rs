@@ -342,6 +342,8 @@ mod lxo_local_corpus;
 mod lxo_mesh_preset;
 #[path = "lxo_old_formats.rs"]
 mod lxo_old_formats;
+#[path = "lxo_old_scenes.rs"]
+mod lxo_old_scenes;
 #[cfg(operandi_specs)]
 #[path = "lxo_phase1_clean_spec.rs"]
 mod lxo_phase1_clean_spec;

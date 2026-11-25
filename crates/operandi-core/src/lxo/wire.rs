@@ -123,10 +123,31 @@ impl<'a> Reader<'a> {
         Ok(bytes)
     }
     pub fn chunks(&mut self, sub: bool, control: &mut Control<'_>) -> Result<Vec<Chunk<'a>>> {
+        self.chunks_counted(sub, true, control)
+    }
+    /// Sub-records walked without counting them against the metadata
+    /// limit: plug-in items, whose records Operandi doesn't read (OLD-04).
+    pub fn chunks_uncounted(&mut self, control: &mut Control<'_>) -> Result<Vec<Chunk<'a>>> {
+        self.chunks_counted(true, false, control)
+    }
+    fn chunks_counted(
+        &mut self,
+        sub: bool,
+        counted: bool,
+        control: &mut Control<'_>,
+    ) -> Result<Vec<Chunk<'a>>> {
         let mut chunks = Vec::new();
         while !self.done() {
             control.check(if sub { "subchunk framing" } else { "framing" })?;
-            control.record(sub)?;
+            if counted {
+                // OLD-03: past the limit an old file's container is skipped
+                // by its length; what was read so far is kept.
+                if control.cut_here(sub) {
+                    self.pos = self.data.len();
+                    break;
+                }
+                control.record(sub)?;
+            }
             let offset = self.base + self.pos;
             if self.data.len() - self.pos < if sub { 6 } else { 8 } {
                 return Err(self.error("truncated_chunk_header", "Incomplete chunk header"));

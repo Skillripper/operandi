@@ -9863,3 +9863,24 @@ Spec schematic-2026-11-24 (BEHAVIOR-SCHEMATIC, LXO-SCHEMATIC-FORMAT). Readings w
 - TTC-Q04 Ctrl+Shift+Tab was the Layout Switcher's key (UIC-18). The switcher now starts with no key (Layout > Recent Layouts… still opens it); a saved key map still holding its old factory key hands it to Previous Tool Tab. UIC-18 updated with Jason's OK (2026-11-25: Ctrl+` already switches layouts).
 - TTC-Q05 Floating panels in their own OS windows don't take the keys (eframe runs no raw-input hook there); the main window does.
 - TTC-Q06 Spec 5 (announce the tab): the switch sends a "<Tab> tab" value-changed event and puts the same text on the message line; a full screen-reader announcement waits for Q4's accessibility work.
+
+## Older LXO scenes (old-lxo-2026-11-25, GitHub #20, 2026-11-25)
+
+- **OLD-B01 Plug-in items still have their links read (OLD-04).** An item
+  of a kind the importer doesn't know is never imported and its records
+  aren't counted, but its LINK records are still read: a deformer,
+  constraint or rig item stores its link to the mesh it changes, and
+  LEG-10 refuses that mesh. Skipping the item whole would import such a
+  mesh unchanged without saying so. Built *provisional:* links only.
+- **OLD-B02 What counts as "unknown" (OLD-04).** Every kind other than the
+  modelled ones (mesh, translation, rotation, scale, meshInst, transform)
+  and the scene/shader list (camera, light, material...), so locators and
+  rig items are skipped the same way; none of them was imported before.
+  The note reads "'<kind>' items not imported (not modelling, or plug-in
+  data)".
+- **OLD-B03 Memory (OLD-06).** The old reader charged points and polygons
+  twice against the import budget. Now it charges what the 16/17 reader
+  does: T7 (1.21 M polygons) costs 1.1 GiB against 0.97 GiB for the same
+  file as format 16.0. The app's budget is half the free memory (at least
+  1 GiB), so T7 opens on any machine with about 2.2 GiB free.
+

@@ -386,9 +386,9 @@ fn unknown_and_unreadable_records_are_skipped_with_notes() {
         "IASS sub-scene/reference record(s) not imported (other files aren't opened)",
         "SUBS sub-scene/reference record(s) not imported (other files aren't opened)",
         "XREF sub-scene/reference record(s) not imported (other files aren't opened)",
-        "ITEM.ZZZZ records not imported",
+        // OLD-04: the unknown-kind item is skipped whole, records unread.
+        "'videoStill' items not imported (not modelling, or plug-in data)",
         "ACTN.ZZZZ records not imported",
-        "unreadable channel vectors left out",
         "repeated action parents (first kept)",
         "unreadable action values on items not imported",
     ] {

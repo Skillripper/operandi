@@ -60,13 +60,19 @@ impl fmt::Display for Error {
                 self.detail, self.offset
             );
         }
-        // A refusal of an old file (Modo 10 or earlier) is usually something
-        // a newer Modo cleans up on save, so lead with what to do (#20).
+        // OLD-05: format 1.x (Modo 202 and earlier) isn't read yet.
+        if matches!(self.format, Some((major, _)) if major <= 1) {
+            return f.write_str(
+                "This scene was saved by Modo 202 or earlier. Operandi can't read it yet. Re-save it in a newer Modo and try again.",
+            );
+        }
+        // OLD-05: other old files (Modo 10 or earlier) in plain words: what
+        // went wrong and where, then what to do.
         if matches!(self.format, Some((major, _)) if major <= 4) && self.category != "cancelled" {
             return write!(
                 f,
-                "This scene was saved by an older version of Modo (10 or earlier), and Operandi can't read this one yet. Please report it with the file (Help > Report Bug or Idea) so older scenes can be supported. Until then, saving it again in Modo 16 or 17 lets it open. (Details: {} at byte {}: {}.)",
-                self.category, self.offset, self.detail
+                "Operandi couldn't open this scene, saved by an older version of Modo: {} (at byte {}). Please report it with the file (Help > Report Bug or Idea) so older scenes can be supported. As a last resort, saving it again in Modo 16 or 17 lets it open.",
+                self.detail, self.offset
             );
         }
         write!(
@@ -117,6 +123,14 @@ pub struct Control<'a> {
     pub ansi_names: bool,
     /// Names decoded that way, for the report's note.
     pub ansi_decoded: std::collections::BTreeSet<String>,
+    /// OLD-03: an old-format (4.x and older) file stops reading sub-records
+    /// at the metadata limit instead of refusing the whole file.
+    pub lenient_metadata: bool,
+    /// Containers whose sub-records were cut short that way.
+    pub cut_short: usize,
+    /// The top-level chunk being read (id, byte offset), so a refusal
+    /// names where it happened (OLD-05).
+    pub at: Option<([u8; 4], usize)>,
 }
 impl<'a> Control<'a> {
     pub fn new(progress: &'a mut dyn FnMut(&str) -> bool) -> Self {
@@ -129,6 +143,9 @@ impl<'a> Control<'a> {
             progress,
             ansi_names: false,
             ansi_decoded: Default::default(),
+            lenient_metadata: false,
+            cut_short: 0,
+            at: None,
         }
     }
     pub fn check(&mut self, stage: &str) -> Result<()> {
@@ -142,15 +159,44 @@ impl<'a> Control<'a> {
         self.used = self
             .used
             .checked_add(n)
-            .ok_or_else(|| Error::new("resource_limit", 0, "Working memory overflow"))?;
+            .ok_or_else(|| self.located("resource_limit", "Working memory overflow"))?;
         if self.used > self.limits.working_bytes {
-            Err(Error::new(
+            Err(self.located(
                 "resource_limit",
-                0,
                 "Aggregate import working memory budget exceeded",
             ))
         } else {
             Ok(())
+        }
+    }
+    /// An error at the chunk being read, naming it and whether it holds
+    /// geometry (OLD-05); at byte 0 before the first chunk.
+    fn located(&self, category: &'static str, detail: &str) -> Error {
+        match self.at {
+            Some((id, offset)) => Error::new(
+                category,
+                offset,
+                &format!(
+                    "{detail} (in {} chunk, {})",
+                    String::from_utf8_lossy(&id),
+                    if is_geometry(&id) {
+                        "geometry"
+                    } else {
+                        "other data"
+                    }
+                ),
+            ),
+            None => Error::new(category, 0, detail),
+        }
+    }
+    /// Whether the next sub-record is over the metadata limit in an
+    /// old-format file, where it is skipped instead (OLD-03).
+    pub(crate) fn cut_here(&mut self, sub: bool) -> bool {
+        if sub && self.lenient_metadata && self.records >= MAX_RECORDS {
+            self.cut_short += 1;
+            true
+        } else {
+            false
         }
     }
     fn string(&mut self, n: usize) -> Result<()> {
@@ -169,16 +215,23 @@ impl<'a> Control<'a> {
         } else {
             self.chunks += 1;
         }
-        if self.records > 1_000_000 || self.chunks > 100_000 {
-            Err(Error::new(
-                "resource_limit",
-                0,
-                "Metadata record count limit",
-            ))
+        if self.records > MAX_RECORDS || self.chunks > 100_000 {
+            Err(self.located("resource_limit", "Metadata record count limit"))
         } else {
             Ok(())
         }
     }
+}
+/// Most metadata sub-records (item, action and envelope records) one file
+/// may hold. Geometry (points, polygons, map and tag entries) never counts
+/// (OLD-02).
+const MAX_RECORDS: usize = 1_000_000;
+/// Geometry chunks of a layer.
+fn is_geometry(id: &[u8; 4]) -> bool {
+    matches!(
+        id,
+        b"LAYR" | b"PNTS" | b"POLS" | b"VMAP" | b"VMAD" | b"VMED" | b"VMPA" | b"PTAG" | b"BBOX"
+    )
 }
 #[derive(Clone, Debug, Default)]
 pub struct AuxiliaryOmissions {
@@ -414,6 +467,17 @@ fn parse_reserved(bytes: &[u8], control: &mut Control<'_>, forms: &[[u8; 4]]) ->
                 u32::from_be_bytes(b[4..].try_into().unwrap()),
             )
         });
+    // OLD-05: format 1.x (Modo 202 and earlier) is refused in plain words
+    // until a sample shows its layout (OLD-Q03).
+    if let Some((major @ 0..=1, minor)) = vrsn {
+        let mut e = Error::new(
+            "unsupported_old_format",
+            0,
+            &format!("Format {major}.{minor} [LXO format {major}.{minor}]"),
+        );
+        e.format = Some((major, minor));
+        return Err(e);
+    }
     let result = if matches!(vrsn, Some((2..=4, _))) {
         decode::decode(&chunks, control)
             .and_then(|raw| convert::convert(raw, control, form == *b"LXPM"))
