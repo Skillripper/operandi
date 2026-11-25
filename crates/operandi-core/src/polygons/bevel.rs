@@ -78,6 +78,24 @@ pub struct BevelOptions {
     pub reverse_direction: bool,
     pub reverse_inset: bool,
     pub keep_aspect: bool,
+    // The three opt-in options below are left out of saved settings while
+    // off, so settings saved before them read and write the same.
+    /// Twist Bevel's Stop Before Fold (TwistBevel notes, 2026-11-25; off by
+    /// default): each tube's inset stops short of the amount where a cap
+    /// polygon would turn over or the cap's edges cross, instead of the
+    /// tube being refused. Bevel's own panel doesn't offer it (an inset
+    /// past the centre is kept as asked there, PB-C-01/04).
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub stop_at_fold: bool,
+    /// Twist Bevel's Even Interior (off by default): points inside a grouped cap, and
+    /// boundary points along straight runs, move with the inset so the cap
+    /// shrinks as a whole instead of only its outline moving.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub even_interior: bool,
+    /// Twist Bevel's Keep Cap UVs (off by default): with Connected UVs the caps keep
+    /// their UVs exactly, seams included; only the walls' corners move.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub keep_cap_uvs: bool,
 }
 impl Default for BevelOptions {
     fn default() -> Self {
@@ -104,6 +122,9 @@ impl Default for BevelOptions {
             reverse_direction: false,
             reverse_inset: false,
             keep_aspect: true,
+            stop_at_fold: false,
+            even_interior: false,
+            keep_cap_uvs: false,
         }
     }
 }
@@ -384,8 +405,14 @@ fn bevel_draft(
     // Named selection sets ride along (N29, Jason 2026-11-17): Bevel keeps
     // every source point and polygon at its index (new ones are added), so
     // set members still name the same elements; the new side polygons and
-    // points join no set. Typed maps and morphs still refuse.
-    if !source.attributes.typed_maps.is_empty() || !source.attributes.relative_morphs.is_empty() {
+    // points join no set. Typed maps and morphs still refuse for Bevel; for
+    // Twist Bevel (a placer) they ride along (TwistBevel notes, 2026-11-25):
+    // each new point copies its source point's values, each new corner its
+    // donor corner's.
+    if placer.is_none()
+        && (!source.attributes.typed_maps.is_empty()
+            || !source.attributes.relative_morphs.is_empty())
+    {
         // Spec: BV-Q04
         return Err("Bevel can't keep some of this mesh's map data; nothing changed".into());
     }
@@ -660,6 +687,31 @@ fn bevel_draft(
                 ),
             );
         }
+        // Twist Bevel's Even Interior and Stop Before Fold (both off by
+        // default) adjust the inset part of the moves: each placed ring's
+        // inset is its unit offset times the ring's inset.
+        if p.even_interior && !p.auto_weld && !p.edge_rail {
+            even_interior(source, &region, &mut moves);
+        }
+        let fold_share = if p.stop_at_fold && amount_inset != 0. {
+            let rows: Vec<f64> = if let Some(placer) = placer {
+                (1..=divisions)
+                    .map(|level| placer.inset(region_index, level))
+                    .collect()
+            } else if profile.is_some() {
+                samples.iter().map(|s| s.x).collect()
+            } else {
+                vec![samples[samples.len() - 1].x]
+            };
+            let share = cap_fold_share(source, &region, &moves, &rows);
+            for m in moves.values_mut() {
+                m.1 *= share;
+            }
+            share
+        } else {
+            1.
+        };
+        let amount_inset = amount_inset * fold_share;
         if (amount_inset != 0. || placer.is_some()) && !p.auto_weld {
             let chart = region
                 .faces
@@ -1197,11 +1249,32 @@ fn bevel_draft(
         &owners,
     )?;
     if p.uvs == BevelUvs::Connected {
+        // Keep Cap UVs: the caps keep the source corners' UVs.
+        let kept_caps: BTreeSet<usize> = if p.keep_cap_uvs {
+            selected.iter().map(|&f| f as usize).collect()
+        } else {
+            BTreeSet::new()
+        };
         for (name, map) in &mut out.uv_maps {
             for (f, ds) in uv_donors.iter().enumerate() {
                 for (c, &(sf, sc)) in ds.iter().enumerate() {
                     let id = out.faces[f].vertices[c];
                     let t = levels[id as usize];
+                    if kept_caps.contains(&f) {
+                        // A cap corner reading a continuous UV gets the
+                        // original as its own value, since the walls move
+                        // that point's UV below.
+                        if map[f][c].is_none()
+                            && let Some(&original) = source
+                                .attributes
+                                .point_uvs
+                                .get(name)
+                                .and_then(|m| m.get(&source.faces[sf].vertices[sc]))
+                        {
+                            map[f][c] = Some(original);
+                        }
+                        continue;
+                    }
                     if let Some(delta) = uv_offsets.get(&(name.clone(), sf, sc)) {
                         if let Some(value) = map[f][c].as_mut() {
                             *value += *delta * t;
@@ -1593,7 +1666,182 @@ fn transfer(
     }
     points!(point_weights);
     points!(point_colors);
+    points!(relative_morphs);
+    for (name, map) in &a.typed_maps {
+        let mut t = map.clone();
+        for (v, &src) in origins.iter().enumerate().skip(source.vertices.len()) {
+            if let Some(value) = map.points.get(&src) {
+                t.points.insert(v as u32, value.clone());
+            }
+        }
+        if !map.corners.is_empty() {
+            t.corners = donors
+                .iter()
+                .map(|ds| {
+                    ds.iter()
+                        .map(|&(f, c)| map.corners.get(f).and_then(|r| r.get(c)).cloned().flatten())
+                        .collect()
+                })
+                .collect();
+        }
+        b.typed_maps.insert(name.clone(), t);
+    }
     Ok(())
+}
+
+/// Even Interior: the cap shrinks as a whole. A boundary point on a
+/// straight run between two corners slides to its share of the run's moved
+/// length, and each interior point takes the smooth (harmonic) blend of the
+/// boundary's moves. Only the inset part of each move changes.
+fn even_interior(
+    source: &Mesh,
+    region: &crate::polygon::Region,
+    moves: &mut BTreeMap<u32, (DVec3, DVec3)>,
+) {
+    let p = |v: u32| source.vertices[v as usize];
+    let next: BTreeMap<u32, u32> = region.boundary.iter().map(|e| (e.a, e.b)).collect();
+    let prev: BTreeMap<u32, u32> = region.boundary.iter().map(|e| (e.b, e.a)).collect();
+    let straight = |v: u32| -> bool {
+        let (Some(&a), Some(&b)) = (prev.get(&v), next.get(&v)) else {
+            return false;
+        };
+        let (d0, d1) = (p(v) - p(a), p(b) - p(v));
+        let (l0, l1) = (d0.length(), d1.length());
+        l0 > 0. && l1 > 0. && d0.dot(d1) > l0 * l1 * (1. - 1e-9)
+    };
+    // Straight runs, loop by loop.
+    let mut seen = BTreeSet::new();
+    for &start in next.keys() {
+        if seen.contains(&start) {
+            continue;
+        }
+        let mut ring = vec![start];
+        seen.insert(start);
+        let mut v = next[&start];
+        while v != start && seen.insert(v) {
+            ring.push(v);
+            match next.get(&v) {
+                Some(&n) => v = n,
+                None => break,
+            }
+        }
+        let Some(first) = ring.iter().position(|&v| !straight(v)) else {
+            continue;
+        };
+        ring.rotate_left(first);
+        let n = ring.len();
+        let mut i = 0;
+        while i < n {
+            // Corner ring[i], then straight points up to the next corner.
+            let mut j = i + 1;
+            while j < n && straight(ring[j]) {
+                j += 1;
+            }
+            let (c0, c1) = (ring[i], ring[j % n]);
+            let run: Vec<u32> = ring[i + 1..j].to_vec();
+            if !run.is_empty() {
+                let total: f64 = std::iter::once(c0)
+                    .chain(run.iter().copied())
+                    .zip(run.iter().copied().chain(std::iter::once(c1)))
+                    .map(|(a, b)| p(a).distance(p(b)))
+                    .sum();
+                let (a, b) = (p(c0) + moves[&c0].1, p(c1) + moves[&c1].1);
+                let mut along = 0.;
+                let mut last = c0;
+                for &v in &run {
+                    along += p(last).distance(p(v));
+                    last = v;
+                    let t = if total > 0. { along / total } else { 0. };
+                    if let Some(m) = moves.get_mut(&v) {
+                        m.1 = a.lerp(b, t) - p(v);
+                    }
+                }
+            }
+            i = j;
+        }
+    }
+    // Interior points: Gauss-Seidel on the cap's edge graph.
+    let interior: Vec<u32> = region
+        .vertices
+        .iter()
+        .copied()
+        .filter(|v| !next.contains_key(v))
+        .collect();
+    if interior.is_empty() {
+        return;
+    }
+    let mut neighbours: BTreeMap<u32, BTreeSet<u32>> = BTreeMap::new();
+    for &f in &region.faces {
+        let vs = &source.faces[f].vertices;
+        for c in 0..vs.len() {
+            let (a, b) = (vs[c], vs[(c + 1) % vs.len()]);
+            neighbours.entry(a).or_default().insert(b);
+            neighbours.entry(b).or_default().insert(a);
+        }
+    }
+    let scale = moves.values().map(|m| m.1.length()).fold(0., f64::max);
+    if scale == 0. {
+        return;
+    }
+    for _ in 0..4000 {
+        let mut change: f64 = 0.;
+        for &v in &interior {
+            let around = &neighbours[&v];
+            let mean = around.iter().map(|w| moves[w].1).sum::<DVec3>() / around.len() as f64;
+            let m = moves.get_mut(&v).expect("region point");
+            change = change.max(m.1.distance(mean));
+            m.1 = mean;
+        }
+        if change < scale * 1e-9 {
+            break;
+        }
+    }
+}
+
+/// Stop Before Fold: the share (0..=1) of the cap's inset at which no cap
+/// polygon turns over and (caps of up to 600 edges) no cap edges cross, at
+/// every checked profile row. Checked flat, inset only, as Twist Bevel's
+/// rings are.
+fn cap_fold_share(
+    source: &Mesh,
+    region: &crate::polygon::Region,
+    moves: &BTreeMap<u32, (DVec3, DVec3)>,
+    rows: &[f64],
+) -> f64 {
+    let chart = region
+        .faces
+        .iter()
+        .map(|&f| source.normal(f))
+        .sum::<DVec3>()
+        .normalize_or_zero();
+    let edge_count: usize = region
+        .faces
+        .iter()
+        .map(|&f| source.faces[f].vertices.len())
+        .sum();
+    let span = region
+        .vertices
+        .iter()
+        .map(|&v| source.vertices[v as usize].length())
+        .fold(1., f64::max);
+    let folds = |k: f64| {
+        rows.iter().any(|&x| {
+            let at = |v: u32| source.vertices[v as usize] + moves[&v].1 * (k * x);
+            let polygon_folds = region.faces.iter().any(|&f| {
+                let ring = &source.faces[f].vertices;
+                let original: Vec<DVec3> =
+                    ring.iter().map(|&v| source.vertices[v as usize]).collect();
+                let moved: Vec<DVec3> = ring.iter().map(|&v| at(v)).collect();
+                crate::polygon::ring_folds(&original, &moved, source.normal(f).normalize_or_zero())
+            });
+            polygon_folds
+                || (chart != DVec3::ZERO && edge_count <= 600 && {
+                    let cap = region.vertices.iter().map(|&v| (v, at(v))).collect();
+                    crate::polygon::validate_cap_edges(source, region, &cap, chart, span).is_err()
+                })
+        })
+    };
+    crate::polygon::fold_free_share(folds)
 }
 
 #[cfg(test)]

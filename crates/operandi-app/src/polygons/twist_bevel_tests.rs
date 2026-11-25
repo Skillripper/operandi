@@ -256,8 +256,14 @@ fn panel_rows_in_spec_order() {
             "Center Bias",
             "Bend",
             "Bend Direction",
+            // The TwistBevel notes' opt-ins (2026-11-25), after the spec's rows.
+            "Stop Before Fold",
+            "Even Interior",
+            "Keep Cap UVs",
         ]
     );
+    a.execute("tool.attr poly.twistBevel stopAtFold true");
+    assert!(live(&a).params.twist_bevel.stop_at_fold, "{}", a.status);
     a.execute("tool.attr poly.twistBevel profile 5");
     assert_eq!(
         live(&a).params.twist_bevel.profile,

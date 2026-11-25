@@ -298,7 +298,7 @@ impl super::Operandi {
                             (A::Off, "Off"),
                             (A::CurrentFrame, "Current Frame Only"),
                         ],
-                        "What USD exports write of the animation: time samples for every frame of the scene range, none, or the current frame only (TL-83)",
+                        "What USD exports write of the animation: time samples for every frame of the scene range, none, or the current frame only",
                     );
                 });
                 }

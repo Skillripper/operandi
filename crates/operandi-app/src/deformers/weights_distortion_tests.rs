@@ -15,6 +15,10 @@ const PICTURE: Vec2 = vec2(900., 600.);
 /// the view at `view`.
 fn cube(view: View, w: f64) -> Operandi {
     let mut a = super::tests::box_app();
+    // No grid: it draws over the cube's lower half (depth-tested), and its
+    // red X axis would count as tint.
+    a.display.settings.drawing.grid = false;
+    a.display.settings.drawing.grid_axes = false;
     a.run(Command::NewWeightMap {
         name: "W".into(),
         value: Some(w),

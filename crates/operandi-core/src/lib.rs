@@ -460,6 +460,10 @@ pub mod rig_schematic;
 pub mod rig_user_set;
 #[path = "scene_items/scene_time.rs"]
 pub mod scene_time;
+#[path = "rigging/schematic_layout.rs"]
+pub mod schematic_layout;
+#[path = "rigging/schematic_pages.rs"]
+pub mod schematic_pages;
 #[path = "meshops/script_mesh.rs"]
 pub mod script_mesh;
 #[path = "rigging/skeleton.rs"]

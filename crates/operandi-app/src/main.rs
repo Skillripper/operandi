@@ -4412,6 +4412,9 @@ mod file_chooser_tests;
 #[path = "files/file_error_tests.rs"]
 mod file_error_tests;
 #[cfg(test)]
+#[path = "graphics/grid_depth_tests.rs"]
+mod grid_depth_tests;
+#[cfg(test)]
 #[path = "menus/handle_style_menu_tests.rs"]
 mod handle_style_menu_tests;
 #[cfg(test)]
@@ -4579,6 +4582,9 @@ mod toolbox_form_tests;
 #[cfg(test)]
 #[path = "window_layout/toolbox_sets_tests.rs"]
 mod toolbox_sets_tests;
+#[cfg(test)]
+#[path = "window_layout/tooltip_names_tests.rs"]
+mod tooltip_names_tests;
 #[cfg(test)]
 #[path = "deformers/tweak_tests.rs"]
 mod tweak_tests;

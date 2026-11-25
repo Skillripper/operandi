@@ -221,19 +221,27 @@ impl PlaneGrid {
         // The view's lens: the grid's rays must match the mesh's projection,
         // which follows `camera.lens` (Maximise/Restore and Flatness of
         // Perspective change it; Camera view sets it).
-        // view.z: the perspective near clip, so the grid's depth matches.
+        // view.z, view.w: the perspective near clip (and 0), or the
+        // orthographic depth offset and range, so the grid's depth matches
+        // the meshes' (`gpu_scene::camera_uniform`).
+        let (depth_a, depth_b) = if camera.view == View::Perspective {
+            (camera.near(), 0.)
+        } else {
+            camera.ortho_depth()
+        };
         data.extend([
             camera.lens as f32,
             if fade { 1. } else { 0. },
-            camera.near() as f32,
-            0.,
+            depth_a as f32,
+            depth_b as f32,
         ]);
         Self { data }
     }
 }
 pub struct Renderer {
     pipeline: wgpu::RenderPipeline,
-    /// Depth-tested against what is drawn (original-compatible A5).
+    /// Depth-tested against what is drawn: over meshes (drawn after the
+    /// solid ones) and Perspective backdrops (original-compatible A5).
     tested: wgpu::RenderPipeline,
     layout: wgpu::BindGroupLayout,
 }

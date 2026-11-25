@@ -836,6 +836,28 @@ used in the app; `primitive_add` always starts from the Reset values.
   - `start` (number): First frame (default the current range's).
   - `end` (number): Last frame (default the current range's).
 - **`operandi.rig.schematic`** — Read the rig as Schematic nodes and wires: nodes (key item:<id> or piece:<id>, label, kind, inputs, outputs, broken, column) and wires (from, from_port, to, to_port, piece). No arguments.
+- **`operandi.rig.schematicArrange`** — Lay out a workspace's nodes left to right by data flow, ordered to cut wire crossings, one undo step. With nodes, just those (even hand-placed ones); without, every node not moved by hand since the last Arrange, placed below the hand-placed ones.
+  - `workspace` (integer, required): The workspace id (operandi.rig.workspaces).
+  - `nodes` (string): Node keys to arrange, comma-separated (item:<id>, piece:<id>).
+- **`operandi.rig.schematicPlace`** — Place nodes on a workspace, one undo step: place puts each key at x/y (moving it if it is there already, marked as moved by hand unless pinned:false); nodes adds keys not on the page yet, arranged together below what is there (SC-60). Never changes the items or pieces.
+  - `workspace` (integer, required): The workspace id.
+  - `place` (string): key@x/y pairs, comma-separated: item:3@10/20,piece:7@-40/5.
+  - `nodes` (string): Node keys to add without a place, comma-separated.
+  - `pinned` (boolean): Mark placed nodes as moved by hand (default true).
+- **`operandi.rig.schematicRemove`** — Remove nodes from a workspace page, one undo step. The items and rig pieces are untouched.
+  - `workspace` (integer, required): The workspace id.
+  - `nodes` (string, required): Node keys, comma-separated (item:<id>, piece:<id>).
+- **`operandi.rig.workspaceAdd`** — Add a Schematic workspace, one undo step. place puts nodes on it at once (key@x/y pairs, as schematicPlace). The new workspace is the last in operandi.rig.workspaces.
+  - `name` (string): The name (default Workspace).
+  - `place` (string): key@x/y pairs, comma-separated.
+- **`operandi.rig.workspaceClear`** — Remove every node from a workspace, one undo step; nothing in the scene changes.
+  - `workspace` (integer, required): The workspace id.
+- **`operandi.rig.workspaceRemove`** — Delete a workspace page, one undo step; nothing in the scene changes.
+  - `workspace` (integer, required): The workspace id.
+- **`operandi.rig.workspaceRename`** — Rename a workspace, one undo step.
+  - `workspace` (integer, required): The workspace id.
+  - `name` (string, required): The new name.
+- **`operandi.rig.workspaces`** — Read the saved Schematic workspaces: id, name and nodes (key, x, y, pinned). No arguments.
 - **`operandi.rig.unwire`** — Delete the wire at piece's port (a link: the link; a modifier: that input, or out; a constraint or dynamic parent: that target, the piece with its last), one undo step.
   - `piece` (integer, required): The rig piece id.
   - `port` (string, required): The piece's port (A, driver, target 2, out...).

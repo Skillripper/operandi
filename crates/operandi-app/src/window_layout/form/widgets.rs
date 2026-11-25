@@ -184,14 +184,17 @@ pub(super) fn label(ui: &mut Ui, rect: Rect, text: &str, tooltip: &str) -> Respo
     hover(response, &help)
 }
 
-/// Shows `tooltip` whether or not the widget is enabled (UIC-119).
+/// Shows `tooltip` whether or not the widget is enabled (UIC-119),
+/// without spec codes or command lines (`ui_text::hover_text`): every
+/// form row, Preferences included, comes through here.
 pub(super) fn hover(response: Response, tooltip: &str) -> Response {
     if tooltip.is_empty() {
         response
     } else {
+        let tooltip = crate::ui_text::hover_text(tooltip);
         response
-            .on_hover_text(tooltip)
-            .on_disabled_hover_text(tooltip)
+            .on_hover_text(&tooltip)
+            .on_disabled_hover_text(&tooltip)
     }
 }
 

@@ -624,3 +624,55 @@ fn a_left_drag_in_the_viewport_paints_through_the_real_input_path() {
         .any(|img| img.rgba.chunks(4).any(|p| p[0] > 230 && p[3] > 230));
     assert!(white, "the viewport's texture shows the paint");
 }
+
+#[test]
+fn typing_in_the_text_tip_field_keeps_every_key_and_commits_on_enter() {
+    let mut a = app();
+    a.execute("operandi.paint.paintbrush");
+    a.execute("operandi.paint.tip kind:text");
+    let ctx = Context::default();
+    let field = egui::Id::new("paint-tip-text-draft").with("field");
+    let key = |key: Key| Event::Key {
+        key,
+        physical_key: None,
+        pressed: true,
+        repeat: false,
+        modifiers: Modifiers::NONE,
+    };
+    let frame = |a: &Operandi, events: Vec<Event>| {
+        let mut lines = Vec::new();
+        let input = egui::RawInput {
+            screen_rect: Some(rect()),
+            events,
+            ..Default::default()
+        };
+        let _ = ctx.run(input, |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                let tips = a.painting.brush.tips.clone();
+                a.tip_rows_for(ui, &mut lines, &tips);
+            });
+        });
+        lines
+    };
+    frame(&a, vec![]);
+    ctx.memory_mut(|m| m.request_focus(field));
+    frame(&a, vec![]);
+    // Clear what is there, then type a word a key at a time.
+    let old = a.painting.brush.tips.text.text.chars().count();
+    let mut clear = vec![key(Key::End)];
+    clear.extend((0..old).map(|_| key(Key::Backspace)));
+    assert!(frame(&a, clear).is_empty());
+    for c in ["H", "e", "y"] {
+        assert!(
+            frame(&a, vec![Event::Text(c.into())]).is_empty(),
+            "no commit while typing"
+        );
+    }
+    let lines = frame(&a, vec![key(Key::Enter)]);
+    assert_eq!(
+        lines,
+        vec!["operandi.paint.tipSet text:\"Hey\"".to_string()]
+    );
+    a.execute(&lines[0]);
+    assert_eq!(a.painting.brush.tips.text.text, "Hey");
+}

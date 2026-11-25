@@ -1724,10 +1724,17 @@ struct VertexOut { @builtin(position) position: vec4<f32>, @location(0) color: v
                     self.grid.draw(&mut pass, &grids);
                     self.backdrops.draw(&mut pass, backdrops);
                 }
-                None => self.grid.draw(&mut pass, &grids),
+                // No backdrops: the grid draws after the solid meshes,
+                // depth-tested, so it shows in front of geometry that lies
+                // behind or below its plane.
+                None => {}
             }
+            let grid_after_solids = backdrops.is_none();
             pass.set_pipeline(&self.triangles);
             tb.draw(&mut pass, 0..triangles.len() as u32);
+            if grid_after_solids && world.is_none() {
+                self.grid.draw_with(&mut pass, &grids, true);
+            }
             if let Some(world) = world {
                 let looks = &self.looks[&view];
                 pass.set_bind_group(0, &self.cameras[&view].1, &[]);
@@ -1766,6 +1773,15 @@ struct VertexOut { @builtin(position) position: vec4<f32>, @location(0) color: v
                         pass.set_bind_group(1, &looks[k].1, &[]);
                         p.draw_fill(&mut pass, if b.whole { 1 } else { 0 });
                     }
+                }
+                // The grid, now that every solid polygon has its depth:
+                // only where the plane is nearer than what is drawn. It
+                // writes no depth, so wires and see-through surfaces
+                // still draw as before; its bind group 0 replaces the
+                // camera's, so that goes back.
+                if grid_after_solids {
+                    self.grid.draw_with(&mut pass, &grids, true);
+                    pass.set_bind_group(0, &self.cameras[&view].1, &[]);
                 }
                 pass.set_bind_group(2, &self.scene_group, &[]);
                 pass.set_pipeline(fill_pipeline);

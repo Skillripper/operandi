@@ -345,7 +345,7 @@ impl super::Operandi {
         });
         rows::note(
             ui,
-            "Allow Modifier Chording and Invert Drag Scrolling are left out (PREF-Q6): Operandi has no mouse-button \
+            "Allow Modifier Chording and Invert Drag Scrolling are left out: Operandi has no mouse-button \
              chords to restrict, and its lists scroll by wheel or trackpad, which \
              Invert Mouse Wheel Scrolling already covers.",
         );

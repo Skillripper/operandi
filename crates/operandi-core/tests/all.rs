@@ -601,6 +601,10 @@ mod rig_setup;
 mod scene_budget;
 #[path = "scene_transfer.rs"]
 mod scene_transfer;
+#[path = "schematic_layout.rs"]
+mod schematic_layout;
+#[path = "schematic_pages.rs"]
+mod schematic_pages;
 #[path = "scripts_gate.rs"]
 mod scripts_gate;
 #[path = "sculpt_brush_engine.rs"]
@@ -739,6 +743,8 @@ mod tree_select_keeps_tool;
 mod tweak_oracles;
 #[path = "twist_bevel.rs"]
 mod twist_bevel;
+#[path = "twist_bevel_options.rs"]
+mod twist_bevel_options;
 #[path = "undo_fold.rs"]
 mod undo_fold;
 #[path = "undo_marks.rs"]
