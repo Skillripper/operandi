@@ -166,9 +166,9 @@ fn persisted_quadruple_remap_is_displayed_and_dispatches() {
                 .is_some_and(|s| s.contains("Quadruple") && s.contains("[C]"))
     }));
     assert!(labels.iter().any(|n| {
-        n.label()
-            .or(n.value())
-            .is_some_and(|s| s.contains("poly.quadruple") && s.contains("[C]"))
+        n.label().or(n.value()).is_some_and(|s| {
+            s.contains("Quadruple") && s.contains("[C]") && !s.contains("poly.quadruple")
+        })
     }));
     assert_eq!(a.editor.scene, before);
     ctx.memory_mut(|m| m.request_focus(Id::new("command-entry")));

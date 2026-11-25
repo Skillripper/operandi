@@ -49,7 +49,10 @@ numbers match the list below.
     here. With no tool active it says so.
 14. **Grid**: the ground grid, a floor of lines at ground level, with
     colored lines for the main axes. **Grid** in the **Readout** gives
-    the size of one square.
+    the size of one square. Models hide the grid where they are in front
+    of it, and the grid shows over any part of a model below or behind
+    it, so you can see where a model crosses the ground. The work plane's
+    grid works the same way.
 15. **Work Plane**: the plane that new shapes are drawn and placed on.
     Unless you fix it, Operandi turns it to face the view; here it is the
     upright **XY** plane. It shows only while **Show Work Plane** is on

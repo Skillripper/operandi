@@ -423,7 +423,7 @@ impl Operandi {
     /// The tooltip a form button running `line` shows.
     pub(super) fn form_button_tooltip(&self, control: &Control, line: &str) -> Option<String> {
         self.button_tooltip(control, line)
-            .map(|tip| crate::ui_text::without_spec_codes(&tip))
+            .map(|tip| crate::ui_text::hover_text(&tip))
     }
 
     fn form_button(&mut self, ui: &mut Ui, control: &Control, icons: IconMode, place: Place) {
@@ -501,7 +501,7 @@ impl Operandi {
                     self.form_rects.insert(line.to_owned(), response.rect);
                     self.run_shown_variant(ui, control, line, &response);
                     if let Some(tip) = self.button_tooltip(control, line) {
-                        response.on_hover_text(crate::ui_text::without_spec_codes(&tip));
+                        response.on_hover_text(crate::ui_text::hover_text(&tip));
                     }
                     return;
                 }
@@ -617,7 +617,7 @@ impl Operandi {
             self.run_form_line(ui, control, line);
         }
         if let Some(tip) = self.button_tooltip(control, line) {
-            response.on_hover_text(crate::ui_text::without_spec_codes(&tip));
+            response.on_hover_text(crate::ui_text::hover_text(&tip));
         }
     }
 
@@ -649,14 +649,19 @@ impl Operandi {
     /// what its command does (the registry's help) and its shortcut, in the
     /// "Label · what it does · key" form the written tooltips use.
     fn help_tooltip(&self, control: &Control, line: &str) -> Option<String> {
-        let label = shown_label(control, line, None);
+        // No label of its own: the command's name in words, not the line.
+        let label = if control.label.is_empty() {
+            crate::ui_text::command_title(line)
+        } else {
+            shown_label(control, line, None).to_owned()
+        };
         let help = self
             .commands
             .find_line(line)
             .map(|(command, _)| command.entry.help.trim().trim_end_matches('.'))
             .filter(|help| !help.is_empty());
         let binding = self.shortcut(control.shortcut.as_deref().unwrap_or(line));
-        let mut tip = label.to_owned();
+        let mut tip = label;
         if let Some(help) = help {
             tip.push_str(" · ");
             tip.push_str(help);
@@ -687,6 +692,30 @@ impl Operandi {
             shown_label(&control, line, shown).to_owned(),
             self.button_tooltip(&control, line).unwrap_or_default(),
         )
+    }
+
+    /// Tests: every form button's (form, line, tooltip shown with no key
+    /// held), sub-form buttons included.
+    #[cfg(test)]
+    pub(super) fn every_button_tooltip_for_test(&self) -> Vec<(String, String, String)> {
+        let mut out = Vec::new();
+        for form in self.forms.ids() {
+            for item in cf::plan(&self.forms, form, Proficiency::Advanced, &|_| true) {
+                let controls = match item {
+                    Item::Button(c, _) => vec![*c],
+                    Item::Row(cs, _, _) => cs,
+                    _ => vec![],
+                };
+                for c in controls {
+                    let Some(line) = c.command.clone() else {
+                        continue;
+                    };
+                    let tip = self.form_button_tooltip(&c, &line).unwrap_or_default();
+                    out.push((form.to_owned(), line, tip));
+                }
+            }
+        }
+        out
     }
 
     /// The variant a button with labelled variants shows for the keys held
@@ -851,16 +880,23 @@ impl Operandi {
                 self.run_form_line(ui, control, line);
             }
         }
+        // Tooltip names: the label, else the command's name in words.
+        let tip_name = |i: usize| {
+            if controls[i].label.is_empty() {
+                crate::ui_text::command_title(lines[i])
+            } else {
+                controls[i].label.clone()
+            }
+        };
         let face_tip = if !control.tooltip.is_empty() {
             self.form_tooltip(&control.tooltip, line)
         } else if let Some(reason) = &states[face].unavailable {
             reason.clone()
         } else {
-            self.line_tooltip(line)
-                .unwrap_or_else(|| label_of(face).to_owned())
+            self.line_tooltip(line).unwrap_or_else(|| tip_name(face))
         };
-        let names: Vec<&str> = (0..controls.len()).map(label_of).collect();
-        let response = response.on_hover_text(crate::ui_text::without_spec_codes(&format!(
+        let names: Vec<String> = (0..controls.len()).map(tip_name).collect();
+        let response = response.on_hover_text(crate::ui_text::hover_text(&format!(
             "{face_tip} · hold or right-click for {}",
             names.join(", ")
         )));
@@ -1029,12 +1065,14 @@ impl Operandi {
         if let Some(index) = chosen {
             self.execute(lines[index]);
         }
-        let tip = if tooltip.is_empty() {
+        let tip = if tooltip.is_empty() && controls[0].label.is_empty() {
+            crate::ui_text::command_title(lines[0])
+        } else if tooltip.is_empty() {
             label_of(0).to_owned()
         } else {
             self.form_tooltip(tooltip, line)
         };
-        response.on_hover_text(crate::ui_text::without_spec_codes(&tip));
+        response.on_hover_text(crate::ui_text::hover_text(&tip));
     }
 
     /// A tooltip with `{shortcut}` replaced by the line's binding (the
@@ -1157,23 +1195,23 @@ impl Operandi {
         }
         if tooltip.is_empty() {
             // No tooltip of its own: the menu's name and what it offers.
-            let names: Vec<&str> = controls
+            let names: Vec<String> = controls
                 .iter()
                 .filter_map(|c| {
                     let line = c.command.as_deref()?;
                     Some(if c.label.is_empty() {
-                        line
+                        crate::ui_text::command_title(line)
                     } else {
-                        c.label.as_str()
+                        c.label.clone()
                     })
                 })
                 .collect();
-            response.on_hover_text(crate::ui_text::without_spec_codes(&format!(
+            response.on_hover_text(crate::ui_text::hover_text(&format!(
                 "{label} · pick one: {}",
                 names.join(", ")
             )));
         } else {
-            response.on_hover_text(crate::ui_text::without_spec_codes(tooltip));
+            response.on_hover_text(crate::ui_text::hover_text(tooltip));
         }
     }
 

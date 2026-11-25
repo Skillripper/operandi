@@ -5,6 +5,11 @@
 //! Shift+W)", "UIC-221"). Those mean nothing to a user. Every hover text
 //! the toolbox builds goes through [`without_spec_codes`], which drops the
 //! codes and keeps the rest ("(Shift+W)"), so new text is covered too.
+//!
+//! Command lines are internal too (UIC-04: a tooltip gives the name, the
+//! shortcut and a usage hint). Tooltips written as "Split · vert.split
+//! [key]" or "... (bare mesh.retopo)" lose the command and keep the rest
+//! ([`without_command_names`]); [`hover_text`] does both.
 
 /// `text` with spec codes removed: two to four capital letters, a hyphen,
 /// an optional `Q`, digits and an optional letter, with ranges or lists
@@ -125,6 +130,124 @@ fn tidy(text: &str) -> String {
     trimmed.to_owned()
 }
 
+/// Hover text as users see it: no spec codes and no command lines.
+pub(crate) fn hover_text(text: &str) -> String {
+    without_command_names(&without_spec_codes(text))
+}
+
+/// A word written like a command name: two or more lower-camel words
+/// joined by dots (`vert.split`, `operandi.paint.tip`, `tool.set`), with
+/// at least one of them three letters or more, so "e.g." and "i.e." stay.
+pub(crate) fn is_command_word(word: &str) -> bool {
+    let w = word.trim_matches(|c: char| !c.is_ascii_alphanumeric());
+    let parts: Vec<&str> = w.split('.').collect();
+    parts.len() >= 2
+        && parts.iter().any(|p| p.len() >= 3)
+        && parts.iter().all(|p| {
+            p.chars().next().is_some_and(|c| c.is_ascii_lowercase())
+                && p.chars().all(|c| c.is_ascii_alphanumeric())
+        })
+}
+
+/// A command line's name in words, for a button with no label of its own:
+/// its last dotted word split at its capitals (`sculpt.liveWeightEdit` →
+/// "Live Weight Edit").
+pub(crate) fn command_title(line: &str) -> String {
+    let first = line.split_whitespace().next().unwrap_or(line);
+    let last = first.rsplit('.').next().unwrap_or(first);
+    let mut out = String::new();
+    for (i, c) in last.chars().enumerate() {
+        if i == 0 {
+            out.extend(c.to_uppercase());
+        } else {
+            if c.is_ascii_uppercase() {
+                out.push(' ');
+            }
+            out.push(c);
+        }
+    }
+    out
+}
+
+/// `text` without command lines: a bracketed aside naming one goes
+/// ("(bare mesh.retopo)"), and a " · " part that starts with one loses
+/// the command and its arguments ("vert.join average:true", "tool.set
+/// vert.bevel on.") but keeps what follows ("Click again to drop", a
+/// "[key]" binding). Parts left empty go.
+pub(crate) fn without_command_names(text: &str) -> String {
+    text.split('\n')
+        .map(line_without_commands)
+        .filter(|l| !l.is_empty() || !text.contains('\n'))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+fn line_without_commands(line: &str) -> String {
+    let line = without_command_asides(line);
+    let parts: Vec<String> = line
+        .split(" · ")
+        .map(|part| {
+            let words: Vec<&str> = part.split(' ').collect();
+            let Some(start) = words.iter().position(|w| !w.is_empty()) else {
+                return part.to_owned();
+            };
+            if !is_command_word(words[start]) {
+                return part.to_owned();
+            }
+            // The command, then its arguments: lower-case words, `key:value`
+            // and quoted text, up to a sentence's end or a binding.
+            let mut i = start;
+            let mut after_tool_set = false;
+            while i < words.len() {
+                let w = words[i];
+                if w.is_empty() {
+                    i += 1;
+                    continue;
+                }
+                let argument = i == start
+                    || after_tool_set
+                    || is_command_word(w)
+                    || w.contains(':')
+                    || w.starts_with('"')
+                    || w.chars().next().is_some_and(|c| c.is_ascii_lowercase());
+                if !argument || w.starts_with('[') {
+                    break;
+                }
+                after_tool_set = w == "tool.set";
+                i += 1;
+                if w.ends_with('.') {
+                    break;
+                }
+            }
+            words[i..].join(" ").trim().to_owned()
+        })
+        .filter(|p| !p.trim().is_empty())
+        .collect();
+    let joined = parts.join(" · ");
+    tidy(&joined).trim().to_owned()
+}
+
+/// `line` without bracketed asides that name a command.
+fn without_command_asides(line: &str) -> String {
+    let mut out = String::with_capacity(line.len());
+    let mut rest = line;
+    while let Some(open) = rest.find('(') {
+        let Some(close) = rest[open..].find(')').map(|c| open + c) else {
+            break;
+        };
+        let inside = &rest[open + 1..close];
+        if inside.split_whitespace().any(is_command_word) {
+            out.push_str(rest[..open].trim_end());
+            rest = &rest[close + 1..];
+        } else {
+            out.push_str(&rest[..=close]);
+            rest = &rest[close + 1..];
+        }
+    }
+    out.push_str(rest);
+    out
+}
+
 /// Whether `text` still holds a spec code (tests).
 #[cfg(test)]
 pub(crate) fn has_spec_code(text: &str) -> bool {
@@ -182,5 +305,46 @@ mod tests {
         ] {
             assert_eq!(without_spec_codes(before), after, "{before}");
         }
+    }
+
+    #[test]
+    fn command_lines_go_and_the_rest_stays() {
+        for (before, after) in [
+            ("Split · vert.split  [Ctrl+L] ", "Split · [Ctrl+L]"),
+            ("Join Averaged · edge.join average:true", "Join Averaged"),
+            (
+                "Vertex Bevel · Replace each point · tool.set vert.bevel on. Click again to drop. Shortcut: B",
+                "Vertex Bevel · Replace each point · Click again to drop. Shortcut: B",
+            ),
+            (
+                "Weld · drag a point onto another · tool.set DragWeld on",
+                "Weld · drag a point onto another",
+            ),
+            (
+                "Automatic Retopology... · Opens Automatic Retopology (bare mesh.retopo)",
+                "Automatic Retopology... · Opens Automatic Retopology",
+            ),
+            (
+                "Remesh... · Rebuild: Voxel (sculpt.remesh), or Blocks on an octree (operandi.remesh)",
+                "Remesh... · Rebuild: Voxel, or Blocks on an octree",
+            ),
+            (
+                "Inflate · sculpt.inflate · Unassigned\nSwells the surface.",
+                "Inflate · Unassigned\nSwells the surface.",
+            ),
+            ("Text tip · operandi.paint.sculptTip kind:text", "Text tip"),
+            (
+                "Topology Pen · with Constrain to Background on · operandi.topology.tool",
+                "Topology Pen · with Constrain to Background on",
+            ),
+            (
+                "Shift+W · X-Ray · glTF 2.0 · e.g. a cube (i.e. six sides)",
+                "Shift+W · X-Ray · glTF 2.0 · e.g. a cube (i.e. six sides)",
+            ),
+        ] {
+            assert_eq!(without_command_names(before), after, "{before}");
+        }
+        assert_eq!(command_title("sculpt.liveWeightEdit"), "Live Weight Edit");
+        assert_eq!(command_title("curves.setColor kind:x"), "Set Color");
     }
 }

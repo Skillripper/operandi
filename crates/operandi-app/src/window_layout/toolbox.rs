@@ -652,7 +652,7 @@ impl Operandi {
         };
         let response = self.tool_cell(ui, tool, size, icon_only, face);
         let clicked = response.clicked();
-        response.on_hover_text(crate::ui_text::without_spec_codes(&format!(
+        response.on_hover_text(crate::ui_text::hover_text(&format!(
             "{} · {}. Click again to drop. Shortcut: {}",
             tool.label(),
             tool_info::info(tool).tooltip,

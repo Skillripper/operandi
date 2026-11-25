@@ -1,5 +1,14 @@
 # Milestone progress ledger
 
+- **Bug batch: grid depth, Text tip, tooltips (2026-11-25, branch claude/project-thread-mnzzuz):**
+  the grid draws after the solid meshes, depth-tested (Perspective and
+  orthographic depth both match the meshes'), so it shows over geometry
+  below or behind its plane; with backdrops the old order stays (BD-10,
+  A5). The paint/sculpt Text tip field keeps a draft while typing and
+  commits on Enter or focus loss. Toolbox and form-row hover text drops
+  command lines (UIC-04) and spec codes (`ui_text::hover_text`). Vertex
+  Collapse on a cube corner (5 points, 3 quads) is CMD-B3-02, not a bug.
+
 - **Mesh Stack selection rules batch 1 (2026-11-25, GitHub #19, branch claude/project-thread-8fccr9):**
   thirteen rules from Steve Hill's list in `meshop_selection.rs`: Vertex
   Count (Triangles/Quads/N-gons), Area, Edge Length, Convex/Concave

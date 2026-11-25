@@ -220,7 +220,7 @@ fn tri_001_tooltip_names_triple_and_the_effective_shortcut() {
     }
     assert!(
         text.iter()
-            .any(|t| t.contains("Triple") && t.contains("poly.triple") && t.contains("[Shift+T]")),
+            .any(|t| t.contains("Triple") && !t.contains("poly.triple") && t.contains("[Shift+T]")),
         "{text:?}"
     );
     assert_eq!(a.editor.scene, source.scene, "hover is history-neutral");

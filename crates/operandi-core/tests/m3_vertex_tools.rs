@@ -192,6 +192,27 @@ fn collapse_merges_the_fan_into_one_polygon() {
 }
 
 #[test]
+fn collapse_of_a_cube_corner_leaves_a_closed_three_quad_solid() {
+    // CMD-B3-02 on a valence-3 corner (a reported "pyramid", 2026-11-25):
+    // the corner and its three edge neighbours become one point at their
+    // mean, the three quads around the corner go, and the three far quads
+    // each take the merged point: 5 points, 3 quads, still closed. That is
+    // the measured rule (the valence-3 fixture goes 13/9 -> 10/6), not a bug.
+    let cube = cube();
+    // The lowest corner; its neighbours are one unit along each axis.
+    let low = cube.vertices.iter().copied().reduce(DVec3::min).unwrap();
+    let corner = cube.vertices.iter().position(|p| near(*p, low)).unwrap() as u32;
+    let (out, sel) = run(&cube, &[corner], VertexCommand::Collapse);
+    assert_eq!((out.vertices.len(), out.faces.len()), (5, 3));
+    assert!(out.faces.iter().all(|f| f.vertices.len() == 4));
+    assert!(near(
+        out.vertices[sel[0] as usize],
+        low + DVec3::splat(0.25)
+    ));
+    assert!(out.edge_counts().values().all(|&n| n == 2), "closed");
+}
+
+#[test]
 fn remove_deletes_points_and_their_polygons_and_remove_edge_dissolves() {
     // CMD-V-04: the polygons keep their other corners (quads become triangles).
     let (out, sel) = run(&grid(), &[5], VertexCommand::Remove);

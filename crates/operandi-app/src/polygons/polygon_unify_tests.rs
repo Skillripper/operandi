@@ -234,7 +234,7 @@ fn saved_remap_help_and_ack_blocks_second_edit() {
     assert!(
         labels
             .iter()
-            .any(|s| s.contains("poly.unify") && s.contains("[C]")),
+            .any(|s| s.contains("Unify") && s.contains("[C]") && !s.contains("poly.unify")),
         "tooltip: {labels:?}"
     );
     frame(&mut a, &c, vec![]);

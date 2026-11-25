@@ -725,6 +725,7 @@ pub(crate) fn text_d(
 /// row; used for what a page leaves out and why).
 pub(crate) fn note(ui: &mut Ui, text: &str) {
     ui.add_space(ROW_GAP);
+    let text = crate::ui_text::without_spec_codes(text);
     ui.add(egui::Label::new(egui::RichText::new(text).weak()).wrap());
 }
 
