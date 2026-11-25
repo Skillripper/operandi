@@ -106,7 +106,7 @@ tool's handles (**Handle Mode**, **Min** and **Max**) aren't there. Scripts
 add it with `meshop.create type:prim.cube.item`.
 
 With the step selected in the stack and no tool on, its handles show in the
-**3D view**. Drag the centre to move it, a square to resize it, and its falloff's points to move the falloff. Each drag is one undo step. A right-drag anywhere else changes its segments, as with the tool: left and right for **Segments X**, up and down for **Segments Z**.
+**3D view**. Drag the centre to move it, a square to resize it, and its falloff's handles to change the falloff (they work as the tool falloff's do: points, arrows and Size boxes). Each drag is one undo step. A right-drag anywhere else changes its segments, as with the tool: left and right for **Segments X**, up and down for **Segments Z**.
 
 ## Related
 

@@ -2,6 +2,7 @@
 //! selected and no tool on, and dragging one edits the op live, one undo
 //! step per drag.
 use super::*;
+use crate::viewport::falloff_view::FalloffHandle;
 use crate::viewport::meshop_handles::OpHandle;
 
 fn rect() -> Rect {
@@ -23,7 +24,7 @@ fn op_values(a: &Operandi) -> serde_json::Value {
 #[test]
 fn a_selected_primitive_op_shows_its_handles() {
     let a = cylinder_op();
-    let handles = a.meshop_handles();
+    let handles = a.meshop_handles(rect());
     let kinds: Vec<OpHandle> = handles.iter().map(|h| h.1).collect();
     assert_eq!(
         kinds,
@@ -43,18 +44,18 @@ fn no_handles_while_a_tool_is_on_or_for_other_ops() {
     let mut a = cylinder_op();
     a.activate(Tool::Box);
     assert!(a.editor.live.is_some(), "{}", a.status);
-    assert!(a.meshop_handles().is_empty());
+    assert!(a.meshop_handles(rect()).is_empty());
     let mut b = Operandi::empty();
     b.run(Command::NewMesh);
     b.run(Command::MeshOpCreate("pmodel.triangulate.item".into()));
-    assert!(b.meshop_handles().is_empty());
+    assert!(b.meshop_handles(rect()).is_empty());
 }
 
 #[test]
 fn dragging_a_size_square_edits_the_op_live_in_one_undo_step() {
     let mut a = cylinder_op();
     let r = rect();
-    let (at, _) = a.meshop_handles()[1];
+    let (at, _) = a.meshop_handles(rect())[1];
     let q = a.camera.project(at, r).unwrap().0;
     let grab = a
         .meshop_handle_hit(q, r)
@@ -82,10 +83,16 @@ fn the_ops_falloff_points_are_handles_too() {
     );
     values.insert("falloffScale".into(), 0.into());
     a.run(Command::MeshOpSet { op: r, values });
-    let handles = a.meshop_handles();
-    assert_eq!(handles.len(), 6, "centre, 3 sizes, Start, End");
+    let handles = a.meshop_handles(rect());
+    // GitHub #27: the tool falloff's handles: Start, End, then three
+    // per-axis handles at each.
+    assert_eq!(
+        handles.len(),
+        12,
+        "centre, 3 sizes, Start, End, 6 axis handles"
+    );
     let (end, h) = handles[5];
-    assert_eq!(h, OpHandle::Falloff(1));
+    assert_eq!(h, OpHandle::Falloff(FalloffHandle::Point(1)));
     let rr = rect();
     let q = a.camera.project(end, rr).unwrap().0;
     let grab = crate::viewport::meshop_handles::OpGrab {
@@ -97,4 +104,72 @@ fn the_ops_falloff_points_are_handles_too() {
     a.drag_meshop_handle(&grab, q, q + vec2(0., -60.), rr);
     let f = &op_values(&a)["falloff"]["first"]["Linear"]["end"];
     assert!(f[1].as_f64().unwrap() > -0.75, "End moved up: {f}");
+}
+
+/// A cylinder op with its own Radial falloff, centred at the origin with
+/// Size 1 on every axis.
+fn radial_op() -> (Operandi, operandi_core::mesh_stack_editor::OpRef) {
+    let mut a = cylinder_op();
+    let (r, _) = a.selected_primitive_op().unwrap();
+    let mut values = serde_json::Map::new();
+    values.insert(
+        "falloff".into(),
+        serde_json::json!({"first": {"Radial": {"center": [0., 0., 0.], "size": [1., 1., 1.]}}}),
+    );
+    values.insert("falloffScale".into(), 0.into());
+    a.run(Command::MeshOpSet { op: r, values });
+    (a, r)
+}
+
+#[test]
+fn an_ops_radial_falloff_has_the_tools_size_boxes_and_axis_handles() {
+    // GitHub #27: the same handles as the tool's Radial falloff.
+    let (a, _) = radial_op();
+    let falloff: Vec<FalloffHandle> = a
+        .meshop_handles(rect())
+        .into_iter()
+        .filter_map(|(_, h)| match h {
+            OpHandle::Falloff(f) => Some(f),
+            _ => None,
+        })
+        .collect();
+    let tool_like = [
+        FalloffHandle::Point(0),
+        FalloffHandle::Point(1),
+        FalloffHandle::Point(2),
+        FalloffHandle::Point(3),
+        FalloffHandle::Axis(0, 0),
+        FalloffHandle::Axis(0, 1),
+        FalloffHandle::Axis(0, 2),
+    ];
+    assert_eq!(falloff, tool_like);
+}
+
+#[test]
+fn dragging_an_ops_size_box_resizes_its_falloff_in_one_undo_step() {
+    let (mut a, op) = radial_op();
+    let rr = rect();
+    let (at, h) = a
+        .meshop_handles(rr)
+        .into_iter()
+        .find(|(_, h)| *h == OpHandle::Falloff(FalloffHandle::Point(1)))
+        .expect("the X Size box");
+    let q = a.camera.project(at, rr).unwrap().0;
+    let grab = crate::viewport::meshop_handles::OpGrab {
+        op,
+        handle: h,
+        start: op_values(&a),
+        gesture: crate::colour_field::next_gesture(),
+    };
+    let history = a.editor.undo.len();
+    for step in 1..=3 {
+        a.drag_meshop_handle(&grab, q, q + vec2(15. * step as f32, 0.), rr);
+    }
+    let size = &op_values(&a)["falloff"]["first"]["Radial"]["size"];
+    assert!(size[0].as_f64().unwrap() > 1., "X grew: {size}");
+    assert_eq!(size[1].as_f64(), Some(1.), "only X: {size}");
+    assert_eq!(a.editor.undo.len(), history + 1, "one step for the drag");
+    a.run(Command::Undo);
+    let size = &op_values(&a)["falloff"]["first"]["Radial"]["size"];
+    assert_eq!(size[0].as_f64(), Some(1.));
 }

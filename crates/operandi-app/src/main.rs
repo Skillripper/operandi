@@ -4423,6 +4423,7 @@ mod handle_tips_tests;
 #[cfg(test)]
 #[path = "tools/haul_meshop_tests.rs"]
 mod haul_meshop_tests;
+#[cfg(test)]
 #[path = "tools/haul_session_tests.rs"]
 mod haul_session_tests;
 #[cfg(test)]

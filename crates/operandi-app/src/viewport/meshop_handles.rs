@@ -5,10 +5,13 @@
 //! one undo step per drag (SAFE-13, as the op's fields do).
 //!
 //! The handles follow the tool handles' look (UIC section 7): the centre
-//! and size squares in the axis colours, falloff points as small points.
+//! and size squares in the axis colours. The op's falloff draws and drags
+//! exactly as the tool's falloff does (GitHub #27): its shape, its points,
+//! per-axis handles and Size boxes, from `falloff_view.rs`.
 use super::*;
+use crate::viewport::falloff_view::FalloffHandle;
+use operandi_core::ShapeWeights;
 use operandi_core::mesh_stack_editor::OpRef;
-use operandi_core::{Falloff, ShapeWeights};
 
 /// One handle of the selected primitive op.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -17,9 +20,9 @@ pub(crate) enum OpHandle {
     Centre,
     /// Resizes along one axis (`sizeX`..).
     Size(usize),
-    /// A point of the op's own falloff: Linear Start (0) and End (1), a
-    /// Radial or Cylinder falloff's Centre (0).
-    Falloff(usize),
+    /// A handle of the op's own falloff, as the tool falloff's handles
+    /// (GitHub #27): its points, their per-axis handles and Size boxes.
+    Falloff(FalloffHandle),
 }
 
 /// A drag on one handle: the op, the handle, the op's values at the press
@@ -39,18 +42,11 @@ fn vec3(values: &serde_json::Value, prefix: &str) -> Option<DVec3> {
     Some(DVec3::new(c("X")?, c("Y")?, c("Z")?))
 }
 
-/// The op's falloff points in its own space.
-fn falloff_points(values: &serde_json::Value) -> Vec<DVec3> {
-    let Ok(Some(w)) = serde_json::from_value::<Option<ShapeWeights>>(values["falloff"].clone())
-    else {
-        return Vec::new();
-    };
-    match w.first {
-        Falloff::Linear(f) => vec![f.start, f.end],
-        Falloff::Radial(f) => vec![f.center],
-        Falloff::Cylinder(f) => vec![f.center],
-        _ => Vec::new(),
-    }
+/// The op's own falloff, if it has one.
+fn op_falloff(values: &serde_json::Value) -> Option<ShapeWeights> {
+    serde_json::from_value::<Option<ShapeWeights>>(values.get("falloff")?.clone())
+        .ok()
+        .flatten()
 }
 
 impl Operandi {
@@ -84,11 +80,11 @@ impl Operandi {
     }
 
     /// The selected primitive op's handles in world space.
-    pub(crate) fn meshop_handles(&self) -> Vec<(DVec3, OpHandle)> {
-        let Some((r, values)) = self.selected_primitive_op() else {
+    pub(crate) fn meshop_handles(&self, r: Rect) -> Vec<(DVec3, OpHandle)> {
+        let Some((op, values)) = self.selected_primitive_op() else {
             return Vec::new();
         };
-        let Ok(world) = self.editor.scene.world_matrix(r.item) else {
+        let Ok(world) = self.editor.scene.world_matrix(op.item) else {
             return Vec::new();
         };
         let Some(centre) = vec3(&values, "cen") else {
@@ -104,8 +100,13 @@ impl Operandi {
                 out.push((world.transform_point3(p), OpHandle::Size(a)));
             }
         }
-        for (i, p) in falloff_points(&values).into_iter().enumerate() {
-            out.push((world.transform_point3(p), OpHandle::Falloff(i)));
+        if let Some(w) = op_falloff(&values) {
+            // The op's falloff lives in the item's space, as its shape.
+            out.extend(
+                self.falloff_handles_in(Some(w.first), world, &[], r)
+                    .into_iter()
+                    .map(|(p, h)| (p, OpHandle::Falloff(h))),
+            );
         }
         out
     }
@@ -114,9 +115,22 @@ impl Operandi {
     pub(crate) fn meshop_handle_hit(&self, pos: Pos2, r: Rect) -> Option<OpGrab> {
         let reach = self.handle_preferences.small_point_hit;
         let (op, start) = self.selected_primitive_op()?;
-        let handle = self
-            .meshop_handles()
+        let field = op_falloff(&start).map(|w| w.first);
+        let handles = self.meshop_handles(r);
+        let centre = handles
+            .iter()
+            .find(|(_, h)| *h == OpHandle::Falloff(FalloffHandle::Point(0)))
+            .and_then(|&(p, _)| self.camera.project(p, r))
+            .map(|(q, _)| q);
+        let handle = handles
             .into_iter()
+            // TP-19: a Size box seen end-on sits on the centre; skip it.
+            .filter(|&(p, h)| match h {
+                OpHandle::Falloff(f) => {
+                    !falloff_view::is_size_box_for(f, field) || !self.box_edge_on(p, centre, r)
+                }
+                _ => true,
+            })
             .filter_map(|(p, h)| Some((self.camera.project(p, r)?.0.distance(pos), h)))
             .filter(|&(d, _)| d <= reach)
             .min_by(|a, b| a.0.total_cmp(&b.0))?
@@ -154,31 +168,18 @@ impl Operandi {
                 let grow = if full { 2. * delta[a] } else { delta[a] };
                 changes.insert(format!("size{}", AXES[a]), (s[a] + grow).max(0.).into());
             }
-            OpHandle::Falloff(i) => {
-                let Ok(Some(mut w)) =
-                    serde_json::from_value::<Option<ShapeWeights>>(v["falloff"].clone())
-                else {
+            OpHandle::Falloff(h) => {
+                let Some(mut w) = op_falloff(v) else {
                     return;
                 };
-                w.first = match w.first {
-                    Falloff::Linear(mut f) => {
-                        if i == 0 {
-                            f.start += delta;
-                        } else {
-                            f.end += delta;
-                        }
-                        Falloff::Linear(f)
-                    }
-                    Falloff::Radial(mut f) => {
-                        f.center += delta;
-                        Falloff::Radial(f)
-                    }
-                    Falloff::Cylinder(mut f) => {
-                        f.center += delta;
-                        Falloff::Cylinder(f)
-                    }
-                    other => other,
+                // The tool falloff's own rule (falloff_view::moved_falloff).
+                let Some(next) = falloff_view::moved_falloff(w.first, h, delta) else {
+                    return;
                 };
+                if next.validate().is_err() {
+                    return;
+                }
+                w.first = next;
                 let Ok(json) = serde_json::to_value(Some(w)) else {
                     return;
                 };
@@ -199,7 +200,15 @@ impl Operandi {
         if !self.handle_preferences.unselected_shown() {
             return;
         }
-        let handles = self.meshop_handles();
+        let handles = self.meshop_handles(r);
+        // The op's falloff first, drawn as the tool's falloff is.
+        if let Some((op, values)) = self.selected_primitive_op()
+            && let Some(w) = op_falloff(&values)
+            && let Ok(world) = self.editor.scene.world_matrix(op.item)
+        {
+            self.draw_falloff_shape_in(painter, r, w.first, world, &[]);
+            self.draw_falloff_size_boxes_in(painter, r, w.first, world);
+        }
         let Some(&(centre, _)) = handles.first() else {
             return;
         };
@@ -224,13 +233,8 @@ impl Operandi {
                     );
                     painter.rect_filled(Rect::from_center_size(q, vec2(size, size)), 0., color);
                 }
-                OpHandle::Falloff(_) => {
-                    painter.circle_stroke(
-                        q,
-                        size * 0.6,
-                        Stroke::new(self.handle_preferences.line_width, palette::selection()),
-                    );
-                }
+                // Drawn with the falloff above.
+                OpHandle::Falloff(_) => {}
             }
         }
     }
