@@ -187,3 +187,23 @@ fn rg70_separate_rigs_stack_and_loops_still_lay_out() {
     // Nothing at all: nothing to place.
     assert_eq!(layout(&Schematic::default(), &m), Layout::default());
 }
+
+/// Writes the HC-02-shaped test rig as a scene for GUI checks of the
+/// Schematic: `OPERANDI_QA_SCENE=<path> cargo test --locked --workspace
+/// -- write_schematic_qa_scene --ignored`.
+#[test]
+#[ignore = "writes a QA scene; run by hand with OPERANDI_QA_SCENE"]
+fn write_schematic_qa_scene() {
+    let Some(path) = std::env::var_os("OPERANDI_QA_SCENE") else {
+        return;
+    };
+    let mut e = hc02_shaped();
+    for (k, i) in e.scene.items.iter_mut().enumerate() {
+        i.name = if k < 5 {
+            format!("Control {}", k + 1)
+        } else {
+            format!("Part {}", k - 4)
+        };
+    }
+    std::fs::write(path, persistence::encode(&e.scene).unwrap()).unwrap();
+}
