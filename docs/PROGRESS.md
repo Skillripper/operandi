@@ -8,6 +8,11 @@
   commits on Enter or focus loss. Toolbox and form-row hover text drops
   command lines (UIC-04) and spec codes (`ui_text::hover_text`). Vertex
   Collapse on a cube corner (5 points, 3 quads) is CMD-B3-02, not a bug.
+- **Live MeshOp falloffs and primitive op handles (2026-11-25, branch claude/project-thread-8fccr9):**
+  primitive ops edit their own falloff (type plus its values) in the op
+  panel, live; selecting a primitive op shows its centre, size squares and
+  falloff points in the view (`viewport/meshop_handles.rs`), and a drag
+  edits the op with one undo step. Provisional: MOP-H-Q01, Q02.
 
 - **Mesh Stack selection rules batch 1 (2026-11-25, GitHub #19, branch claude/project-thread-8fccr9):**
   thirteen rules from Steve Hill's list in `meshop_selection.rs`: Vertex
@@ -4857,3 +4862,7 @@ Design: docs/MATERIALX_GRAPHS.md (stages 1-5).
 - Channel sets (BEHAVIOR-CHANNEL-PANEL CP-01..70, native v66): named lists of channels from any items, saved with the scene with the current set. Commands `operandi.channelSet.create/add/remove/move/rename/delete/current`, each one undo step except current (view state).
 - The current set's panel floats over the active 3D view (UIC-188, new rule with the maintainer's OK): `Item : Channel` rows with the Properties status light (click keys) and a live value field: drag hauls with the pointer locked on macOS (Shift fine, Ctrl coarse), one undo step and one Auto Key per drag; typing waits for Enter. Header drags the panel (kept per view), × closes it. Timeline Channel Set menu: pick, Create from selected channels, Add/Remove Selected, Rename, Delete, Show Animated. Row labels' right-click menu gains Add to Channel Set; User Channels rows now pick and key like other rows.
 - Provisional: rows reorder by their ⋯ menu (no drag-to-reorder yet); the panel shows in the active view only; LXO channel-set import waits for the format (CP-90).
+
+## 2026-11-25 — Tool tab cycling (branch claude/project-thread-rjq1h8)
+
+- Ctrl+Tab opens the next tool tab, Ctrl+Shift+Tab the previous one (the real Control key on a Mac), wrapping at the ends, in strip order; only the strip's tabs count, and one tab or no strip does nothing. Each press switches at once, repeats step one tab each, the active tool stays, fields are confirmed first (as a click). Focus on a control in the old tab's drawer goes back to the viewport; elsewhere it stays. Works with a text or number field focused; a modal dialog, menu, pop-up or pie keeps the keys, and a mouse drag ignores them. Plain Tab is unchanged. Input Map actions "Next Tool Tab" / "Previous Tool Tab" (rebindable, shown in the tab tooltips); egui's Ctrl+Tab focus stepping and the Layout Switcher's default key are gone (tool_tab_cycle.rs). Provisional: TTC-Q01..Q06. GUI check: docs/TOOL_TAB_CYCLING_GUI_QA.md.

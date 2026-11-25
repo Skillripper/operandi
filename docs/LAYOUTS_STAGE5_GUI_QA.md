@@ -34,7 +34,7 @@ mode, on the Model layout.
 
 8. [ ] Click the **UV** tab. Press **R** over the 3D view: Scale starts.
        Hover Move: `[W]`. Drop the tool.
-9. [ ] Press **Ctrl+Shift+Tab**, keep Ctrl+Shift held, Tab to Model,
+9. [ ] (Since 2026-11-25 the switcher has no default key: give "Layout Switcher" Ctrl+Shift+Tab in the Input Map first, or use Layout > Recent Layouts….) Press **Ctrl+Shift+Tab**, keep Ctrl+Shift held, Tab to Model,
        release. Model shows. Now press plain **R**: Move starts (nothing
        acts as if Ctrl or Shift were still down). Drop the tool.
 10. [ ] Start Bevel (B) and, with it still active, click the UV tab: the

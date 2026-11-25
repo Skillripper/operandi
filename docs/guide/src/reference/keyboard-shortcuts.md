@@ -134,7 +134,8 @@ These are the keys Operandi starts with. You can change any of them in the **Inp
 | Pie: Shading Style | **Control+2** |
 | Pie: Viewport Toggles | **Control+1** |
 | Pie: Layouts | **Control+` (backtick)** |
-| Layout Switcher | **Control+Shift+Tab** |
+| Next Tool Tab | **Control+Tab** |
+| Previous Tool Tab | **Control+Shift+Tab** |
 | Toggle Palettes | **` (backtick)** |
 | Node View | **Ctrl+Shift+N** |
 | What's This? | **F1** |

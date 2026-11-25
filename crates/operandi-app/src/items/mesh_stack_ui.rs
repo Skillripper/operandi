@@ -1138,6 +1138,19 @@ fn op_falloff_section(
             },
         );
         rows::value(ui, "Falloff", &shown);
+        // Steve Hill via Jason (2026-11-25): the op's falloff is its own
+        // and live; every change here re-evaluates the stack at once.
+        if let Some(next) = edit_op_falloff(ui, values, kept.as_ref()) {
+            match next.map(serde_json::to_value) {
+                Some(Ok(v)) => {
+                    changes.insert("falloff".into(), v);
+                }
+                None => {
+                    changes.insert("falloff".into(), serde_json::Value::Null);
+                }
+                Some(Err(_)) => {}
+            }
+        }
         let active = editor.primitive_weights();
         let why = if editor.spatial_falloff.is_none() {
             "Turn on a Linear, Radial, Cylinder or Noise falloff from the Falloff menu first"
@@ -1168,9 +1181,166 @@ fn op_falloff_section(
         );
         rows::note(
             ui,
-            "The Falloff Scale, Offset, Twist, Sample At and Spacing rows say what it does.",
+            "The Falloff Scale, Offset, Twist, Sample At and Spacing rows say what it does. \
+             Drag its points in the view while this operation is selected.",
         );
     });
+}
+
+/// The op's own falloff rows: its type, then that type's values. Returns
+/// the changed falloff (`Some(None)` = turned off), if any.
+fn edit_op_falloff(
+    ui: &mut egui::Ui,
+    values: &serde_json::Value,
+    kept: Option<&operandi_core::ShapeWeights>,
+) -> Option<Option<operandi_core::ShapeWeights>> {
+    use crate::form::{Unit, rows};
+    use operandi_core::{CylinderFalloff, Falloff, FalloffShape, LinearFalloff, RadialFalloff};
+    let kind = |f: &Falloff| match f {
+        Falloff::Linear(_) => 1,
+        Falloff::Radial(_) => 2,
+        Falloff::Cylinder(_) => 3,
+        Falloff::Noise(_) => 4,
+        _ => 5,
+    };
+    let now = kept.map_or(0, |w| kind(&w.first));
+    let mut pick = now;
+    let mut options = vec![
+        (0, "None"),
+        (1, "Linear"),
+        (2, "Radial"),
+        (3, "Cylinder"),
+        (4, "Noise"),
+    ];
+    if now == 5 {
+        options.push((5, "(other)"));
+    }
+    rows::choice_d(
+        ui,
+        "Falloff Type",
+        &mut pick,
+        &0,
+        &options,
+        "This operation's own falloff",
+    );
+    // A new falloff starts fitted to the shape: along its axis, from its
+    // base (none) to its top (full).
+    let f64_of = |k: &str| values.get(k).and_then(|v| v.as_f64()).unwrap_or(0.);
+    let centre = glam::DVec3::new(f64_of("cenX"), f64_of("cenY"), f64_of("cenZ"));
+    let full = values.get("segmentsX").is_some();
+    let size = glam::DVec3::new(f64_of("sizeX"), f64_of("sizeY"), f64_of("sizeZ"))
+        * if full { 0.5 } else { 1. };
+    let size = if size == glam::DVec3::ZERO {
+        glam::DVec3::splat(0.5)
+    } else {
+        size
+    };
+    let axis = values
+        .get("axis")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(1)
+        .min(2) as usize;
+    if pick != now {
+        let mut up = glam::DVec3::ZERO;
+        up[axis] = size[axis];
+        let first = match pick {
+            0 => return Some(None),
+            1 => Falloff::Linear(LinearFalloff {
+                start: centre + up,
+                end: centre - up,
+                ..Default::default()
+            }),
+            2 => Falloff::Radial(RadialFalloff {
+                center: centre,
+                size,
+                ..Default::default()
+            }),
+            3 => Falloff::Cylinder(CylinderFalloff {
+                center: centre,
+                size,
+                axis,
+                ..Default::default()
+            }),
+            4 => Falloff::Noise(Default::default()),
+            _ => return None,
+        };
+        return Some(Some(operandi_core::ShapeWeights {
+            first,
+            added: kept.map(|w| w.added.clone()).unwrap_or_default(),
+        }));
+    }
+    let w = kept?;
+    let mut first = w.first;
+    let shapes = [
+        (FalloffShape::Linear, "Linear"),
+        (FalloffShape::EaseIn, "Ease-In"),
+        (FalloffShape::EaseOut, "Ease-Out"),
+        (FalloffShape::Smooth, "Smooth"),
+    ];
+    let vector = |ui: &mut egui::Ui, label: &str, v: &mut glam::DVec3, tip: &str| {
+        let first = format!("{label} X");
+        for (a, l) in [(0, first.as_str()), (1, "Y"), (2, "Z")] {
+            rows::number_d(ui, l, &mut v[a], 0., Unit::Distance, -1e9..=1e9, tip);
+        }
+    };
+    let shape_row = |ui: &mut egui::Ui, s: &mut FalloffShape| {
+        rows::choice_d(
+            ui,
+            "Shape",
+            s,
+            &FalloffShape::Linear,
+            &shapes,
+            "How the weight fades",
+        );
+    };
+    match &mut first {
+        Falloff::Linear(f) => {
+            vector(ui, "Start", &mut f.start, "Where the weight is full");
+            vector(ui, "End", &mut f.end, "Where the weight is none");
+            shape_row(ui, &mut f.shape);
+        }
+        Falloff::Radial(f) => {
+            vector(ui, "Center", &mut f.center, "Where the weight is full");
+            vector(
+                ui,
+                "Size",
+                &mut f.size,
+                "How far it reaches along X, Y and Z",
+            );
+            shape_row(ui, &mut f.shape);
+        }
+        Falloff::Cylinder(f) => {
+            vector(ui, "Center", &mut f.center, "A point on the tube's axis");
+            vector(ui, "Size", &mut f.size, "The tube's radii");
+            rows::choice_d(
+                ui,
+                "Axis",
+                &mut f.axis,
+                &1,
+                &[(0, "X"), (1, "Y"), (2, "Z")],
+                "The tube's axis",
+            );
+            shape_row(ui, &mut f.shape);
+        }
+        Falloff::Noise(f) => {
+            rows::number_d(
+                ui,
+                "Noise Scale",
+                &mut f.scale,
+                1.,
+                Unit::Distance,
+                -1e9..=1e9,
+                "Size of the noise blobs",
+            );
+        }
+        _ => {}
+    }
+    (first != w.first && first.validate().is_ok()).then(|| {
+        Some(operandi_core::ShapeWeights {
+            first,
+            added: w.added.clone(),
+        })
+    })
 }
 
 #[cfg(test)]

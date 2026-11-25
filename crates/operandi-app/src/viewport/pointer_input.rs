@@ -1003,6 +1003,11 @@ impl Operandi {
                     } else if modifiers.is_none() && self.uv_view_project_click(r) {
                         // UVT-19: Project from View projects from this view.
                         input::GestureKind::Blocked
+                    } else if modifiers.is_none()
+                        && let Some(grab) = self.meshop_handle_hit(pos, r)
+                    {
+                        // The selected primitive MeshOp's handles.
+                        input::GestureKind::MeshOpHandle(Box::new(grab))
                     } else if let (Some(handle), Some(field)) =
                         (self.falloff_hit(pos, r), self.editor.spatial_falloff)
                     {

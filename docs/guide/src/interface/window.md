@@ -21,7 +21,11 @@ numbers match the list below.
    stays as it is.
 3. **Tool Tabs**: click a tab (**Create**, **Select**, **Deform**, …) to
    fill the **Toolbox** with that family of tools. Drag a tab along the row
-   to put the tabs in the order you like.
+   to put the tabs in the order you like. From the keyboard,
+   **Control+Tab** opens the next tab to the right and
+   **Control+Shift+Tab** the one to the left; at the end of the row they
+   wrap round to the other end. The tab opens as soon as you press the
+   keys, and the tool you are using stays active.
 4. **Panel-group tabs**: click a tab (**Items**, **Shader Tree**,
    **Groups**, **Mesh Stack**) to choose which list fills this panel; the
    **+** adds another one.

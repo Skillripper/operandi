@@ -1997,6 +1997,7 @@ impl Operandi {
                 );
             }
             self.draw_falloff(&painter, r);
+            self.draw_meshop_handles(&painter, r);
             self.draw_bend(
                 &painter,
                 r,
