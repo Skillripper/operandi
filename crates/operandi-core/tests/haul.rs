@@ -157,3 +157,29 @@ fn loop_slice_inset_digs_the_cut_in_along_the_normal() {
     o.inset = f64::NAN;
     assert!(operandi_core::slice::loop_slice_geometry(&mesh, &o, &[]).is_err());
 }
+
+#[test]
+fn every_meshop_row_names_a_primitive_op_and_its_whole_number_values() {
+    // GitHub #26: each Mesh Stack row's values are the op's own counts.
+    let rows = haul::meshop_table();
+    assert!(haul::meshop_row("prim.cylinder.item").is_some());
+    assert!(haul::meshop_row("prim.teapot.item").is_none());
+    for row in rows {
+        let def = operandi_core::meshop_types::op_def(&row.tool)
+            .unwrap_or_else(|| panic!("{} isn't an op type", row.tool));
+        let defaults = def.defaults();
+        for key in [row.right.sideways.as_deref(), row.right.up.as_deref()]
+            .into_iter()
+            .flatten()
+        {
+            assert!(
+                defaults.get(key).is_some_and(serde_json::Value::is_u64),
+                "{}: {key} isn't a whole-number value",
+                row.tool
+            );
+        }
+        assert!(!row.claims(Button::Left) && !row.claims(Button::Middle));
+    }
+    let twice = "[[meshop]]\ntool = \"a\"\n[[meshop]]\ntool = \"a\"\n";
+    assert!(haul::parse_meshops(twice).is_err());
+}

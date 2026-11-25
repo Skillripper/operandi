@@ -114,6 +114,10 @@ struct File {
     /// an editor [`Tool`] (GitHub #13); `tool` names the [`Session`].
     #[serde(default)]
     session: Vec<Row>,
+    /// Mesh Stack primitive ops (GitHub #26): `tool` is the op type
+    /// (`prim.cylinder.item`) and the values are the op's own value names.
+    #[serde(default)]
+    meshop: Vec<Row>,
 }
 
 /// The numeric create sessions the layer can drive (GitHub #13): tools
@@ -188,6 +192,33 @@ pub fn session_row(session: Session) -> Option<&'static Row> {
         .iter()
         .find(|(s, _)| *s == session)
         .map(|(_, r)| r)
+}
+
+/// Every Mesh Stack op row from TOML text, by op type; refuses an op
+/// listed twice. That each type and value exists is checked in
+/// `mesh_stack_tests`, which knows the op table.
+pub fn parse_meshops(text: &str) -> std::result::Result<Vec<Row>, String> {
+    let file: File = toml::from_str(text).map_err(|e| e.to_string())?;
+    let mut rows: Vec<Row> = Vec::new();
+    for row in file.meshop {
+        if rows.iter().any(|r| r.tool == row.tool) {
+            return Err(format!("hauls: {} is listed twice", row.tool));
+        }
+        rows.push(row);
+    }
+    Ok(rows)
+}
+
+/// The factory Mesh Stack op rows, read once.
+pub fn meshop_table() -> &'static [Row] {
+    static ROWS: OnceLock<Vec<Row>> = OnceLock::new();
+    ROWS.get_or_init(|| parse_meshops(FACTORY_TOML).expect("presets/factory-hauls.toml"))
+}
+
+/// The row for Mesh Stack op type `type_id` (`prim.cylinder.item`), if
+/// the table has one (GitHub #26).
+pub fn meshop_row(type_id: &str) -> Option<&'static Row> {
+    meshop_table().iter().find(|r| r.tool == type_id)
 }
 
 /// The factory table, read once.

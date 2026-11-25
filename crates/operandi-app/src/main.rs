@@ -4421,6 +4421,8 @@ mod handle_style_menu_tests;
 #[path = "view/handle_tips_tests.rs"]
 mod handle_tips_tests;
 #[cfg(test)]
+#[path = "tools/haul_meshop_tests.rs"]
+mod haul_meshop_tests;
 #[path = "tools/haul_session_tests.rs"]
 mod haul_session_tests;
 #[cfg(test)]

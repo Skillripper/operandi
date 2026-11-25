@@ -102,6 +102,39 @@ right = { sideways = "tor_sides", up = "tor_segments" }
 tool = "Tube"
 right = { sideways = "tub_sides", up = "tub_segments" }
 
+# Mesh Stack primitive ops (GitHub #26): with the op's row selected and
+# no tool on, the same right-drag as the tool changes the op's own values
+# (`tool` is the op type, the values are its value names). The Cube
+# follows the Cube tool on the default work plane: X sideways, Z up.
+
+[[meshop]]
+tool = "prim.capsule.item"
+right = { sideways = "sides", up = "segments" }
+
+[[meshop]]
+tool = "prim.cone.item"
+right = { sideways = "sides", up = "segments" }
+
+[[meshop]]
+tool = "prim.cube.item"
+right = { sideways = "segmentsX", up = "segmentsZ" }
+
+[[meshop]]
+tool = "prim.cylinder.item"
+right = { sideways = "sides", up = "segments" }
+
+[[meshop]]
+tool = "prim.ellipsoid.item"
+right = { sideways = "sides", up = "segments" }
+
+[[meshop]]
+tool = "prim.sphere.item"
+right = { sideways = "sides", up = "segments" }
+
+[[meshop]]
+tool = "prim.toroid.item"
+right = { sideways = "sides", up = "segments" }
+
 # Not wired yet (spec section 2):
 # - Left-button values of Polygon Bevel, Edge Bevel, Chamfer edit, Vertex
 #   Bevel, Vertex Extrude and Smooth Shift: their left drag anywhere already

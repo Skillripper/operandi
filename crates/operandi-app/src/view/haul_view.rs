@@ -43,12 +43,20 @@ pub(crate) struct Locked {
 pub(crate) enum Owner {
     Tool(Tool),
     Session(haul::Session),
+    /// The selected Mesh Stack primitive op, with no tool on (GitHub #26):
+    /// its values change through the op, one undo step per drag.
+    Op {
+        op: operandi_core::mesh_stack_editor::OpRef,
+        row: &'static haul::Row,
+        gesture: u64,
+    },
 }
 impl Owner {
     fn row(self) -> Option<&'static haul::Row> {
         match self {
             Owner::Tool(t) => haul::row(t),
             Owner::Session(s) => haul::session_row(s),
+            Owner::Op { row, .. } => Some(row),
         }
     }
 }
@@ -119,6 +127,8 @@ fn panel(owner: Owner) -> Panel {
         Owner::Session(haul::Session::Cone) => return Panel::Cone,
         Owner::Session(haul::Session::Ellipsoid) => return Panel::Ellipsoid,
         Owner::Session(_) => return Panel::Shape,
+        // Served by `op_field` / `op_set` before the panels.
+        Owner::Op { .. } => return Panel::Live,
     };
     if tool.is_primitive() {
         Panel::Primitive
@@ -168,6 +178,9 @@ fn field_set<T: ToolFields>(app: &mut Operandi, key: &str, value: f64) -> Result
 
 impl Operandi {
     fn haul_field(&self, owner: Owner, key: &str) -> Option<FieldInfo> {
+        if let Owner::Op { op, .. } = owner {
+            return self.op_haul_field(op, key);
+        }
         match panel(owner) {
             Panel::Live => field_info::<crate::live_fields::LiveFields>(self, key),
             Panel::Primitive => field_info::<crate::primitive_panel::PrimitiveFields>(self, key),
@@ -178,6 +191,9 @@ impl Operandi {
         }
     }
     fn haul_set(&mut self, owner: Owner, key: &str, value: f64) -> Result<f64> {
+        if let Owner::Op { op, gesture, .. } = owner {
+            return self.op_haul_set(op, gesture, key, value);
+        }
         match panel(owner) {
             Panel::Cone => field_set::<crate::cone_panel::ConeFields>(self, key, value),
             Panel::Ellipsoid => {
@@ -237,11 +253,84 @@ impl Operandi {
             .then_some(session)
     }
 
+    /// The selected primitive op, when its row claims `button` (GitHub
+    /// #26). `selected_primitive_op` already needs no tool and no task.
+    fn haul_op(&self, button: Button) -> Option<Owner> {
+        let (op, _) = self.selected_primitive_op()?;
+        let item = self.editor.scene.item(op.item)?;
+        let stack = item.mesh_stack.as_ref()?;
+        let kind = &stack.ops.iter().find(|o| o.id == op.op)?.kind;
+        let row = haul::meshop_row(kind.type_id())?;
+        row.claims(button).then(|| Owner::Op {
+            op,
+            row,
+            gesture: crate::colour_field::next_gesture(),
+        })
+    }
+
     /// Whose values a drag with `button` drives, if the layer claims it.
     pub(crate) fn haul_owner(&self, button: Button) -> Option<Owner> {
         self.haul_tool(button)
             .map(Owner::Tool)
             .or_else(|| self.haul_session(button).map(Owner::Session))
+            .or_else(|| self.haul_op(button))
+    }
+
+    /// Op value `key` as a haul reads it: a whole number, labelled from
+    /// the op's own field.
+    fn op_haul_field(
+        &self,
+        op: operandi_core::mesh_stack_editor::OpRef,
+        key: &str,
+    ) -> Option<FieldInfo> {
+        let item = self.editor.scene.item(op.item)?;
+        let kind = &item
+            .mesh_stack
+            .as_ref()?
+            .ops
+            .iter()
+            .find(|o| o.id == op.op)?
+            .kind;
+        let value = kind.values().get(key)?.as_f64()?;
+        let label = kind
+            .def()
+            .and_then(|d| {
+                d.fields()
+                    .iter()
+                    .find(|f| f.key == key)
+                    .map(|f| f.label.to_string())
+            })
+            .unwrap_or_else(|| key.to_owned());
+        Some(FieldInfo {
+            value,
+            unit: Unit::Count,
+            label,
+            greyed: None,
+        })
+    }
+
+    /// Sets op value `key` (at least 1) as one undo step per drag
+    /// (SAFE-13, as the op's handles do); an op that refuses the value
+    /// keeps the last one it took.
+    fn op_haul_set(
+        &mut self,
+        op: operandi_core::mesh_stack_editor::OpRef,
+        gesture: u64,
+        key: &str,
+        value: f64,
+    ) -> Result<f64> {
+        let n = value.round().max(1.) as u64;
+        let mut values = serde_json::Map::new();
+        values.insert(key.to_owned(), n.into());
+        let previous = self.editor.undo_fold.replace(gesture);
+        let ok = self.run_ok(Command::MeshOpSet { op, values });
+        self.editor.undo_fold = previous;
+        if !ok {
+            return Err(self.status.clone());
+        }
+        self.op_haul_field(op, key)
+            .map(|f| f.value)
+            .ok_or_else(|| format!("{key} isn't on this operation"))
     }
 
     /// Start a haul with `button` at `pos`, or `None` when the live tool's
