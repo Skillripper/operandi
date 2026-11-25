@@ -512,6 +512,10 @@ pub(crate) fn field(
     {
         crate::ui_inventory::row(&row.label);
         crate::ui_inventory::row_rect(&row.label, rect);
+        // Rows with a repeated label ("Y") are found by their key too.
+        if row.key != row.label {
+            crate::ui_inventory::row_rect(&row.key, rect);
+        }
     }
     let scope = STATE.with(|s| s.borrow().scopes.last().map_or(Id::new(LOOSE), |f| f.id));
     let id = ui.id().with(("form-row", &row.key));
@@ -630,6 +634,23 @@ pub(crate) fn number_d<T: egui::emath::Numeric>(
     range: std::ops::RangeInclusive<T>,
     tip: &str,
 ) -> Response {
+    number_keyed_d(ui, label, label, value, default, unit, range, tip)
+}
+
+/// `number_d` with its own `key`, for rows whose short label repeats in
+/// one form ("Y" under both "Position X" and "Normal X"): the key keeps
+/// their typed text and focus apart (GitHub #21).
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn number_keyed_d<T: egui::emath::Numeric>(
+    ui: &mut Ui,
+    key: &str,
+    label: &str,
+    value: &mut T,
+    default: T,
+    unit: Unit,
+    range: std::ops::RangeInclusive<T>,
+    tip: &str,
+) -> Response {
     status(value.to_f64() != default.to_f64());
     set_extra(super::range_labels::extra(
         range.start().to_f64(),
@@ -641,7 +662,7 @@ pub(crate) fn number_d<T: egui::emath::Numeric>(
     } else {
         unit
     };
-    let row = Row::number(label, label, unit, default.to_f64())
+    let row = Row::number(key, label, unit, default.to_f64())
         .range(range.start().to_f64(), range.end().to_f64())
         .tip(tip);
     let mut v = Value::Number(value.to_f64());

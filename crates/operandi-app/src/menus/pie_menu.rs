@@ -599,6 +599,14 @@ impl Operandi {
         }
     }
 
+    /// Whether Item mode's plain wire decides what the wireframe toggle
+    /// does: Item mode, and a shading style other than Wireframe (which is
+    /// its own wire). `ViewDisplay::effective` has the same rule (VS-6).
+    fn item_mode_wire(&self) -> bool {
+        self.editor.scene.selection.mode == Mode::Item
+            && self.display.settings.active.style != view_display::Style::Wireframe
+    }
+
     /// A viewport toggle's state in the active view; `None`: not a toggle.
     fn toggle_state(&self, name: &str) -> Option<bool> {
         let s = &self.display.settings;
@@ -606,6 +614,9 @@ impl Operandi {
         Some(match name {
             "lights" => d.lights,
             "cameras" => d.cameras,
+            // #22: Item mode's wire follows Show Wireframe in Item Mode
+            // (VS-6), so there the toggle shows and flips that.
+            "wireframe overlay" if self.item_mode_wire() => d.item_mode_wireframe,
             "wireframe overlay" => s.active.overlay != view_display::Overlay::None,
             "show verts" => d.show_verts,
             "grid" => d.grid,
@@ -650,11 +661,13 @@ impl Operandi {
         if let Some(rest) = lowered.strip_prefix("toggle ")
             && let Some(on) = self.toggle_state(rest)
         {
+            let item_wire = self.item_mode_wire();
             let s = &mut self.display.settings;
             let d = &mut s.drawing;
             match rest {
                 "lights" => d.lights = !on,
                 "cameras" => d.cameras = !on,
+                "wireframe overlay" if item_wire => d.item_mode_wireframe = !on,
                 "wireframe overlay" => {
                     s.active.overlay = if on {
                         view_display::Overlay::None

@@ -1,5 +1,5 @@
 //! The Mesh Stack tab through the real panel (Mesh Stack v1, MO-10..28).
-use super::tests::{draw, pointer};
+use super::tests::{draw, key, pointer};
 use super::*;
 use crate::mesh_stack_ui::OpKey;
 use operandi_core::mesh_stack_editor::OpRow;
@@ -505,4 +505,89 @@ fn a_click_in_the_add_operator_browser_over_a_view_stays_in_the_browser() {
             "{what}: the browser stays open"
         );
     }
+}
+
+/// Replace a number field's text and confirm it with Return.
+/// Tall enough that the Select by Plane rows fit on screen.
+const TALL: Vec2 = vec2(1440., 1800.);
+
+fn type_into(a: &mut Operandi, ctx: &Context, at: Pos2, new: &str) {
+    draw(a, ctx, TALL, vec![Event::PointerMoved(at)]);
+    draw(
+        a,
+        ctx,
+        TALL,
+        vec![
+            pointer(at, true, Modifiers::NONE),
+            pointer(at, false, Modifiers::NONE),
+        ],
+    );
+    let mut events = vec![key(Key::End)];
+    events.extend((0..24).map(|_| key(Key::Backspace)));
+    events.push(Event::Text(new.into()));
+    draw(a, ctx, TALL, events);
+    draw(a, ctx, TALL, vec![key(Key::Enter)]);
+    draw(a, ctx, TALL, vec![]);
+}
+
+#[test]
+fn select_by_plane_position_and_normal_fields_are_separate() {
+    // GitHub #21: Position Y/Z and Normal Y/Z shared their "Y"/"Z" fields.
+    use operandi_core::meshop_selection::{SelKind, SelOp};
+    let (mut a, ctx, id) = stacked();
+    a.run(Command::MeshOpCreate("poly.bevel.item".into()));
+    let (_, op) = a.selected_mesh_op().expect("the new Bevel is selected");
+    let plane = SelKind::menu()
+        .into_iter()
+        .find(|(l, _)| *l == "Select by Plane")
+        .unwrap()
+        .1;
+    a.run(Command::MeshOpSelOp {
+        op: operandi_core::mesh_stack_editor::OpRef { item: id, op },
+        edit: operandi_core::mesh_stack_editor::SelOpEdit::Add(SelOp::new(plane)),
+    });
+    let values = |a: &Operandi| {
+        let stack = a.editor.scene.items[0].mesh_stack.as_ref().unwrap();
+        let o = stack.ops.iter().find(|o| o.id == op).unwrap();
+        match o.selops[0].kind {
+            SelKind::Plane {
+                x,
+                y,
+                z,
+                nx,
+                ny,
+                nz,
+                ..
+            } => [x, y, z, nx, ny, nz],
+            ref k => panic!("{k:?}"),
+        }
+    };
+    let field = |a: &mut Operandi, name: &str| {
+        crate::ui_inventory::take_rects();
+        draw(a, &ctx, TALL, vec![]);
+        let rects = crate::ui_inventory::take_rects();
+        rects
+            .get(name)
+            .unwrap_or_else(|| panic!("{name} in {:?}", rects.keys()))
+            .center()
+    };
+    let start = values(&a);
+    let at = field(&mut a, "Normal Z");
+    type_into(&mut a, &ctx, at, "2");
+    let after = values(&a);
+    assert_eq!(
+        after[5], 2.0,
+        "Normal Z took the value: {after:?} ({})",
+        a.status
+    );
+    assert_eq!(after[..3], start[..3], "Position untouched: {after:?}");
+    let at = field(&mut a, "Position Y");
+    type_into(&mut a, &ctx, at, "3");
+    let after = values(&a);
+    assert_eq!(after[1], 3.0, "Position Y took the value: {after:?}");
+    assert_eq!(
+        after[3..],
+        [start[3], start[4], 2.0],
+        "Normal untouched: {after:?}"
+    );
 }

@@ -329,7 +329,9 @@ impl Operandi {
                     self.planar.last_base = Some(i);
                 } else {
                     self.planar.last_base = None;
-                    let factor = (along / abs.base[axis]).max(0.001);
+                    // #24: down to 0% (items 0.1%); the base length is
+                    // never 0.
+                    let factor = (along / abs.base[axis]).max(self.scale_floor());
                     if self.handle_constrain {
                         // Ctrl: every axis by the same factor (HM-30).
                         params.delta = DVec3::splat(factor);

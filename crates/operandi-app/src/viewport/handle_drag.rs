@@ -4,6 +4,15 @@
 use super::*;
 
 impl Operandi {
+    /// The least a Scale handle goes: 0 % for components (GitHub #24),
+    /// 0.1 % for items, whose scale can't be zero (IT-04).
+    pub(crate) fn scale_floor(&self) -> f64 {
+        if self.editor.scene.selection.mode == Mode::Item {
+            0.001
+        } else {
+            0.
+        }
+    }
     pub(crate) fn update_handle(
         &mut self,
         axis: usize,
@@ -74,8 +83,16 @@ impl Operandi {
             // Right or up enlarges, left or down shrinks; ratios are kept.
             let pixels = ((p.x - start.x) - (p.y - start.y)) as f64;
             let mut params = base;
-            let factor = (1. + pixels * 0.01).max(0.001 / params.delta.min_element().max(1e-9));
-            params.delta *= factor;
+            // #24: down to 0%. A drag that starts at 0 on every axis has no
+            // ratio to keep, so it grows all three from 0 together.
+            let floor = self.scale_floor();
+            if params.delta.abs().max_element() <= 1e-9 {
+                params.delta = DVec3::splat((pixels * 0.01).max(floor));
+            } else {
+                let least = params.delta.min_element();
+                let factor = (1. + pixels * 0.01).max(if least > 0. { floor / least } else { 0. });
+                params.delta *= factor;
+            }
             self.run(Command::Preview(params));
             self.clear_fields();
             return;
@@ -246,12 +263,19 @@ impl Operandi {
                 }
             }
             Tool::Scale => {
-                let scaled = (params.delta[axis] + pixels as f64 * 0.01).max(0.001);
+                // #24: an axis handle reaches 0% (it stopped at 0.1%).
+                let floor = self.scale_floor();
+                let scaled = (params.delta[axis] + pixels as f64 * 0.01).max(floor);
                 if self.handle_constrain {
                     // HM-30: Ctrl on one axis handle scales all three axes by
-                    // the same factor (equal when they start equal).
-                    let factor = scaled / params.delta[axis].max(1e-9);
-                    params.delta = (params.delta * factor).max(DVec3::splat(0.001));
+                    // the same factor (equal when they start equal). From 0
+                    // there is no factor: all three take the dragged value.
+                    if params.delta[axis].abs() <= 1e-9 {
+                        params.delta = DVec3::splat(scaled);
+                    } else {
+                        let factor = scaled / params.delta[axis];
+                        params.delta = (params.delta * factor).max(DVec3::splat(floor));
+                    }
                 } else {
                     params.delta[axis] = scaled;
                 }

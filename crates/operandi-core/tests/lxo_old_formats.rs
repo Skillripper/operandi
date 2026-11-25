@@ -352,6 +352,17 @@ fn corruption_still_refuses() {
     .unwrap_err();
     assert_eq!(e.category, "duplicate_item_id");
     assert!(e.detail.contains("[LXO format 2.1]"), "{}", e.detail);
+    // GitHub #20: the message says the file is old and how to get it in.
+    assert_eq!(e.format, Some((2, 1)));
+    let shown = e.to_string();
+    assert!(
+        shown.starts_with("This scene was saved by an older version of Modo"),
+        "{shown}"
+    );
+    assert!(
+        shown.contains("save it again") && shown.contains("duplicate_item_id"),
+        "{shown}"
+    );
     // A polygon corner past the last point.
     let e = parse(&file(&Options {
         last_corner: 40,

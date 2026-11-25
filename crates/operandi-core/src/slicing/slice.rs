@@ -896,6 +896,57 @@ pub fn loop_slice_geometry(
     o: &LoopSlice,
     selected_faces: &[u32],
 ) -> Result<SliceResult> {
+    loop_slice_cut(mesh, o, selected_faces, false)
+}
+
+/// Slice Selected with edges selected (GitHub #23, provisional, LS-Q20):
+/// the cut crosses only the selected edges. A polygon is cut when the two
+/// sides the cut crosses are both selected; a selected edge with no such
+/// polygon is cut through the polygons on either side of it alone.
+/// Unselected polygons take the new points, as with polygons (LS-72).
+fn edge_selection_rings(mesh: &Mesh, edges: &[(u32, u32)], ngon: bool) -> Result<Vec<Ring>> {
+    let point_faces = mesh.point_faces();
+    let selected: BTreeSet<(u32, u32)> = edges.iter().map(|&(a, b)| edge_key(a, b)).collect();
+    let mut allowed: BTreeSet<usize> = BTreeSet::new();
+    let mut paired: BTreeSet<(u32, u32)> = BTreeSet::new();
+    for &(a, b) in &selected {
+        for f in faces_of_edge(mesh, &point_faces, a, b) {
+            if mesh.is_polyline(f) {
+                continue;
+            }
+            if let Some((c, d)) = across(&mesh.faces[f].vertices, a, b, ngon)
+                && selected.contains(&edge_key(c, d))
+            {
+                allowed.insert(f);
+                paired.insert((a, b));
+                paired.insert(edge_key(c, d));
+            }
+        }
+    }
+    for &(a, b) in selected.difference(&paired) {
+        allowed.extend(faces_of_edge(mesh, &point_faces, a, b));
+    }
+    let mut covered: BTreeSet<(u32, u32)> = BTreeSet::new();
+    let mut rings = Vec::new();
+    for &(a, b) in edges {
+        if covered.contains(&edge_key(a, b)) {
+            continue;
+        }
+        let ring = walk_ring(mesh, a, b, Some(&allowed), ngon)?;
+        covered.extend(ring.edges.iter().map(|&(x, y)| edge_key(x, y)));
+        rings.push(ring);
+    }
+    Ok(rings)
+}
+
+/// `loop_slice_geometry`, with `edge_selection` set when the rings are the
+/// selected edges (Edge mode), which Slice Selected then keeps to (#23).
+pub(crate) fn loop_slice_cut(
+    mesh: &Mesh,
+    o: &LoopSlice,
+    selected_faces: &[u32],
+    edge_selection: bool,
+) -> Result<SliceResult> {
     if !o.tension.is_finite() || !(-10. ..=10.).contains(&o.tension) {
         return Err("Tension must be between -1000% and 1000%".into());
     }
@@ -919,6 +970,15 @@ pub fn loop_slice_geometry(
         // Slice Selected follows the selection itself, whichever ring was
         // picked (LS-75: pick order doesn't matter).
         Some(selected) => selection_rings(mesh, selected, o.slice_ngon),
+        None if o.slice_selected && edge_selection && !o.rings.is_empty() => {
+            if o.rings
+                .iter()
+                .any(|&(a, b)| !counts.contains_key(&edge_key(a, b)))
+            {
+                return Err("A ring edge is no longer in the mesh".into());
+            }
+            edge_selection_rings(mesh, &o.rings, o.slice_ngon)?
+        }
         None => {
             let mut walked = Vec::new();
             // LS-75: with Slice Selected off an L of selected polygons is
@@ -2058,7 +2118,9 @@ pub(crate) fn preview(
             // from the mirrored edge so the cut lands at the mirror position.
             let mut o = p.loop_slice.clone();
             o.rings = mirrored_rings(&item.mesh, &o.rings, symmetry);
-            let (mesh, edges, pieces) = loop_slice_geometry(&item.mesh, &o, &selected_faces)?;
+            let edge_selection = mode == Mode::Edge && !scene.selection.edges.is_empty();
+            let (mesh, edges, pieces) =
+                loop_slice_cut(&item.mesh, &o, &selected_faces, edge_selection)?;
             scene.active_mut().ok_or("Select a mesh")?.mesh = mesh.into();
             keep_valid_selection(scene);
             if p.loop_slice.select_new && !edges.is_empty() {

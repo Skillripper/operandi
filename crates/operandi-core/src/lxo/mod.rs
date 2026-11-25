@@ -30,6 +30,10 @@ pub struct Error {
     pub category: &'static str,
     pub offset: usize,
     pub detail: String,
+    /// The file's format version (VRSN), once it was read. A refusal of a
+    /// format 4.x or older file (Modo 10 and earlier) tells the user to
+    /// re-save it in a current Modo (GitHub #20).
+    pub format: Option<(u32, u32)>,
 }
 impl Error {
     pub fn new(category: &'static str, offset: usize, detail: &str) -> Self {
@@ -37,6 +41,7 @@ impl Error {
             category,
             offset,
             detail: detail.chars().take(768).collect(),
+            format: None,
         }
     }
 }
@@ -53,6 +58,15 @@ impl fmt::Display for Error {
                 f,
                 "This LXO is from a Modo version Operandi can't read yet. Operandi reads Modo 8–10, 16 and 17 modeling scenes. ({}, byte {})",
                 self.detail, self.offset
+            );
+        }
+        // A refusal of an old file (Modo 10 or earlier) is usually something
+        // a newer Modo cleans up on save, so lead with what to do (#20).
+        if matches!(self.format, Some((major, _)) if major <= 4) && self.category != "cancelled" {
+            return write!(
+                f,
+                "This scene was saved by an older version of Modo (10 or earlier) and Operandi couldn't read it. Open it in Modo 16 or 17, save it again, then open the new copy. (Details: {} at byte {}: {}.)",
+                self.category, self.offset, self.detail
             );
         }
         write!(
@@ -411,6 +425,7 @@ fn parse_reserved(bytes: &[u8], control: &mut Control<'_>, forms: &[[u8; 4]]) ->
     result.map_err(|mut e| {
         if let Some((major, minor)) = vrsn {
             e.detail = format!("{} [LXO format {major}.{minor}]", e.detail);
+            e.format = Some((major, minor));
         }
         e
     })

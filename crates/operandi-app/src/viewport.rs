@@ -75,7 +75,7 @@ fn handle_arrow_head(painter: &egui::Painter, from: Pos2, tip: Pos2, color: Colo
     ));
 }
 
-const SCALE_UNIFORM_HANDLE: usize = 3;
+pub(crate) const SCALE_UNIFORM_HANDLE: usize = 3;
 /// Pseudo-handle id for dragging an Extrude off its gizmo (free movement).
 const EXTRUDE_FREE_HANDLE: usize = 9;
 /// Pseudo-handle id for dragging Vertex Bevel anywhere in the viewport.

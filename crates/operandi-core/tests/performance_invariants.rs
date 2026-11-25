@@ -147,8 +147,9 @@ fn dense_edge_preview_cancel_history_and_roundtrip_preserve_attributes() {
     let before = editor.clone();
     assert!(
         editor
+            // A negative component scale is refused (0 is allowed, #24).
             .dispatch(Command::Preview(Parameters {
-                delta: DVec3::ZERO,
+                delta: DVec3::splat(-1.),
                 ..Default::default()
             }))
             .is_err()

@@ -93,8 +93,12 @@ fn direction(ui: &mut Ui, label: &str, x: &mut f64, y: &mut f64, z: &mut f64, d:
     use crate::form::{Unit, rows};
     let first = format!("{label} X");
     for (l, v, dv) in [(first.as_str(), x, d.0), ("Y", y, d.1), ("Z", z, d.2)] {
-        rows::number_d(
+        // #21: "Y" and "Z" repeat under Position and Normal; each row
+        // keys on its whole name so their fields stay apart.
+        let key = format!("{label} {}", l.trim_start_matches(label).trim());
+        rows::number_keyed_d(
             ui,
+            &key,
             l,
             v,
             dv,
@@ -102,6 +106,24 @@ fn direction(ui: &mut Ui, label: &str, x: &mut f64, y: &mut f64, z: &mut f64, d:
             -1e9..=1e9,
             "A direction; only its way matters",
         );
+    }
+}
+
+/// Three rows for a position, "<label> X" then "Y" and "Z", each keyed on
+/// its whole name (#21), defaulting to the origin.
+fn position_rows(
+    ui: &mut Ui,
+    label: &str,
+    x: &mut f64,
+    y: &mut f64,
+    z: &mut f64,
+    unit: crate::form::Unit,
+    tip: &str,
+) {
+    let first = format!("{label} X");
+    for (axis, l, v) in [("X", first.as_str(), x), ("Y", "Y", y), ("Z", "Z", z)] {
+        let key = format!("{label} {axis}");
+        crate::form::rows::number_keyed_d(ui, &key, l, v, 0., unit, -1e9..=1e9, tip);
     }
 }
 
@@ -306,17 +328,13 @@ fn selection_ops(
                     negative,
                     include_zero,
                 } => {
-                    for (label, v) in [("Position X", x), ("Y", y), ("Z", z)] {
-                        rows::number_d(ui, label, v, 0., Unit::Distance, -1e9..=1e9, "A point on the plane");
-                    }
+                    position_rows(ui, "Position", x, y, z, Unit::Distance, "A point on the plane");
                     direction(ui, "Normal", nx, ny, nz, (0., 1., 0.));
                     rows::check_d(ui, "Negative Side", negative, false, "Pick the side the normal points away from");
                     rows::check_d(ui, "Include Zero", include_zero, true, "Elements on the plane count too");
                 }
                 SelKind::Distance { x, y, z, min, max } => {
-                    for (label, v) in [("From X", x), ("Y", y), ("Z", z)] {
-                        rows::number_d(ui, label, v, 0., Unit::Distance, -1e9..=1e9, "Where distance is measured from");
-                    }
+                    position_rows(ui, "From", x, y, z, Unit::Distance, "Where distance is measured from");
                     min_max(ui, min, max, 0., 1., Unit::Distance, "distance of each element's centre");
                 }
                 SelKind::RandomCount {

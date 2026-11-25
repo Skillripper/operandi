@@ -588,3 +588,31 @@ fn letting_go_of_the_modifier_first_runs_the_slot() {
     assert!(a.pie.is_none());
     assert_eq!(a.camera.view, View::Right);
 }
+
+/// GitHub #22: in Item mode the Wireframe toggle hides and shows the wire
+/// there (Show Wireframe in Item Mode, VS-6); component modes keep their
+/// overlay.
+#[test]
+fn wireframe_toggle_works_in_item_mode() {
+    let mut a = perspective_app();
+    a.editor.scene.selection.mode = Mode::Item;
+    let toggle = "Toggle Wireframe Overlay";
+    let shown = |a: &Operandi| {
+        let g = a.display.settings.active;
+        a.display.effective(g, Mode::Item).overlay != view_display::Overlay::None
+    };
+    assert!(shown(&a));
+    assert_eq!(a.pie_status(toggle).mark, Mark::Toggle(true));
+    a.execute(toggle);
+    assert!(!shown(&a), "the wire is hidden in Item mode");
+    assert_eq!(a.pie_status(toggle).mark, Mark::Toggle(false));
+    // Component modes still show their own overlay.
+    let g = a.display.settings.active;
+    assert_ne!(
+        a.display.effective(g, Mode::Polygon).overlay,
+        view_display::Overlay::None
+    );
+    a.execute(toggle);
+    assert!(shown(&a));
+    assert_eq!(a.pie_status(toggle).mark, Mark::Toggle(true));
+}

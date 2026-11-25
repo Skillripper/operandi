@@ -35,7 +35,7 @@ The slice tools cut new edges into a mesh: along a line, a curve, a loop round t
 | **Current** | Which loop the **Position** field edits. | 0 |
 | **Uniform** | Spaces the loops evenly. |  |
 | **Position** | Where the current loop crosses its polygons. | 50% |
-| **Slice Selected** | Cuts only the selected polygons, not the whole ring. | Off |
+| **Slice Selected** | Cuts only the selected polygons, not the whole ring. With edges selected, the cut crosses only those edges: a polygon is cut when both sides the cut crosses are selected, and a lone selected edge cuts just the polygons either side of it. | Off |
 | **Slice N-gon** | Also cuts through polygons with more than four sides. | Off |
 | **Preserve Curvature** | Bends new points out to follow the surface's curve. | Off |
 

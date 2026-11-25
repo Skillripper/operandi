@@ -1104,16 +1104,27 @@ impl Editor {
                     (live.tool == Tool::Scale).then_some(p.delta)
                 };
                 // IT-04: with Negative Scale on, an item scale may flip sign
-                // (never zero). Components keep the positive-only rule.
-                let negative_ok = p.negative_scale && scene.selection.mode == Mode::Item;
-                if let Some(f) = factors
-                    && (f.abs().min_element() <= 1e-8 || (!negative_ok && f.min_element() <= 1e-8))
-                {
-                    return Err(if negative_ok {
-                        "Scale can't be zero".into()
-                    } else {
-                        "Scale must be positive; turn on Negative Scale for items".into()
-                    });
+                // (never zero: a zero item scale has no inverse). Components
+                // may reach 0 %, collapsing onto the centre (GitHub #24),
+                // but never go negative.
+                let item_mode = scene.selection.mode == Mode::Item;
+                let negative_ok = p.negative_scale && item_mode;
+                if let Some(f) = factors {
+                    if !item_mode && f.min_element() < 0. {
+                        return Err(
+                            "Scale can't be below 0 %; turn on Negative Scale for items".into()
+                        );
+                    }
+                    if item_mode
+                        && (f.abs().min_element() <= 1e-8
+                            || (!negative_ok && f.min_element() <= 1e-8))
+                    {
+                        return Err(if negative_ok {
+                            "Scale can't be zero".into()
+                        } else {
+                            "Scale must be positive; turn on Negative Scale for items".into()
+                        });
+                    }
                 }
                 if scene.selection.mode == Mode::Item
                     && let Some(targets) = live.base.item_transform_targets()
@@ -1235,6 +1246,17 @@ impl Editor {
                                 };
                                 crate::local_piece_frames(&item.mesh, &vertices, &selection)
                             });
+                        // #24: a scale reaching 0 flattens polygons on
+                        // purpose; they are marked as deliberate degenerate
+                        // polygons, as Inset 0 and Poly Haul do.
+                        let factors = match live.tool {
+                            Tool::Scale => Some(p.delta),
+                            Tool::Transform => Some(p.scale_delta),
+                            _ => None,
+                        };
+                        let collapsed: Option<Vec<u32>> = factors
+                            .filter(|f| f.min_element() <= 1e-12)
+                            .map(|_| vertices.iter().copied().collect());
                         for i in vertices {
                             let stored = &mut item.mesh.vertices[i as usize];
                             let role = map.role(*stored);
@@ -1308,6 +1330,9 @@ impl Editor {
                                 }
                             };
                             *stored = map.apply(*stored, edit);
+                        }
+                        if let Some(moved) = collapsed {
+                            mark_collapsed(&mut item.mesh, &moved);
                         }
                     }
                 }
@@ -1425,5 +1450,27 @@ impl Editor {
             scene.selection.edges.clear();
         }
         Ok(result.note)
+    }
+}
+
+/// Mark the polygons using `moved` points that a scale to 0 left with no
+/// area as deliberate degenerate polygons (GitHub #24).
+fn mark_collapsed(mesh: &mut crate::Mesh, moved: &[u32]) {
+    let mut touched = vec![false; mesh.vertices.len()];
+    for &v in moved {
+        if let Some(t) = touched.get_mut(v as usize) {
+            *t = true;
+        }
+    }
+    for f in 0..mesh.faces.len() {
+        if !mesh.is_polyline(f)
+            && mesh.faces[f]
+                .vertices
+                .iter()
+                .any(|&v| touched.get(v as usize) == Some(&true))
+            && mesh.normal(f) == glam::DVec3::ZERO
+        {
+            mesh.attributes.degenerate_faces.insert(f as u32);
+        }
     }
 }

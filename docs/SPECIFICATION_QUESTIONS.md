@@ -7062,6 +7062,13 @@ Builder's provisional readings; the spec's own questions are in
   which side? Also open: a click on a polygon's middle (not near an edge)
   while Loop Slice is live only says "click an edge" (LS-03 covers edge
   clicks only).
+- **LS-Q20 (new, GitHub #23) Slice Selected with edges selected.** LS-32
+  names selected polygons only, so in Edge mode Slice Selected did nothing
+  and the whole ring was cut. Built *provisional:* the cut crosses only the
+  selected edges. A polygon is cut when both sides the cut crosses are
+  selected; a selected edge with no such polygon cuts just the polygons on
+  either side of it. Unselected polygons take the new points (LS-72). What
+  does the reference do with edges selected?
 - **LS-B09 Slices keep creation order (LS-71).** Free mode no longer sorts
   positions; Current, the bar's highlighted triangle and the middle-drag
   stepping follow the order the slices were added. Uniform and Symmetry

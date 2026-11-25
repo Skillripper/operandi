@@ -597,6 +597,8 @@ mod rig_phase6_milestones;
 mod rig_schematic;
 #[path = "rig_setup.rs"]
 mod rig_setup;
+#[path = "scale_to_zero.rs"]
+mod scale_to_zero;
 #[path = "scene_budget.rs"]
 mod scene_budget;
 #[path = "scene_transfer.rs"]

@@ -4789,6 +4789,9 @@ mod solid_sketch_ui_tests;
 #[path = "transforms/scale_offset_tests.rs"]
 mod scale_offset_tests;
 #[cfg(test)]
+#[path = "transforms/scale_to_zero_tests.rs"]
+mod scale_to_zero_tests;
+#[cfg(test)]
 #[path = "transforms/set_position_tests.rs"]
 mod set_position_tests;
 
