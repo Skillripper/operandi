@@ -12,6 +12,9 @@ blends smoothly into place.
   when you drop it.
 - The falloff's settings appear under the tool's own in **Tool
   Properties**, and its handles in the 3D view.
+- Type a falloff value and press **Enter**, or drag the arrows at the
+  end of its field, and the tool's result updates at once (a **Noise**
+  falloff's **Scale** sets the size of its lumps).
 - **Esc** in the view clears the falloff while no edit is in progress.
 - Each drag is one undo step. With nothing selected, a tool works on the
   whole mesh.

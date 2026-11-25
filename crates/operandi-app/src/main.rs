@@ -4401,6 +4401,9 @@ mod handle_style_menu_tests;
 #[path = "view/handle_tips_tests.rs"]
 mod handle_tips_tests;
 #[cfg(test)]
+#[path = "tools/haul_session_tests.rs"]
+mod haul_session_tests;
+#[cfg(test)]
 #[path = "tools/haul_tests.rs"]
 mod haul_tests;
 #[cfg(test)]
@@ -4598,6 +4601,9 @@ mod falloff_batch5_tests;
 #[cfg(test)]
 #[path = "deformers/falloff_batch6_tests.rs"]
 mod falloff_batch6_tests;
+#[cfg(test)]
+#[path = "deformers/falloff_noise_scale_tests.rs"]
+mod falloff_noise_scale_tests;
 #[cfg(test)]
 #[path = "deformers/falloff_panel_tests.rs"]
 mod falloff_panel_tests;

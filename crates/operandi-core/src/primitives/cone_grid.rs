@@ -2,26 +2,46 @@
 //! matches the measured 5-, 8- and 12-sided caps (cone-2026-11-05 and
 //! primitives-2026-11-02 cases). Odd sides use the grid for one more side
 //! with one corner cut off, which leaves a single triangle.
+//!
+//! The Cylinder's Quads caps use the same layout (GitHub #17): both tools
+//! offer the same `quads` cap, and the cylinder's measured 8-sided case
+//! (PRIM-Y-01) has this grid's counts.
 use crate::{ConeParameters, Mesh};
+use glam::DVec3;
 
 pub(crate) fn append_grid_cap(mesh: &mut Mesh, parameters: &ConeParameters) {
-    let n = parameters.sides as usize;
-    let inner_start = mesh.vertices.len() as u32;
     let mut center = parameters.position;
     center[parameters.axis] -= parameters.size[parameters.axis];
+    let ring: Vec<u32> = (0..parameters.sides).collect();
+    append_grid_cap_on(mesh, &ring, center);
+}
+
+/// Faces a Quad Grid cap of `n` sides adds: the ring of quads plus the grid
+/// cells (odd sides lay the grid out for one more side).
+pub(crate) fn grid_cap_faces(n: u64) -> u64 {
+    let m = n + n % 2;
+    let p = m / 4;
+    n + p * (p + u64::from(m % 4 == 2))
+}
+
+/// A Quad Grid cap over `ring` (point ids in the cone base ring's order,
+/// whose fill faces away from the apex) around `center`.
+pub(crate) fn append_grid_cap_on(mesh: &mut Mesh, ring: &[u32], center: DVec3) {
+    let n = ring.len();
+    let inner_start = mesh.vertices.len() as u32;
     let phase = n / 8;
     let rho = (1. - 1.8 * std::f64::consts::PI / n as f64).max(0.5);
     for i in 0..n {
-        let rim = mesh.vertices[(phase + i) % n];
+        let rim = mesh.vertices[ring[(phase + i) % n] as usize];
         mesh.vertices.push(center + rho * (rim - center));
     }
     let inner = |i: usize| inner_start + (i % n) as u32;
     for i in 0..n {
         mesh.faces.push(super::cone::cone_face(vec![
-            ((phase + i) % n) as u32,
+            ring[(phase + i) % n],
             inner(i),
             inner(i + 1),
-            ((phase + i + 1) % n) as u32,
+            ring[(phase + i + 1) % n],
         ]));
     }
     // Odd sides: lay out the grid for `n + 1` boundary points, the first a

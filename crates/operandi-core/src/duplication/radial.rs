@@ -150,9 +150,9 @@ pub enum CylinderCap {
     None,
     #[default]
     Single,
-    /// An inner ring at half radius, quads between, and the inside split
-    /// into quads around a centre point (even sides) or a triangle and quads
-    /// (odd sides, measured for 5; others provisional).
+    /// The Cone's Quad Grid (cone_grid.rs): an inner ring, quads between,
+    /// and a grid of quads inside; odd sides leave one triangle. Measured
+    /// counts for 5 and 8 sides; other layouts provisional (Q-CN-02).
     Quads,
     /// A centre point and a triangle fan.
     Radial,
@@ -163,7 +163,7 @@ impl CylinderCap {
         match self {
             Self::None => "None",
             Self::Single => "Single Polygon",
-            Self::Quads => "Quads",
+            Self::Quads => "Quad Grid",
             Self::Radial => "Radial",
         }
     }
@@ -183,45 +183,15 @@ pub(crate) fn append_cap(mesh: &mut Mesh, rim: &[u32], center: DVec3, cap: Cylin
                 mesh.faces.push(face(vec![rim[i], rim[next(i)], c]));
             }
         }
-        CylinderCap::Quads => {
-            let start = mesh.vertices.len() as u32;
-            for &v in rim {
-                let at = mesh.vertices[v as usize];
-                mesh.vertices.push(center + 0.5 * (at - center));
-            }
-            let inner = |i: usize| start + (i % n) as u32;
-            for i in 0..n {
-                mesh.faces
-                    .push(face(vec![rim[i], rim[next(i)], inner(i + 1), inner(i)]));
-            }
-            if n.is_multiple_of(2) {
-                let c = mesh.vertices.len() as u32;
-                mesh.vertices.push(center);
-                for k in 0..n / 2 {
-                    mesh.faces.push(face(vec![
-                        inner(2 * k),
-                        inner(2 * k + 1),
-                        inner(2 * k + 2),
-                        c,
-                    ]));
-                }
-            } else {
-                // PRIM-K-02: one triangle at the first point, quads fanned
-                // from the last.
-                mesh.faces
-                    .push(face(vec![inner(0), inner(1), inner(n - 1)]));
-                let mut k = 1;
-                while k + 2 < n - 1 {
-                    mesh.faces.push(face(vec![
-                        inner(k),
-                        inner(k + 1),
-                        inner(k + 2),
-                        inner(n - 1),
-                    ]));
-                    k += 2;
-                }
-            }
+        CylinderCap::Quads if n >= 5 => {
+            // The Cone's Quad Grid (GitHub #17), which takes the ring the
+            // other way round.
+            let ring: Vec<u32> = (0..n).map(|i| rim[(n - i) % n]).collect();
+            crate::cone_grid::append_grid_cap_on(mesh, &ring, center);
         }
+        // Three or four sides: one polygon is already all quads or a
+        // triangle (as the Cone's Quad Grid).
+        CylinderCap::Quads => mesh.faces.push(face(rim.to_vec())),
     }
 }
 
@@ -239,6 +209,13 @@ pub fn cylinder_geometry_with(
     p.validate(position, false)?;
     if axis > 2 {
         return Err("Cylinder Axis must be X, Y or Z".into());
+    }
+    let grids = caps.iter().filter(|&&c| c == CylinderCap::Quads).count() as u64;
+    if u64::from(p.sides) * u64::from(p.segments)
+        + grids * crate::cone_grid::grid_cap_faces(u64::from(p.sides))
+        > 250_000
+    {
+        return Err("Quad Grid caps exceed the 250,000-face budget; reduce Sides".into());
     }
     let r = to_local(axis, p.radius);
     let n = p.sides;

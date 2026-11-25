@@ -16,6 +16,11 @@ Give the selected polygons a part name, or a material.
 smoothing; **Make Default** uses it for new polygons; **Add to Library**
 saves it for other scenes.
 
+Picking a material that already exists shows its current settings, as
+the **Shader Tree** has them. Click **OK** without changing them and the
+polygons just get that material; the material itself stays exactly as it
+was. Change a value and that value is written to the material.
+
 ## Related
 
 - [Polygon tab](index.md)

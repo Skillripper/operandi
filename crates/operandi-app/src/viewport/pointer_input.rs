@@ -831,7 +831,7 @@ impl Operandi {
                             .navigation(PointerButton::Primary, modifiers)
                             .is_none()
                         && let Some(which) = crate::haul_view::trackpad_button(modifiers)
-                        && self.haul_tool(which).is_some()
+                        && self.haul_owner(which).is_some()
                         && self.handle_hit(pos, r).is_none()
                         && !self.haul_on_tool_control(pos, r)
                         && let Some(kind) = {

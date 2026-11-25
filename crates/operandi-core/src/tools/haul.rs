@@ -110,6 +110,33 @@ impl Row {
 struct File {
     #[serde(default)]
     tool: Vec<Row>,
+    /// Create tools that run as their own numeric session rather than as
+    /// an editor [`Tool`] (GitHub #13); `tool` names the [`Session`].
+    #[serde(default)]
+    session: Vec<Row>,
+}
+
+/// The numeric create sessions the layer can drive (GitHub #13): tools
+/// whose Tool Properties belong to their own session, not to an editor
+/// [`Tool`].
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Session {
+    Arc,
+    Capsule,
+    Cone,
+    Ellipsoid,
+    Torus,
+    Tube,
+}
+impl Session {
+    pub const ALL: [Self; 6] = [
+        Self::Arc,
+        Self::Capsule,
+        Self::Cone,
+        Self::Ellipsoid,
+        Self::Torus,
+        Self::Tube,
+    ];
 }
 
 /// Every tool's row, parsed from TOML text; refuses unknown tools and a
@@ -127,6 +154,40 @@ pub fn parse(text: &str) -> std::result::Result<Vec<(Tool, Row)>, String> {
         rows.push((tool, row));
     }
     Ok(rows)
+}
+
+/// Every session's row from TOML text; refuses unknown sessions and a
+/// session listed twice.
+pub fn parse_sessions(text: &str) -> std::result::Result<Vec<(Session, Row)>, String> {
+    let file: File = toml::from_str(text).map_err(|e| e.to_string())?;
+    let mut rows: Vec<(Session, Row)> = Vec::new();
+    for row in file.session {
+        let Some(session) = Session::ALL
+            .into_iter()
+            .find(|s| format!("{s:?}") == row.tool)
+        else {
+            return Err(format!("hauls: unknown session {}", row.tool));
+        };
+        if rows.iter().any(|(s, _)| *s == session) {
+            return Err(format!("hauls: {} is listed twice", row.tool));
+        }
+        rows.push((session, row));
+    }
+    Ok(rows)
+}
+
+/// The factory session rows, read once.
+pub fn session_table() -> &'static [(Session, Row)] {
+    static ROWS: OnceLock<Vec<(Session, Row)>> = OnceLock::new();
+    ROWS.get_or_init(|| parse_sessions(FACTORY_TOML).expect("presets/factory-hauls.toml"))
+}
+
+/// `session`'s row, if the table has one.
+pub fn session_row(session: Session) -> Option<&'static Row> {
+    session_table()
+        .iter()
+        .find(|(s, _)| *s == session)
+        .map(|(_, r)| r)
 }
 
 /// The factory table, read once.
