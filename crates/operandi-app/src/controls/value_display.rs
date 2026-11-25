@@ -1,11 +1,51 @@
 //! How colour components and 0–1 factors are shown and typed
 //! (Preferences > Input > Distance Units: Color Unit System, Factor or
 //! Range). The values themselves stay 0–1; only the fields change.
-use crate::units_preferences::{ColorUnits, FactorDisplay};
 use eframe::egui::{Response, Ui};
+use serde::{Deserialize, Serialize};
 use std::cell::Cell;
 
+/// Color Unit System: how colour components are shown and typed.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ColorUnits {
+    /// 0–1, may exceed 1. Provisional default: the fields so far.
+    #[default]
+    FloatingPoint,
+    Percentage,
+    /// 0–255.
+    Integer,
+    /// 00–ff per channel.
+    Hexadecimal,
+}
+impl ColorUnits {
+    pub const ALL: [Self; 4] = [
+        Self::FloatingPoint,
+        Self::Percentage,
+        Self::Integer,
+        Self::Hexadecimal,
+    ];
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::FloatingPoint => "Floating Point",
+            Self::Percentage => "Percentage",
+            Self::Integer => "Integer (0–255)",
+            Self::Hexadecimal => "Hexadecimal",
+        }
+    }
+}
+
+/// Factor or Range: 0–1 factors as percentages or plain numbers.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub enum FactorDisplay {
+    /// Provisional default: the fields so far.
+    #[default]
+    Percentage,
+    Float,
+}
+
 thread_local! {
+    /// The next value field shows "(mixed)" (UIC-118).
+    static MIXED_NEXT: Cell<bool> = const { Cell::new(false) };
     static CURRENT: Cell<(ColorUnits, FactorDisplay)> =
         const { Cell::new((ColorUnits::FloatingPoint, FactorDisplay::Percentage)) };
     /// "Display colour values in display space" (A7): colour numbers are
@@ -15,6 +55,22 @@ thread_local! {
     /// app to write into Preferences (it is the same preference).
     static PICKED_UNITS: Cell<Option<ColorUnits>> = const { Cell::new(None) };
 }
+/// The next value field (number box, checkbox, dropdown) shows "(mixed)"
+/// because the selected items disagree (UIC-118). Editing it writes the new
+/// value to every selected item.
+pub(crate) fn mixed(mixed: bool) {
+    MIXED_NEXT.with(|c| c.set(mixed));
+}
+/// Takes the pending "(mixed)" flag (value fields call this once).
+pub(crate) fn take_mixed() -> bool {
+    MIXED_NEXT.with(|c| c.replace(false))
+}
+/// Whether the next value field is "(mixed)", without taking the flag.
+pub(crate) fn is_mixed() -> bool {
+    MIXED_NEXT.with(Cell::get)
+}
+/// What a mixed field shows (UIC-118).
+pub(crate) const MIXED: &str = "(mixed)";
 pub fn set(color: ColorUnits, factor: FactorDisplay) {
     CURRENT.with(|c| c.set((color, factor)));
 }

@@ -36,10 +36,27 @@ pub(crate) struct Locked {
     shown: f64,
 }
 
+/// Whose values a haul drives: the live editor tool, or a create tool
+/// that runs its own numeric session (Cone, Ellipsoid, Torus, Capsule, Arc,
+/// Tube; GitHub #13).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum Owner {
+    Tool(Tool),
+    Session(haul::Session),
+}
+impl Owner {
+    fn row(self) -> Option<&'static haul::Row> {
+        match self {
+            Owner::Tool(t) => haul::row(t),
+            Owner::Session(s) => haul::session_row(s),
+        }
+    }
+}
+
 /// One haul in progress.
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct HaulDrag {
-    pub(crate) tool: Tool,
+    pub(crate) owner: Owner,
     pub(crate) button: Button,
     pub(crate) tracker: Tracker,
     pub(crate) click: HaulClick,
@@ -86,14 +103,23 @@ pub(crate) fn button_of(button: PointerButton) -> Option<Button> {
     }
 }
 
-/// Which panel serves `tool`'s fields.
+/// Which panel serves the owner's fields.
 #[derive(Clone, Copy)]
 enum Panel {
     Live,
     Primitive,
     Surface,
+    Cone,
+    Ellipsoid,
+    Shape,
 }
-fn panel(tool: Tool) -> Panel {
+fn panel(owner: Owner) -> Panel {
+    let tool = match owner {
+        Owner::Tool(tool) => tool,
+        Owner::Session(haul::Session::Cone) => return Panel::Cone,
+        Owner::Session(haul::Session::Ellipsoid) => return Panel::Ellipsoid,
+        Owner::Session(_) => return Panel::Shape,
+    };
     if tool.is_primitive() {
         Panel::Primitive
     } else if tool.is_smooth_shift() {
@@ -141,15 +167,23 @@ fn field_set<T: ToolFields>(app: &mut Operandi, key: &str, value: f64) -> Result
 }
 
 impl Operandi {
-    fn haul_field(&self, tool: Tool, key: &str) -> Option<FieldInfo> {
-        match panel(tool) {
+    fn haul_field(&self, owner: Owner, key: &str) -> Option<FieldInfo> {
+        match panel(owner) {
             Panel::Live => field_info::<crate::live_fields::LiveFields>(self, key),
             Panel::Primitive => field_info::<crate::primitive_panel::PrimitiveFields>(self, key),
             Panel::Surface => field_info::<crate::smooth_shift_panel::SurfaceFields>(self, key),
+            Panel::Cone => field_info::<crate::cone_panel::ConeFields>(self, key),
+            Panel::Ellipsoid => field_info::<crate::ellipsoid_panel::EllipsoidFields>(self, key),
+            Panel::Shape => field_info::<crate::shape_panel::ShapeFields>(self, key),
         }
     }
-    fn haul_set(&mut self, tool: Tool, key: &str, value: f64) -> Result<f64> {
-        match panel(tool) {
+    fn haul_set(&mut self, owner: Owner, key: &str, value: f64) -> Result<f64> {
+        match panel(owner) {
+            Panel::Cone => field_set::<crate::cone_panel::ConeFields>(self, key, value),
+            Panel::Ellipsoid => {
+                field_set::<crate::ellipsoid_panel::EllipsoidFields>(self, key, value)
+            }
+            Panel::Shape => field_set::<crate::shape_panel::ShapeFields>(self, key, value),
             Panel::Live => field_set::<crate::live_fields::LiveFields>(self, key, value),
             Panel::Primitive => {
                 field_set::<crate::primitive_panel::PrimitiveFields>(self, key, value)
@@ -162,13 +196,52 @@ impl Operandi {
 
     #[cfg(test)]
     pub(crate) fn haul_field_exists(&self, tool: Tool, key: &str) -> bool {
-        self.haul_field(tool, key).is_some()
+        self.haul_field(Owner::Tool(tool), key).is_some()
+    }
+    /// The armed create session's field `key`, as a haul reads it.
+    #[cfg(test)]
+    pub(crate) fn haul_session_value(&self, key: &str) -> Option<f64> {
+        let session = self.haul_session(Button::Right)?;
+        self.haul_field(Owner::Session(session), key)
+            .map(|f| f.value)
     }
 
     /// The live tool, when the layer claims `button` for it.
     pub(crate) fn haul_tool(&self, button: Button) -> Option<Tool> {
         let tool = self.editor.live.as_ref()?.tool;
         haul::claims(tool, button).then_some(tool)
+    }
+
+    /// The create session whose row claims `button`, when no editor tool
+    /// is live (GitHub #13).
+    fn haul_session(&self, button: Button) -> Option<haul::Session> {
+        use haul::Session;
+        if self.editor.live.is_some() {
+            return None;
+        }
+        let session = if self.editor.cone.is_some() {
+            Session::Cone
+        } else if self.editor.ellipsoid.is_some() {
+            Session::Ellipsoid
+        } else {
+            match self.editor.shape.as_ref()?.kind() {
+                ShapeKind::Torus => Session::Torus,
+                ShapeKind::Capsule => Session::Capsule,
+                ShapeKind::Arc => Session::Arc,
+                ShapeKind::Tube => Session::Tube,
+                ShapeKind::Text | ShapeKind::Teapot => return None,
+            }
+        };
+        haul::session_row(session)
+            .is_some_and(|r| r.claims(button))
+            .then_some(session)
+    }
+
+    /// Whose values a drag with `button` drives, if the layer claims it.
+    pub(crate) fn haul_owner(&self, button: Button) -> Option<Owner> {
+        self.haul_tool(button)
+            .map(Owner::Tool)
+            .or_else(|| self.haul_session(button).map(Owner::Session))
     }
 
     /// Start a haul with `button` at `pos`, or `None` when the live tool's
@@ -180,10 +253,10 @@ impl Operandi {
         r: Rect,
         click: HaulClick,
     ) -> Option<input::GestureKind> {
-        let tool = self.haul_tool(button)?;
-        let pair = haul::row(tool)?.pair(button);
+        let owner = self.haul_owner(button)?;
+        let pair = owner.row()?.pair(button);
         Some(input::GestureKind::Haul(Box::new(HaulDrag {
-            tool,
+            owner,
             button,
             tracker: Tracker::new([pos.x, pos.y], pair),
             click,
@@ -238,13 +311,15 @@ impl Operandi {
         };
         drag.started = true;
         if drag.locked.is_none() {
-            let Some(key) = haul::row(drag.tool)
+            let Some(key) = drag
+                .owner
+                .row()
                 .and_then(|r| r.pair(drag.button).get(axis))
                 .map(str::to_owned)
             else {
                 return;
             };
-            let Some(info) = self.haul_field(drag.tool, &key) else {
+            let Some(info) = self.haul_field(drag.owner, &key) else {
                 self.status = format!("Drag control {key} isn't on this tool's panel");
                 return;
             };
@@ -279,8 +354,8 @@ impl Operandi {
         if (value - locked.shown).abs() < 1e-12 {
             return;
         }
-        let (tool, key, label) = (drag.tool, locked.key.clone(), locked.label.clone());
-        match self.haul_set(tool, &key, value) {
+        let (owner, key, label) = (drag.owner, locked.key.clone(), locked.label.clone());
+        match self.haul_set(owner, &key, value) {
             Ok(shown) => {
                 locked.shown = shown;
                 self.clear_fields();

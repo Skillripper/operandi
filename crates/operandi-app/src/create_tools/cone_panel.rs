@@ -68,15 +68,24 @@ impl ToolFields for ConeFields {
                     |p: &P| p.top_cap,
                     |p, c| p.top_cap = c,
                 )
+                // GitHub #18: the apex has no opening to fill, so say what
+                // this choice changes there (cone-2026-11-05 "Top Cap").
+                .tip(
+                    "How the apex is built: None and Single Polygon make a fan of \
+                     triangles; Quad Grid merges them in pairs into quads",
+                )
                 .greyed_option(3, "Not measured yet (cone spec Q-CN-03)"),
             )
-            .field(tf::choice(
-                "cone-cap",
-                "Bottom Cap",
-                &caps,
-                |p: &P| p.bottom_cap,
-                |p, c| p.bottom_cap = c,
-            ))
+            .field(
+                tf::choice(
+                    "cone-cap",
+                    "Bottom Cap",
+                    &caps,
+                    |p: &P| p.bottom_cap,
+                    |p, c| p.bottom_cap = c,
+                )
+                .tip("How the base opening is filled"),
+            )
             .field(
                 plain(
                     "cone_weight",

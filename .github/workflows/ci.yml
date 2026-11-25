@@ -95,6 +95,15 @@ jobs:
         if: runner.os == 'Linux'
         run: cargo fmt --check
 
+      # Who uses whom between the area folders (docs/AREA_DEPENDENCIES.md).
+      # Warn-only for now: it flags a new link against the flow inside a
+      # dependency cycle but never fails the run. Switch to `--strict` (and
+      # drop continue-on-error) once the baseline has shrunk.
+      - name: Area dependencies (warn only)
+        if: runner.os == 'Linux'
+        continue-on-error: true
+        run: python3 scripts/area-deps.py --self-test && python3 scripts/area-deps.py --check
+
       - name: Clippy
         run: cargo clippy --locked --workspace --all-targets -- -D warnings
 

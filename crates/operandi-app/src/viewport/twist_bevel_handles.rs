@@ -8,14 +8,8 @@ use super::*;
 use glam::DMat4;
 use operandi_core::{TubeFrame, TwistAxis, TwistBevelOptions, TwistBevelPipe};
 
-/// Handle ids: Shift and Inset take 0 and 1 (the first and second handle a
-/// drag off the handles stands for); the rings and the bend arrow follow
-/// the plane circles' ids (13..16).
-pub(crate) const TB_SHIFT: usize = 0;
-pub(crate) const TB_INSET: usize = 1;
-pub(crate) const TB_TWIST: usize = 20;
-pub(crate) const TB_BEND: usize = 21;
-pub(crate) const TB_BEND_DIRECTION: usize = 22;
+// Handle ids live with the hover tips that name them (view/handle_ids.rs).
+pub(crate) use crate::handle_ids::{TB_BEND, TB_BEND_DIRECTION, TB_INSET, TB_SHIFT, TB_TWIST};
 
 /// On-screen sizes at Handle Scale 1.
 const ARROW_PIXELS: f32 = 72.;

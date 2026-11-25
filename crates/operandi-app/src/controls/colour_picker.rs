@@ -13,8 +13,8 @@
 //! Harmony rules and presets (B6) are scaffolded only: listed, greyed.
 use crate::colour_field::{Options, fill_color, next_gesture};
 use crate::unavailable::Gate;
-use crate::units_preferences::ColorUnits;
 use crate::value_display;
+use crate::value_display::ColorUnits;
 use eframe::egui::{
     self, Color32, Context, Id, Mesh, Pos2, Rect, Sense, Shape, Stroke, Ui, pos2, vec2,
 };

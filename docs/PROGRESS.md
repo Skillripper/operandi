@@ -1,5 +1,14 @@
 # Milestone progress ledger
 
+- **MeshBlend strips, round 2 (2026-11-24, branch claude/project-thread-20fok5):**
+  flat faces cut beside strips are re-meshed (`meshblend/tidy.rs`, spade
+  constrained Delaunay + seeded points, kept only if ST-10 passes), then
+  edge flips and pairing; output modes (SB-50; Closed, clean is the new
+  default, MB-Q07); Width Units with Strip Width % (MB-Q08; greyed rows via
+  `OpDef::field_unavailable`); stable strip ids (ST-07) listed in Properties
+  with per-strip Width/Profile overrides and `meshblend.strip` (MB-Q09).
+  Not yet: tapering width, viewport strip picking, curved-face re-meshing.
+
 - **MeshBlend B2, strips v1 (2026-11-24, branch claude/project-thread-20fok5):**
   rounded strips on every join with the B0 strip builder (now
   `meshblend/strips.rs`): Strip Width, Profile 0–200 %, Rows, Design Mode

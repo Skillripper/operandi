@@ -43,7 +43,7 @@ size.
 | **Sides** | How many polygons go round the axis. | 24 |
 | **Segments** | How many rows of polygons go from end to end. | 1 |
 | **Polygon Type** | The kind of polygons made. | Face |
-| **Cap Top**, **Cap Bottom** | How each end is closed: **None**, **Single Polygon**, **Quads** or **Radial**. | Single Polygon |
+| **Top Cap**, **Bottom Cap** | How each end is closed: **None**, **Single Polygon**, **Quad Grid** or **Radial**. **Quad Grid** fills the end with a grid of quads, like the cone's base, so it subdivides cleanly; an odd number of **Sides** leaves one triangle. | Single Polygon |
 | **Axis** | The axis from end to end. | Y |
 | **Make UVs** | Gives the shape a UV layout in the **Texture** UV map, for textures. | On |
 | **Handle Mode** | Side handles resize that side. | Resize |
@@ -58,7 +58,8 @@ Rows in grey aren't available yet; they show their value only. They are **Edge W
 
 ## Tips
 
-- **Cap Top** set to **None** leaves that end open, for a pipe or a cup.
+- **Top Cap** set to **None** leaves that end open, for a pipe or a cup.
+- Right-drag in the **3D view**, away from the handles: left and right change **Sides**, up and down change **Segments**.
 
 ## Related
 

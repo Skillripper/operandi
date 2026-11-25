@@ -50,7 +50,7 @@ pub(crate) fn register(r: &mut Commands) {
         .ui(),
         |a, _| {
             if !crate::anim_switch::enabled() {
-                a.status = "Animation is off (Preferences > Experimental > Animation)".into();
+                a.status = "Animation is off (OPERANDI_ANIMATION=0 in the environment)".into();
                 return;
             }
             a.links.open = !a.links.open;

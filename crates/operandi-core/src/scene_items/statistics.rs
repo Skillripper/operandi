@@ -1992,7 +1992,7 @@ fn count_mesh(input: &MeshInput, need: Need, report: &mut Report) {
     let a = &mesh.attributes;
     if need.vertices {
         listed.extend(
-            crate::selection_sets::set_names(mesh, crate::selection_sets::SetKind::Vertex)
+            crate::selection_sets::set_names(mesh, crate::SetKind::Vertex)
                 .into_iter()
                 .map(Row::VertexSet),
         );
@@ -2004,7 +2004,7 @@ fn count_mesh(input: &MeshInput, need: Need, report: &mut Report) {
     }
     if need.edges {
         listed.extend(
-            crate::selection_sets::set_names(mesh, crate::selection_sets::SetKind::Edge)
+            crate::selection_sets::set_names(mesh, crate::SetKind::Edge)
                 .into_iter()
                 .map(Row::EdgeSet),
         );
@@ -2014,7 +2014,7 @@ fn count_mesh(input: &MeshInput, need: Need, report: &mut Report) {
     }
     if need.polygons {
         listed.extend(
-            crate::selection_sets::set_names(mesh, crate::selection_sets::SetKind::Polygon)
+            crate::selection_sets::set_names(mesh, crate::SetKind::Polygon)
                 .into_iter()
                 .map(Row::PolygonSet),
         );
@@ -2041,15 +2041,14 @@ fn count_mesh(input: &MeshInput, need: Need, report: &mut Report) {
     names.smoothing.extend(eval.smoothing_names.iter().cloned());
     names.vertex_sets.extend(crate::selection_sets::set_names(
         mesh,
-        crate::selection_sets::SetKind::Vertex,
+        crate::SetKind::Vertex,
     ));
-    names.edge_sets.extend(crate::selection_sets::set_names(
-        mesh,
-        crate::selection_sets::SetKind::Edge,
-    ));
+    names
+        .edge_sets
+        .extend(crate::selection_sets::set_names(mesh, crate::SetKind::Edge));
     names.polygon_sets.extend(crate::selection_sets::set_names(
         mesh,
-        crate::selection_sets::SetKind::Polygon,
+        crate::SetKind::Polygon,
     ));
     names.vertex_maps.extend(map_names(mesh));
     names.edge_weights |= a.creases.iter().any(|c| c.weight != 0.);

@@ -110,7 +110,7 @@ impl Operandi {
     ) -> Option<(u32, u32, f64)> {
         let (item, matrix) = self.slice_base_item()?;
         let surface = self.pick_surface();
-        let mut candidates = crate::viewport::PickCandidates::default();
+        let mut candidates = crate::picking::PickCandidates::default();
         self.item_pick_candidates(
             &item,
             matrix,

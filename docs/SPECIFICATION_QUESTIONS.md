@@ -9793,3 +9793,7 @@ Spec schematic-2026-11-24 (BEHAVIOR-SCHEMATIC, LXO-SCHEMATIC-FORMAT). Readings w
 - SC-Q10 LXO places are scaled 6 points per unit, not the suggested 4: Operandi's nodes are 170 points wide with a row per linked channel, so at 4 columns and stacked nodes overlapped. Nodes that still overlap are moved down (each column keeps its order). Check HC-02's CONTROLS page.
 - SC-Q11 SC-16: a new piece on no page shows (unsaved) on the first saved page holding an item it touches, beside that item; it is saved when moved or arranged. Pieces on no page and touching nothing placed show on "Unplaced".
 - SC-Q12 Not built yet: marquee select (SC-69; left-drag on empty space still pans), multi-node selection, collapse (SC-29), backdrops/notes/elbows (imported as counts only), expanded vector rows (VXPD), hover magnify (SC-67). Fit Selected frames the node clicked last.
+
+- MB-Q07 New MeshBlends use the Closed, clean output (SB-50 lists Closed as the default); Closed keeps the cut faces as triangles.
+- MB-Q08 Relative Strip Width is a share of the average cage edge length of all enabled sources (SB-31b says the two sources at that join).
+- MB-Q09 A strip's own Width is always a distance, whatever Width Units says; Rows stay shared so corner patches always fit. Overrides apply only while Strip Width is above 0.

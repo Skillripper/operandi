@@ -473,9 +473,21 @@ impl Operandi {
         }
     }
 
-    /// Confirms the active tool's pending field text (Enter, leaving a
-    /// field, a scrub, before a Drop). False while a field is refused.
+    /// Confirms the pending field text of every form Tool Properties shows
+    /// (Enter, leaving a field, a scrub, before a Drop): the active tool's,
+    /// then the falloff sections and Constrain to Background rows drawn
+    /// under it (`parameters`). False while a field is refused. GitHub #16:
+    /// only the tool's rows used to be confirmed, so a typed or scrubbed
+    /// falloff value (Noise Scale) never reached the falloff.
     pub(super) fn confirm_tool_fields(&mut self) -> bool {
+        let tool = self.confirm_tool_rows();
+        let falloff = self.editor.spatial_falloff.is_none()
+            || self.confirm_form::<falloff_panel::FalloffFields>();
+        let background = self.editor.background_constraint.is_none()
+            || self.confirm_form::<background_ui::BackgroundFields>();
+        tool && falloff && background
+    }
+    fn confirm_tool_rows(&mut self) -> bool {
         match self.tool_panel_kind() {
             ToolPanel::Utility => self.confirm_form::<create_utility::UtilityFields>(),
             ToolPanel::Sculpt => self.confirm_form::<sculpt_ui::SculptFields>(),

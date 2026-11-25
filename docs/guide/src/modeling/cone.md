@@ -36,7 +36,8 @@ size.
 | **Sides** | How many polygons go round the axis. | 24 |
 | **Segments** | How many rows of polygons go from base to tip. | 1 |
 | **Polygon Type** | **Face**, **Subdivs** or **Catmull Clark** polygons. | Face |
-| **Top Cap**, **Bottom Cap** | How each end is closed: **None**, **Single Polygon**, **Quad Grid** or **Radial** (**Radial** only for the bottom; it is greyed for the top). | Single Polygon |
+| **Top Cap** | How the tip is built. The tip is a single point, so **None** and **Single Polygon** both make a fan of triangles there; **Quad Grid** joins them in pairs into quads (it needs an even number of **Sides**). **Radial** is greyed. | Single Polygon |
+| **Bottom Cap** | How the base is closed: **None**, **Single Polygon**, **Quad Grid** or **Radial**. | Single Polygon |
 | **Edge Weight %** | How sharp the rim stays when the polygons are subdivided. Greyed with **Face** polygons. | 100 |
 | **Axis** | The axis from base to tip. | Y |
 | **Make UVs** | Gives the shape a UV layout in the **Texture** UV map, for textures. | On |
@@ -50,6 +51,10 @@ size.
 - **Drop** adds it and closes the tool.
 - **Cancel** throws the preview away.
 - **Reset** puts every value back to its starting value.
+
+## Tips
+
+- Right-drag in the **3D view**, away from the handles: left and right change **Sides**, up and down change **Segments**.
 
 ## Related
 

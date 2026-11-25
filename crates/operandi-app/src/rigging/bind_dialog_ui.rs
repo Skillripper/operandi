@@ -63,7 +63,7 @@ pub(crate) fn register(r: &mut Commands) {
 impl Operandi {
     pub(super) fn open_bind(&mut self) {
         if !crate::anim_switch::enabled() {
-            self.status = "Animation is off (Preferences > Experimental > Animation)".into();
+            self.status = "Animation is off (OPERANDI_ANIMATION=0 in the environment)".into();
             return;
         }
         // SK-02: refused before the dialog opens.

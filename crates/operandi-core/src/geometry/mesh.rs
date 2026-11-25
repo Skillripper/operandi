@@ -460,7 +460,7 @@ impl Mesh {
         let min = match self.attributes.representations.get(fi) {
             Some(crate::PolygonRepresentation::Polyline {
                 closed: false,
-                curve: crate::curves::CurveKind::Line,
+                curve: crate::CurveKind::Line,
             }) => 1,
             Some(crate::PolygonRepresentation::Polyline { .. }) => 2,
             _ => 3,
@@ -582,40 +582,6 @@ impl Mesh {
     }
     pub fn is_closed(&self) -> bool {
         !self.has_polylines() && self.edge_faces().values().all(|faces| faces.len() == 2)
-    }
-    /// Compatibility entry point; source replacement now preserves arbitrary
-    /// valid simple planar polygon boundaries, including concave n-gons.
-    pub fn cap_edit(&self, face: usize, inset: f64, offset: DVec3) -> Result<Self> {
-        // Legacy callers supply an explicit vector as well as a planar inset.
-        let shifted = self.edit_polygons(
-            &[u32::try_from(face).map_err(|_| "Face limit")?],
-            crate::PolygonEdit::Bevel {
-                shift: 0.,
-                inset,
-                grouped: true,
-            },
-        )?;
-        if offset == DVec3::ZERO {
-            return Ok(shifted);
-        }
-        if !offset.is_finite() {
-            return Err("Offset must be finite".into());
-        }
-        if inset == 0. {
-            return self.edit_polygons(
-                &[face as u32],
-                crate::PolygonEdit::Extrude {
-                    extent: offset,
-                    sides: 1,
-                },
-            );
-        }
-        let mut out = shifted;
-        for &v in &out.faces[face].vertices {
-            out.vertices[v as usize] += offset;
-        }
-        out.validate()?;
-        Ok(out)
     }
 }
 /// Major-axis plane orientation, preserving right-handed winding: XZ / YZ / XY.

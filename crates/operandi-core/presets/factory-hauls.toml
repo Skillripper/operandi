@@ -74,6 +74,34 @@ right = { sideways = "radial_sides", up = "radial_segments" }
 tool = "Cylinder"
 right = { sideways = "radial_sides", up = "radial_segments" }
 
+# Create tools that run their own numeric session (GitHub #13): right-drag
+# sideways for Sides, up for Segments, as Sphere and Cylinder above. `tool`
+# names the session.
+
+[[session]]
+tool = "Arc"
+right = { sideways = "arc_segments" }
+
+[[session]]
+tool = "Capsule"
+right = { sideways = "cap_sides", up = "cap_segments" }
+
+[[session]]
+tool = "Cone"
+right = { sideways = "cone_sides", up = "cone_segments" }
+
+[[session]]
+tool = "Ellipsoid"
+right = { sideways = "ell_sides", up = "ell_segments" }
+
+[[session]]
+tool = "Torus"
+right = { sideways = "tor_sides", up = "tor_segments" }
+
+[[session]]
+tool = "Tube"
+right = { sideways = "tub_sides", up = "tub_segments" }
+
 # Not wired yet (spec section 2):
 # - Left-button values of Polygon Bevel, Edge Bevel, Chamfer edit, Vertex
 #   Bevel, Vertex Extrude and Smooth Shift: their left drag anywhere already
@@ -82,9 +110,9 @@ right = { sideways = "radial_sides", up = "radial_segments" }
 # - Edge Bevel Mitering: no such option yet.
 # - Add Loop Gap: Add Loop is an Edge panel click tool, not a live tool.
 # - Cube: its right-drag Segments X/Y/Z already exists (primitive_input.rs).
-# - Tube, Torus, Capsule, Arc, Helix, Ellipsoid, Cone, curve shapes, Linear
-#   clone, Radial Align, Smooth, Sketch Extrude, Solid Sketch: their own
-#   sessions or drags; each needs its own wiring.
+# - Helix, curve shapes, Linear clone, Radial Align, Smooth, Sketch
+#   Extrude, Solid Sketch: their own sessions or drags; each needs its own
+#   wiring.
 
 # Bend has no row on purpose (bend-handles-2026-11-15 §3): every press goes
 # to its ring, its spine's end or the action centre.

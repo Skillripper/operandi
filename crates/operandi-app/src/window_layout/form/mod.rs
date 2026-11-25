@@ -17,7 +17,7 @@ pub(crate) mod command_form;
 mod dialog;
 pub(crate) mod layout;
 pub(crate) mod panel;
-pub(crate) mod range_labels;
+pub(crate) use crate::range_labels;
 pub(crate) mod rows;
 pub(crate) mod status;
 mod widgets;

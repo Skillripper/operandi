@@ -383,7 +383,7 @@ pub fn show(ui: &mut Ui, rgb: &mut [f64; 3], options: Options) -> FieldResponse 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::units_preferences::ColorUnits;
+    use crate::value_display::ColorUnits;
     use eframe::egui::Modifiers;
     use eframe::egui::{Context, Event, PointerButton, RawInput};
 
@@ -589,14 +589,14 @@ mod tests {
     fn units_change_only_the_numbers() {
         let ctx = Context::default();
         for units in ColorUnits::ALL {
-            value_display::set(units, crate::units_preferences::FactorDisplay::Percentage);
+            value_display::set(units, crate::value_display::FactorDisplay::Percentage);
             let mut rgb = [0.25, 0.5, 2.];
             frame(&ctx, RawInput::default(), &mut rgb);
             assert_eq!(rgb, [0.25, 0.5, 2.]);
         }
         value_display::set(
             ColorUnits::FloatingPoint,
-            crate::units_preferences::FactorDisplay::Percentage,
+            crate::value_display::FactorDisplay::Percentage,
         );
     }
 }

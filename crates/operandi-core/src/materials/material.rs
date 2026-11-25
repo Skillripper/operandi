@@ -167,6 +167,25 @@ impl crate::Scene {
     pub fn material_or_default(&self, tag: &str) -> Material {
         self.material(tag).cloned().unwrap_or_default()
     }
+    /// The settings the Set Material dialog shows for `tag`. The shader
+    /// tree is what renders, so a tag whose Material is in the tree shows
+    /// that Material's colour, Diffuse, Specular and Smoothing (edited in
+    /// the Shader Tree, they can differ from the stored table entry); the
+    /// table's flags come along. Otherwise the stored material, or factory
+    /// settings (GitHub #12).
+    pub fn material_shown(&self, tag: &str) -> Material {
+        let mut shown = self.material_or_default(tag);
+        let tree = &self.shader_tree;
+        let node = tree.material_for_tag(tag).and_then(|id| tree.get(id));
+        if let Some(crate::shader_tree::NodeKind::Material(m)) = node.map(|n| &n.kind) {
+            let unit = |v: f64| if v.is_finite() { v.clamp(0., 1.) } else { 0. };
+            shown.color = m.diffuse_color.map(unit);
+            shown.diffuse = unit(m.diffuse_amount);
+            shown.specular = unit(m.specular_amount);
+            shown.smoothing = m.smoothing > 0.;
+        }
+        shown
+    }
     /// Every material name in the scene, for the dialog's Name list:
     /// `Default`, stored materials, then tags used on polygons.
     pub fn material_names(&self) -> Vec<String> {

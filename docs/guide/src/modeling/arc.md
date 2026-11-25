@@ -33,6 +33,7 @@
 
 ## Tips
 
+- Right-drag in the **3D view**, away from the handles: left and right change **Segments**.
 - **Angle** stops at 180°. For more, turn on **Reverse**.
 
 ## Related

@@ -48,8 +48,6 @@ struct State {
     scopes: Vec<Scope>,
     /// The next row's status light (UIC-112).
     status: Option<ChannelStatus>,
-    /// The next value field shows "(mixed)" (UIC-118).
-    mixed: bool,
     /// The next row is this much taller, for its field's min/max labels.
     extra: f32,
     /// The last channel row's Reset to Default was chosen (CH-Q1).
@@ -244,7 +242,7 @@ fn take_status() -> Option<ChannelStatus> {
             s.status = None;
             return None;
         }
-        let mixed = s.mixed;
+        let mixed = crate::value_display::is_mixed();
         s.status.take().map(|status| {
             if mixed && status == ChannelStatus::None {
                 ChannelStatus::Constant
@@ -289,20 +287,8 @@ fn revert_menu(response: &Response, label: &str) {
 }
 const OVERRIDDEN_TIP: &str = "Overridden on this instance · right-click: Revert to Source";
 
-/// The next value field (number box, checkbox, dropdown) shows "(mixed)"
-/// because the selected items disagree (UIC-118). Editing it writes the new
-/// value to every selected item.
-pub(crate) fn mixed(mixed: bool) {
-    STATE.with(|s| s.borrow_mut().mixed = mixed);
-}
-
-/// Takes the pending "(mixed)" flag (value fields call this once).
-pub(crate) fn take_mixed() -> bool {
-    STATE.with(|s| std::mem::take(&mut s.borrow_mut().mixed))
-}
-
-/// What a mixed field shows (UIC-118).
-pub(crate) const MIXED: &str = "(mixed)";
+// The "(mixed)" flag (UIC-118) lives with the value fields that read it.
+pub(crate) use crate::value_display::{MIXED, mixed, take_mixed};
 
 /// The label column for a row whose label is `width` wide, recording it
 /// for the scope's next frame.

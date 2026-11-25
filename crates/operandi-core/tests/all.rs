@@ -128,6 +128,8 @@ mod curve_commands;
 mod curve_convert;
 #[path = "curve_edit.rs"]
 mod curve_edit;
+#[path = "cylinder_quad_grid.rs"]
+mod cylinder_quad_grid;
 #[path = "deform_finish.rs"]
 mod deform_finish;
 #[path = "deform_presets.rs"]
@@ -625,6 +627,8 @@ mod selection_mixed_topology;
 mod selection_next_loop;
 #[path = "selection_sets.rs"]
 mod selection_sets;
+#[path = "set_material_existing.rs"]
+mod set_material_existing;
 #[path = "set_position_basic.rs"]
 mod set_position_basic;
 #[path = "set_position_clean_spec.rs"]

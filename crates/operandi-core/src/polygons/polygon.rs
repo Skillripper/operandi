@@ -1,4 +1,5 @@
-//! M17: independently implemented boundary-region edits. Face IDs and corner
+//! M17: independently implemented boundary-region edits (legacy polygon
+//! Bevel/Extrude and `cap_edit`; filed with the polygon tools, not the mesh). Face IDs and corner
 //! ownership survive source replacement; triangulation never enters topology.
 use crate::{Mesh, Result};
 use glam::DVec3;
@@ -381,4 +382,41 @@ pub(crate) fn validate_cap_edges(
         }
     }
     Ok(())
+}
+
+impl Mesh {
+    /// Compatibility entry point; source replacement now preserves arbitrary
+    /// valid simple planar polygon boundaries, including concave n-gons.
+    pub fn cap_edit(&self, face: usize, inset: f64, offset: DVec3) -> Result<Self> {
+        // Legacy callers supply an explicit vector as well as a planar inset.
+        let shifted = self.edit_polygons(
+            &[u32::try_from(face).map_err(|_| "Face limit")?],
+            PolygonEdit::Bevel {
+                shift: 0.,
+                inset,
+                grouped: true,
+            },
+        )?;
+        if offset == DVec3::ZERO {
+            return Ok(shifted);
+        }
+        if !offset.is_finite() {
+            return Err("Offset must be finite".into());
+        }
+        if inset == 0. {
+            return self.edit_polygons(
+                &[face as u32],
+                PolygonEdit::Extrude {
+                    extent: offset,
+                    sides: 1,
+                },
+            );
+        }
+        let mut out = shifted;
+        for &v in &out.faces[face].vertices {
+            out.vertices[v as usize] += offset;
+        }
+        out.validate()?;
+        Ok(out)
+    }
 }

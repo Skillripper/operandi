@@ -152,3 +152,182 @@ fn results_repeat_in_any_source_order() {
     let c = evaluate(&r, &two_boxes()).unwrap();
     assert_eq!(check::fingerprint(&a.mesh), check::fingerprint(&c.mesh));
 }
+
+/// Triangles with a corner under 10° on source `item`, for the tidy pass.
+fn slivers(b: &operandi_core::meshblend::Blend, item: u64) -> usize {
+    let m = &b.mesh;
+    m.faces
+        .iter()
+        .zip(&b.origin)
+        .filter(|(f, o)| f.vertices.len() == 3 && o.item == item && o.polygon != u32::MAX)
+        .map(|(f, _)| f)
+        .filter(|f| {
+            let p: Vec<glam::DVec3> = f.vertices.iter().map(|&v| m.vertices[v as usize]).collect();
+            let ang = |a: glam::DVec3, b: glam::DVec3, c: glam::DVec3| (b - a).angle_between(c - a);
+            ang(p[0], p[1], p[2])
+                .min(ang(p[1], p[2], p[0]))
+                .min(ang(p[2], p[0], p[1]))
+                < 10f64.to_radians()
+        })
+        .count()
+}
+
+#[test]
+fn the_cut_faces_beside_strips_have_few_slivers() {
+    // Jason's QA case: a one-segment cube and a cylinder, Tab off.
+    let inputs = vec![
+        input(1, corpus::boxed([0.; 3], [1.; 3], [1; 3], false)),
+        input(2, corpus::cylinder([0.3, 0.5, 0.3], 0.3, 0.8, 24, 1)),
+    ];
+    let b = evaluate(&recipe(&[1, 2], 0.05), &inputs).unwrap();
+    assert!(strips(&b) > 0, "{:?}", b.notes);
+    // The cube's faces (the cylinder's own tall side quads are thin by
+    // design, so they don't count).
+    let n = slivers(&b, 1);
+    let tris = b
+        .mesh
+        .faces
+        .iter()
+        .zip(&b.origin)
+        .filter(|(f, o)| f.vertices.len() == 3 && o.item == 1)
+        .count();
+    if std::env::var("OPERANDI_B0_PICTURE").is_ok() {
+        use operandi_core::meshblend_spike::picture;
+        let kind: Vec<u8> = b
+            .origin
+            .iter()
+            .map(|o| u8::from(o.polygon == u32::MAX))
+            .collect();
+        let source: Vec<u32> = b.origin.iter().map(|o| o.item as u32).collect();
+        let view = picture::View::fit(&b.mesh, glam::DVec3::new(1.0, 0.85, 1.45));
+        let rgb = picture::render(&b.mesh, &kind, &source, view, 900, 680);
+        let out = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../development/meshblend-b0/cube-cylinder.png");
+        picture::save_png(&out, 900, 680, &rgb).unwrap();
+        eprintln!(
+            "{n} slivers of {tris} triangles, {} polygons",
+            b.mesh.faces.len()
+        );
+    }
+    // Fans remain where many rim points face one long cube edge (an edge
+    // shared with the next face can't take new points yet).
+    assert!(n * 2 <= tris.max(1), "{n} slivers of {tris} triangles");
+}
+
+#[test]
+fn output_modes() {
+    let with = |output: u32| {
+        let mut r = recipe(&[1, 2], 0.1);
+        r.output = output;
+        evaluate(&r, &two_boxes()).unwrap()
+    };
+    // Draft: no strips.
+    assert_eq!(strips(&with(0)), 0);
+    // Closed keeps the triangles Closed, clean pairs into quads.
+    let (closed, clean) = (with(1), with(2));
+    let tris = |b: &operandi_core::meshblend::Blend| {
+        b.mesh
+            .faces
+            .iter()
+            .filter(|f| f.vertices.len() == 3)
+            .count()
+    };
+    assert!(strips(&closed) > 0);
+    assert!(
+        tris(&clean) < tris(&closed),
+        "{} vs {}",
+        tris(&clean),
+        tris(&closed)
+    );
+    assert!(check::st10(&closed.mesh, 0.1, None).passes());
+    // Parts per source: every polygon in exactly one part, named after
+    // its source or Strips (BLD-C06).
+    let per_source = with(4);
+    let parts: std::collections::BTreeSet<_> = per_source
+        .mesh
+        .faces
+        .iter()
+        .map(|f| f.part.clone().expect("every polygon has a part"))
+        .collect();
+    assert_eq!(
+        parts.into_iter().collect::<Vec<_>>(),
+        ["Mesh 1", "Mesh 2", "Strips"]
+    );
+    // Parts per patch: the two sides of the strip are two patches.
+    let per_patch = with(3);
+    let patches: std::collections::BTreeSet<_> = per_patch
+        .mesh
+        .faces
+        .iter()
+        .filter_map(|f| f.part.clone())
+        .collect();
+    assert!(
+        patches.contains("Strips") && patches.contains("Patch 1") && patches.contains("Patch 2")
+    );
+    // Strips only: just the band, open at both edges.
+    let only = with(5);
+    assert!(only.origin.iter().all(|o| o.polygon == u32::MAX));
+    assert!(check::st10(&only.mesh, 0.1, None).open_edges > 0);
+}
+
+#[test]
+fn relative_width_follows_the_polygon_size() {
+    // Boxes of 2 segments: cage edges 0.5 long, so 20 % is a 0.1 strip,
+    // the same as the absolute 0.1 width.
+    let mut r = recipe(&[1, 2], 0.5);
+    r.width_units = 1;
+    r.strip_width_rel = 0.2;
+    let rel = evaluate(&r, &two_boxes()).unwrap();
+    let abs = evaluate(&recipe(&[1, 2], 0.1), &two_boxes()).unwrap();
+    assert_eq!(rel.mesh.faces.len(), abs.mesh.faces.len());
+    assert!((check::volume(&rel.mesh) - check::volume(&abs.mesh)).abs() < 1e-9);
+}
+
+#[test]
+fn strips_have_stable_ids_and_their_own_settings() {
+    // A post through a plate: two joins (under and over the plate),
+    // numbered from the lowest (ST-07).
+    let inputs = vec![
+        input(
+            4,
+            corpus::boxed([0., 0., 0.], [2., 0.4, 2.], [8, 2, 8], false),
+        ),
+        input(9, corpus::cylinder([0., 0.4, 0.], 0.5, 1.0, 16, 4)),
+    ];
+    let base = evaluate(&recipe(&[4, 9], 0.05), &inputs).unwrap();
+    let ids: Vec<&str> = base.strips.iter().map(|s| s.id.as_str()).collect();
+    assert_eq!(ids.len(), 2, "{:?}", base.notes);
+    assert!(ids.contains(&"4-9-0") && ids.contains(&"4-9-1"), "{ids:?}");
+    // Moving the post a little keeps the ids.
+    let mut moved = inputs.clone();
+    for p in &mut moved[1].mesh.vertices {
+        p.x += 0.01;
+    }
+    let again = evaluate(&recipe(&[4, 9], 0.05), &moved).unwrap();
+    let ids2: Vec<&str> = again.strips.iter().map(|s| s.id.as_str()).collect();
+    assert_eq!(ids, ids2);
+    // A wider strip on the upper join only.
+    let mut r = recipe(&[4, 9], 0.05);
+    r.strips
+        .push(operandi_core::meshblend::recipe::StripOverride {
+            id: "4-9-1".into(),
+            enabled: true,
+            width: Some(0.15),
+            profile: None,
+        });
+    let wide = evaluate(&r, &inputs).unwrap();
+    assert!(
+        check::st10(&wide.mesh, 0.05, None).passes(),
+        "{:?}",
+        wide.notes
+    );
+    let (vb, vw) = (check::volume(&base.mesh), check::volume(&wide.mesh));
+    assert!(vw > vb + 1e-4, "{vw} vs {vb}");
+    // Off again (Override Defaults unticked): back to the base result.
+    r.strips[0].enabled = false;
+    let off = evaluate(&r, &inputs).unwrap();
+    assert_eq!(
+        check::fingerprint(&off.mesh),
+        check::fingerprint(&base.mesh)
+    );
+}

@@ -9,15 +9,7 @@ use operandi_core::CylinderFalloff;
 /// Screen length of a per-axis handle, in pixels.
 const AXIS_HANDLE_PIXELS: f64 = 34.;
 
-/// What a falloff handle moves.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum FalloffHandle {
-    /// Point `i` of `falloff_points` (Linear Start/End, Radial and Cylinder
-    /// Center, then Size handles), moved freely in the view plane.
-    Point(usize),
-    /// Point `i` moved along one axis only (FO-40, FO-41, FO-42).
-    Axis(usize, usize),
-}
+pub(crate) use crate::handle_ids::FalloffHandle;
 
 impl Operandi {
     /// FO-35: where the active falloff's positions live. With Use World

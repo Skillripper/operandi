@@ -109,7 +109,7 @@ Three levels, each with one owner:
 | **Scene** | the `.opscene` file | geometry, materials, selection, and references to other files, stored relative to the project |
 
 Today every settings file goes through `AppPaths` in
-`crates/operandi-app/src/controls/app_environment.rs` (recovery, input map, viewport
+`crates/operandi-app/src/files/app_environment.rs` (recovery, input map, viewport
 display, Bevel recipes, profile browser, layout, runtime viewport). That is the
 natural place to add the project level beside the existing app level.
 

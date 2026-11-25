@@ -204,15 +204,15 @@ cargo run --locked -p operandi-app --no-default-features
 
 `scripts/check-no-painting.sh` checks that such a build has none of it.
 
-### Animation (on by default)
+### Animation (always on)
 
 Animation (keys, the timeline, the graph editor, the Animate layout and
-menu, rigging) shows by default. Turn it off with Preferences > Defaults >
-Application > Experimental > **Animation**, or start Operandi with
-`OPERANDI_ANIMATION=0` in the environment (it wins over the preference;
-`OPERANDI_ANIMATION=1` forces it on).
+menu, rigging) always shows; the old Preferences > Experimental >
+Animation box is gone (2026-11-24), and a saved "off" from it is ignored.
+Developers can still hide it by starting Operandi with
+`OPERANDI_ANIMATION=0` in the environment.
 
-While it's off, scenes with keys still open, play their pose and save
+While it's hidden that way, scenes with keys still open, play their pose and save
 their keys, and scripts and the MCP bridge still run every animation
 command.
 
