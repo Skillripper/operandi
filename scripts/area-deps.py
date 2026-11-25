@@ -835,7 +835,7 @@ def write_report(g: Graph, crates, comps, cycle_edges, order, back) -> None:
         w("")
         pairs = sorted(
             {tuple(sorted(e)) for e in inner if (e[1], e[0]) in g.edges},
-            key=lambda p: -min(g.weight(p), g.weight((p[1], p[0]))),
+            key=lambda p: (-min(g.weight(p), g.weight((p[1], p[0]))), p),
         )
         if pairs:
             w("Two-way pairs (each uses the other), most tangled first:")
@@ -866,7 +866,7 @@ def write_report(g: Graph, crates, comps, cycle_edges, order, back) -> None:
         w("| Area | Files | Lines | Fan-in | (files) | Fan-out | (files) | In a cycle |")
         w("|---|---:|---:|---:|---:|---:|---:|:-:|")
         comp_nodes = {x for c in comps for x in c}
-        for n, fi, fiw, fo, fow in sorted(rows, key=lambda r: -(r[1] + r[3])):
+        for n, fi, fiw, fo, fow in sorted(rows, key=lambda r: (-(r[1] + r[3]), r[0])):
             w(f"| {short(n)} | {g.files[n]} | {g.lines[n]:,} | {fi} | {fiw} | {fo} | {fow} | "
               f"{'●' if n in comp_nodes else ''} |")
         w("")
@@ -879,7 +879,7 @@ def write_report(g: Graph, crates, comps, cycle_edges, order, back) -> None:
     w("|---|---|---:|")
     cross = sorted(
         (e for e in g.edges if e[0].startswith("app/") and e[1].startswith("core/")),
-        key=lambda e: -g.weight(e),
+        key=lambda e: (-g.weight(e), e),
     )
     for e in cross[:30]:
         w(f"| {short(e[0])} | {short(e[1])} | {g.weight(e)} |")
@@ -888,7 +888,7 @@ def write_report(g: Graph, crates, comps, cycle_edges, order, back) -> None:
     for e in cross:
         by_core[e[1]] += 1
     w("Core areas used by the most app areas: " + ", ".join(
-        f"`{short(k)}` ({v})" for k, v in sorted(by_core.items(), key=lambda kv: -kv[1])[:12]) + ".")
+        f"`{short(k)}` ({v})" for k, v in sorted(by_core.items(), key=lambda kv: (-kv[1], kv[0]))[:12]) + ".")
     w("")
     ext = defaultdict(int)
     for e in g.edges:
@@ -896,12 +896,12 @@ def write_report(g: Graph, crates, comps, cycle_edges, order, back) -> None:
             ext[(e[0].split("/")[0], e[1][6:])] += g.weight(e)
     if ext:
         w("Other workspace crates named directly: " + ", ".join(
-            f"{c} → `{x}` ({v} files)" for (c, x), v in sorted(ext.items(), key=lambda kv: -kv[1])) + ".")
+            f"{c} → `{x}` ({v} files)" for (c, x), v in sorted(ext.items(), key=lambda kv: (-kv[1], kv[0]))) + ".")
         w("")
 
     w("## Test-only links")
     w("")
-    t = sorted(g.test_edges, key=lambda e: -g.weight(e, test=True))
+    t = sorted(g.test_edges, key=lambda e: (-g.weight(e, test=True), e))
     w(f"{len(t)} links appear only in test code and are left out above. Heaviest: " + ", ".join(
         f"{e[0]} → {e[1]} ({g.weight(e, test=True)})" for e in t[:10]) + ".")
     w("")
