@@ -1125,6 +1125,7 @@ mod tests {
             input: &Mesh::default(),
             op: 1,
             selection: None,
+            element: Default::default(),
             links: &[],
             time: Default::default(),
             notes: Default::default(),

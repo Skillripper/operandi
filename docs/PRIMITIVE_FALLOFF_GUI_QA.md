@@ -24,3 +24,17 @@ For Jason or Codex, on the QA build. Claude can't click in Operandi.
 7. **New primitive ops (#14).** Add Cone, Torus, Capsule, Ellipsoid and
    Teapot ops. Each shows its tool's rows, and changing one updates the
    view. Save, reopen and check that they're unchanged.
+
+## Mesh Stack edge and point selections (GitHub #19)
+
+8. **Edge picks.** On a cube, switch to Edges mode, select two edges, then
+   add Mesh Stack > Edge Bevel and set Value to 0.1. Only those two edges
+   bevel.
+9. **Random edges.** Add Selection > Select Randomly on the Edge Bevel:
+   random edges bevel, not whole polygons' edges.
+10. **Rule op and reorder.** On a Polygon Bevel, add Select by Polygon Sides
+    (Quads), then Select by Facing set to Subtract. Every side but the top
+    bevels. Click Move Down on Facing, and the top is included again.
+11. **Shifted numbers.** Capture a Select by Index, then put a Triangulate
+    below it. The op's row shows the "numbers may point at other
+    polygons" hint.

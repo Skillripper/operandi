@@ -9802,3 +9802,10 @@ Spec meshblend-2026-11-24. Readings where the spec is silent:
 - PRIM-FO-Q03 Cone and Capsule don't take the falloff yet (their tools run their own sessions); the next step.
 - PRIM-OP-Q04 A primitive op's falloff copy reads the op's own positions (the item's local space) whether its layers have Use World Transforms on or off.
 - PRIM-FO-Q04 Fit Falloff to Shape puts the Linear Start on the top of the shape, where the tool's top size handle is; there the tool's handle wins the press (TP-19), so the falloff's Start is moved with its axis arrows or by typing.
+
+## Mesh Stack selections of edges and points (2026-11-25, GitHub #19, branch claude/project-thread-8fccr9, provisional)
+
+- SEL-Q01 Edge ops pick edges (numbered as `Mesh::edges`, the sorted unique point pairs) and Vertex ops points; other ops polygons. Supersedes MOQ-21/MOQ-25. Selection ops picking in another kind convert: edge if one of its polygons, polygon if one of its edges, point if on a picked polygon or edge.
+- SEL-Q02 Rule ops are Operandi's own (`operandi.edgeAngle.selop`, `operandi.border.selop`, `operandi.sides.selop`, `operandi.facing.selop`); Edges by Angle measures between the two polygons' normals (0° flat), an edge with one or three+ polygons is never picked by it.
+- SEL-Q03 A captured Select by Index keeps the element count it was made on (`select_by_index_count` in the file); a different count below shows a hint on the op row, and the op still runs. Indexes typed into Select by Index have no count.
+- SEL-Q04 Selection Set reads a set of the op's own kind first, then a polygon set of that name.

@@ -528,8 +528,15 @@ pub(crate) fn builtin() -> Vec<Arc<dyn OpDef>> {
     table.extend(crate::meshblend::op::entries());
     // Direct tools as ops, by group (mesh_stack_tools.rs).
     table.extend(crate::mesh_stack_tools::polygon_entries());
-    table.extend(crate::mesh_stack_tools::edge_entries());
-    table.extend(crate::mesh_stack_tools::vertex_entries());
+    // Their Selection input picks edges and points (#19).
+    table.extend(crate::meshop_types::with_element(
+        crate::mesh_stack_tools::edge_entries(),
+        crate::meshop_types::SelElement::Edge,
+    ));
+    table.extend(crate::meshop_types::with_element(
+        crate::mesh_stack_tools::vertex_entries(),
+        crate::meshop_types::SelElement::Point,
+    ));
     table.extend(crate::mesh_stack_tools::duplicate_entries());
     table.extend(crate::mesh_stack_tools::edit_entries());
     table.extend(crate::mesh_stack_tools::deform_entries());

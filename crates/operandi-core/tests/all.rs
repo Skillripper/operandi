@@ -399,6 +399,8 @@ mod meshblend;
 mod meshblend_spike;
 #[path = "meshblend_strips.rs"]
 mod meshblend_strips;
+#[path = "meshop_element_selection.rs"]
+mod meshop_element_selection;
 #[path = "mid_tool_undo.rs"]
 mod mid_tool_undo;
 #[path = "mode_availability.rs"]

@@ -145,15 +145,48 @@ pub struct OpNote {
     pub problem: bool,
 }
 
+/// What an op's Selection input picks (GitHub #19): polygons (most ops),
+/// edges (the Edge ops) or points (the Vertex ops). Selection ops answer
+/// in that kind, so Select Randomly picks random edges for Edge Bevel.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum SelElement {
+    #[default]
+    Polygon,
+    Edge,
+    Point,
+}
+impl SelElement {
+    /// "polygons", "edges", "points".
+    pub fn plural(self) -> &'static str {
+        match self {
+            Self::Polygon => "polygons",
+            Self::Edge => "edges",
+            Self::Point => "points",
+        }
+    }
+    /// How many of them `mesh` has: edges number `Mesh::edges`, points
+    /// every point.
+    pub fn count(self, mesh: &Mesh) -> usize {
+        match self {
+            Self::Polygon => mesh.faces.len(),
+            Self::Edge => mesh.edges().len(),
+            Self::Point => mesh.vertices.len(),
+        }
+    }
+}
+
 /// What an op reads when it runs.
 pub struct OpContext<'a> {
     /// The result of the op below (or the Base Mesh).
     pub input: &'a Mesh,
     /// This op's id in its stack (it names the groups it writes).
     pub op: u64,
-    /// The polygons its Selection input picked; `None` = the whole mesh
+    /// The elements its Selection input picked, numbered as `element`
+    /// says (polygons, `Mesh::edges` or points); `None` = the whole mesh
     /// (MO-20, PG-05). Already checked against `input`.
     pub selection: Option<&'a [u32]>,
+    /// What `selection` numbers ([`OpDef::selection_element`]).
+    pub element: SelElement,
     /// The op's item links, in the order [`OpDef::links`] gave them.
     pub links: &'a [Linked],
     /// The scene time the stack is evaluated at (AR-02). Only ops that
@@ -209,6 +242,10 @@ pub trait OpDef: Send + Sync {
     fn folder(&self) -> &str;
     /// Whether the op has a Selection input (MO-13).
     fn takes_selection(&self) -> bool;
+    /// What its Selection input picks (#19).
+    fn selection_element(&self) -> SelElement {
+        SelElement::Polygon
+    }
     /// The values' saved version (SAFE-12). Bump when a value changes
     /// meaning and upgrade older ones in [`OpDef::read`].
     fn version(&self) -> u32 {
@@ -360,6 +397,63 @@ impl<T: TypedOp> OpDef for Typed<T> {
     }
     fn run(&self, ctx: &OpContext, values: &serde_json::Value) -> Result<Mesh> {
         Self::parse(values)?.run(ctx)
+    }
+}
+
+/// An op type whose Selection input picks edges or points (#19): `inner`
+/// with its element changed, everything else as it is.
+pub struct WithElement {
+    pub inner: Arc<dyn OpDef>,
+    pub element: SelElement,
+}
+/// `defs` with their Selection input picking `element`.
+pub fn with_element(defs: Vec<Arc<dyn OpDef>>, element: SelElement) -> Vec<Arc<dyn OpDef>> {
+    defs.into_iter()
+        .map(|inner| Arc::new(WithElement { inner, element }) as Arc<dyn OpDef>)
+        .collect()
+}
+impl OpDef for WithElement {
+    fn id(&self) -> &str {
+        self.inner.id()
+    }
+    fn label(&self) -> &str {
+        self.inner.label()
+    }
+    fn folder(&self) -> &str {
+        self.inner.folder()
+    }
+    fn takes_selection(&self) -> bool {
+        self.inner.takes_selection()
+    }
+    fn selection_element(&self) -> SelElement {
+        self.element
+    }
+    fn version(&self) -> u32 {
+        self.inner.version()
+    }
+    fn fields(&self) -> &[Field] {
+        self.inner.fields()
+    }
+    fn defaults(&self) -> serde_json::Value {
+        self.inner.defaults()
+    }
+    fn read(&self, version: u32, values: &serde_json::Value) -> Result<serde_json::Value> {
+        self.inner.read(version, values)
+    }
+    fn links(&self, values: &serde_json::Value, scene: &crate::Scene) -> Vec<u64> {
+        self.inner.links(values, scene)
+    }
+    fn created(&self, values: &mut serde_json::Value, picked: &[u64]) {
+        self.inner.created(values, picked)
+    }
+    fn groups(&self) -> Vec<(String, String)> {
+        self.inner.groups()
+    }
+    fn uses_time(&self) -> bool {
+        self.inner.uses_time()
+    }
+    fn run(&self, ctx: &OpContext, values: &serde_json::Value) -> Result<Mesh> {
+        self.inner.run(ctx, values)
     }
 }
 

@@ -1,5 +1,13 @@
 # Milestone progress ledger
 
+- **Mesh Stack selections of edges and points (2026-11-25, GitHub #19, branch claude/project-thread-8fccr9):**
+  ops say what their Selection input picks (`SelElement`; Edge ops edges,
+  Vertex ops points); every selection op answers in that kind;
+  Select by Index captures from Edge/Vertex mode with the count it was
+  made on and a row hint when that changes; four rule ops (Edges by Angle,
+  Border, Polygon Sides, Facing); Move Up/Down reorders selection ops.
+  Guide: panels/mesh-stack-selections.md. Provisional: SEL-Q01..Q04.
+
 - **Falloffs on primitives (2026-11-25, GitHub #15, branch claude/project-thread-8fccr9):**
   the global falloff (Linear, Radial, Cylinder, Noise) shapes the Cube,
   Sphere and Cylinder inside their shared generator. The Falloff menu
