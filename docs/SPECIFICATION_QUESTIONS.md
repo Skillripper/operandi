@@ -9862,6 +9862,7 @@ Spec schematic-2026-11-24 (BEHAVIOR-SCHEMATIC, LXO-SCHEMATIC-FORMAT). Readings w
 ## Live MeshOp falloffs and primitive op handles (2026-11-25, Steve Hill via Jason, branch claude/project-thread-8fccr9, provisional)
 
 - MOP-H-Q01 A primitive op's falloff is its own: its Falloff Type (None, Linear, Radial, Cylinder, Noise) and that type's values are op rows, and changes evaluate at once. A new one starts fitted to the shape (Linear from top to base along its Axis; Radial and Cylinder at its centre and size). Combining several falloffs in the panel is parked (Jason, 2026-11-25).
+- MOP-H-Q03 (2026-11-26, Jason) The selected primitive op also shows the tools' Move handles: an arrow per axis (72 px, Handle Scale) and a plane square per axis pair, in the op's item axes; a square on an arrow's shaft wins the press.
 - MOP-H-Q02 With a primitive op's row selected and no tool on, the view shows its centre (moves in the view plane), one size square per axis and its falloff's points (Linear Start/End, Radial/Cylinder Center). Drags move by the view-plane delta like the falloff handles (falloff_view.rs); the size square takes the delta along its own axis. Other op types' handles come later, a family at a time.
 ## Tool tab cycling (2026-11-25, tool-tab-cycling v1.1, branch claude/project-thread-rjq1h8, provisional)
 

@@ -67,7 +67,7 @@ aren't there. Scripts
 add it with `meshop.create type:prim.cone.item`.
 
 With the step selected in the stack and no tool on, its handles show in the
-**3D view**. Drag the centre to move it, a square to resize it. Each drag is one undo step. A right-drag anywhere else changes its counts, as with the tool: left and right for **Sides**, up and down for **Segments**.
+**3D view**. Drag an arrow to move it along that axis, a plane square or the centre dot to move it across a plane, and a size square at its edge to resize it. Each drag is one undo step. A right-drag anywhere else changes its counts, as with the tool: left and right for **Sides**, up and down for **Segments**.
 
 ## Related
 

@@ -56,3 +56,5 @@ For Jason or Codex, on the QA build. Claude can't click in Operandi.
 15. With two selection steps on an op, ⏶ moves a step up the list (earlier)
     and ⏷ down (later). The first step's ⏶ and the last step's ⏷ are
     greyed with a reason.
+
+16. Select a Mesh Stack Cylinder's row. Drag its red arrow: it moves along X only. Drag the green-tinted square: it moves across the floor plane. Each drag undoes in one step.

@@ -4,8 +4,10 @@
 //! its own falloff's points. Dragging one edits the op's values live,
 //! one undo step per drag (SAFE-13, as the op's fields do).
 //!
-//! The handles follow the tool handles' look (UIC section 7): the centre
-//! and size squares in the axis colours. The op's falloff draws and drags
+//! The handles follow the tool handles' look (UIC section 7): a move
+//! arrow per axis and a plane square per axis pair (as the primitive
+//! tools' Move handles; Jason, 2026-11-26), the centre and size squares
+//! in the axis colours. The op's falloff draws and drags
 //! exactly as the tool's falloff does (GitHub #27): its shape, its points,
 //! per-axis handles and Size boxes, from `falloff_view.rs`.
 use super::*;
@@ -20,6 +22,10 @@ pub(crate) enum OpHandle {
     Centre,
     /// Resizes along one axis (`sizeX`..).
     Size(usize),
+    /// Moves the shape along one axis.
+    Move(usize),
+    /// Moves the shape in the plane facing one axis.
+    Plane(usize),
     /// A handle of the op's own falloff, as the tool falloff's handles
     /// (GitHub #27): its points, their per-axis handles and Size boxes.
     Falloff(FalloffHandle),
@@ -41,6 +47,9 @@ fn vec3(values: &serde_json::Value, prefix: &str) -> Option<DVec3> {
     let c = |a: &str| values.get(format!("{prefix}{a}"))?.as_f64();
     Some(DVec3::new(c("X")?, c("Y")?, c("Z")?))
 }
+
+/// The move arrows' length on screen, as the tool's Move handles.
+const ARROW_PIXELS: f64 = 72.;
 
 /// The op's own falloff, if it has one.
 fn op_falloff(values: &serde_json::Value) -> Option<ShapeWeights> {
@@ -90,7 +99,20 @@ impl Operandi {
         let Some(centre) = vec3(&values, "cen") else {
             return Vec::new();
         };
-        let mut out = vec![(world.transform_point3(centre), OpHandle::Centre)];
+        let at = world.transform_point3(centre);
+        let mut out = vec![(at, OpHandle::Centre)];
+        // Move arrows and plane squares, a fixed size on screen.
+        if let Some(mpp) = self.camera.metres_per_pixel(at, r) {
+            let len = ARROW_PIXELS * mpp * self.handle_scale_at(at) as f64;
+            let dir = |a: usize| world.transform_vector3(DVec3::AXES[a]).normalize_or_zero();
+            for a in 0..3 {
+                out.push((at + dir(a) * len, OpHandle::Move(a)));
+            }
+            for n in 0..3 {
+                let (u, v) = ((n + 1) % 3, (n + 2) % 3);
+                out.push((at + (dir(u) + dir(v)) * len * 0.3, OpHandle::Plane(n)));
+            }
+        }
         if let Some(size) = vec3(&values, "size") {
             // The Cube's Size is its full width; the others' are radii.
             let full = values.get("segmentsX").is_some();
@@ -117,6 +139,10 @@ impl Operandi {
         let (op, start) = self.selected_primitive_op()?;
         let field = op_falloff(&start).map(|w| w.first);
         let handles = self.meshop_handles(r);
+        let centre_q = handles
+            .first()
+            .and_then(|&(p, _)| self.camera.project(p, r))
+            .map(|(q, _)| q);
         let centre = handles
             .iter()
             .find(|(_, h)| *h == OpHandle::Falloff(FalloffHandle::Point(0)))
@@ -131,9 +157,21 @@ impl Operandi {
                 }
                 _ => true,
             })
-            .filter_map(|(p, h)| Some((self.camera.project(p, r)?.0.distance(pos), h)))
+            .filter_map(|(p, h)| {
+                let q = self.camera.project(p, r)?.0;
+                // An arrow is picked anywhere along its shaft.
+                let d = match (h, centre_q) {
+                    (OpHandle::Move(_), Some(c)) => segment_distance(pos, c, q),
+                    _ => q.distance(pos),
+                };
+                Some((d, h))
+            })
             .filter(|&(d, _)| d <= reach)
-            .min_by(|a, b| a.0.total_cmp(&b.0))?
+            // A square or point on an arrow's shaft wins over the shaft.
+            .min_by(|a, b| {
+                let shaft = |h: &OpHandle| matches!(h, OpHandle::Move(_));
+                shaft(&a.1).cmp(&shaft(&b.1)).then(a.0.total_cmp(&b.0))
+            })?
             .1;
         Some(OpGrab {
             op,
@@ -160,6 +198,20 @@ impl Operandi {
                 let Some(c) = vec3(v, "cen") else { return };
                 for a in 0..3 {
                     changes.insert(format!("cen{}", AXES[a]), (c[a] + delta[a]).into());
+                }
+            }
+            OpHandle::Move(a) | OpHandle::Plane(a) => {
+                let Some(c) = vec3(v, "cen") else { return };
+                // Along the arrow's axis only, or across the plane.
+                let mut d = DVec3::ZERO;
+                if let OpHandle::Move(_) = grab.handle {
+                    d[a] = delta[a];
+                } else {
+                    d = delta;
+                    d[a] = 0.;
+                }
+                for k in 0..3 {
+                    changes.insert(format!("cen{}", AXES[k]), (c[k] + d[k]).into());
                 }
             }
             OpHandle::Size(a) => {
@@ -233,9 +285,36 @@ impl Operandi {
                     );
                     painter.rect_filled(Rect::from_center_size(q, vec2(size, size)), 0., color);
                 }
+                OpHandle::Move(a) => {
+                    let color = palette::handles()[a];
+                    painter.line_segment(
+                        [c, q],
+                        Stroke::new(self.handle_preferences.line_width, color),
+                    );
+                    handle_arrow_head(painter, c, q, color);
+                }
+                OpHandle::Plane(n) => {
+                    let color = palette::handles()[n].gamma_multiply(0.7);
+                    painter.rect_filled(
+                        Rect::from_center_size(q, vec2(size * 1.2, size * 1.2)),
+                        0.,
+                        color,
+                    );
+                }
                 // Drawn with the falloff above.
                 OpHandle::Falloff(_) => {}
             }
         }
     }
+}
+
+/// How far `p` is from the screen segment `a`-`b`.
+fn segment_distance(p: Pos2, a: Pos2, b: Pos2) -> f32 {
+    let ab = b - a;
+    let t = if ab.length_sq() > 0. {
+        ((p - a).dot(ab) / ab.length_sq()).clamp(0., 1.)
+    } else {
+        0.
+    };
+    p.distance(a + ab * t)
 }
