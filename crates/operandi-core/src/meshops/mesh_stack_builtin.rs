@@ -609,6 +609,8 @@ pub(crate) fn builtin() -> Vec<Arc<dyn OpDef>> {
                 .with_groups(CLONE_GROUPS),
         ),
     ]);
+    table.extend(crate::meshop_text::entries());
+    table.extend(crate::meshop_arc::entries());
     // Ops that read other items (Boolean, Merge Meshes).
     table.extend(crate::mesh_stack_items::entries());
     table.extend(crate::meshblend::op::entries());
@@ -630,6 +632,7 @@ pub(crate) fn builtin() -> Vec<Arc<dyn OpDef>> {
         crate::meshop_types::SelElement::Point,
     ));
     table.extend(crate::mesh_stack_tools::duplicate_entries());
+    table.extend(crate::meshop_radial_sweep::entries());
     table.extend(crate::mesh_stack_tools::edit_entries());
     table.extend(crate::meshop_loop_slice::entries());
     table.extend(crate::meshop_hard_edge::entries());
@@ -640,6 +643,13 @@ pub(crate) fn builtin() -> Vec<Arc<dyn OpDef>> {
     // The Deform finish tools' ops (mesh_stack_deform.rs).
     table.extend(crate::mesh_stack_deform::entries());
     table.extend(crate::curve_ops::entries());
+    table.extend(crate::meshop_curve_fill::entries());
+    table.extend(crate::meshop_curve_rebuild::entries());
+    table.extend(crate::meshop_curve_sweep::entries());
+    table.extend(crate::meshop_edges_to_curves::entries());
+    table.extend(crate::meshop_curve_boolean::entries());
+    table.extend(crate::meshop_curve_convert::entries());
+    table.extend(crate::meshop_curve_winding::entries());
     table.extend(crate::generator_ops::entries());
     table.extend(crate::skin::entries());
     table

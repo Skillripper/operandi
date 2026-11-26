@@ -417,6 +417,8 @@ mod meshblend;
 mod meshblend_spike;
 #[path = "meshblend_strips.rs"]
 mod meshblend_strips;
+#[path = "meshop_arc.rs"]
+mod meshop_arc;
 #[path = "meshop_assign_selection_set.rs"]
 mod meshop_assign_selection_set;
 #[path = "meshop_bevel_regions.rs"]
@@ -425,8 +427,22 @@ mod meshop_bevel_regions;
 mod meshop_bridge;
 #[path = "meshop_chamfer_edit.rs"]
 mod meshop_chamfer_edit;
+#[path = "meshop_curve_boolean.rs"]
+mod meshop_curve_boolean;
+#[path = "meshop_curve_convert.rs"]
+mod meshop_curve_convert;
+#[path = "meshop_curve_fill.rs"]
+mod meshop_curve_fill;
+#[path = "meshop_curve_rebuild.rs"]
+mod meshop_curve_rebuild;
+#[path = "meshop_curve_sweep.rs"]
+mod meshop_curve_sweep;
+#[path = "meshop_curve_winding.rs"]
+mod meshop_curve_winding;
 #[path = "meshop_edge_slide.rs"]
 mod meshop_edge_slide;
+#[path = "meshop_edges_to_curves.rs"]
+mod meshop_edges_to_curves;
 #[path = "meshop_element_selection.rs"]
 mod meshop_element_selection;
 #[path = "meshop_hard_edge.rs"]
@@ -437,10 +453,14 @@ mod meshop_loop_slice;
 mod meshop_part_tag;
 #[path = "meshop_polygon_type.rs"]
 mod meshop_polygon_type;
+#[path = "meshop_radial_sweep.rs"]
+mod meshop_radial_sweep;
 #[path = "meshop_selops_batch2.rs"]
 mod meshop_selops_batch2;
 #[path = "meshop_set_edge_weight.rs"]
 mod meshop_set_edge_weight;
+#[path = "meshop_text.rs"]
+mod meshop_text;
 #[path = "meshop_thicken.rs"]
 mod meshop_thicken;
 #[path = "mid_tool_undo.rs"]

@@ -489,6 +489,8 @@ pub(crate) fn op_icon(id: &str) -> Option<crate::icons::Icon> {
         "prim.capsule.item" => "capsule",
         "prim.ellipsoid.item" => "ellipsoid",
         "prim.toroid.item" => "torus",
+        "prim.text.item" => "text",
+        "prim.arc.item" => "arc",
         "poly.bevel.item" => "bevel",
         "poly.smshift.item" => "smooth-shift",
         "subdivide.tool.item" => "subdivide-smooth",
@@ -496,6 +498,7 @@ pub(crate) fn op_icon(id: &str) -> Option<crate::icons::Icon> {
         "mirror.clone.item" => "mirror",
         "array.clone.item" => "array",
         "radial.array.item" => "radial-array",
+        "radial.sweep.item" => "radial-sweep",
         "linear.clone.item" => "clone",
         "boolean.meshop.item" | "solidDrill.meshop.item" | "axisDrill.meshop.item" => "boolean",
         // Its own studio icon comes with the full MeshBlend Item (B1b).
@@ -524,6 +527,10 @@ pub(crate) fn op_icon(id: &str) -> Option<crate::icons::Icon> {
         "setvmap.subd.item" => "edge-crease",
         "hardedge.meshop.item" | "hardedgeconvert.meshop.item" => "harden-normals",
         "assignselectionset.meshop.item" => "tag-selection-set",
+        "cRebuild.mOp" | "curvefill" | "curveWinding.meshop.item" => "curve",
+        "pmodel.edgeToCurve.item" => "edges-to-curves",
+        "curveBoolean.meshop.item" => "curve-boolean",
+        "curveconvert.meshop.item" => "bezier-curve",
         // Curve tools and batch 5 (provisional: borrowed icons until their own).
         "curve.circle.item"
         | "curve.ellipse.item"
@@ -532,6 +539,7 @@ pub(crate) fn op_icon(id: &str) -> Option<crate::icons::Icon> {
         | "curve.nsided.item"
         | "curve.star.item" => "bezier-curve",
         "curve.extrude.item" => "sketch-extrude",
+        "curve.sweep" => "curve-extrude",
         "curve.clone.item" | "pen.clone.item" | "scatter.clone.item" => "clone",
         "surfaceConstraint.meshop.item" => "pen",
         "uvrect.meshop.item" | "uvfit.meshop.item" | "vertexmaptransfer" => "tree-uv-map",

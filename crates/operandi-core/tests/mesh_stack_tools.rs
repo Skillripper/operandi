@@ -555,3 +555,48 @@ fn uv_unwrap_writes_a_map_pack_and_transform_move_it() {
     let b = moved.uv_maps["Texture"][0][0].unwrap();
     assert!((b.x - a.x - 2.).abs() < 1e-9 && (b.y - a.y).abs() < 1e-9);
 }
+
+/// A mesh of closed Curves, one 1 m square in the XZ plane round each
+/// centre (the second of a pair runs the other way when `reversed`).
+pub(crate) fn curve_squares(centres: &[DVec3], reversed: bool) -> Mesh {
+    let mut m = Mesh::default();
+    for (i, &c) in centres.iter().enumerate() {
+        let first = m.vertices.len() as u32;
+        m.vertices.extend([
+            c + DVec3::new(-0.5, 0., -0.5),
+            c + DVec3::new(0.5, 0., -0.5),
+            c + DVec3::new(0.5, 0., 0.5),
+            c + DVec3::new(-0.5, 0., 0.5),
+        ]);
+        let mut ids: Vec<u32> = (first..first + 4).collect();
+        if reversed && i % 2 == 1 {
+            ids.reverse();
+        }
+        m = operandi_core::curve_commands::make_curve(&m, &ids, true)
+            .unwrap()
+            .0;
+    }
+    m
+}
+/// A 2 m quad at y = 0.
+pub(crate) fn quad() -> Mesh {
+    let mut m = Mesh {
+        vertices: vec![
+            DVec3::new(-1., 0., -1.),
+            DVec3::new(-1., 0., 1.),
+            DVec3::new(1., 0., 1.),
+            DVec3::new(1., 0., -1.),
+        ],
+        ..Default::default()
+    };
+    m.faces.push(operandi_core::Face {
+        vertices: vec![0, 1, 2, 3],
+        uv: None,
+        material: "Default".into(),
+        smooth: false,
+        part: None,
+        material_label: None,
+    });
+    m.validate().unwrap();
+    m
+}
