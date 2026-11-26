@@ -131,7 +131,7 @@ pub(crate) fn entries() -> Vec<Arc<dyn OpDef>> {
     );
     crate::meshop_types::with_element(
         vec![Arc::new(
-            Typed::<BridgeOp>::new("edge.bridge.item", "Bridge", "Edge", true, fields)
+            Typed::<BridgeOp>::new("edge.bridge.item", "Bridge", "Edit", true, fields)
                 .with_groups(NEW_POLYGON),
         )],
         SelElement::Edge,

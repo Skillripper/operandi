@@ -409,10 +409,14 @@ mod meshop_bridge;
 mod meshop_edge_slide;
 #[path = "meshop_element_selection.rs"]
 mod meshop_element_selection;
+#[path = "meshop_hard_edge.rs"]
+mod meshop_hard_edge;
 #[path = "meshop_loop_slice.rs"]
 mod meshop_loop_slice;
 #[path = "meshop_polygon_type.rs"]
 mod meshop_polygon_type;
+#[path = "meshop_set_edge_weight.rs"]
+mod meshop_set_edge_weight;
 #[path = "meshop_thicken.rs"]
 mod meshop_thicken;
 #[path = "mid_tool_undo.rs"]

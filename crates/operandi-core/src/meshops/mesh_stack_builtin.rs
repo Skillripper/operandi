@@ -630,8 +630,10 @@ pub(crate) fn builtin() -> Vec<Arc<dyn OpDef>> {
     table.extend(crate::mesh_stack_tools::duplicate_entries());
     table.extend(crate::mesh_stack_tools::edit_entries());
     table.extend(crate::meshop_loop_slice::entries());
+    table.extend(crate::meshop_hard_edge::entries());
     table.extend(crate::mesh_stack_tools::deform_entries());
     table.extend(crate::mesh_stack_tools::uv_entries());
+    table.extend(crate::meshop_set_edge_weight::entries());
     // The Deform finish tools' ops (mesh_stack_deform.rs).
     table.extend(crate::mesh_stack_deform::entries());
     table.extend(crate::curve_ops::entries());

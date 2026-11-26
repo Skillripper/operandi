@@ -8812,6 +8812,11 @@ extrude, smooth-shift-thicken, split, quadruple and flip case).
 - **MOQ-36 Edge Slide op picks edges, provisional.** The reference's Sel is
   VRTX; Operandi's Edge Slide works on edges, so the op picks edges.
   Unclear: what the reference slides from a point selection.
+- **MOQ-37 Hard Edge op's Mode and Selection, provisional.** The op picks
+  edges (reference Sel VRTX). Mode 0 Selection hardens the chosen edges,
+  1 By Angle those sharper than Angle; the reference default "auto" reads
+  as Selection. Hard Edge Convert uses default smoothing settings (an op
+  can't read the scene's). Unclear: the reference's Mode options.
 - **UVN-O-grow-quads-seam with corner UVs only, provisional.** Spec:
   new-point-uvs-2026-11-02 (UVN-T-06). Start: the seam grid, read as corner
   UVs only (how Operandi and imported meshes keep UVs); Grow Quads on edges

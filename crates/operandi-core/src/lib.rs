@@ -442,12 +442,16 @@ pub mod meshblend_spike;
 mod meshop_bridge;
 #[path = "meshops/meshop_edge_slide.rs"]
 mod meshop_edge_slide;
+#[path = "meshops/meshop_hard_edge.rs"]
+mod meshop_hard_edge;
 #[path = "meshops/meshop_loop_slice.rs"]
 mod meshop_loop_slice;
 #[path = "meshops/meshop_polygon_type.rs"]
 mod meshop_polygon_type;
 #[path = "meshops/meshop_selection.rs"]
 pub mod meshop_selection;
+#[path = "meshops/meshop_set_edge_weight.rs"]
+mod meshop_set_edge_weight;
 #[path = "meshops/meshop_thicken.rs"]
 mod meshop_thicken;
 #[path = "meshops/meshop_types.rs"]
