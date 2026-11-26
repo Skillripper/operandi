@@ -194,7 +194,8 @@ fn edge_bevel_mitering_field_and_script_attribute() {
     );
 }
 
-/// Edge Bevel's Loop Slide checkbox (2026-11-24): on by default, in the
+/// Edge Bevel's Loop Slide checkbox (2026-11-24): off by default (tester,
+/// 2026-11-25), in the
 /// panel and set by script; a bad value changes nothing.
 #[test]
 fn edge_bevel_loop_slide_checkbox_and_script_attribute() {
@@ -204,26 +205,27 @@ fn edge_bevel_loop_slide_checkbox_and_script_attribute() {
         a.editor.scene.selection.edges = vec![e1, e2];
     });
     let on = |a: &Operandi| a.editor.live.as_ref().unwrap().params.edge_bevel.loop_slide;
-    assert!(on(&a), "on by default");
+    assert!(!on(&a), "off by default");
     a.execute("tool.attr edge.bevel loopSlide ?");
-    assert_eq!(a.status, "1");
+    assert_eq!(a.status, "0");
     a.fields.insert("chamfer_offset".into(), "0.2 m".into());
     assert!(a.confirm_fields(), "{}", a.status);
-    let sliding = mesh(&a).vertices.clone();
-    a.execute("tool.attr edge.bevel loopSlide off");
-    assert!(!on(&a));
+    let even = mesh(&a).vertices.clone();
+    a.execute("tool.attr edge.bevel loopSlide on");
+    assert!(on(&a));
     // On a box the third edge is square to both bevelled edges, so sliding
     // along it and an even width land on the same point: nothing changes.
     // (core tests/edge_bevel_loop_slide.rs covers where they differ.)
-    assert_eq!(mesh(&a).vertices, sliding);
+    assert_eq!(mesh(&a).vertices, even);
     a.execute("tool.attr edge.bevel loopSlide maybe");
     assert!(a.status.contains("true"), "{}", a.status);
-    assert!(!on(&a), "a bad value changes nothing");
+    assert!(on(&a), "a bad value changes nothing");
 }
 
-/// Edge Bevel's Corner Pattern dropdown (2026-11-24): Patch by default, set
-/// by script, and each other pattern fills the corner where the box's
-/// three edges meet differently.
+/// Edge Bevel's Mitering Style dropdown (2026-11-24; Corner Pattern until
+/// 2026-11-25): Default first and the default (2026-11-26), set by script,
+/// and Uniform and Pinch fill the corner where the box's three edges meet
+/// their own ways. Patch and Radial are left out for now.
 #[test]
 fn edge_bevel_corner_pattern_field_and_script_attribute() {
     let probe = box_app();
@@ -242,13 +244,12 @@ fn edge_bevel_corner_pattern_field_and_script_attribute() {
         a.editor.scene.selection.edges = vec![e1, e2, third];
     });
     let corner = |a: &Operandi| a.editor.live.as_ref().unwrap().params.edge_bevel.corner;
-    assert_eq!(corner(&a), operandi_core::CornerPattern::Patch);
+    assert_eq!(corner(&a), operandi_core::CornerPattern::Balanced);
     a.fields.insert("chamfer_offset".into(), "0.2 m".into());
-    a.fields.insert("chamfer_segments".into(), "2".into());
+    a.fields.insert("chamfer_segments".into(), "3".into());
     assert!(a.confirm_fields(), "{}", a.status);
-    a.execute("tool.attr edge.bevel level 2");
-    // Each fill by its polygons' sides and its points' places (Radial and
-    // Uniform share one layout and differ in where the points go).
+    a.execute("tool.attr edge.bevel segments 3");
+    // Each fill by its polygons' sides and its points' places.
     let shapes = |a: &Operandi| {
         let m = mesh(a);
         let mut s: Vec<usize> = m.faces.iter().map(|f| f.vertices.len()).collect();
@@ -261,30 +262,38 @@ fn edge_bevel_corner_pattern_field_and_script_attribute() {
         at.sort_unstable();
         (s, at)
     };
-    let mut seen = vec![shapes(&a)];
+    let default = shapes(&a);
     for (word, want) in [
+        ("neutral", operandi_core::CornerPattern::NoMitering),
         ("uniform", operandi_core::CornerPattern::Uniform),
-        ("radial", operandi_core::CornerPattern::Radial),
-        ("none", operandi_core::CornerPattern::None),
+        ("pinch", operandi_core::CornerPattern::Pinch),
+        ("default", operandi_core::CornerPattern::Balanced),
     ] {
-        a.execute(&format!("tool.attr edge.bevel cornerPattern {word}"));
+        a.execute(&format!("tool.attr edge.bevel miteringStyle {word}"));
         assert_eq!(corner(&a), want, "{}", a.status);
-        a.execute("tool.attr edge.bevel cornerPattern ?");
+        a.execute("tool.attr edge.bevel miteringStyle ?");
         assert_eq!(a.status, word);
-        let faces = shapes(&a);
-        // A box corner has no split lines to round, so None keeps Patch's
-        // grid there; Uniform and Radial each fill it their own way.
-        if word != "none" {
-            assert!(
-                !seen.contains(&faces),
-                "{word} fills the corner its own way"
-            );
+        // A box corner has no split lines to round, so Neutral and Default
+        // fill it alike; Uniform's and Pinch's arches differ from them.
+        if matches!(word, "uniform" | "pinch") {
+            assert_ne!(shapes(&a), default, "{word} fills the corner its own way");
         }
-        seen.push(faces);
+    }
+    // Patch and Radial are refused for now; nothing changes.
+    for word in ["patch", "radial"] {
+        a.execute(&format!("tool.attr edge.bevel miteringStyle {word}"));
+        assert!(a.status.contains("isn't available yet"), "{}", a.status);
+        assert_eq!(corner(&a), operandi_core::CornerPattern::Balanced);
     }
     a.execute("tool.attr edge.bevel cornerPattern spiral");
-    assert!(a.status.contains("Corner Pattern"), "{}", a.status);
-    assert_eq!(corner(&a), operandi_core::CornerPattern::None);
+    assert!(a.status.contains("Mitering Style"), "{}", a.status);
+    assert_eq!(corner(&a), operandi_core::CornerPattern::Balanced);
+    // The old names still work.
+    a.execute("tool.attr edge.bevel cornerPattern noMitering");
+    a.execute("tool.attr edge.bevel miteringStyle ?");
+    assert_eq!(a.status, "neutral");
+    a.execute("tool.attr edge.bevel cornerPattern balanced");
+    assert_eq!(corner(&a), operandi_core::CornerPattern::Balanced);
 }
 
 /// Like Polygon Bevel's extrude and inset, Edge Bevel's bevel and Mitering

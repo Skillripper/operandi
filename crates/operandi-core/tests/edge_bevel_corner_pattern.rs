@@ -92,15 +92,36 @@ fn radial_and_uniform_are_quad_grids_with_a_pole_on_the_edge() {
             let uniform = bevel(&m, &edges, level, CornerPattern::Uniform);
             let what = format!("{name}, level {level}");
             for (pattern, mesh) in [("Radial", &radial), ("Uniform", &uniform)] {
-                // Each corner: n × n cells, the first row of them triangles.
-                assert_eq!(
-                    sides(mesh, 3),
-                    sides(&patch, 3) + corners * n,
-                    "{what}: {pattern} has n triangles at each pole"
-                );
+                // Each corner: n × n cells, the first row of them triangles;
+                // on an inner corner (the hole's) Radial's first row is one
+                // polygon of n + 2 sides instead, as in Maya.
+                let fan = !(pattern == "Radial" && name == "hole corners");
+                if fan {
+                    assert_eq!(
+                        sides(mesh, 3),
+                        sides(&patch, 3) + corners * n,
+                        "{what}: {pattern} has n triangles at each pole"
+                    );
+                } else {
+                    assert_eq!(
+                        sides(mesh, n + 2) - sides(&patch, n + 2),
+                        if n + 2 == 4 {
+                            sides(mesh, 4) - sides(&patch, 4)
+                        } else {
+                            corners
+                        },
+                        "{what}: {pattern} has one polygon at each pole"
+                    );
+                }
                 // Polygons the bevel cut keep their extra corners; the
-                // fill itself adds none of more than four sides.
-                let big = |m: &Mesh| m.faces.iter().filter(|f| f.vertices.len() > 4).count();
+                // fill itself adds none of more than four sides (but
+                // Radial's top polygons).
+                let big = |m: &Mesh| {
+                    m.faces
+                        .iter()
+                        .filter(|f| f.vertices.len() > 4 && (fan || f.vertices.len() != n + 2))
+                        .count()
+                };
                 assert_eq!(
                     big(mesh),
                     big(&patch),
@@ -126,7 +147,10 @@ fn radial_and_uniform_are_quad_grids_with_a_pole_on_the_edge() {
     }
 }
 
+/// Mitering Style Default (`Balanced`) is the default (the tester,
+/// 2026-11-26; it was Neutral, `NoMitering`).
 #[test]
-fn patch_is_the_default() {
-    assert_eq!(EdgeBevelOptions::default().corner, CornerPattern::Patch);
+fn default_is_the_default_mitering_style() {
+    assert_eq!(EdgeBevelOptions::default().corner, CornerPattern::Balanced);
+    assert_eq!(CornerPattern::default(), CornerPattern::Balanced);
 }

@@ -280,7 +280,22 @@ impl Operandi {
             return;
         }
         let (tool, key, label) = (drag.tool, locked.key.clone(), locked.label.clone());
-        match self.haul_set(tool, &key, value) {
+        let mut result = self.haul_set(tool, &key, value);
+        // A whole number dragged fast past its limit (say below Segments 0
+        // in one mouse move) steps back toward the last value taken until
+        // one is, so it lands on the limit instead of short of it.
+        if result.is_err() && locked.rate == Rate::Whole {
+            let dir = (locked.shown - value).signum();
+            let mut v = value + dir;
+            while (locked.shown - v) * dir > 0.5 {
+                if let Ok(shown) = self.haul_set(tool, &key, v) {
+                    result = Ok(shown);
+                    break;
+                }
+                v += dir;
+            }
+        }
+        match result {
             Ok(shown) => {
                 locked.shown = shown;
                 self.clear_fields();

@@ -147,8 +147,10 @@ fn every_pattern_fills_the_inner_corner() {
         for corner in [
             CornerPattern::Patch,
             CornerPattern::Uniform,
+            CornerPattern::Pinch,
             CornerPattern::Radial,
-            CornerPattern::None,
+            CornerPattern::Balanced,
+            CornerPattern::NoMitering,
         ] {
             let settings = EdgeBevelSettings {
                 width: 0.3,
@@ -166,9 +168,19 @@ fn every_pattern_fills_the_inner_corner() {
             fill.sort_unstable();
             let what = format!("{corner:?}, level {level}");
             let biggest = *fill.last().unwrap();
-            assert!(biggest <= 4, "{what}: a {biggest}-sided polygon is left");
+            // Radial's first arc closes on the top point as one polygon, as
+            // in Maya (the tester's picture); nothing else has over four sides.
+            let allowed = if corner == CornerPattern::Radial {
+                n + 2
+            } else {
+                4
+            };
+            assert!(
+                biggest <= allowed,
+                "{what}: a {biggest}-sided polygon is left"
+            );
             assert!(fill.len() >= 3 * n, "{what}: only {} polygons", fill.len());
-            if corner == CornerPattern::None {
+            if corner.rounds_outline() {
                 // An even grid under a rounded outline: all quads.
                 assert!(fill.iter().all(|&s| s == 4), "{what}: {fill:?}");
             }
@@ -182,14 +194,14 @@ fn every_pattern_fills_the_inner_corner() {
             assert!(!seen.contains(&at), "{what} fills like another pattern");
             seen.push(at);
             if matches!(corner, CornerPattern::Radial | CornerPattern::Uniform) {
-                // The pole is the top mitre point: every triangle of the
-                // fill has it as a corner (the tester's Maya pictures).
+                // The pole is the top mitre point: Uniform's n triangles all
+                // have it as a corner; Radial's one top polygon does.
                 let mitre = out
                     .mesh
                     .vertices
                     .iter()
                     .position(|p| {
-                        let r = 0.3 * (1. - std::f64::consts::FRAC_1_SQRT_2);
+                        let r = 0.3;
                         p.distance(DVec3::new(-r, 1., r)) < 1e-9
                     })
                     .unwrap() as u32;
@@ -205,17 +217,32 @@ fn every_pattern_fills_the_inner_corner() {
                             })
                     })
                     .collect();
-                assert_eq!(triangles.len(), n, "{what}: n triangles at the pole");
-                assert!(
-                    triangles.iter().all(|f| f.vertices.contains(&mitre)),
-                    "{what}: a triangle misses the top mitre point"
-                );
+                if corner == CornerPattern::Radial {
+                    assert!(triangles.is_empty(), "{what}: a fan at the pole");
+                    let top: Vec<&Face> = out
+                        .mesh
+                        .faces
+                        .iter()
+                        .filter(|f| f.vertices.len() == n + 2 && f.vertices.contains(&mitre))
+                        .collect();
+                    assert_eq!(top.len(), 1, "{what}: one polygon under the top arc");
+                    assert!(
+                        top[0].vertices.contains(&mitre),
+                        "{what}: it misses the top point"
+                    );
+                } else {
+                    assert_eq!(triangles.len(), n, "{what}: n triangles at the pole");
+                    assert!(
+                        triangles.iter().all(|f| f.vertices.contains(&mitre)),
+                        "{what}: a triangle misses the top mitre point"
+                    );
+                }
             }
         }
     }
 }
 
-/// The two top strips meet at one top point, the middle of the rounded
+/// With a mitring pattern (Patch), the two top strips meet at one top point, the middle of the rounded
 /// outline between where they would slide along the two split lines (0.3
 /// from the corner), just inside the old corner, and both split lines end
 /// there, as in the tester's Maya pictures.
@@ -227,7 +254,10 @@ fn the_top_strips_meet_at_one_mitre_point() {
         rows: 4,
         depth: 100.,
         chamfer: false,
-        options: Default::default(),
+        options: EdgeBevelOptions {
+            corner: CornerPattern::Patch,
+            ..Default::default()
+        },
     };
     let out = edge_bevel_with(&m, &l_edges(), &settings, None).unwrap();
     let mm = &out.mesh;
@@ -237,7 +267,7 @@ fn the_top_strips_meet_at_one_mitre_point() {
             .position(|&q| q.distance(p) < 1e-9)
             .unwrap_or_else(|| panic!("no point at {p}")) as u32
     };
-    let r = 0.3 * (1. - std::f64::consts::FRAC_1_SQRT_2);
+    let r = 0.3;
     let mitre = find(DVec3::new(-r, 1., r));
     let key = |a: u32, b: u32| (a.min(b), a.max(b));
     let edges = mm.edges();
@@ -246,5 +276,71 @@ fn the_top_strips_meet_at_one_mitre_point() {
             edges.binary_search(&key(find(from), mitre)).is_ok(),
             "the split line from {from} doesn't end at the mitre point"
         );
+    }
+}
+
+/// No Mitering (the tester's Maya picture and report, 2026-11-24): Balanced's
+/// layout with nothing bent sideways. Each top strip ends in a round that
+/// stays in the upright plane through its two end points (so it runs
+/// straight up into the corner, seen along the corner), not flat.
+#[test]
+fn no_mitering_ends_round_in_an_upright_plane() {
+    let m = l_shape();
+    for rows in [4u32, 6] {
+        let bevel = |corner| {
+            let settings = EdgeBevelSettings {
+                width: 0.3,
+                rows,
+                depth: 100.,
+                chamfer: false,
+                options: EdgeBevelOptions {
+                    corner,
+                    ..Default::default()
+                },
+            };
+            edge_bevel_with(&m, &l_edges(), &settings, None)
+                .unwrap()
+                .mesh
+        };
+        let (plain, balanced) = (
+            bevel(CornerPattern::NoMitering),
+            bevel(CornerPattern::Balanced),
+        );
+        plain.validate().unwrap();
+        // Both keep the two slid points on the split lines.
+        for mm in [&plain, &balanced] {
+            for q in [DVec3::new(-0.3, 1., 0.), DVec3::new(0., 1., 0.3)] {
+                assert!(
+                    mm.vertices.iter().any(|p| p.distance(q) < 1e-9),
+                    "no point at {q}"
+                );
+            }
+        }
+        // Each end's upright plane: x + z = -0.3 (left), 0.3 (right). Its
+        // round lies above the straight line between its ends.
+        for (a, b, plane) in [
+            (DVec3::new(-0.3, 1., 0.), DVec3::new(0., 0.7, -0.3), -0.3),
+            (DVec3::new(0., 1., 0.3), DVec3::new(0.3, 0.7, 0.), 0.3),
+        ] {
+            let count = |mm: &Mesh| {
+                mm.vertices
+                    .iter()
+                    .filter(|p| {
+                        let h = (p.x - a.x) / (b.x - a.x);
+                        (p.x + p.z - plane).abs() < 1e-9
+                            && h > 1e-6
+                            && h < 1. - 1e-6
+                            && p.y > a.y + (b.y - a.y) * h + 1e-3
+                            && p.y < 1. + 1e-9
+                    })
+                    .count()
+            };
+            assert_eq!(
+                count(&plain),
+                rows as usize - 1,
+                "an end isn't round and upright"
+            );
+            assert_eq!(count(&balanced), 0, "Balanced's ends lean as before");
+        }
     }
 }

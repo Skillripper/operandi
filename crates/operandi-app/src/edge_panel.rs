@@ -279,12 +279,16 @@ impl Operandi {
                 "inset" | "offset" | "width" => format!("{} m", p.chamfer.offset),
                 "mitering" | "miteringoffset" => format!("{} m", o.support),
                 "level" => (p.chamfer.segments / 2).to_string(),
-                "segments" => p.chamfer.segments.to_string(),
+                "segments" => p.chamfer.segments.saturating_sub(1).to_string(),
                 "shape" => format!("{:?}", o.shape).to_ascii_lowercase(),
                 "depth" => format!("{} %", p.chamfer.depth),
                 "parallel" => (o.parallel as u8).to_string(),
                 "loopslide" => (o.loop_slide as u8).to_string(),
-                "cornerpattern" => format!("{:?}", o.corner).to_ascii_lowercase(),
+                "miteringstyle" | "cornerpattern" => match o.corner {
+                    operandi_core::CornerPattern::NoMitering => "neutral".into(),
+                    operandi_core::CornerPattern::Balanced => "default".into(),
+                    c => format!("{c:?}").to_ascii_lowercase(),
+                },
                 "stopatedge" => (o.stop_at_edge as u8).to_string(),
                 "autoweld" => (o.auto_weld as u8).to_string(),
                 "edgeend" => match o.edge_end {
@@ -322,6 +326,8 @@ impl Operandi {
                     }
                     o.support = d;
                 }
+                // Round Level, replaced by Segments (2026-11-25), still read
+                // from older scripts: level L is 2·L segments.
                 "level" if bevel => {
                     let level = numeric::parse_quantity(value, numeric::Quantity::Scalar)?;
                     if level.fract() != 0. || !(0. ..=32.).contains(&level) {
@@ -329,12 +335,13 @@ impl Operandi {
                     }
                     p.chamfer.segments = (2 * level as u32).max(1);
                 }
-                "segments" if !bevel => {
+                // Segments as the panel shows them: 0 is flat (2026-11-25).
+                "segments" => {
                     let n = numeric::parse_quantity(value, numeric::Quantity::Scalar)?;
-                    if n.fract() != 0. || !(1. ..=64.).contains(&n) {
-                        return Err("Segments is a whole number 1–64".into());
+                    if n.fract() != 0. || !(0. ..=63.).contains(&n) {
+                        return Err("Segments is a whole number 0–63".into());
                     }
-                    p.chamfer.segments = n as u32;
+                    p.chamfer.segments = n as u32 + 1;
                 }
                 "shape" => {
                     o.shape = match value.to_ascii_lowercase().as_str() {
@@ -349,13 +356,27 @@ impl Operandi {
                 "depth" => p.chamfer.depth = operandi_core::command_names::script_percent(value)?,
                 "parallel" if !bevel => o.parallel = flag()?,
                 "loopslide" if bevel => o.loop_slide = flag()?,
-                "cornerpattern" if bevel => {
+                // Mitering Style (Corner Pattern until 2026-11-25; the old
+                // attribute and value names still work).
+                "miteringstyle" | "cornerpattern" if bevel => {
                     o.corner = match value.to_ascii_lowercase().as_str() {
-                        "patch" => operandi_core::CornerPattern::Patch,
+                        // Default was Balanced, and before that None.
+                        "default" | "balanced" | "none" => operandi_core::CornerPattern::Balanced,
                         "uniform" => operandi_core::CornerPattern::Uniform,
-                        "radial" => operandi_core::CornerPattern::Radial,
-                        "none" => operandi_core::CornerPattern::None,
-                        _ => return Err("Corner Pattern: patch, uniform, radial or none".into()),
+                        "pinch" => operandi_core::CornerPattern::Pinch,
+                        // Left out until they're finished (2026-11-26).
+                        "patch" | "radial" => {
+                            return Err(format!(
+                                "Mitering Style {value} isn't available yet: default, neutral, uniform or pinch"
+                            ));
+                        }
+                        // Neutral was No Mitering.
+                        "neutral" | "nomitering" | "no-mitering" | "no_mitering" => {
+                            operandi_core::CornerPattern::NoMitering
+                        }
+                        _ => {
+                            return Err("Mitering Style: default, neutral, uniform or pinch".into());
+                        }
                     }
                 }
                 "stopatedge" if !bevel => o.stop_at_edge = flag()?,
@@ -384,10 +405,8 @@ impl Operandi {
             self.sync_numeric_value("chamfer_depth", depth, "");
             if bevel {
                 self.sync_numeric_value("ebc_mitering", mitering, " m");
-                self.sync_numeric_value("edge_round_level", (segments / 2) as f64, "");
-            } else {
-                self.sync_numeric_value("chamfer_segments", segments as f64, "");
             }
+            self.sync_numeric_value("chamfer_segments", segments.saturating_sub(1) as f64, "");
         }
     }
 

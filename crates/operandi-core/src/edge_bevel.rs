@@ -51,22 +51,45 @@ pub enum EdgeEnd {
     TriangleFan,
 }
 
-/// Edge Bevel's Corner Pattern (a tester's request, 2026-11-24; proposal,
-/// EBC-Q-CP1): how the opening is filled where strips of two or more rows
-/// meet at a point.
+/// Edge Bevel's Mitering Style (a tester's request, 2026-11-24, named
+/// Corner Pattern until 2026-11-25; proposal, EBC-Q-CP1): how the opening
+/// is filled where strips of two or more rows meet at a point. The panel
+/// shows `NoMitering` as Neutral and `Balanced` as Default.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum CornerPattern {
+    /// Balanced's layout with nothing bent sideways (the tester's Maya No
+    /// Mitering picture, 2026-11-24; shown as Neutral): the
+    /// strips that end on the rounded outline end in a round standing
+    /// upright, so the corner's lines run straight up to the outline and
+    /// its rows are plain chevrons.
+    NoMitering,
+    /// Where two split lines run into the corner, the outline between them
+    /// is rounded around the old point and the corner is an even grid, the
+    /// rows wrapping across (the tester's pick, 2026-11-24, formerly None).
+    /// Elsewhere, Patch's grid. Shown as Default, and the default (the
+    /// tester, 2026-11-26).
+    #[default]
+    Balanced,
     /// EBC-J-05: a grid of quads per strip corner, each strip's rows bending
     /// around into the next (the measured fill).
-    #[default]
     Patch,
-    /// Straight lines from every profile point to one centre point: an
-    /// even fan, like slices of a pie.
+    /// The third strip's lines close in on one pole like a pointed (gothic)
+    /// arch, and the rows nest under it as smooth arches shaped like that
+    /// strip's end (Maya's Uniform; smoothed for the tester, 2026-11-25).
     Uniform,
-    /// Rings around one pole point, one per row pair, closed by a fan.
+    /// A narrow arch pinched to a sharp spike, its rows meeting in straight
+    /// V seams (the tester's request, 2026-11-24, from an earlier build).
+    Pinch,
+    /// Rings around one pole point, one per row pair, closed at the pole.
     Radial,
-    /// No fill pattern: one polygon closes the opening.
-    None,
+}
+
+impl CornerPattern {
+    /// Balanced and No Mitering: the outline between two split lines is
+    /// rounded instead of closed to one mitre point.
+    pub fn rounds_outline(self) -> bool {
+        matches!(self, Self::Balanced | Self::NoMitering)
+    }
 }
 
 /// The options of Edge Bevel and Edge Chamfer besides width, rows and Depth.
@@ -119,8 +142,8 @@ impl Default for EdgeBevelOptions {
             use_material: false,
             material: "Default".into(),
             support: 0.,
-            loop_slide: true,
-            corner: CornerPattern::Patch,
+            loop_slide: false,
+            corner: CornerPattern::Balanced,
         }
     }
 }

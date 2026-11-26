@@ -1632,33 +1632,22 @@ fn edge_bevel_form(p: &Parameters, f: &mut Form, bevel: bool) {
     // middle points, which Round Level 0 / Segments 1 doesn't have (EBS-02).
     let round = p.edge_bevel.shape == EdgeBevelShape::Round;
     let corner_shape = "Square and Sharp ignore this; they always run through the original edge";
-    if bevel {
-        // EBC-B3-02: Round Level L gives 2·L segments (level 0 is one
-        // flat segment), measured for levels 0–4.
-        f.field(
-            whole(
-                "edge_round_level",
-                "Round Level",
-                (0., 32.),
-                "Round Level requires an integer from 0 to 32",
-                |p| (p.chamfer.segments / 2) as f64,
-                |p, n| p.chamfer.segments = (2 * n).max(1),
-            )
-            .enabled_if(round, corner_shape),
-        );
-    } else {
-        f.field(
-            whole(
-                "chamfer_segments",
-                "Segments",
-                (1., 64.),
-                "Chamfer segments require an integer from 1 to 64",
-                |p| p.chamfer.segments as f64,
-                |p, n| p.chamfer.segments = n,
-            )
-            .enabled_if(round, corner_shape),
-        );
-    }
+    // Segments (the tester, 2026-11-25: Round Level replaced by Segments,
+    // "0 means flat"): the edges added across the strip from one side to
+    // the other, so Segments N gives N + 1 rows (`chamfer.segments`).
+    // Round Level L was 2·L rows (EBC-B3-02).
+    f.field(
+        whole(
+            "chamfer_segments",
+            "Segments",
+            (0., 63.),
+            "Segments requires an integer from 0 to 63",
+            |p| p.chamfer.segments.saturating_sub(1) as f64,
+            |p, n| p.chamfer.segments = n + 1,
+        )
+        .enabled_if(round, corner_shape)
+        .tip("Edges added across the bevel, from one side to the other. 0 is one flat strip"),
+    );
     let shape = pick(
         "edge-bevel-shape",
         "Edge Shape",
@@ -1673,10 +1662,8 @@ fn edge_bevel_form(p: &Parameters, f: &mut Form, bevel: bool) {
     .tip("Square and Sharp: two flat strips meeting at the original edge, at any Level. Sharp is measured the same as Square so far (EBS-05).");
     let depth_why = if !round {
         corner_shape
-    } else if bevel {
-        "Round Level 0 is one flat strip; raise Round Level to use Depth"
     } else {
-        "One segment is a flat strip; raise Segments to use Depth"
+        "Segments 0 is one flat strip; raise Segments to use Depth"
     };
     f.field(shape).field(
         plain(
@@ -1701,22 +1688,26 @@ fn edge_bevel_form(p: &Parameters, f: &mut Form, bevel: bool) {
             .tip("On: where an unbevelled edge runs between two bevelled edges, the new point slides along it, keeping the edge flow. Off: the point goes an even width from both edges and that edge bends to reach it"),
         )
         // How corners where rounded strips meet are filled (a tester's
-        // request, 2026-11-24; EBC-Q-CP1).
+        // request, 2026-11-24; EBC-Q-CP1). Named Mitering Style, with No
+        // Mitering as Neutral and Balanced as Default, by the tester
+        // (2026-11-25).
         .field(
             pick(
                 "edge-bevel-corner",
-                "Corner Pattern",
+                "Mitering Style",
+                // Default first and the default; Patch and Radial are left
+                // out until they're finished (the tester, 2026-11-26).
                 &[
-                    (CornerPattern::Patch, "Patch"),
+                    (CornerPattern::Balanced, "Default"),
+                    (CornerPattern::NoMitering, "Neutral"),
                     (CornerPattern::Uniform, "Uniform"),
-                    (CornerPattern::Radial, "Radial"),
-                    (CornerPattern::None, "None"),
+                    (CornerPattern::Pinch, "Pinch"),
                 ],
                 |p| p.edge_bevel.corner,
                 |p, c| p.edge_bevel.corner = c,
             )
-            .enabled_if(round && p.chamfer.segments >= 2, "Corner Pattern fills corners of rounded strips: use Round with Round Level 1 or more")
-            .tip("Where bevelled strips meet. Patch: a grid of quads, the rows bending around the corner. Uniform: straight lines to one centre point. Radial: rings around a centre point. None: one polygon closes the corner"),
+            .enabled_if(round && p.chamfer.segments >= 2, "Mitering Style fills corners of rounded strips: use Round with Segments 1 or more")
+            .tip("How bevelled strips meet at a corner. Default: a rounded corner, rows wrapping around in an even grid. Neutral: a rounded corner whose lines run straight up into it. Uniform: rows nest as smooth arches under a pointed arch. Pinch: rows meet in V seams under an arch pinched to a spike"),
         );
     }
     if !bevel {
