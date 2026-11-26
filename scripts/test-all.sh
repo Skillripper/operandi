@@ -25,7 +25,10 @@ trap 'rm -rf "$LIST" "$JSON" "$ERRS" "$LOGS"' EXIT
 # to compile or link was silently left out while the others still ran and
 # the script reported success.
 BUILD_STATUS=0
-"$CARGO_BIN" test --locked --workspace --no-run --message-format=json >"$JSON" 2>"$ERRS" ||
+# OPERANDI_TEST_FEATURES=<a,b> builds them with those Cargo features
+# (merge-check.sh turns on the extras this way).
+"$CARGO_BIN" test --locked --workspace ${OPERANDI_TEST_FEATURES:+--features "$OPERANDI_TEST_FEATURES"} \
+    --no-run --message-format=json >"$JSON" 2>"$ERRS" ||
     BUILD_STATUS=$?
 if [ "$BUILD_STATUS" != 0 ]; then
     # Show the compiler's messages, then Cargo's own.

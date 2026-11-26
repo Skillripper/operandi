@@ -120,8 +120,10 @@ and `scripts/merge-check.sh` refuses to run.
 Run the full tier once before calling a tool done, and again only if you
 change shared code after that. At merge time it runs on the branch with
 main merged in, and main moves only when it passes: `scripts/merge-check.sh`
-does that run, plus the Cycles and USD tests (they only build with
-`--features cycles` / `usd`, so plain `cargo test` skips them). 3D
+does that run, plus the Cycles, USD and Python extras (they only build
+with `--features cycles` / `usd` / `python`, so plain `cargo test` skips
+them): each is compiled on its own, then the tests run twice, with Cycles
+and USD on and then with Python on. 3D
 painting is a default feature (the maintainer, 2026-11-19), so every
 build and test run includes it; `scripts/check-no-painting.sh` checks the
 `--no-default-features` build. `merge-check.sh` builds in one shared merge
@@ -130,7 +132,9 @@ keeps its own warm build folder, so a merge check rebuilds only what the
 branch changed. It checks the branch's commit plus uncommitted changes to
 tracked files; files you haven't `git add`ed are left out. One merge check
 runs at a time (a second waits). Agents run it outside the sandbox: it
-writes next to the checkout.
+writes next to the checkout. Never build or test in
+`../Operandi-merge-check` by hand: that skips the lock and can break a
+merge check running there. Use your own worktree.
 
 `command_contract_tests.rs` runs every undoable registry command and checks
 that undo, redo and save/reopen agree. A new command is covered the day it
