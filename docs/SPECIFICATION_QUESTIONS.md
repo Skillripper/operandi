@@ -8820,6 +8820,16 @@ extrude, smooth-shift-thicken, split, quadruple and flip case).
 - **MOQ-38 Part Tag op's type id, provisional.** Not in TYPE-IDS.md;
   Operandi uses `pmodel.partTag.item` with one channel `partName`, after
   Material Tag. Needs the reference's id and channel name.
+- **MOQ-39 Batch 2 selection ops, provisional.** Select Connected (whole
+  parts the selection below touches), Select by Polygon Tag (Material or
+  Part), Select Coplanar Polygons (grows across edges while within Angle
+  of the polygon it grew from), Select by Hard Edges and Select Vertex
+  Map Value (weight maps; a point with no value is 0). Type ids and
+  channels are Operandi's own. Not built: Convert (selection ops already
+  convert between polygons, edges and points), Select by Falloff and
+  Conditional Loop (need specs). Select by Border is Select Border.
+- **MOQ-40 Assign Selection Set stores polygons, provisional.** Reference
+  Sel is VRTX; Operandi stores the chosen polygons as a polygon set.
 - **UVN-O-grow-quads-seam with corner UVs only, provisional.** Spec:
   new-point-uvs-2026-11-02 (UVN-T-06). Start: the seam grid, read as corner
   UVs only (how Operandi and imported meshes keep UVs); Grow Quads on edges

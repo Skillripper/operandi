@@ -1,4 +1,4 @@
-<!-- help-ids: edge.bridge.item, poly.loopSlice.item, poly.thicken.item, poly.setType.meshop.item, edge.slide.item, setvmap.subd.item, hardedge.meshop.item, hardedgeconvert.meshop.item, chamfer.edit.item, pmodel.partTag.item, Set Polygon Type, Hard Edge, Hard Edge Convert, Part Tag ; template: concept ; since: 0.1.2 -->
+<!-- help-ids: edge.bridge.item, poly.loopSlice.item, poly.thicken.item, poly.setType.meshop.item, edge.slide.item, setvmap.subd.item, hardedge.meshop.item, hardedgeconvert.meshop.item, chamfer.edit.item, pmodel.partTag.item, assignselectionset.meshop.item, Assign Selection Set, Set Polygon Type, Hard Edge, Hard Edge Convert, Part Tag ; template: concept ; since: 0.1.2 -->
 # Tool steps in the Mesh Stack
 
 Many modeling tools can also be a step in a mesh's **Mesh Stack**, so you
@@ -25,6 +25,7 @@ polygon, or every edge for the edge steps.
 | **Thicken** | Polygon | Polygons | [Smooth Shift](../polygon/smooth-shift.md) with **Thicken** on: a sheet gets a back side and walls. **Offset** sets the thickness. |
 | **Set Polygon Type** | Polygon | Polygons | Makes the chosen polygons plain faces, **Subdivision** polygons or **Catmull-Clark** polygons. It sets the type rather than switching it, so it gives the same result every time. |
 | **Part Tag** | Polygon | Polygons | Gives the chosen polygons a part name, as [Set Part](../polygon/part-material.md). |
+| **Assign Selection Set** | Selection | Polygons | Stores the chosen polygons as a selection set called **Name**, so steps above it can pick them with **Select by Selection Set**. |
 | **Set Edge Weight** | Vertex Map | Edges | Gives the chosen edges a subdivision weight, as [Edge Weight](../edge/edge-weight.md). **0%** removes their weights. |
 
 A step that can't run (for example **Bridge** on a closed mesh with no

@@ -401,6 +401,8 @@ mod meshblend;
 mod meshblend_spike;
 #[path = "meshblend_strips.rs"]
 mod meshblend_strips;
+#[path = "meshop_assign_selection_set.rs"]
+mod meshop_assign_selection_set;
 #[path = "meshop_bevel_regions.rs"]
 mod meshop_bevel_regions;
 #[path = "meshop_bridge.rs"]
@@ -419,6 +421,8 @@ mod meshop_loop_slice;
 mod meshop_part_tag;
 #[path = "meshop_polygon_type.rs"]
 mod meshop_polygon_type;
+#[path = "meshop_selops_batch2.rs"]
+mod meshop_selops_batch2;
 #[path = "meshop_set_edge_weight.rs"]
 mod meshop_set_edge_weight;
 #[path = "meshop_thicken.rs"]

@@ -438,6 +438,8 @@ pub mod mesh_stack_items;
 pub mod mesh_stack_tools;
 pub mod meshblend;
 pub mod meshblend_spike;
+#[path = "meshops/meshop_assign_selection_set.rs"]
+mod meshop_assign_selection_set;
 #[path = "meshops/meshop_bridge.rs"]
 mod meshop_bridge;
 #[path = "meshops/meshop_chamfer_edit.rs"]

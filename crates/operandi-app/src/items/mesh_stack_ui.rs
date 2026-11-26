@@ -374,6 +374,39 @@ fn selection_ops(
                 SelKind::UvSeam { map } => {
                     rows::text_d(ui, "UV Map", map, "Texture", "The UV map whose seams it picks");
                 }
+                SelKind::Connected {} => {
+                    rows::note(ui, "Every element of the parts the selection below touches.");
+                }
+                SelKind::PolygonTag { tag, name } => {
+                    rows::choice_d(
+                        ui,
+                        "Tag",
+                        tag,
+                        &0,
+                        &[(0, "Material"), (1, "Part")],
+                        "Which polygon tag it reads",
+                    );
+                    rows::text_d(ui, "Name", name, "Default", "The tag's name, as typed");
+                }
+                SelKind::Coplanar { angle } => {
+                    rows::number_d(
+                        ui,
+                        "Angle",
+                        angle,
+                        1.,
+                        Unit::Angle,
+                        0.0..=180.0,
+                        "How far a neighbor may turn from the polygon it grows from",
+                    );
+                    rows::note(ui, "Grows the selection below across flat neighbors.");
+                }
+                SelKind::HardEdges {} => {
+                    rows::note(ui, "Edges marked hard by the vertex normal tools.");
+                }
+                SelKind::VertexMapValue { map, min, max } => {
+                    rows::text_d(ui, "Weight Map", map, "Weight", "The weight map it reads");
+                    min_max(ui, min, max, 0.5, 1., Unit::Scalar, "weight value (1 = 100%)");
+                }
             }
             // #19: the order matters for Subtract and Multiply. The
             // steps are listed first to last, top to bottom, so the arrows
@@ -490,6 +523,7 @@ pub(crate) fn op_icon(id: &str) -> Option<crate::icons::Icon> {
         "pmodel.partTag.item" => "tag-part",
         "setvmap.subd.item" => "edge-crease",
         "hardedge.meshop.item" | "hardedgeconvert.meshop.item" => "harden-normals",
+        "assignselectionset.meshop.item" => "tag-selection-set",
         // Curve tools and batch 5 (provisional: borrowed icons until their own).
         "curve.circle.item"
         | "curve.ellipse.item"

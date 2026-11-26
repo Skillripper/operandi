@@ -1,4 +1,4 @@
-<!-- help-ids: selop.create, selop.edit, selop.selection, Select Edges by Angle, Select Border, Select Triangles, Select Quads, Select N-gons, Select Polygons by Vertex Count, Select Polygons by Area, Select Edges by Length, Select Edges by UV Seam, Select Vertices by Edge Count, Select by Normal, Select by Plane, Select by Distance, Select N Randomly, Select Random Parts, Select Symmetric ; template: concept ; since: 0.1.2 -->
+<!-- help-ids: selop.create, selop.edit, selop.selection, Select Edges by Angle, Select Border, Select Triangles, Select Quads, Select N-gons, Select Polygons by Vertex Count, Select Polygons by Area, Select Edges by Length, Select Edges by UV Seam, Select Vertices by Edge Count, Select by Normal, Select by Plane, Select by Distance, Select N Randomly, Select Random Parts, Select Symmetric, Select Connected, Select by Polygon Tag, Select Coplanar Polygons, Select by Hard Edges, Select Vertex Map Value ; template: concept ; since: 0.1.2 -->
 # Mesh Stack selections
 
 A step in a mesh's **Mesh Stack** can work on part of the mesh instead of
@@ -38,6 +38,11 @@ Positions and sizes are in the mesh's own space.
 | **Select Edges by UV Seam** | Edges where the two polygons' UVs in **UV Map** don't meet. | Texture |
 | **Select Vertices by Edge Count** | Points with **Minimum Edges** to **Maximum Edges**. | 5 or more |
 | **Select by Normal** | Elements facing **Minimum** to **Maximum** degrees from a **Direction**. An edge faces the way its points do on average, and a point the way its polygons do. | Up, 0° to 45° |
+| **Select Connected** | Everything in the parts (pieces joined through shared points) the selection below it touches. | |
+| **Select by Polygon Tag** | Polygons whose **Material** or **Part** tag is **Name**. | Material, Default |
+| **Select Coplanar Polygons** | Grows the selection below it across edges to neighbors facing within **Angle** of the polygon they grew from. | 1° |
+| **Select by Hard Edges** | Edges marked hard (see Hard Edge in [Tool steps in the Mesh Stack](mesh-stack-tool-steps.md)). | |
+| **Select Vertex Map Value** | Points whose value in **Weight Map** is **Minimum** to **Maximum**; a point with no value counts as 0. | Weight, 0.5 to 1 |
 | **Select by Plane** | Elements whose centre is on one side of the plane through **Position** facing **Normal**. **Negative Side** picks the other side, and **Include Zero** counts elements on the plane. | Above Y 0 |
 | **Select by Distance** | Elements whose centre is **Minimum** to **Maximum** from **From**. | 0 m to 1 m |
 | **Select N Randomly** | **Number** elements at random, or **Percentage** of them when Number is 0. **Seed** gives another pick. | 10 |

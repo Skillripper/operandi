@@ -251,13 +251,32 @@ pub enum SelKind {
     /// but not its UVs.
     #[serde(rename = "operandi.uvSeam.selop")]
     UvSeam { map: String },
+    // ---- Batch 2 (meshops-gaps-2026-11-25; ids Operandi's own, MOQ-39).
+    /// Every element of the parts (polygons joined through shared points)
+    /// the selection below touches.
+    #[serde(rename = "operandi.connected.selop")]
+    Connected {},
+    /// Polygons whose tag `tag` (0 Material, 1 Part) is `name`.
+    #[serde(rename = "operandi.polygonTag.selop")]
+    PolygonTag { tag: u32, name: String },
+    /// Polygons reached from the selection below across edges while
+    /// facing within `angle` degrees of the polygon they grew from.
+    #[serde(rename = "operandi.coplanar.selop")]
+    Coplanar { angle: f64 },
+    /// Edges marked hard (the vertex normal tools' Hard Edges).
+    #[serde(rename = "operandi.hardEdges.selop")]
+    HardEdges {},
+    /// Points whose value in weight map `map` is `min` to `max` (a point
+    /// with no value counts as 0).
+    #[serde(rename = "operandi.vmapValue.selop")]
+    VertexMapValue { map: String, min: f64, max: f64 },
 }
 fn yes() -> bool {
     true
 }
 impl SelKind {
     /// The kinds Add Selection offers, with their labels.
-    pub fn menu() -> [(&'static str, SelKind); 22] {
+    pub fn menu() -> [(&'static str, SelKind); 27] {
         [
             (
                 "Select by Index",
@@ -391,6 +410,24 @@ impl SelKind {
                     tolerance: 0.0001,
                 },
             ),
+            ("Select Connected", SelKind::Connected {}),
+            (
+                "Select by Polygon Tag",
+                SelKind::PolygonTag {
+                    tag: 0,
+                    name: "Default".into(),
+                },
+            ),
+            ("Select Coplanar Polygons", SelKind::Coplanar { angle: 1. }),
+            ("Select by Hard Edges", SelKind::HardEdges {}),
+            (
+                "Select Vertex Map Value",
+                SelKind::VertexMapValue {
+                    map: "Weight".into(),
+                    min: 0.5,
+                    max: 1.,
+                },
+            ),
         ]
     }
     pub fn label(&self) -> &'static str {
@@ -417,6 +454,11 @@ impl SelKind {
             Self::VertexEdges { .. } => "Select Vertices by Edge Count",
             Self::Symmetric { .. } => "Select Symmetric",
             Self::UvSeam { .. } => "Select Edges by UV Seam",
+            Self::Connected {} => "Select Connected",
+            Self::PolygonTag { .. } => "Select by Polygon Tag",
+            Self::Coplanar { .. } => "Select Coplanar Polygons",
+            Self::HardEdges {} => "Select by Hard Edges",
+            Self::VertexMapValue { .. } => "Select Vertex Map Value",
         }
     }
 }
@@ -625,6 +667,22 @@ impl<'a> Elements<'a> {
             })
             .collect();
         (part, ids.len() as u32)
+    }
+    /// The polygons `picked` (of this kind) touches: the polygons
+    /// themselves, or those using a picked edge or point.
+    fn touched_polygons(&self, picked: &[bool]) -> Vec<bool> {
+        let mesh = self.mesh;
+        match self.element {
+            SelElement::Polygon => picked.to_vec(),
+            SelElement::Edge => (0..mesh.faces.len())
+                .map(|f| self.face_edges(f).any(|e| picked[e as usize]))
+                .collect(),
+            SelElement::Point => mesh
+                .faces
+                .iter()
+                .map(|f| f.vertices.iter().any(|&v| picked[v as usize]))
+                .collect(),
+        }
     }
     /// Each edge's polygons (one for a border edge).
     fn edge_faces(&self) -> Vec<Vec<u32>> {
@@ -1001,6 +1059,96 @@ impl SelOp {
                     })
                     .collect();
                 out = el.of_edges(&picked);
+            }
+            SelKind::Connected {} => {
+                let (part, parts) = el.parts();
+                let mut hit = vec![false; parts as usize];
+                for (f, &t) in el.touched_polygons(below).iter().enumerate() {
+                    if t {
+                        hit[part[f] as usize] = true;
+                    }
+                }
+                let faces: Vec<bool> = part.iter().map(|&p| hit[p as usize]).collect();
+                out = el.of_polygons(&faces);
+            }
+            SelKind::PolygonTag { tag, name } => {
+                let faces: Vec<bool> = match tag {
+                    0 => mesh.faces.iter().map(|f| f.material == *name).collect(),
+                    1 => mesh
+                        .faces
+                        .iter()
+                        .map(|f| f.part.as_deref() == Some(name.as_str()))
+                        .collect(),
+                    _ => {
+                        return Err(
+                            "Select by Polygon Tag: Tag must be 0 (Material) or 1 (Part)".into(),
+                        );
+                    }
+                };
+                out = el.of_polygons(&faces);
+            }
+            SelKind::Coplanar { angle } => {
+                finite(&[*angle], "Select Coplanar Polygons")?;
+                let limit = angle.max(0.).to_radians() + 1e-9;
+                let normals: Vec<glam::DVec3> =
+                    (0..mesh.faces.len()).map(|f| mesh.normal(f)).collect();
+                // Polygons across each edge.
+                let mut next: Vec<Vec<u32>> = vec![Vec::new(); mesh.faces.len()];
+                for fs in el.edge_faces() {
+                    for &a in &fs {
+                        for &b in &fs {
+                            if a != b {
+                                next[a as usize].push(b);
+                            }
+                        }
+                    }
+                }
+                let mut faces = vec![false; mesh.faces.len()];
+                for (seed, &t) in el.touched_polygons(below).iter().enumerate() {
+                    if !t || faces[seed] {
+                        continue;
+                    }
+                    let n = normals[seed];
+                    faces[seed] = true;
+                    let mut stack = vec![seed];
+                    while let Some(f) = stack.pop() {
+                        for &g in &next[f] {
+                            let g = g as usize;
+                            let m = normals[g];
+                            if !faces[g]
+                                && n != glam::DVec3::ZERO
+                                && m != glam::DVec3::ZERO
+                                && n.angle_between(m) <= limit
+                            {
+                                faces[g] = true;
+                                stack.push(g);
+                            }
+                        }
+                    }
+                }
+                out = el.of_polygons(&faces);
+            }
+            SelKind::HardEdges {} => {
+                let hard = crate::vertex_normals::hard_edges(mesh);
+                let picked: Vec<bool> = el.edges.iter().map(|e| hard.contains(e)).collect();
+                out = el.of_edges(&picked);
+            }
+            SelKind::VertexMapValue { map, min, max } => {
+                finite(&[*min, *max], "Select Vertex Map Value")?;
+                if let Some(values) = mesh.attributes.point_weights.get(map) {
+                    let used = mesh.used_points();
+                    let points: Vec<bool> = (0..mesh.vertices.len())
+                        .map(|v| {
+                            used[v]
+                                && within(
+                                    values.get(&(v as u32)).copied().unwrap_or(0.),
+                                    *min,
+                                    *max,
+                                )
+                        })
+                        .collect();
+                    out = el.of_points(&points);
+                }
             }
         }
         Ok(out)
