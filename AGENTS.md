@@ -124,7 +124,13 @@ does that run, plus the Cycles and USD tests (they only build with
 `--features cycles` / `usd`, so plain `cargo test` skips them). 3D
 painting is a default feature (the maintainer, 2026-11-19), so every
 build and test run includes it; `scripts/check-no-painting.sh` checks the
-`--no-default-features` build.
+`--no-default-features` build. `merge-check.sh` builds in one shared merge
+checkout, `../Operandi-merge-check` (it makes it the first time), which
+keeps its own warm build folder, so a merge check rebuilds only what the
+branch changed. It checks the branch's commit plus uncommitted changes to
+tracked files; files you haven't `git add`ed are left out. One merge check
+runs at a time (a second waits). Agents run it outside the sandbox: it
+writes next to the checkout.
 
 `command_contract_tests.rs` runs every undoable registry command and checks
 that undo, redo and save/reopen agree. A new command is covered the day it
@@ -389,6 +395,11 @@ skip them on your machine.
 - The Cargo build folder can live on another disk (an external drive, set
   with Cargo's `build-dir`); paths under `target/` above then mean that
   folder.
+- The merge checkout (`~/Developer/Operandi-merge-check`, a clone that
+  borrows the main repository's objects) has its build folder there too,
+  about 25-35 GB; `merge-check.sh` starts it over past 150 GB. The hourly
+  cache cleanup never deletes it: it keeps every build folder that belongs
+  to a clone rather than to one of the main repository's worktrees.
 - `scripts/nightly.sh` runs every night from a launchd job
   (`scripts/nightly-install.sh`) and writes its report to a test results
   folder; see docs/CI.md.
