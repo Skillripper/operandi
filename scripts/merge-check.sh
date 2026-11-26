@@ -1,9 +1,11 @@
 #!/bin/sh
 # The check before proposing a merge (testing plan item 1, Jason
 # 2026-11-18): the full tier from AGENTS.md on this branch with main
-# merged in, plus the Cycles and USD tests when their libraries are built.
-# Those tests only compile with `--features cycles` / `usd`, so plain
-# `cargo test` and CI never run them.
+# merged in, plus the Cycles, USD and Python extras where they're built.
+# Their code only compiles with `--features cycles` / `usd` / `python`, so
+# plain `cargo test` and CI never build it. Each extra is compiled on its
+# own, then the tests run twice: Cycles and USD on, then Python on
+# (Jason, 2026-11-26).
 #
 #   scripts/merge-check.sh
 #
@@ -130,43 +132,71 @@ fi
 
 step() { echo; echo "== $*"; }
 
+# The extras whose libraries are built here, and the Python settings (the
+# bundled CPython from scripts/fetch-python.sh, else a python3 on PATH).
+# Every step that builds with Python gets the same settings, so its build
+# stays warm.
+FEATURES=""
+add_feature() { FEATURES="${FEATURES:+$FEATURES,}operandi-app/$1"; }
+PY_LABEL=""
+HAVE_PYTHON=""
+if [ -f development/python/pyo3-config.txt ]; then
+    PYO3_CONFIG_FILE="$(cd development/python && pwd -P)/pyo3-config.txt"
+    OPERANDI_PYTHON_BUILD_HOME="$(cd development/python/python && pwd -P)"
+    PY_LABEL="bundled CPython"
+elif [ -x development/python/python/bin/python3 ]; then
+    PYO3_PYTHON="$(cd development/python/python/bin && pwd -P)/python3"
+    PY_LABEL="$PYO3_PYTHON"
+elif command -v python3 >/dev/null 2>&1; then
+    PYO3_PYTHON="$(command -v python3)"
+    PY_LABEL="$PYO3_PYTHON"
+fi
+with_python() {
+    if [ -n "${PYO3_CONFIG_FILE:-}" ]; then
+        PYO3_CONFIG_FILE="$PYO3_CONFIG_FILE" OPERANDI_PYTHON_BUILD_HOME="$OPERANDI_PYTHON_BUILD_HOME" "$@"
+    else
+        PYO3_PYTHON="$PYO3_PYTHON" "$@"
+    fi
+}
+
 step "fmt"
 "$CARGO_BIN" fmt --check
+# The plain build (no extras), with clippy's warnings as errors.
 step "clippy"
 "$CARGO_BIN" clippy --locked --workspace --all-targets -- -D warnings
-step "tests"
-scripts/test-all.sh
 
-# The feature-gated tests, each only where its library is built.
+# Each extra on its own must compile, tests included (a build with two
+# on can't show that one alone is broken). Compile only; tests run below.
 if [ -d development/cycles/install/lib ]; then
-    step "Cycles tests (--features cycles)"
-    "$CARGO_BIN" test --locked --workspace --features operandi-app/cycles
+    step "Cycles compiles (check --features cycles)"
+    "$CARGO_BIN" check --locked --workspace --all-targets --features operandi-app/cycles
+    add_feature cycles
 else
-    echo; echo "== Cycles tests skipped: no development/cycles (scripts/build-cycles.sh)"
+    echo; echo "== Cycles skipped: no development/cycles (scripts/build-cycles.sh)"
 fi
 if [ -d development/usd/install/lib ]; then
-    step "USD tests (--features usd)"
-    "$CARGO_BIN" test --locked --workspace --features operandi-app/usd
+    step "USD compiles (check --features usd)"
+    "$CARGO_BIN" check --locked --workspace --all-targets --features operandi-app/usd
+    add_feature usd
 else
-    echo; echo "== USD tests skipped: no development/usd (scripts/build-usd.sh)"
+    echo; echo "== USD skipped: no development/usd (scripts/build-usd.sh)"
 fi
-# Python scripting: the bundled CPython (scripts/fetch-python.sh), else a
-# python3 on PATH for development.
-PY_FOR_TESTS=""
-if [ -x development/python/python/bin/python3 ]; then
-    PY_FOR_TESTS="$(cd development/python/python/bin && pwd -P)/python3"
-elif command -v python3 >/dev/null 2>&1; then
-    PY_FOR_TESTS="$(command -v python3)"
-fi
-if [ -f development/python/pyo3-config.txt ]; then
-    step "Python tests (--features python, bundled CPython)"
-    PYO3_CONFIG_FILE="$(cd development/python && pwd -P)/pyo3-config.txt" \
-        OPERANDI_PYTHON_BUILD_HOME="$(cd development/python/python && pwd -P)" \
-        "$CARGO_BIN" test --locked --workspace --features operandi-app/python
-elif [ -n "$PY_FOR_TESTS" ]; then
-    step "Python tests (--features python, $PY_FOR_TESTS)"
-    PYO3_PYTHON="$PY_FOR_TESTS" "$CARGO_BIN" test --locked --workspace --features operandi-app/python
+if [ -n "$PY_LABEL" ]; then
+    step "Python compiles (check --features python, $PY_LABEL)"
+    with_python "$CARGO_BIN" check --locked --workspace --all-targets --features operandi-app/python
+    HAVE_PYTHON=1
 else
-    echo; echo "== Python tests skipped: no Python (scripts/fetch-python.sh)"
+    echo; echo "== Python skipped: no Python (scripts/fetch-python.sh)"
+fi
+
+# Every test, twice: with Cycles and USD on (or no extras when neither is
+# built), then with Python on. Not all three in one build: then Python
+# fails to start in the app's tests ("Failed to import encodings
+# module", Homebrew Python 3.15, 2026-11-26), while every pair passes.
+step "tests (${FEATURES:-no extras})"
+OPERANDI_TEST_FEATURES="$FEATURES" scripts/test-all.sh
+if [ -n "$HAVE_PYTHON" ]; then
+    step "tests (operandi-app/python, $PY_LABEL)"
+    OPERANDI_TEST_FEATURES=operandi-app/python with_python scripts/test-all.sh
 fi
 echo; echo "merge-check: all passed."
