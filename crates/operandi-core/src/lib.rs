@@ -438,8 +438,18 @@ pub mod mesh_stack_items;
 pub mod mesh_stack_tools;
 pub mod meshblend;
 pub mod meshblend_spike;
+#[path = "meshops/meshop_bridge.rs"]
+mod meshop_bridge;
+#[path = "meshops/meshop_edge_slide.rs"]
+mod meshop_edge_slide;
+#[path = "meshops/meshop_loop_slice.rs"]
+mod meshop_loop_slice;
+#[path = "meshops/meshop_polygon_type.rs"]
+mod meshop_polygon_type;
 #[path = "meshops/meshop_selection.rs"]
 pub mod meshop_selection;
+#[path = "meshops/meshop_thicken.rs"]
+mod meshop_thicken;
 #[path = "meshops/meshop_types.rs"]
 pub mod meshop_types;
 #[path = "rigging/pose_tool.rs"]

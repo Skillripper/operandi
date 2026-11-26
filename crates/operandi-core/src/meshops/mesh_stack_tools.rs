@@ -491,7 +491,7 @@ pub(crate) fn polygon_entries() -> Vec<Arc<dyn OpDef>> {
 // polygons works on their edges (MOQ-25).
 
 /// The edges an edge op works on.
-fn chosen_edges(ctx: &OpContext) -> Vec<(u32, u32)> {
+pub(crate) fn chosen_edges(ctx: &OpContext) -> Vec<(u32, u32)> {
     let Some(faces) = ctx.selection else {
         return ctx.input.edges();
     };
@@ -513,13 +513,13 @@ fn chosen_edges(ctx: &OpContext) -> Vec<(u32, u32)> {
     out.into_iter().collect()
 }
 /// Edge ops' New Polygon group (PG table): the polygons past the input's.
-fn new_polygons(ctx: &OpContext, mut mesh: Mesh) -> Mesh {
+pub(crate) fn new_polygons(ctx: &OpContext, mut mesh: Mesh) -> Mesh {
     let n = ctx.input.faces.len() as u32;
     let end = mesh.faces.len() as u32;
     ctx.tag(&mut mesh, "new", n..end);
     mesh
 }
-const NEW_POLYGON: &[(&str, &str)] = &[("new", "New Polygon")];
+pub(crate) const NEW_POLYGON: &[(&str, &str)] = &[("new", "New Polygon")];
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
@@ -809,7 +809,7 @@ impl TypedOp for EdgeSubdivideOp {
     }
 }
 
-fn hidden(key: &'static str) -> Field {
+pub(crate) fn hidden(key: &'static str) -> Field {
     Field::new(key, key, FieldKind::Hidden)
 }
 

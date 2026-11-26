@@ -8794,6 +8794,24 @@ extrude, smooth-shift-thicken, split, quadruple and flip case).
   still can't group polygon by polygon [provisional]. Unmeasured: what
   the reference does with corner-touching islands (one shared new point,
   as Extrude's PE-N-03, or one each).
+- **MOQ-32 Bridge op with no Selection, provisional.** TYPE-IDS "Bridge".
+  A Bridge op whose Selection picks nothing in particular bridges the
+  mesh's border edges, so two loose open pieces join. Unclear: what the
+  reference bridges with no selection, and its Mode option order.
+- **MOQ-33 Thicken op's type id, provisional.** The reference saves
+  Thicken as `poly.smshift.item` named "Thicken"; Operandi gives it its own
+  id `poly.thicken.item` (same values, Thicken on). LXO import should map
+  the reference form to it.
+- **MOQ-34 Set Polygon Type op on lines, provisional.** Lines in the op's
+  selection are left as they are. Unclear: the reference's option list
+  past Face (Operandi: Face, Subdivision, Catmull-Clark).
+- **MOQ-35 Loop Slice op's Count and Position, provisional.** With Count
+  above 1 the loops are spaced evenly and Position is set aside (as the
+  tool's Count field does). No Selection cuts every ring. Unclear: how the
+  reference places several loops from its one `pos` channel.
+- **MOQ-36 Edge Slide op picks edges, provisional.** The reference's Sel is
+  VRTX; Operandi's Edge Slide works on edges, so the op picks edges.
+  Unclear: what the reference slides from a point selection.
 - **UVN-O-grow-quads-seam with corner UVs only, provisional.** Spec:
   new-point-uvs-2026-11-02 (UVN-T-06). Start: the seam grid, read as corner
   UVs only (how Operandi and imported meshes keep UVs); Grow Quads on edges

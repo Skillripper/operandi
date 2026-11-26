@@ -403,8 +403,18 @@ mod meshblend_spike;
 mod meshblend_strips;
 #[path = "meshop_bevel_regions.rs"]
 mod meshop_bevel_regions;
+#[path = "meshop_bridge.rs"]
+mod meshop_bridge;
+#[path = "meshop_edge_slide.rs"]
+mod meshop_edge_slide;
 #[path = "meshop_element_selection.rs"]
 mod meshop_element_selection;
+#[path = "meshop_loop_slice.rs"]
+mod meshop_loop_slice;
+#[path = "meshop_polygon_type.rs"]
+mod meshop_polygon_type;
+#[path = "meshop_thicken.rs"]
+mod meshop_thicken;
 #[path = "mid_tool_undo.rs"]
 mod mid_tool_undo;
 #[path = "mode_availability.rs"]
