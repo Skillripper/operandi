@@ -440,12 +440,16 @@ pub mod meshblend;
 pub mod meshblend_spike;
 #[path = "meshops/meshop_bridge.rs"]
 mod meshop_bridge;
+#[path = "meshops/meshop_chamfer_edit.rs"]
+mod meshop_chamfer_edit;
 #[path = "meshops/meshop_edge_slide.rs"]
 mod meshop_edge_slide;
 #[path = "meshops/meshop_hard_edge.rs"]
 mod meshop_hard_edge;
 #[path = "meshops/meshop_loop_slice.rs"]
 mod meshop_loop_slice;
+#[path = "meshops/meshop_part_tag.rs"]
+mod meshop_part_tag;
 #[path = "meshops/meshop_polygon_type.rs"]
 mod meshop_polygon_type;
 #[path = "meshops/meshop_selection.rs"]

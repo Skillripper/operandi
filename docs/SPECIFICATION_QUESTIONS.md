@@ -8817,6 +8817,9 @@ extrude, smooth-shift-thicken, split, quadruple and flip case).
   1 By Angle those sharper than Angle; the reference default "auto" reads
   as Selection. Hard Edge Convert uses default smoothing settings (an op
   can't read the scene's). Unclear: the reference's Mode options.
+- **MOQ-38 Part Tag op's type id, provisional.** Not in TYPE-IDS.md;
+  Operandi uses `pmodel.partTag.item` with one channel `partName`, after
+  Material Tag. Needs the reference's id and channel name.
 - **UVN-O-grow-quads-seam with corner UVs only, provisional.** Spec:
   new-point-uvs-2026-11-02 (UVN-T-06). Start: the seam grid, read as corner
   UVs only (how Operandi and imported meshes keep UVs); Grow Quads on edges

@@ -616,6 +616,7 @@ pub(crate) fn builtin() -> Vec<Arc<dyn OpDef>> {
     table.extend(crate::mesh_stack_tools::polygon_entries());
     table.extend(crate::meshop_thicken::entries());
     table.extend(crate::meshop_polygon_type::entries());
+    table.extend(crate::meshop_part_tag::entries());
     // Their Selection input picks edges and points (#19).
     table.extend(crate::meshop_types::with_element(
         crate::mesh_stack_tools::edge_entries(),
@@ -623,6 +624,7 @@ pub(crate) fn builtin() -> Vec<Arc<dyn OpDef>> {
     ));
     table.extend(crate::meshop_bridge::entries());
     table.extend(crate::meshop_edge_slide::entries());
+    table.extend(crate::meshop_chamfer_edit::entries());
     table.extend(crate::meshop_types::with_element(
         crate::mesh_stack_tools::vertex_entries(),
         crate::meshop_types::SelElement::Point,

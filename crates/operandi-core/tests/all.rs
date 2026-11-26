@@ -405,6 +405,8 @@ mod meshblend_strips;
 mod meshop_bevel_regions;
 #[path = "meshop_bridge.rs"]
 mod meshop_bridge;
+#[path = "meshop_chamfer_edit.rs"]
+mod meshop_chamfer_edit;
 #[path = "meshop_edge_slide.rs"]
 mod meshop_edge_slide;
 #[path = "meshop_element_selection.rs"]
@@ -413,6 +415,8 @@ mod meshop_element_selection;
 mod meshop_hard_edge;
 #[path = "meshop_loop_slice.rs"]
 mod meshop_loop_slice;
+#[path = "meshop_part_tag.rs"]
+mod meshop_part_tag;
 #[path = "meshop_polygon_type.rs"]
 mod meshop_polygon_type;
 #[path = "meshop_set_edge_weight.rs"]
