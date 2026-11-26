@@ -480,6 +480,16 @@ pub(crate) fn op_icon(id: &str) -> Option<crate::icons::Icon> {
         "edge.relax.item" => "edge-relax",
         "pmodel.edge.subdivide" => "edge-add-point",
         "pmodel.splitEdges.item" => "edge",
+        // Batch 1 tool steps: their direct tools' icons.
+        "edge.bridge.item" => "bridge",
+        "poly.loopSlice.item" => "loop-slice",
+        "edge.slide.item" => "edge-slide",
+        "chamfer.edit.item" => "edge-chamfer",
+        "poly.thicken.item" => "thicken",
+        "poly.setType.meshop.item" => "sds-subdivide",
+        "pmodel.partTag.item" => "tag-part",
+        "setvmap.subd.item" => "edge-crease",
+        "hardedge.meshop.item" | "hardedgeconvert.meshop.item" => "harden-normals",
         // Curve tools and batch 5 (provisional: borrowed icons until their own).
         "curve.circle.item"
         | "curve.ellipse.item"

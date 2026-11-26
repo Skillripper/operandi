@@ -62,7 +62,9 @@ fn bridge_values_save_and_reopen() {
         json!({ "segments": 2, "mode": 0, "twist": 1.0 }),
     );
     let before = ok(&e, id);
-    let mut e2 = operandi_core::Editor::default();
-    e2.scene = persistence::decode(&persistence::encode(&e.scene).unwrap()).unwrap();
+    let e2 = operandi_core::Editor {
+        scene: persistence::decode(&persistence::encode(&e.scene).unwrap()).unwrap(),
+        ..Default::default()
+    };
     assert_eq!(ok(&e2, id), before);
 }
