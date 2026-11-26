@@ -9886,33 +9886,31 @@ Built without a behaviour spec (Jason approved the feature; none of this was obs
 - MR-Q07 Attenuate (SCT-43) fades the current level's detail toward the smoothed level below (the level with no detail of its own); greyed at level 0 and on plain meshes. Its Amount (25 %) is the share of the remaining detail removed per full-weight dab.
 - MR-Q08 Command names are Operandi's own (`operandi.multires.*`) until the name map has the reference's; Convert to Multiresolution and Background to Multiresolution on the painting Utilities tab stay greyed (their behaviour is unknown). Render uses the level you are at (no separate render level). No sculpt layers, no default shortcuts for stepping.
 
-## Edge Bevel: corners with extra edges, Loop Slide (2026-11-24, branch bevel-gizmos-mitering, proposed)
+## Edge Bevel: Segments, Mitering, Loop Slide (2026-11-24 to 26, branch bevel-gizmos-mitering, proposed)
 
-A Windows tester's reports, built from their screenshots (Operandi and
-Blender); no Modo material.
+A Windows tester's reports and requests, built from their screenshots; no
+Modo material. Each needs the maintainer's OK.
 
-- **EBC-Q-CAP1 (changes N08 for one case, needs the maintainer's OK).**
-  Edge Bevel on a strip's single end where more polygons meet than the
-  strip's two sides and one end polygon (a pointed shape whose top was
-  split into triangles; the diagonal runs into the bevelled corner). The
-  diagonal has no strip side and can't slide (90° fold), so N08 kept the
-  old point and the top polygons spiked back to it. *Built:* those edges
-  now end where they cross the end's profile, the polygons between share
-  it, and the point goes. When any of them misses the profile (concave
-  corners, where keeping the point is right), N08 holds. Edge Chamfer
-  unchanged.
-- **EBC-Q-LS1 (new option, needs the maintainer's OK).** Loop Slide,
-  Edge Bevel only, on by default: where an unbevelled edge runs between two
-  bevelled edges into a point (an inset's diagonal between two rim edges),
-  on slides the new point along it (today's result); off puts it where the
-  two strips' sides meet, an even width from both, and the edge bends.
-  *Built:* the panel checkbox and `tool.attr edge.bevel loopSlide`.
-- **EBC-Q-CP1 (new option, needs the maintainer's OK).** Corner Pattern,
-  Edge Bevel only, one dropdown for every corner where rounded strips meet:
-  Patch (the EBC-J-05 grid, the default), Uniform (triangles from each
-  profile segment to one centre point), Radial (rings around that centre)
-  and None (one polygon). The centre is the Patch grids' shared corner.
-  *Built:* the panel dropdown and `tool.attr edge.bevel cornerPattern`.
+- **EBC-Q-CAP1 (changes N08 for one case).** At a strip's single end where
+  more polygons meet than its two sides and one end polygon, the edges
+  between them now end where they cross the end's profile and the old point
+  goes (it spiked back before). Concave corners, where they miss the
+  profile, keep N08. Edge Chamfer unchanged.
+- **EBC-Q-SEG1 (changes EBC-B3-02).** Round Level is replaced by Segments,
+  the edges added across the strip: 0 is flat, N gives N + 1 rows (odd
+  counts allowed). Edge Chamfer's Segments count the same way. Scripts:
+  `segments`; `level` still sets 2 x level rows.
+- **EBC-Q-MO1 (fills EBC-Q03's Mitering for Edge Bevel).** Mitering Offset:
+  an edge this far beyond the bevel on each side, with a second handle.
+- **EBC-Q-LS1 (new option).** Loop Slide, Edge Bevel only, off by default.
+  Off: points of the polygons around the strip that it would reach move out
+  of its way (along their edge, or across the polygon beyond), so it keeps
+  its full width. On: nothing moves; the strip slides along the edges beside
+  it and narrows. `tool.attr edge.bevel loopSlide`.
+- **EBC-Q-CP1 (new option).** Mitering Style, Edge Bevel only, for corners
+  where rounded strips meet: Default (the default), Neutral, Uniform, Pinch.
+  Patch and Radial are built but hidden until finished.
+  `tool.attr edge.bevel miteringStyle` (`cornerPattern` still works).
 
 ## MeshBlend B1 (2026-11-24, branch claude/project-thread-20fok5, provisional)
 
