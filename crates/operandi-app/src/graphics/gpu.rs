@@ -2877,6 +2877,24 @@ struct FillOut {
 // Where an edge running behind the near clip is cut, as a multiple of the
 // near distance (camera.rs NEAR_KEEP).
 const NEAR_KEEP: f32 = 1.01;
+// GitHub #30: how far edges and points are pulled toward the eye so they
+// win over their own polygon. The pull was a share of the view depth
+// (0.2% for edges), which on thin walls seen from a few metres let edges
+// behind a front face show past its rim. Now it is at most `max_pull` in
+// depth-buffer units, a few dozen float steps: enough to clear the
+// polygon's own depth, far less than a wall's thickness up close. Far out
+// (where the buffer is coarser) the old share is the smaller and stays.
+fn pulled(clip: vec4<f32>, share: f32, max_pull: f32) -> vec4<f32> {
+  var c = clip;
+  if (cam.params.z > 0.5) {
+    c.z = c.z - min(cam.params.w * share, max_pull * c.w);
+  } else {
+    c.z = c.z - min(cam.forward.w * share, max_pull);
+  }
+  return c;
+}
+const EDGE_PULL: f32 = 1e-6;
+const DOT_PULL: f32 = 2e-6;
 fn project(p: vec3<f32>) -> vec4<f32> {
   let d = p - cam.eye.xyz;
   let z = dot(d, cam.forward.xyz);
@@ -3216,7 +3234,7 @@ fn edge_out_fading(a: vec3<f32>, b: vec3<f32>, k: vec3<f32>, c: vec4<f32>, fades
   var ca = project(placed(a)); var cb = project(placed(b));
   let culled = vec4<f32>(0.0, 0.0, 2.0, 1.0);
   // Perspective: an edge with one end behind the near clip is cut where
-  // it crosses it (a hair in front, so the 0.2% pull below stays inside
+  // it crosses it (a hair in front, so the pull below stays inside
   // the depth range) rather than dropped, so a long edge running past
   // the eye keeps the part in view as its polygon does (camera.rs
   // `clip_to_near`, the same cut on the CPU). Gone only when both ends
@@ -3246,9 +3264,8 @@ fn edge_out_fading(a: vec3<f32>, b: vec3<f32>, k: vec3<f32>, c: vec4<f32>, fades
   var clip = select(ca, cb, k.x > 0.5);
   let offset = normal * k.y * width * 0.5 / half;
   clip = vec4<f32>(clip.xy + offset * clip.w, clip.z, clip.w);
-  // Sit just in front of the edge's own surface: 0.2% closer in view depth.
-  if (cam.params.z > 0.5) { clip.z = clip.z - cam.params.w * 0.002; } else { clip.z = clip.z - cam.forward.w * 0.002; }
-  out.position = clip; return out;
+  // Sit just in front of the edge's own surface (`pulled`).
+  out.position = pulled(clip, 0.002, EDGE_PULL); return out;
 }
 @fragment fn fs(in: Out) -> @location(0) vec4<f32> { return in.color; }
 // Selection x-ray: only highlighted strokes (selection, k.z > 0), faded by
@@ -3268,8 +3285,7 @@ struct DotOut { @builtin(position) position: vec4<f32>, @location(0) color: vec4
   let half = cam.view.xy * 0.5;
   clip = vec4<f32>(clip.xy + corner * radius / half * clip.w, clip.z, clip.w);
   // Points sit on their surface: a little closer than the edges' pull.
-  if (cam.params.z > 0.5) { clip.z = clip.z - cam.params.w * 0.004; } else { clip.z = clip.z - cam.forward.w * 0.004; }
-  out.position = clip; return out;
+  out.position = pulled(clip, 0.004, DOT_PULL); return out;
 }
 @fragment fn fs_dot(in: DotOut) -> @location(0) vec4<f32> {
   if (dot(in.corner, in.corner) > 1.0) { discard; }

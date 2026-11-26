@@ -208,6 +208,11 @@ impl Operandi {
                                 }
                                 ui.spacing_mut().item_spacing.y =
                                     crate::form::layout::panel::ROW_GAP;
+                                // GitHub #31: rows stop short of the
+                                // scroll bar so it never covers a field's
+                                // slide arrows.
+                                let room = crate::form::layout::scroll_bar_room(ui);
+                                ui.set_max_width((ui.available_width() - room).max(0.));
                                 crate::form::rows::scope(ui, "mini-properties", |ui| {
                                     if tool {
                                         self.mini_tool_rows(ui);

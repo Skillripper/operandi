@@ -151,3 +151,24 @@ fn tab_without_a_numeric_field_is_left_alone() {
     assert_eq!(raw.events.len(), 1);
     let _ = draw(&mut a, &ctx, SIZE, vec![]);
 }
+
+#[test]
+fn tool_properties_fields_stay_clear_of_the_scroll_bar() {
+    // GitHub #31: Bevel's Tool Properties scrolls at this size; the bar
+    // widens over the content near the pointer, so the fields (and their
+    // slide arrows on the right) stop short of it.
+    let ctx = Context::default();
+    let (a, keys) = bevel(&ctx);
+    let panel = a.toolbox_rects["Tool Properties"];
+    let scroll = ctx.style().spacing.scroll;
+    let room = scroll.bar_width + scroll.bar_outer_margin;
+    for key in &keys {
+        let field = a.field_rects[key];
+        assert!(
+            field.right() <= panel.right() - room + 0.5,
+            "{key} ends at {} under a bar from {}",
+            field.right(),
+            panel.right() - room
+        );
+    }
+}

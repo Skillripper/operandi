@@ -213,8 +213,7 @@ fn p_slope(a: vec3<f32>, m: vec3<f32>, b: vec3<f32>, t: f32) -> vec3<f32> {
   let width = select(cam.view.z, k.z, k.z > 0.0);
   let offset = normal * side * width * 0.5 / half;
   var clip = vec4<f32>(cp.xy + offset * cp.w, cp.z, cp.w);
-  if (cam.params.z > 0.5) { clip.z = clip.z - cam.params.w * 0.002; } else { clip.z = clip.z - cam.forward.w * 0.002; }
-  out.position = clip;
+  out.position = pulled(clip, 0.002, EDGE_PULL);
   return out;
 }
 "#;

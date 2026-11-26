@@ -1405,6 +1405,12 @@ impl Operandi {
                 .id_salt("tool-property-body")
                 .auto_shrink([false, false])
                 .show(ui, |ui| {
+                    // GitHub #31: rows stop short of the scroll bar, as in
+                    // Item Properties. The bar widens over the content
+                    // when the pointer nears it and covered the fields'
+                    // slide arrows on the right.
+                    let room = crate::form::layout::scroll_bar_room(ui);
+                    ui.set_max_width((ui.available_width() - room).max(0.));
                     crate::form::rows::scope(ui, "tool-properties", |ui| self.parameters(ui))
                 });
         }
