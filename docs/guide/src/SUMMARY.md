@@ -9,6 +9,7 @@
     - [Tool Properties](panels/tool-properties.md)
     - [Properties panel](panels/properties.md)
     - [Mesh Stack selections](panels/mesh-stack-selections.md)
+    - [Tool steps in the Mesh Stack](panels/mesh-stack-tool-steps.md)
     - [Shader Tree](panels/shader-tree.md)
     - [Preferences](panels/preferences.md)
     - [Menus](menus/index.md)
