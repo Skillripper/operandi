@@ -108,8 +108,9 @@ impl Operandi {
         }
         let real_latest = crate::cursor_wrap::latest(&events);
         self.cursor_wrap.read_events(&mut events);
+        // Whatever the Input Device (the tester, 2026-11-26): with a pen,
+        // whose place can't be moved, the drag simply goes on unwrapped.
         if self.input_preferences.options.unrestricted_cursor
-            && !self.input_preferences.options.tablet_navigation()
             && self.navigation.as_ref().is_some_and(|g| wraps(&g.kind))
             && ui.input(|i| i.pointer.any_down())
             && let Some(real) = real_latest

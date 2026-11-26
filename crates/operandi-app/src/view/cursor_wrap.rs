@@ -156,6 +156,22 @@ mod tests {
         assert_eq!(w.read(to2).y, 1. - (to.y - 1.));
     }
 
+    /// A pen's place can't be moved (Input Device Tablet, 2026-11-26): the
+    /// put-back never takes, its moves go on near the edge and past it, and
+    /// the drag reads them as they are, with no jump and no second put-back.
+    #[test]
+    fn a_put_back_that_never_takes_reads_on_unchanged() {
+        let mut w = Wrap::default();
+        let r = view();
+        let edge = Pos2::new(97., 40.);
+        assert!(w.put_back(edge, r).is_some());
+        for x in [97.5, 98., 99., 105.] {
+            let p = Pos2::new(x, 40.);
+            assert_eq!(w.read(p), p);
+        }
+        assert_eq!(w.put_back(Pos2::new(105., 40.), r), None);
+    }
+
     #[test]
     fn the_release_is_read_and_then_the_put_backs_end() {
         let mut w = Wrap::default();
