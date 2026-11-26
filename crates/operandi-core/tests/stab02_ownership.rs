@@ -70,12 +70,14 @@ fn raw_overlaps_keep_existing_category_refusal_precedence() {
         requested: Default::default(),
         preview: None,
         error: None,
+        applied_step: None,
     });
     e.ellipsoid = Some(NumericEllipsoid {
         target,
         requested: Default::default(),
         preview: None,
         error: None,
+        applied_step: None,
     });
     e.spike = Some(NumericSpike::armed(target, 0.5));
     for action in [HistoryAction::Undo, HistoryAction::Redo] {

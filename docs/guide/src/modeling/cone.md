@@ -36,7 +36,8 @@ size.
 | **Sides** | How many polygons go round the axis. | 24 |
 | **Segments** | How many rows of polygons go from base to tip. | 1 |
 | **Polygon Type** | **Face**, **Subdivs** or **Catmull Clark** polygons. | Face |
-| **Top Cap**, **Bottom Cap** | How each end is closed: **None**, **Single Polygon**, **Quad Grid** or **Radial** (**Radial** only for the bottom; it is greyed for the top). | Single Polygon |
+| **Top Cap** | How the tip is built. The tip is a single point, so **None** and **Single Polygon** both make a fan of triangles there; **Quad Grid** joins them in pairs into quads (it needs an even number of **Sides**). **Radial** is greyed. | Single Polygon |
+| **Bottom Cap** | How the base is closed: **None**, **Single Polygon**, **Quad Grid** or **Radial**. | Single Polygon |
 | **Edge Weight %** | How sharp the rim stays when the polygons are subdivided. Greyed with **Face** polygons. | 100 |
 | **Axis** | The axis from base to tip. | Y |
 | **Make UVs** | Gives the shape a UV layout in the **Texture** UV map, for textures. | On |
@@ -50,6 +51,23 @@ size.
 - **Drop** adds it and closes the tool.
 - **Cancel** throws the preview away.
 - **Reset** puts every value back to its starting value.
+
+## Tips
+
+- Right-drag in the **3D view**, away from the handles: left and right change **Sides**, up and down change **Segments**.
+
+## In the Mesh Stack
+
+You can also add a Cone as a step of a mesh's **Mesh Stack**: choose
+**Cone** under **Create > Primitives** in the stack's **Add Operator**
+list. It has the same properties as the tool, and the tool and the stack
+step build exactly the same cone from the same values, so you can
+change it later without rebuilding the mesh. **Min** and **Max**
+aren't there. Scripts
+add it with `meshop.create type:prim.cone.item`.
+
+With the step selected in the stack and no tool on, its handles show in the
+**3D view**. Drag an arrow to move it along that axis, a plane square or the centre dot to move it across a plane, and a size square at its edge to resize it. Each drag is one undo step. A right-drag anywhere else changes its counts, as with the tool: left and right for **Sides**, up and down for **Segments**.
 
 ## Related
 

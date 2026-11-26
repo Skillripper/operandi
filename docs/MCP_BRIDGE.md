@@ -74,7 +74,7 @@ claude mcp add operandi-live -- /path/to/target/debug/operandi-mcp --attach
   Operandi leaves a live socket alone; a stale one from a crash is replaced.
   macOS and Linux only for now.
 - **Threads:** socket threads only move JSON lines. Each request runs on the
-  UI thread between frames (`crates/operandi-app/src/mcp.rs`), against the
+  UI thread between frames (`crates/operandi-app/src/commands/mcp.rs`), against the
   app's own `Editor`, so undo labels, the viewport and the person's Undo all
   see the agent's steps.
 - **The person at the keyboard wins.** Editing calls are refused (as
@@ -627,6 +627,43 @@ used in the app; `primitive_add` always starts from the Reset values.
 - **`deformer.selectBaseMesh`** — Edit Base Mesh on or off: direct tools then edit the mesh's Base Mesh, with the stack's result drawn as a ghost.
   - `item` (integer): Item id; default the active item.
   - `select` (boolean): Default true.
+- **`meshblend.new`** — Make a MeshBlend Item: a new mesh whose Mesh Stack blends the selected meshes (all Primaries, unioned) as smooth surfaces. The new item is selected. No arguments.
+- **`meshblend.addSource`** — Add a mesh to a MeshBlend Item with a role. A Trim acts on the Primaries in of, or on every Primary when of is left out.
+  - `item` (integer): Item id; default the active item.
+  - `source` (integer, required): The mesh item to add.
+  - `role` (string): primary (default), subtract or intersect.
+  - `of` (array): For a Trim: the Primary mesh ids it acts on.
+- **`meshblend.role`** — Change a MeshBlend source's role (primary, subtract or intersect). A new Trim acts on every Primary until Trim or Untrim changes that.
+  - `item` (integer): Item id; default the active item.
+  - `source` (integer, required): The source mesh.
+  - `role` (string, required): primary, subtract or intersect.
+- **`meshblend.trim`** — Relate Trims to Primaries: each Trim in source then acts on each Primary in of.
+  - `item` (integer): Item id; default the active item.
+  - `source` (array, required): The Trim mesh id, or a list of them.
+  - `of` (array, required): The Primary mesh id, or a list of them.
+- **`meshblend.untrim`** — Remove relationships: each Trim in source stops acting on each Primary in of.
+  - `item` (integer): Item id; default the active item.
+  - `source` (array, required): The Trim mesh id, or a list of them.
+  - `of` (array, required): The Primary mesh id, or a list of them.
+- **`meshblend.clearRole`** — Take a source out of a MeshBlend Item; it is an ordinary mesh again.
+  - `item` (integer): Item id; default the active item.
+  - `source` (integer, required): The source mesh.
+- **`meshblend.source`** — Set a MeshBlend source's settings: enabled (in the result or not), subdivision (0-3, how finely its smooth surface becomes polygons) and keepCage (use the cage's points).
+  - `item` (integer): Item id; default the active item.
+  - `source` (integer, required): The source mesh.
+  - `enabled` (boolean): In the result or not.
+  - `subdivision` (integer): 0 to 3; 0 uses the cage as it is.
+  - `keepCage` (boolean): Use the cage's points instead of the smooth surface.
+- **`meshblend.strip`** — Give one strip of a MeshBlend Item its own Width and Profile (Override Defaults), by the strip's stable id as the MeshBlend panel lists it. clear removes the override.
+  - `item` (integer): Item id; default the active item.
+  - `id` (string, required): The strip, like 3-7-0 (its two sources' ids and its place).
+  - `override` (boolean): Override Defaults on or off; default on for a new override.
+  - `width` (number): Its Strip Width, a distance.
+  - `profile` (number): Its Strip Profile in percent, 0 to 200.
+  - `clear` (boolean): Remove the override.
+- **`meshblend.convert`** — Freeze a MeshBlend Item's result into an ordinary mesh: in place, or as a new mesh item with duplicate.
+  - `item` (integer): Item id; default the active item.
+  - `duplicate` (boolean): Make a new mesh item; default false.
 - **`selop.indexcreate`** — Give the selected mesh operation a Select by Index of the polygons selected on its Base Mesh. No arguments.
 - **`selop.selection`** — Edit a mesh operation's Select by Index from the polygons selected on its Base Mesh.
   - `mode` (string): set (default), clear, add or remove; or 0 to 3.
@@ -751,6 +788,32 @@ used in the app; `primitive_add` always starts from the Reset values.
 - **`operandi.rig.userChannelRemove`** — Delete a user channel, its keys and every link using it, one undo step (the status line says how many links went).
   - `item` (integer): Item id (default the active item).
   - `name` (string, required): Channel name.
+- **`operandi.rig.userChannelSet`** — Set a user channel's value (name.X for one component of a vector channel), one undo step; Auto Key keys it like any channel edit.
+  - `item` (integer): Item id (default the active item).
+  - `name` (string, required): Channel name.
+  - `value` (number, required): The value: percents 0–1, angles radians, true/false for a boolean.
+- **`operandi.channelSet.create`** — Create a channel set from the named or selected channels, one undo step; it becomes the current set and its panel shows over the 3D view.
+  - `name` (string): Its name (default Channel Set).
+  - `channels` (string): item:name,... (default the channel selection, UIC-119).
+- **`operandi.channelSet.add`** — Add channels to a channel set, one undo step; ones already in it stay where they are.
+  - `set` (integer): Channel set id (default the current set).
+  - `channels` (string): item:name,... (default the channel selection, UIC-119).
+- **`operandi.channelSet.remove`** — Remove channels from a channel set (all:true empties it), one undo step.
+  - `set` (integer): Channel set id (default the current set).
+  - `channels` (string): item:name,... (default the channel selection, UIC-119).
+  - `all` (boolean): Remove every channel.
+- **`operandi.channelSet.move`** — Move one row of a channel set to to: (0 is the top) or by: rows, one undo step.
+  - `set` (integer): Channel set id (default the current set).
+  - `channel` (string, required): The row, item:name.
+  - `to` (integer): New place, 0 = top.
+  - `by` (integer): Rows to move, negative = up.
+- **`operandi.channelSet.rename`** — Rename a channel set, one undo step.
+  - `set` (integer): Channel set id (default the current set).
+  - `name` (string, required): New name.
+- **`operandi.channelSet.delete`** — Delete a channel set, one undo step; the channels themselves are untouched.
+  - `set` (integer): Channel set id (default the current set).
+- **`operandi.channelSet.current`** — Pick the channel set whose panel shows over the 3D view, or none; view state, not an undo step.
+  - `set` (string): Channel set id, or none.
 - **`operandi.rig.bindUserChannel`** — Add a user channel of the same kind to target (named after the channel unless name is given) and link the channel to it, one undo step; the channel becomes driven.
   - `channel` (string, required): The channel to drive, item:name.
   - `target` (integer, required): Item that gets the user channel.
@@ -773,6 +836,28 @@ used in the app; `primitive_add` always starts from the Reset values.
   - `start` (number): First frame (default the current range's).
   - `end` (number): Last frame (default the current range's).
 - **`operandi.rig.schematic`** — Read the rig as Schematic nodes and wires: nodes (key item:<id> or piece:<id>, label, kind, inputs, outputs, broken, column) and wires (from, from_port, to, to_port, piece). No arguments.
+- **`operandi.rig.schematicArrange`** — Lay out a workspace's nodes left to right by data flow, ordered to cut wire crossings, one undo step. With nodes, just those (even hand-placed ones); without, every node not moved by hand since the last Arrange, placed below the hand-placed ones.
+  - `workspace` (integer, required): The workspace id (operandi.rig.workspaces).
+  - `nodes` (string): Node keys to arrange, comma-separated (item:<id>, piece:<id>).
+- **`operandi.rig.schematicPlace`** — Place nodes on a workspace, one undo step: place puts each key at x/y (moving it if it is there already, marked as moved by hand unless pinned:false); nodes adds keys not on the page yet, arranged together below what is there (SC-60). Never changes the items or pieces.
+  - `workspace` (integer, required): The workspace id.
+  - `place` (string): key@x/y pairs, comma-separated: item:3@10/20,piece:7@-40/5.
+  - `nodes` (string): Node keys to add without a place, comma-separated.
+  - `pinned` (boolean): Mark placed nodes as moved by hand (default true).
+- **`operandi.rig.schematicRemove`** — Remove nodes from a workspace page, one undo step. The items and rig pieces are untouched.
+  - `workspace` (integer, required): The workspace id.
+  - `nodes` (string, required): Node keys, comma-separated (item:<id>, piece:<id>).
+- **`operandi.rig.workspaceAdd`** — Add a Schematic workspace, one undo step. place puts nodes on it at once (key@x/y pairs, as schematicPlace). The new workspace is the last in operandi.rig.workspaces.
+  - `name` (string): The name (default Workspace).
+  - `place` (string): key@x/y pairs, comma-separated.
+- **`operandi.rig.workspaceClear`** — Remove every node from a workspace, one undo step; nothing in the scene changes.
+  - `workspace` (integer, required): The workspace id.
+- **`operandi.rig.workspaceRemove`** — Delete a workspace page, one undo step; nothing in the scene changes.
+  - `workspace` (integer, required): The workspace id.
+- **`operandi.rig.workspaceRename`** — Rename a workspace, one undo step.
+  - `workspace` (integer, required): The workspace id.
+  - `name` (string, required): The new name.
+- **`operandi.rig.workspaces`** — Read the saved Schematic workspaces: id, name and nodes (key, x, y, pinned). No arguments.
 - **`operandi.rig.unwire`** — Delete the wire at piece's port (a link: the link; a modifier: that input, or out; a constraint or dynamic parent: that target, the piece with its last), one undo step.
   - `piece` (integer, required): The rig piece id.
   - `port` (string, required): The piece's port (A, driver, target 2, out...).
@@ -1385,7 +1470,7 @@ used in the app; `primitive_add` always starts from the Reset values.
   - `mode` (string): "set" (default) or "add" select it; "remove" selects none.
 - **`scene.saveAs`** — Export the scene to an interchange file, as File > Export does (Mesh Stack results, hidden items as hidden). The document keeps its own file name and unsaved state, and nothing is added to the history. Here it only exports: it needs filename plus a format (format:, or a file extension that names one); to save the .opscene use scene_save.
   - `filename` (string, required): The file to write.
-  - `format` (string): obj, stl, stlAscii, gltf, glb, geo, svg, lxo, ply, plyAscii, abc, usd, usda, usdc, usdz, fbx or 3mf; default from the file's extension (.stl and .ply mean binary). USD needs the running app's exporter (operandi-mcp --attach).
+  - `format` (string): obj, stl, stlAscii, gltf, glb, geo, svg, lxo, ply, plyAscii, abc, usd, usda, usdc, usdz, fbx, 3mf, step or iges; default from the file's extension (.stl and .ply mean binary, .stp and .igs are STEP and IGES). USD needs the running app's exporter (operandi-mcp --attach).
   - `export` (boolean): Accepted; here scene.saveAs always exports.
   - `animation` (string): USD: on (default; time samples once a frame over the scene range), off, or current (the current frame only).
 - **`hide.sel`** — Hide the selected elements of the active mesh (everything when nothing is selected), one undo step; hidden polygons drop out of the UV tools. No arguments.

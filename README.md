@@ -44,7 +44,11 @@ Contributor docs:
 - [docs/UI_BIBLE.md](docs/UI_BIBLE.md): the UI conventions every interface
   change follows (rules UIC-nn).
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and
-  [docs/CODEMAP.md](docs/CODEMAP.md): where the code is.
+  [docs/CODEMAP.md](docs/CODEMAP.md): where the code is, and
+  [docs/DATA_MODEL.md](docs/DATA_MODEL.md): what the data looks like.
+- [Code map](https://operandi3d.org/architecture): an interactive map of
+  every module and file, with a plain-English line for each and what uses
+  what.
 - [docs/STATUS.md](docs/STATUS.md): what's built.
 
 Found a bug or have an idea? Use **Help > Report Bug or Idea…** in the app. Security problems go through

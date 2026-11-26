@@ -1,5 +1,5 @@
 <!-- help-ids: menu.file ; template: panel ; since: 0.1.0 -->
-<!-- Written by crates/operandi-app/src/guide_menus_tests.rs from the app's menus. Don't edit by hand: run OPERANDI_BLESS_GUIDE=1 scripts/check-fast.sh guide_menus -->
+<!-- Written by crates/operandi-app/src/commands/guide_menus_tests.rs from the app's menus. Don't edit by hand: run OPERANDI_BLESS_GUIDE=1 scripts/check-fast.sh guide_menus -->
 # File menu
 
 The entries of the **File** menu, in order. A **▸** opens a submenu. Keys in brackets run the entry; the `code` is the command it runs.
@@ -36,6 +36,8 @@ The entries of the **File** menu, in order. A **▸** opens a submenu. Keys in b
   - **USDZ (.usdz)…** · `scene.saveAs format:usdz export:true`
   - **FBX (.fbx)…** · `scene.saveAs format:fbx export:true`
   - **3D Manufacturing (.3mf)…** · `scene.saveAs format:3mf export:true`
+  - **STEP (.step)…** · `scene.saveAs format:step export:true`
+  - **IGES (.iges)…** · `scene.saveAs format:iges export:true`
 - **Export Material as MaterialX…** · `operandi.materialx.export`
 - **Load Preset…** · `preset.do`
 - **Save Item Preset…** · `preset.saveAs`

@@ -14,9 +14,11 @@ are; nothing here redraws them.
 | `icons/<slug>.opscene` | One icon scene each: a copy of the studio with geometry added. |
 | `../../scripts/render-icons.sh` | Renders every icon and the contact sheet. |
 
-Code: `crates/operandi-core/src/icon_studio.rs` (the studio and how icon
-scenes are rendered through it) and `crates/operandi-app/src/icon_studio_cli.rs`
-(`operandi-app --icon-studio`: the Cycles renders, outline and contact sheet).
+Code: the developer-tool crate `crates/operandi-icon-studio` (the app
+doesn't depend on it): `src/studio.rs` (the studio and how icon scenes are
+rendered through it) and `src/main.rs` (the `operandi-icon-studio` command:
+the Cycles renders, outline and contact sheet). The app ships only the
+finished PNGs.
 
 ## The studio
 
@@ -98,9 +100,9 @@ elsewhere.
 The command underneath:
 
 ```text
-operandi-app --icon-studio template <studio.opscene>        writes the studio
-operandi-app --icon-studio sample <slug> <icon.opscene>     writes a sample icon
-operandi-app --icon-studio render <icon.opscene | folder>... --out <folder>
+operandi-icon-studio template <studio.opscene>        writes the studio
+operandi-icon-studio sample <slug> <icon.opscene>     writes a sample icon
+operandi-icon-studio render <icon.opscene | folder>... --out <folder>
              [--studio <studio.opscene>] [--samples <n>] [--no-outline]
 ```
 
@@ -110,13 +112,12 @@ operandi-app --icon-studio render <icon.opscene | folder>... --out <folder>
 
 ## Not done yet
 
-- In the app: the icons listed in `RENDERED`
-  (`crates/operandi-app/src/rendered_icons.rs`) are drawn from these renders
-  instead of the generator's SVGs (79 so far: the primitives, the selection
-  modes, curves and pen, the polygon, edge, vertex, duplicate, slice and
-  deform tools listed there). To swap another icon, add its scene
-  here, add a line to `RENDERED` and `FILES`, and run
-  `scripts/render-icons.sh --install`. Sizes between the installed ones
+- In the app: the icons listed in
+  `crates/operandi-app/assets/rendered-icons/icons.txt` are drawn from these renders
+  instead of the generator's SVGs (every UI icon except the eye and disclosure
+  glyphs, 2026-11-24). To swap another icon, add its scene here, run
+  `scripts/render-icons.sh --install`, and add its `<slug> <Icon>` line to
+  `icons.txt`; the app's build embeds the PNGs it lists. Sizes between the installed ones
   (16, 20, 24, 32, 40, 48, 64, 128 px) are scaled down from the next one
   up.
 - No per-size pixel hinting: at 16 px a few edges fall between pixels and go

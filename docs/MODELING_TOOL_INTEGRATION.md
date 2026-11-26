@@ -20,7 +20,7 @@ A new numeric-only panel had to duplicate those mechanics as well as implement
 its actual parameter mapping. Returning to a previously confirmed value after
 an invalid preview was an easy recovery rule to miss.
 
-Now [numeric_draft.rs](../crates/operandi-app/src/numeric_draft.rs) owns those
+Now [numeric_draft.rs](../crates/operandi-app/src/tools/numeric_draft.rs) owns those
 mechanics for both callers. Panels supply a namespace, distance prefixes, value
 bindings, and parameter assignment. Dirty eligibility is captured as borrowed
 field references in existing BTreeMap order; parsing remains lazy and stops at
@@ -43,20 +43,20 @@ not the integration bottleneck addressed here.
 
 1. Define supported inputs, context refusals and acceptance oracles first.
    Supply portable parameters and geometry in core, following
-   [ellipsoid.rs](../crates/operandi-core/src/ellipsoid.rs) and its
+   [ellipsoid.rs](../crates/operandi-core/src/primitives/ellipsoid.rs) and its
    [domain tests](../crates/operandi-core/tests/ellipsoid_numeric.rs).
    Geometry returns validated mesh/attributes; UI does not implement geometry.
 2. Supply session ownership, preview validation and transaction behavior in a
    core editor module, following
-   [ellipsoid_editor.rs](../crates/operandi-core/src/ellipsoid_editor.rs).
+   [ellipsoid_editor.rs](../crates/operandi-core/src/primitives/ellipsoid_editor.rs).
    Add command variants and explicit routing in
    [editor.rs](../crates/operandi-core/src/editor.rs), and exports in
    [lib.rs](../crates/operandi-core/src/lib.rs). Preserve target identity and
    validate candidate scenes before publication.
 3. Supply the approved UI rows and parameter mapping in a local panel, following
-   [ellipsoid_panel.rs](../crates/operandi-app/src/ellipsoid_panel.rs) or
-   [cone_panel.rs](../crates/operandi-app/src/cone_panel.rs). Shared `number` and
-   `triple` controls in [panels.rs](../crates/operandi-app/src/panels.rs) own
+   [ellipsoid_panel.rs](../crates/operandi-app/src/create_tools/ellipsoid_panel.rs) or
+   [cone_panel.rs](../crates/operandi-app/src/create_tools/cone_panel.rs). Shared `number` and
+   `triple` controls in [panels.rs](../crates/operandi-app/src/window_layout/panels.rs) own
    focus/Enter/Tab/Escape. For a matching numeric-only session, use
    `changed_values` with its namespace and distance prefixes, validate and assign
    into a candidate, then dispatch its Configure command. On acceptance publish
@@ -68,8 +68,8 @@ not the integration bottleneck addressed here.
    text or create independent button-only geometry operations.
 5. Supply only approved interaction through
    [viewport.rs](../crates/operandi-app/src/viewport.rs),
-   [input.rs](../crates/operandi-app/src/input.rs), and, where semantics match,
-   [primitive_input.rs](../crates/operandi-app/src/primitive_input.rs).
+   [input.rs](../crates/operandi-app/src/input_devices/input.rs), and, where semantics match,
+   [primitive_input.rs](../crates/operandi-app/src/create_tools/primitive_input.rs).
    Drawing consumes preview snapshots; handle hit testing and gestures must use
    the same coordinates. Numeric-only Cone/Ellipsoid deliberately refuse
    unapproved viewport gestures. This pass changes none of these adapters.
@@ -81,15 +81,15 @@ not the integration bottleneck addressed here.
    roundtrip using the existing Cone/Ellipsoid tests as examples.
 
 Scene serialization remains in
-[persistence.rs](../crates/operandi-core/src/persistence.rs); drafts/text are
+[persistence.rs](../crates/operandi-core/src/commands/persistence.rs); drafts/text are
 presentation/session state, not a reason to change the file format. The mesh,
 scene, geometry and evaluation contracts remain usable without GUI/GPU startup.
 
 Spike's subsequent implementation is a useful distinct lifecycle example:
-[spike.rs](../crates/operandi-core/src/spike.rs) returns a validated replacement
-and source-to-descendant correspondence; [spike_editor.rs](../crates/operandi-core/src/spike_editor.rs)
+[spike.rs](../crates/operandi-core/src/polygons/spike.rs) returns a validated replacement
+and source-to-descendant correspondence; [spike_editor.rs](../crates/operandi-core/src/polygons/spike_editor.rs)
 holds inactive configuration and performs one cumulative transaction per Apply.
-[spike_panel.rs](../crates/operandi-app/src/spike_panel.rs) reuses scalar draft
+[spike_panel.rs](../crates/operandi-app/src/polygons/spike_panel.rs) reuses scalar draft
 transport without creating a preview on numeric confirmation. Do not infer the
 primitive draft lifecycle from those shared helpers. Its relative morph and
 smoothing-label data use a bounded native-v5 extension, with old files defaulting
@@ -214,4 +214,4 @@ repair/survivors remain the outstanding Bevel integration burden.
 
 ## Bridge S1 integration (2026-10-27)
 
-The numeric Bridge candidate keeps geometry and sparse remapping in `crates/operandi-core/src/bridge.rs`, atomic candidate publication in `bridge_editor.rs`, and panel/property transport in `crates/operandi-app/src/bridge_panel.rs`. The shared editor, I1 identity invalidation, I2 session ownership, history and mode eligibility explicitly include Bridge. `crates/operandi-core/tests/bridge_s1.rs` contains geometry oracles and integration witnesses. See `docs/bridge-s1-stabilized-integration-20261027/` for actual check results and pending native validation. Adding a tool still requires reviewing category-specific lifecycle, shared dispatch, identity/history and mode routing, property and command metadata, menu/input presentation, selection and persistence; these coordinated edits remain a material integration burden, not a stable plugin API. Stored subdivision type is not evaluated subdivision.
+The numeric Bridge candidate keeps geometry and sparse remapping in `crates/operandi-core/src/edges/bridge.rs`, atomic candidate publication in `bridge_editor.rs`, and panel/property transport in `crates/operandi-app/src/edges/bridge_panel.rs`. The shared editor, I1 identity invalidation, I2 session ownership, history and mode eligibility explicitly include Bridge. `crates/operandi-core/tests/bridge_s1.rs` contains geometry oracles and integration witnesses. See `docs/bridge-s1-stabilized-integration-20261027/` for actual check results and pending native validation. Adding a tool still requires reviewing category-specific lifecycle, shared dispatch, identity/history and mode routing, property and command metadata, menu/input presentation, selection and persistence; these coordinated edits remain a material integration burden, not a stable plugin API. Stored subdivision type is not evaluated subdivision.

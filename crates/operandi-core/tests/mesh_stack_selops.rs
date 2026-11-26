@@ -365,6 +365,7 @@ fn select_randomly_same_seed_same_polygons() {
             probability: 50.0,
         })],
         &mesh,
+        operandi_core::meshop_types::SelElement::Polygon,
     )
     .unwrap()
     .unwrap();
@@ -382,4 +383,44 @@ fn select_randomly_saves_and_reopens_identical() {
         .current(&back, back.item(id).unwrap())
         .unwrap();
     assert_eq!(*theirs.mesh, *result(&e, id).mesh);
+}
+
+/// Issue #7: the first op in a new stack got id 0, the same as Source
+/// Item's "(none)", so picking it showed "(none)". Ids start at 1, and a
+/// stack saved with an op 0 reads back with that op given a fresh id.
+#[test]
+fn the_first_op_can_be_a_previous_operation_source() {
+    let (mut e, id) = editor();
+    let cube = add(&mut e, id, "prim.cube.item", json!({}));
+    assert_ne!(cube.op, 0, "0 means no source");
+    let tri = add(&mut e, id, TRI, json!({}));
+    selop(&mut e, tri, previous(cube, "caps")).unwrap();
+    let stack = e.scene.item(id).unwrap().mesh_stack.clone().unwrap();
+    assert_eq!(
+        stack.ops[1].selops[0].kind,
+        SelKind::Previous {
+            source: cube.op,
+            name: "caps".into()
+        }
+    );
+
+    // An older save: the cube is op 0, the triangulate op 1.
+    let mut saved = serde_json::to_value(&stack).unwrap();
+    saved["ops"][0]["id"] = json!(0);
+    saved["ops"][1]["id"] = json!(1);
+    saved["ops"][1]["selops"][0]["source"] = json!(0);
+    saved["next_id"] = json!(2);
+    let read: operandi_core::mesh_stack::MeshStack = serde_json::from_value(saved).unwrap();
+    assert_eq!(read.ops[0].id, 2);
+    assert_eq!(read.ops[1].id, 1);
+    assert_eq!(read.next_id, 3);
+    // It picked the cube's groups before, and still does.
+    assert_eq!(
+        read.ops[1].selops[0].kind,
+        SelKind::Previous {
+            source: 2,
+            name: "caps".into()
+        }
+    );
+    read.validate().unwrap();
 }

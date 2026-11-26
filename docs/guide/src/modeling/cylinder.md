@@ -43,7 +43,7 @@ size.
 | **Sides** | How many polygons go round the axis. | 24 |
 | **Segments** | How many rows of polygons go from end to end. | 1 |
 | **Polygon Type** | The kind of polygons made. | Face |
-| **Cap Top**, **Cap Bottom** | How each end is closed: **None**, **Single Polygon**, **Quads** or **Radial**. | Single Polygon |
+| **Top Cap**, **Bottom Cap** | How each end is closed: **None**, **Single Polygon**, **Quad Grid** or **Radial**. **Quad Grid** fills the end with a grid of quads, like the cone's base, so it subdivides cleanly; an odd number of **Sides** leaves one triangle. | Single Polygon |
 | **Axis** | The axis from end to end. | Y |
 | **Make UVs** | Gives the shape a UV layout in the **Texture** UV map, for textures. | On |
 | **Handle Mode** | Side handles resize that side. | Resize |
@@ -58,7 +58,57 @@ Rows in grey aren't available yet; they show their value only. They are **Edge W
 
 ## Tips
 
-- **Cap Top** set to **None** leaves that end open, for a pipe or a cup.
+- **Top Cap** set to **None** leaves that end open, for a pipe or a cup.
+- Right-drag in the **3D view**, away from the handles: left and right change **Sides**, up and down change **Segments**.
+
+## Shaping it with a falloff
+
+A falloff can taper, bend or twist the cylinder while you make it. The
+falloff's weight decides how much each ring of points changes: full where
+the weight is 1, not at all where it is 0. More **Segments** give a
+smoother result.
+
+1. With the cylinder still being drawn, pick a **Linear**, **Radial**,
+   **Cylinder** or **Noise** falloff from the **Falloff** menu. The tool
+   stays open.
+2. Open the **Falloff** section in **Tool Properties** and set what the
+   weight does, for example **Scale** 0% for a point at the full end.
+3. Drag the falloff's handles to move it, or click **Fit Falloff to Shape**
+   to run a Linear falloff from the cylinder's base (none) to its top (full).
+4. Go back to the cylinder's own handles and fields whenever you like. The
+   shape updates as you change either.
+5. Drop the tool to keep the shaped cylinder. **Undo** takes it back in one
+   step.
+
+| Name | What it does | Default |
+|---|---|---|
+| **Scale** | The rings' size where the weight is full; 100% leaves them as they are. | 50% |
+| **Offset** | How far the rings move where the weight is full (X, Y, Z). | 0 m |
+| **Twist** | How far the rings turn about the axis where the weight is full. | 0° |
+| **Sample At** | **Spine** reads one weight per ring on the axis, so rings stay round. **Points** reads each point's own weight, so a Noise or Radial falloff dents the rings. | Spine |
+| **Spacing** | **Even** keeps the rings where they are. **Follow Falloff** packs them where the falloff changes fastest, so a curved profile stays smooth with fewer **Segments**. | Even |
+
+The rows stay grey until a falloff that can shape new geometry is on.
+Falloffs that weigh points that already exist (**Selection**, **Element**,
+**Vertex Map** and the painted ones) can't, and the rows say so.
+
+## In the Mesh Stack
+
+You can also add a Cylinder as a step of a mesh's **Mesh Stack**: choose
+**Cylinder** under **Create > Primitives** in the stack's **Add Operator**
+list. It has the same properties as the tool, and the tool and the stack
+step build exactly the same cylinder from the same values, so you can
+change it later without rebuilding the mesh. If a falloff is on when you
+add it, the step keeps its own copy; Its **Falloff Type** row and the
+falloff's own values (Start and End, Center and Size, Shape) edit that
+copy, and changes show at once. **Use Active Falloff** and **Clear
+Falloff** copy one in or remove it, and its other **Falloff** rows work as
+above. Rows that only steer the
+tool's handles (**Handle Mode**, **Min** and **Max**) aren't there. Scripts
+add it with `meshop.create type:prim.cylinder.item`.
+
+With the step selected in the stack and no tool on, its handles show in the
+**3D view**. Drag an arrow to move it along that axis, a plane square or the centre dot to move it across a plane, and a size square at its edge to resize it, and its falloff's handles to change the falloff (they work as the tool falloff's do: points, arrows and Size boxes). Each drag is one undo step. A right-drag anywhere else changes its counts, as with the tool: left and right for **Sides**, up and down for **Segments**.
 
 ## Related
 

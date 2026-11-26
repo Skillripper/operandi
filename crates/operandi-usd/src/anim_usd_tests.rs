@@ -182,3 +182,112 @@ for f in (0, 6, 12, 24):
     }
     assert_eq!(seen, 4, "{text}");
 }
+
+/// Export then import: the ball comes back moving the same way, at the
+/// same rate and range, with keys only on what moved.
+#[test]
+fn the_ball_round_trips_with_its_motion() {
+    let (e, id) = ball();
+    let path = out_dir().join("ball-round-trip.usdc");
+    let scene = e.evaluated(operandi_core::evaluate::Purpose::Final);
+    crate::export(&path, &scene, ExportFormat::Usd).unwrap();
+    let back = crate::import(&path, &Default::default()).unwrap();
+    let b = &back.scene;
+    assert_eq!(b.time.rate, e.scene.time.rate);
+    assert_eq!(
+        (b.time.start, b.time.end),
+        (e.scene.time.start, e.scene.time.end)
+    );
+    let ball = b.items.iter().find(|i| i.name == "Ball").unwrap().id;
+    let keyed: std::collections::BTreeSet<String> = b
+        .animation
+        .item_channels(ball)
+        .map(|(k, _)| k.channel.clone())
+        .collect();
+    let want: std::collections::BTreeSet<String> = ["pos.Y", "scl.X", "scl.Y", "scl.Z"]
+        .map(String::from)
+        .into();
+    assert_eq!(keyed, want);
+    let rate = e.scene.time.rate;
+    for ch in ["pos.Y", "scl.Y", "scl.X"] {
+        let src = &e.scene.animation.channels[&animation::ChannelKey::new(id, ch)].curve;
+        let got = &b.animation.channels[&animation::ChannelKey::new(ball, ch)].curve;
+        for f in 0..=24 {
+            let (a, v) = (src.value_at(rate.tick_of(f)), got.value_at(rate.tick_of(f)));
+            assert!((a - v).abs() < 1e-5, "{ch} at {f}: {a} vs {v}");
+        }
+    }
+    assert!(
+        back.notes.iter().any(|n| n.starts_with("Animation:")),
+        "{:?}",
+        back.notes
+    );
+}
+
+/// A camera's focal length and a light's intensity, keyed, come back
+/// keyed (TL-81 the other way).
+#[test]
+fn camera_and_light_keys_round_trip() {
+    use operandi_core::anim_curve::Curve;
+    use operandi_core::animation::{AnimChannel, ChannelKey};
+    use operandi_core::camera_light::{CameraSettings, LightSettings};
+    let mut scene = crate::plan_tests::box_scene("Box");
+    let cam = scene
+        .add_camera(CameraSettings::default(), Default::default())
+        .unwrap();
+    let lamp = scene
+        .add_light(LightSettings::default(), Default::default())
+        .unwrap();
+    let rate = scene.time.rate;
+    let curve = |a: f64, b: f64| Curve {
+        keys: vec![
+            animation::new_key(rate.tick_of(0), a),
+            animation::new_key(rate.tick_of(10), b),
+        ],
+        ..Curve::default()
+    };
+    let f0 = scene
+        .item(cam)
+        .unwrap()
+        .camera
+        .as_ref()
+        .unwrap()
+        .focal_length;
+    for (key, c) in [
+        (ChannelKey::new(cam, "focalLength"), curve(f0, f0 * 2.0)),
+        (ChannelKey::new(lamp, "intensity"), curve(1.0, 3.0)),
+    ] {
+        let rest = c.keys[0].value;
+        scene
+            .animation
+            .channels
+            .insert(key, AnimChannel { curve: c, rest });
+    }
+    scene.time.end = rate.tick_of(10);
+    // A document is always posed at its current time (export reads it as
+    // it is there).
+    let now = scene.time.current;
+    animation::pose(&mut scene, now);
+    let path = out_dir().join("lens-and-lamp.usda");
+    crate::export(&path, &scene, ExportFormat::Usda).unwrap();
+    let back = crate::import(&path, &Default::default()).unwrap().scene;
+    let item = |pred: &dyn Fn(&Item) -> bool| back.items.iter().find(|i| pred(i)).unwrap().id;
+    let c = item(&|i| i.camera.is_some());
+    let l = item(&|i| i.light.is_some());
+    let value = |id: u64, ch: &str, f: i64| {
+        back.animation.channels[&ChannelKey::new(id, ch)]
+            .curve
+            .value_at(rate.tick_of(f))
+    };
+    for f in [0, 5, 10] {
+        let want = scene.animation.channels[&ChannelKey::new(cam, "focalLength")]
+            .curve
+            .value_at(rate.tick_of(f));
+        assert!(
+            (value(c, "focalLength", f) - want).abs() < 1e-5 * want,
+            "frame {f}"
+        );
+    }
+    let (a, b) = (value(l, "intensity", 0), value(l, "intensity", 10));
+    assert!((b / a - 3.0).abs() < 1e-4, "{a} {b}");
+}

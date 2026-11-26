@@ -246,7 +246,8 @@
       "command": "sculpt.remesh",
       "label": "Remesh...",
       "shortcut": "Remesh",
-      "tooltip": "Remesh...{binding} · Rebuild the mesh as an even quad skin to sculpt on; overlaps join and holes close · sculpt.remesh"
+      "tooltip": "Remesh...{binding} · Rebuild the mesh as an even quad skin to sculpt on; overlaps join and holes close · sculpt.remesh",
+      "icon": "remesh"
     },
     {
       "space": 4

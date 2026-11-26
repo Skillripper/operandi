@@ -12,7 +12,7 @@ use serde_json::{Map, Value, json};
 pub type Result<T> = std::result::Result<T, String>;
 
 /// Interactive tools reachable through `tool_run`, by the same ids the app's
-/// command line uses (`crates/operandi-app/src/command.rs`). Old ids
+/// command line uses (`crates/operandi-app/src/commands/command.rs`). Old ids
 /// resolve through `operandi_core::command_names`.
 /// Kept in sorted order (case-insensitive), so parallel branches add
 /// lines in different places (AGENTS.md, "Code"); a test checks it.
@@ -924,6 +924,10 @@ pub fn op_status(s: &operandi_core::mesh_stack::OpStatus) -> Value {
         S::Ok => json!("ok"),
         S::Off => json!("off"),
         S::Failed(why) => json!({"failed": why}),
+        S::Noted(notes) => json!({"notes": notes
+            .iter()
+            .map(|n| json!({"item": n.item, "text": n.text, "problem": n.problem}))
+            .collect::<Vec<_>>()}),
     }
 }
 

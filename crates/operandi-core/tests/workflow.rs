@@ -575,7 +575,8 @@ fn par_combined_transform_replacement_cancel_attributes_and_native_roundtrip() {
     );
     e.dispatch(Command::Preview(params.clone())).unwrap();
     assert_eq!(e.scene, scene);
-    params.scale_delta.x = 0.;
+    // A negative component scale is refused (0 is allowed, #24).
+    params.scale_delta.x = -1.;
     assert!(e.dispatch(Command::Preview(params)).is_err());
     assert_eq!(e.scene, scene);
     e.dispatch(Command::Cancel).unwrap();

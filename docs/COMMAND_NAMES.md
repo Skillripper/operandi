@@ -3,7 +3,7 @@
 Survey of every command-line / script / MCP name Operandi accepts, against
 `TOOLBAR-NAME-MAP.md`, `modo-tools.json` and `modo-commands.json`. "Map" below
 means those three files. Renames live in one registry:
-`crates/operandi-core/src/command_names.rs`. Old names stay accepted and log
+`crates/operandi-core/src/commands/command_names.rs`. Old names stay accepted and log
 `Deprecated command name: <old> is now <new>` once per name per run.
 
 Entry points surveyed: command line and every caller of `Operandi::execute`
@@ -192,7 +192,9 @@ and degrees. The conversion happens where arguments are parsed
 | deformer.selectBaseMesh item select:<bool> | Edit Base Mesh | |
 | selop.indexcreate, selop.selection mode:set\|clear\|add\|remove | Select by Index | |
 
-Op types (saved): prim.cube.item, prim.sphere.item, prim.cylinder.item,
+Op types (saved): prim.cube.item, prim.sphere.item, prim.ellipsoid.item,
+prim.cone.item, prim.toroid.item, prim.cylinder.item, prim.capsule.item,
+prim.teapot.item (primitive_ops.rs),
 poly.bevel.item, poly.smshift.item, subdivide.tool.item,
 pmodel.triangulate.item, mirror.clone.item, array.clone.item;
 Select by Index index.selop.item. One mapping: `mesh_stack::OP_TYPES`.

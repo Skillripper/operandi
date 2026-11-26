@@ -232,7 +232,7 @@ border; on macOS a single Cmd+Shift click in Polygon mode no longer adds to the
 selection so the double-click can reach Fill.
 
 Status (2026-10-30, branch `codex/m15-completion`): SEL-M1..M6 pass —
-`crates/operandi-core/src/selection_continuation.rs`,
+`crates/operandi-core/src/selections/selection_continuation.rs`,
 `crates/operandi-core/tests/selection_continuation_m15.rs` (6 tests) and app test
 `m15_up_arrow_selects_more_and_ctrl_shift_double_click_fills`. Wired to the Select
 menu, the selection panel, command entry (`more`, `less`, `between`) and the

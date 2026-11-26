@@ -89,14 +89,22 @@ fn add_joints(
         for &j in &ids {
             skin::ensure_setup_channels(scene, j);
         }
-        add_keys(scene, s, &ids, conv, world)?;
+        add_keys(scene, s, &ids, conv, world, stage.frames_per_code())?;
         out.insert(s.path.clone(), ids);
     }
     Ok(out)
 }
 
 /// The SkelAnimation as keys on each joint's changing channels.
-fn add_keys(scene: &mut Scene, s: &SkelData, ids: &[u64], conv: Conv, world: DMat4) -> Result<()> {
+/// `per`: frames per time code (the stage's timing).
+fn add_keys(
+    scene: &mut Scene,
+    s: &SkelData,
+    ids: &[u64],
+    conv: Conv,
+    world: DMat4,
+    per: f64,
+) -> Result<()> {
     let Some(a) = &s.anim else {
         return Ok(());
     };
@@ -159,9 +167,10 @@ fn add_keys(scene: &mut Scene, s: &SkelData, ids: &[u64], conv: Conv, world: DMa
             let rest = scene.animation.channels.get(&key).map_or(v0, |ch| ch.rest);
             let mut curve = operandi_core::anim_curve::Curve::default();
             for (time, v) in &values {
-                curve
-                    .keys
-                    .push(animation::new_key(animation::at_frames(rate, *time), v[c]));
+                curve.keys.push(animation::new_key(
+                    animation::at_frames(rate, *time * per),
+                    v[c],
+                ));
             }
             scene
                 .animation
@@ -170,8 +179,8 @@ fn add_keys(scene: &mut Scene, s: &SkelData, ids: &[u64], conv: Conv, world: DMa
         }
     }
     if first.is_finite() && last > first {
-        scene.time.start = animation::at_frames(rate, first);
-        scene.time.end = animation::at_frames(rate, last);
+        scene.time.start = animation::at_frames(rate, first * per);
+        scene.time.end = animation::at_frames(rate, last * per);
     }
     let now = scene.time.current;
     animation::pose(scene, now);

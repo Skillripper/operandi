@@ -50,7 +50,8 @@
     },
     {
       "command": "Vertex Map Scale Down",
-      "label": "Scale Down"
+      "label": "Scale Down",
+      "icon": "vmap-scale-down"
     },
     {
       "command": "Vertex Map Erase",
@@ -64,7 +65,8 @@
     },
     {
       "command": "operandi.vertMap.transfer",
-      "label": "Transfer from Background"
+      "label": "Transfer from Background",
+      "icon": "vmap-transfer"
     },
     {
       "divider": "Hard Edges",
@@ -72,67 +74,82 @@
     },
     {
       "form": {
-        "style": "menu",
+        "style": "horizontal",
+        "icons": "both",
         "controls": [
           {
-            "command": "Harden Vertex Normals mode:edges",
-            "label": "Harden Edges"
+            "form": {
+              "style": "hold",
+              "controls": [
+                {
+                  "command": "Harden Vertex Normals mode:edges",
+                  "label": "Harden Edges",
+                  "icon": "harden-normals"
+                },
+                {
+                  "command": "Harden Vertex Normals mode:vertices",
+                  "label": "Harden Vertices",
+                  "icon": "harden-normals"
+                },
+                {
+                  "command": "Harden Vertex Normals mode:polygons",
+                  "label": "Harden Polygons",
+                  "icon": "harden-normals"
+                },
+                {
+                  "command": "Harden Vertex Normals mode:angle",
+                  "label": "Harden by Angle",
+                  "icon": "harden-normals"
+                },
+                {
+                  "command": "Harden Vertex Normals mode:uvAuto",
+                  "label": "Harden UV Borders",
+                  "icon": "harden-normals"
+                },
+                {
+                  "command": "Harden Vertex Normals mode:uvEdge",
+                  "label": "Harden UV Edges",
+                  "icon": "harden-normals"
+                },
+                {
+                  "command": "Harden Vertex Normals mode:uvPolygon",
+                  "label": "Harden UV Polygons",
+                  "icon": "harden-normals"
+                }
+              ]
+            },
+            "tooltip": "Harden · edges become hard and the normal map is rebuilt{binding}\nRight-click or hold: harden vertices, polygons, by angle or along UV borders"
           },
           {
-            "command": "Harden Vertex Normals mode:vertices",
-            "label": "Harden Vertices"
-          },
-          {
-            "command": "Harden Vertex Normals mode:polygons",
-            "label": "Harden Polygons"
-          },
-          {
-            "command": "Harden Vertex Normals mode:angle",
-            "label": "Harden by Angle"
-          },
-          {
-            "command": "Harden Vertex Normals mode:uvAuto",
-            "label": "Harden UV Borders"
-          },
-          {
-            "command": "Harden Vertex Normals mode:uvEdge",
-            "label": "Harden UV Edges"
-          },
-          {
-            "command": "Harden Vertex Normals mode:uvPolygon",
-            "label": "Harden UV Polygons"
+            "form": {
+              "style": "hold",
+              "controls": [
+                {
+                  "command": "Soften Vertex Normals mode:all",
+                  "label": "Soften All",
+                  "icon": "soften-normals"
+                },
+                {
+                  "command": "Soften Vertex Normals mode:edges",
+                  "label": "Soften Edges",
+                  "icon": "soften-normals"
+                },
+                {
+                  "command": "Soften Vertex Normals mode:vertices",
+                  "label": "Soften Vertices",
+                  "icon": "soften-normals"
+                },
+                {
+                  "command": "Soften Vertex Normals mode:polygons",
+                  "label": "Soften Polygons",
+                  "icon": "soften-normals"
+                }
+              ]
+            },
+            "tooltip": "Soften · every hard edge goes soft and the normal map is rebuilt{binding}\nRight-click or hold: soften edges, vertices or polygons"
           }
         ]
-      },
-      "id": "game-harden",
-      "label": "Harden",
-      "tooltip": "Harden · add edges to the hard edges and rebuild the normal map"
-    },
-    {
-      "form": {
-        "style": "menu",
-        "controls": [
-          {
-            "command": "Soften Vertex Normals mode:all",
-            "label": "Soften All"
-          },
-          {
-            "command": "Soften Vertex Normals mode:edges",
-            "label": "Soften Edges"
-          },
-          {
-            "command": "Soften Vertex Normals mode:vertices",
-            "label": "Soften Vertices"
-          },
-          {
-            "command": "Soften Vertex Normals mode:polygons",
-            "label": "Soften Polygons"
-          }
-        ]
-      },
-      "id": "game-soften",
-      "label": "Soften",
-      "tooltip": "Soften · take edges out of the hard edges and rebuild the normal map"
+      }
     },
     {
       "form": {
@@ -141,19 +158,21 @@
           {
             "command": "Select Hard Edges",
             "label": "Select Hard",
-            "look": "centered"
+            "icon": "select-hard-edges"
           },
           {
             "command": "Select Soft Edges",
             "label": "Select Soft",
-            "look": "centered"
+            "icon": "select-soft-edges"
           }
-        ]
+        ],
+        "icons": "both"
       }
     },
     {
       "command": "Convert to Hard Edges",
-      "label": "Convert to Hard Edges"
+      "label": "Convert to Hard Edges",
+      "icon": "convert-hard-edges"
     },
     {
       "divider": "Normal Maps",
@@ -161,27 +180,36 @@
     },
     {
       "command": "Vertex Normal Tools...",
-      "label": "Vertex Normal Tools…"
+      "label": "Vertex Normal Tools…",
+      "icon": "vertex-normal-tools",
+      "look": "flat"
     },
     {
       "command": "Recalculate Vertex Normals",
-      "label": "Recalculate Vertex Normals"
+      "label": "Recalculate Vertex Normals",
+      "icon": "recalculate-normals",
+      "look": "flat"
     },
     {
       "command": "Toggle Vertex Normal Maps",
-      "label": "Toggle Vertex Normal Maps"
+      "label": "Toggle Vertex Normal Maps",
+      "icon": "toggle-vertex-normals"
     },
     {
       "command": "Transfer Normals",
-      "label": "Transfer Normals"
+      "label": "Transfer Normals",
+      "icon": "transfer-normals",
+      "look": "flat"
     },
     {
       "command": "Morph to Normals",
-      "label": "Morph to Normals"
+      "label": "Morph to Normals",
+      "icon": "morph-to-normals"
     },
     {
       "command": "Split Normals",
-      "label": "Split Normals"
+      "label": "Split Normals",
+      "icon": "split-normals"
     }
   ]
 }

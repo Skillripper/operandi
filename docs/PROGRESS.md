@@ -1,5 +1,152 @@
 # Milestone progress ledger
 
+- **Bug batch: grid depth, Text tip, tooltips (2026-11-25, branch claude/project-thread-mnzzuz):**
+  the grid draws after the solid meshes, depth-tested (Perspective and
+  orthographic depth both match the meshes'), so it shows over geometry
+  below or behind its plane; with backdrops the old order stays (BD-10,
+  A5). The paint/sculpt Text tip field keeps a draft while typing and
+  commits on Enter or focus loss. Toolbox and form-row hover text drops
+  command lines (UIC-04) and spec codes (`ui_text::hover_text`). Vertex
+  Collapse on a cube corner (5 points, 3 quads) is CMD-B3-02, not a bug.
+- **Twist Bevel options from the TwistBevel notes (2026-11-25, branch
+  claude/project-thread-cy3fzd):** opt-in Stop Before Fold (a folding cap
+  stops just short instead of being refused), Even Interior (harmonic
+  interior, straight runs keep their share) and Keep Cap UVs, all off by
+  default and after the spec's rows. Twist Bevel now carries morphs and
+  typed maps (plain Bevel still refuses them, BV-Q04). Side axis (TB-Q04)
+  and the Action Axis fallback are world axes on rotated items, in the
+  geometry and the handles. Plain Inset and Bevel unchanged.
+- **Live MeshOp falloffs and primitive op handles (2026-11-25, branch claude/project-thread-8fccr9):**
+  primitive ops edit their own falloff (type plus its values) in the op
+  panel, live; selecting a primitive op shows its centre, size squares and
+  falloff points in the view (`viewport/meshop_handles.rs`), and a drag
+  edits the op with one undo step. Provisional: MOP-H-Q01, Q02.
+
+- **Mesh Stack selection rules batch 1 (2026-11-25, GitHub #19, branch claude/project-thread-8fccr9):**
+  thirteen rules from Steve Hill's list in `meshop_selection.rs`: Vertex
+  Count (Triangles/Quads/N-gons), Area, Edge Length, Convex/Concave
+  Edges by Angle, Normal, Plane, Distance, N Randomly, Random Parts,
+  Vertices by Edge Count, Symmetric, UV Seam. Mesh Stack only; no Select
+  menu commands until Jason polls users. Provisional: SEL-Q05, SEL-Q06.
+
+- **Mesh Stack selections of edges and points (2026-11-25, GitHub #19, branch claude/project-thread-8fccr9):**
+  ops say what their Selection input picks (`SelElement`; Edge ops edges,
+  Vertex ops points); every selection op answers in that kind;
+  Select by Index captures from Edge/Vertex mode with the count it was
+  made on and a row hint when that changes; four rule ops (Edges by Angle,
+  Border, Polygon Sides, Facing); Move Up/Down reorders selection ops.
+  Guide: panels/mesh-stack-selections.md. Provisional: SEL-Q01..Q04.
+
+- **Falloffs on primitives (2026-11-25, GitHub #15, branch claude/project-thread-8fccr9):**
+  the global falloff (Linear, Radial, Cylinder, Noise) shapes the Cube,
+  Sphere and Cylinder inside their shared generator. The Falloff menu
+  and handles stay usable while the tool is live, and the preview follows.
+  The folded Falloff section has Scale, Offset, Twist, Sample At (Spine
+  or Points), Spacing (Follow Falloff) and Fit Falloff to Shape. The
+  primitive ops keep their own copy of the falloff layers (taken when
+  added; Use Active Falloff, Clear Falloff). Not yet: Cone and Capsule.
+  Provisional: PRIM-FO-Q01..Q04, PRIM-OP-Q04.
+
+- **Primitive MeshOps match the tools (2026-11-25, GitHub #14, branch claude/project-thread-8fccr9):**
+  one generator per primitive. Cube, Sphere and Cylinder became shapes
+  (`primitives/primitive_shapes.rs`) that the tools and ops both build
+  from; the other primitives already had one parameter struct each.
+  `meshops/primitive_ops.rs` has eight ops (adds Ellipsoid, Cone, Torus,
+  Capsule, Teapot) with every tool option; op values convert to the
+  tool's parameters with every field named, so a new option doesn't
+  build until its op has it. No old-scene upgrade (nothing released).
+  Provisional: PRIM-OP-Q01..Q03.
+- **MeshBlend strips, round 2 (2026-11-24, branch claude/project-thread-20fok5):**
+  flat faces cut beside strips are re-meshed (`meshblend/tidy.rs`, spade
+  constrained Delaunay + seeded points, kept only if ST-10 passes), then
+  edge flips and pairing; output modes (SB-50; Closed, clean is the new
+  default, MB-Q07); Width Units with Strip Width % (MB-Q08; greyed rows via
+  `OpDef::field_unavailable`); stable strip ids (ST-07) listed in Properties
+  with per-strip Width/Profile overrides and `meshblend.strip` (MB-Q09).
+  Not yet: tapering width, viewport strip picking, curved-face re-meshing.
+
+- **MeshBlend B2, strips v1 (2026-11-24, branch claude/project-thread-20fok5):**
+  rounded strips on every join with the B0 strip builder (now
+  `meshblend/strips.rs`): Strip Width, Profile 0–200 %, Rows, Design Mode
+  in the op form; three-patch corners; ST-10 gate (`meshblend/check.rs`)
+  before a strip result is used; a width that doesn't fit is halved up to
+  three times with a note (room and volume checks), else sharp joins with
+  a note; cut surface triangles paired back into quads. Not yet: relative
+  width, output modes, per-strip edits, quad cleanup beyond pairing.
+
+- **MeshBlend B1 (2026-11-24, branch claude/project-thread-20fok5):**
+  Geometry > New MeshBlend makes a MeshBlend Item (a mesh whose stack
+  starts with the `meshblend.item` op) from the selected meshes. Recipe
+  (`meshblend/recipe.rs`) holds sources, roles, relationships, per-source
+  Subdivision / Keep Cage Points / In Result and the strip settings for
+  B2; evaluator (`meshblend/evaluate.rs`) is a plain function; eight
+  undoable `meshblend.*` commands; Properties rows per source with Add and
+  Convert. Sharp joins only. Sources blend as the viewport shows them
+  (Tab polygons smooth, plain polygons as they are, MB-Q06). Bad sources are left out with a red line on
+  the op row (new `OpStatus::Noted`). Provisional: MB-Q01..Q05.
+
+- **MeshBlend B0 strip spike (2026-11-24, branch claude/project-thread-20fok5):**
+  no UI. `meshblend_spike/` in core: a 25-scene corpus (BLD-C01..C27
+  inputs plus FAILURES cases), the ST-10 topology gate and ST-09
+  repeatability fingerprint, the shared sharp stage (smooth sources,
+  pre-flight with reasons, canonical source order, one Manifold boolean
+  per branch with provenance), and two strip prototypes. D (own strip
+  builder: cut at distance Width from the join, matched stations, profile
+  loft, three-patch corners) passes ST-10 and ST-09 on every scene; 16
+  cutters rebuild in about 0.2 s. B (Edge Chamfer on the join) refuses
+  most joins on smooth sources. Pictures: the ignored
+  `meshblend_spike::b0_comparison` test. Jason picks the method (Q07).
+
+- **USD animation import (2026-11-24, branch usd-animation-import):**
+  opening or importing a USD file brings its animation: transform time
+  samples and camera and light attribute samples become linear keys on
+  the channels that change (import_anim.rs; bridge reader writes
+  `xformSamples`, `attributeSamples` and the stage timing). The scene
+  takes the file's frame rate and authored range; time codes convert by
+  framesPerSecond / timeCodesPerSecond (UsdSkel keys too). Export then
+  import keeps the motion, one key per frame. Corner sharpness is still
+  left out: Operandi's subdivision has nothing to hold it. Animated mesh
+  points stay first-sample only. docs/USD_STATUS.md corrected.
+
+- **STEP and IGES export (2026-11-24, branch claude/project-thread-losplx):**
+  File ▸ Export ▸ STEP/IGES and `scene.saveAs format:step|iges` (.stp,
+  .igs too). Tab polygons leave as exact degree-2 B-spline patches with
+  shared edges (closed pieces as solids, open ones as surfaces); Face
+  polygons as planes (bent ones as triangles); Catmull-Clark as
+  render-level facets. Millimetres, Z up, fixed (provisional: no prefs).
+  Checked in OpenCascade 7.8 (FreeCAD 1.1): valid, closed, volume equals
+  the patches' exact volume. IGES is untrimmed surfaces only. Not yet:
+  packed faces, import, seam-continuity measurement.
+- **Materials stage 4, slice 1: MaterialX is the saved master copy
+  (2026-11-24, branch materialx-master-copy, AR-32):** scene files keep
+  every surface's MaterialX graph and which polygons use it (native
+  version 65, `materialx/saved.rs`); the Shader Tree is saved beside them
+  as the view's layout. On open, a saved graph that differs from what the
+  layers now give is pinned to its polygons for renders and exports until
+  those layers are edited. Old scenes open from their layers and save
+  their graphs from then on. The direct layers-to-Cycles route is gone.
+  Items with the same material share one graph (texture placement saved
+  by reference; 1,000 textured cubes: 5 graphs, +0.5 MB, 0.5 s).
+  Provisional: MXG-Q12 (pinned graphs aren't drawn by the viewport or
+  marked in the tree), MXG-Q13 (placement by reference). Not yet: one shared graph per material, graph-to-layers
+  recognition, node editing (MXG-Q11). Guide: Materials > How materials
+  are saved.
+
+- **Mini Properties resize (2026-11-24, branch mini-properties-resize,
+  UIC-66 amended with the maintainer's OK):** the bottom-right corner drags
+  to resize it; it keeps its top-left corner while you drag and opens at
+  that size until quit (not saved across launches yet). Guide: Tool
+  Properties page, "Mini Properties".
+
+- **Bug reports #6, #7, #8 (2026-11-24, branch fix-bug-reports-batch1):**
+  #6 Texture Locator (Shader Tree and Environment) Position, Rotation,
+  Size, Falloff and Real World Size are one row per axis (UIC-114), so Y
+  and Z no longer run off the panel. #7 Mesh Stack op ids start at 1 (0
+  is Source Item's "(none)"); older saves give an op 0 a fresh id and
+  move its Select by Previous links with it. #8 Mini Properties grows to
+  its rows (up to 480 pt) instead of staying as short as it first opened.
+  #5 was already fixed on main.
+
 - **Help mode, What's This? (2026-11-24, branch help-mode, UIC-06):** F1
   or Help ▸ What's This? (`operandi.help.whatsThis`), question-mark
   pointer; the next click opens /guide/<version>/go/<help-id>/ for the
@@ -848,7 +995,7 @@
   Selected), Split with Cap Sections and Gap, and the router Profile with
   Reverse Direction, Reverse Inset and Keep Aspect are built and greyed per
   the spec table (UIC-92/117). New shared Profile layer
-  `operandi-core/src/profile.rs` with five Operandi shapes; only Loop
+  `operandi-core/src/scene_items/profile.rs` with five Operandi shapes; only Loop
   Slice uses it so far (Bevel can move onto it later). Free-mode slices
   keep creation order (LS-71). Provisional readings LS-B04..B09; new
   questions LS-Q13 (grey Count/Position with a profile?) and LS-Q14 (Split
@@ -869,7 +1016,7 @@
 - **Command History, stage H (2026-11-16, branch command-history, spec
   ui-architecture-2026-11-16):** every line `execute` runs leaves a
   command record (canonical line with arguments by name, class, source,
-  outcome, sub-commands, time; `operandi-core/src/command_record.rs`,
+  outcome, sub-commands, time; `operandi-core/src/commands/command_record.rs`,
   app `command_history.rs`). Registry classes: `side_effect` and `quiet`
   added, every command has one (test). Undo steps keep their records
   (`Checkpoint::records`, `Editor::pending_records`); tool sessions
@@ -1166,8 +1313,8 @@
   UV-B03 settled.
 - **Drag controls and Loop Slice drags (2026-11-15, branch drag-layer):**
   spec loop-slice-2026-11-15 v0.1. One shared drag layer ("hauls" in
-  code, `operandi-core/src/haul.rs`, table
-  `presets/factory-hauls.toml`, viewport `operandi-app/src/haul_view.rs`):
+  code, `operandi-core/src/tools/haul.rs`, table
+  `presets/factory-hauls.toml`, viewport `operandi-app/src/view/haul_view.rs`):
   a left, middle or right drag away from the handles changes the value the
   tool's row lists for that button and direction, through that value's
   Tool Properties field, live, one undo step per drag; the first 4 px lock
@@ -1889,7 +2036,7 @@
 - **Viewport image textures (2026-11-09, branch viewport-image-textures):**
   image layers draw per pixel in the realtime viewport instead of as their
   average colour. The folded `shader_eval::Expr` is written out as WGSL
-  (`operandi-core/src/shader_wgsl.rs`) and run in the fill shader, so the
+  (`operandi-core/src/materials/shader_wgsl.rs`) and run in the fill shader, so the
   viewport uses the same mapping, tiling, blend modes, opacity, alpha and
   falloff as Cycles (UV maps with the render's map rule, every Texture
   Locator projection, Repeat / Mirror / Edge / Reset). Numbers ride in a
@@ -1943,7 +2090,7 @@
   sculpt-foundation, spec SC-01..123):** new Sculpt toolbox tab with
   Smooth, Push, Inflate and Move (label buttons until icons are drawn),
   Smooth/Hard tip row, Lock Borders / Lock Corners. Core machine in
-  `operandi-core/src/sculpt.rs`: tips with six shapes and Bias, Hard tip
+  `operandi-core/src/sculpting/sculpt.rs`: tips with six shapes and Bias, Hard tip
   with Soft Border, dabs at Interpolation Step spacing (Continuous Stroke),
   Additive/Attenuate/Max Stroke density, all Normal Modes, Ctrl invert,
   Shift (or Smooth Mode Uniform) smoothing, Ctrl-Smooth volume-keeping,
@@ -2192,7 +2339,7 @@
   provisional (PRIM-MOVED-Q01).
 - **Command names (2026-11-07, branch command-names):** command, tool and
   argument names follow the name map; old names are deprecated aliases in
-  `operandi-core/src/command_names.rs`, resolved at `execute` and in the MCP
+  `operandi-core/src/commands/command_names.rs`, resolved at `execute` and in the MCP
   bridge, logged once per run. `*.Slide` picks by mode (provisional: no
   Polygon/Item Slide). Script percents are 0–1 and angles radians (map
   units, Jason 2026-11-07); panels keep % and degrees. Details:
@@ -2459,7 +2606,7 @@ are stored only (MAT-Q01). Materials live in `Scene::materials` by tag name
 (core `material.rs`), shown in the viewport's fill colour and rendered by
 Cycles. Saved in native scenes and glTF; LXO keeps tags only (MAT-Q06).
 Tests: crates/operandi-core/tests/polygon_set_material.rs,
-crates/operandi-app/src/polygon_material_tests.rs.
+crates/operandi-app/src/materials/polygon_material_tests.rs.
 
 **Set Material with nothing selected (branch set-material-empty,
 2026-11-05):** like Set Part, Set Material tags every surface polygon of the
@@ -2480,7 +2627,7 @@ Jason's feel check; distance steps are metric even with English units; the
 handle is painted, not a generator icon. Dialog fields (Create New Vertex,
 Merge distance) have no handle yet. Clean-room note: this build thread was
 shown a reference-app screenshot of a numeric field with drag arrows; the
-design is Operandi's own. Tests: crates/operandi-app/src/scrub_tests.rs.
+design is Operandi's own. Tests: crates/operandi-app/src/anim/scrub_tests.rs.
 
 **Undo and Auto-Save preferences (branch preferences-undo-autosave,
 2026-11-04):** Preferences > Defaults > Application sets Max Undo Level
@@ -2614,7 +2761,7 @@ and each drag is one undo step with the tool staying live. Provisional
 readings (picking priority, drag plane, Esc, symmetry) are listed in
 SPECIFICATION_QUESTIONS.md, Tweak. Range/falloff (TWK-2) and the handle,
 numeric fields, symmetry and snapping (TWK-3) wait for measured specs.
-Tests: crates/operandi-app/src/tweak_tests.rs, core tweak.rs.
+Tests: crates/operandi-app/src/deformers/tweak_tests.rs, core tweak.rs.
 **Tweak part 2, TWK-2 (branch claude/project-thread-94fqz1, 2026-11-04):**
 Mode (all seven entries), Range with Linear / Ease-In / Ease-Out / Smooth /
 Custom, and Connected Elements Ignore / Use Connectivity / Rigid / Edge
@@ -3120,7 +3267,7 @@ pins the known departures. 55 now match (numbering aside).
 
 ## Shader tree renders in Cycles (ST-4 first version, hand-off v0.2)
 
-- Core `operandi-core/src/shader_eval.rs`: folds the tree bottom to top for
+- Core `operandi-core/src/materials/shader_eval.rs`: folds the tree bottom to top for
   each polygon context (item, material tag, part tag) into one value per
   material channel, with the v0.2 measured rules: masked groups, Layer Mask
   hides the one layer above, texture-only groups start from below, Group
@@ -3201,7 +3348,7 @@ build-cycles.sh).
 First slice of the shader tree: the data model and the panel. Nothing renders
 from it yet.
 
-- Core `operandi-core/src/shader_tree.rs`: Render Output, Shader, Material,
+- Core `operandi-core/src/materials/shader_tree.rs`: Render Output, Shader, Material,
   Material Group, Folder and texture layers (Constant, Image Map) with the
   Layer block and the hand-off's channels; ordering and parenting; the default
   tree (Alpha Output, Final Color Output, Base Shader, Base Material). Every
@@ -3778,7 +3925,7 @@ panel; its tab strip stays 22 points at either end. Tests: layout_tests.rs.
   quads/triangles with no stray points. Provisional (ER-Q01, ER-Q02).
 - Tests: `operandi-core/tests/edge_loop_delete.rs` (latitude, pole-to-pole,
   next-to-pole loops; undo/redo; save/reopen) and
-  `operandi-app/src/edge_loop_delete_tests.rs` (both keys in every mode;
+  `operandi-app/src/edges/edge_loop_delete_tests.rs` (both keys in every mode;
   off-viewport changes nothing).
 
 ## 2026-11-10 — Delete vs Backspace (branch delete-backspace)
@@ -3880,14 +4027,14 @@ panel; its tab strip stays 22 points at either end. Tests: layout_tests.rs.
 ## 2026-11-11 — Solid Drill and Axis Drill (branch drills; spec drills-2026-11-11)
 
 - Solid Drill... and Axis Drill... (Edit tab "Booleans & Drill", Geometry menu; `poly.solidDrill mode material cutmesh item children` and `poly.drill mode axis ...`, numbers or words, bare opens the dialog; headless/MCP too). Core, Tunnel, Stencil (material created if missing, one undo step with the cut) and Slice; Background, Last Selected or a Specific Surface Item drives. One undo step "Solid Drill Tunnel" etc.; drivers untouched; nothing selected after.
-- Own cutting core (`operandi-core/src/drill.rs`): edge cuts made once per edge and shared, each nearby polygon split in its plane by the driver's crossing segments (exact-sign triangle tests), holes joined by two bridges, untouched polygons unchanged. Axis Drill uses the outline's prism (shadows extruded, unioned with Manifold) as a Solid Drill driver. Solid Drill drivers get the Booleans pre-flight and notice.
+- Own cutting core (`operandi-core/src/slicing/drill.rs`): edge cuts made once per edge and shared, each nearby polygon split in its plane by the driver's crossing segments (exact-sign triangle tests), holes joined by two bridges, untouched polygons unchanged. Axis Drill uses the outline's prism (shadows extruded, unioned with Manifold) as a Solid Drill driver. Solid Drill drivers get the Booleans pre-flight and notice.
 - Stability (DRILL-19..21): two independent inside tests per piece (winding number + exact ray crossings, or + 2D outline test), per-polygon area cover, open-edge length unchanged, validate; any failure or panic changes nothing. 40 random turned boxes through a curved sheet: all exact, Core + Tunnel = Slice.
 - All spec cases DR-D0..D3, S1..S5, A1..A5, F1..F3 pass. Open: DRILL-Q1..Q6 (result sets, Esc cancel, per-point maps on new points, procedural stage). No icons yet (text rows). GUI checklist `docs/DRILL_GUI_QA.md`.
 - Tests: `operandi-core/tests/drills.rs`, `drill.rs` unit tests, `drill_dialog::tests`.
 
 ## 2026-11-11 — Viewport materials closer to Cycles (branch claude/project-thread-szcspe)
 
-- Advanced style draws each material as Cycles' principled surface, approximated the way Blender's EEVEE does (GPL-2.0-or-later module `operandi-core/src/blender_principled.rs`): sheen, coat, emission, metal (F82 tint), gloss (Specular IOR Level), diffuse, each dimming the layers below; GGX highlight from the key light, flat ambient as diffuse light and reflected environment; all in linear light. Calibrated so the default grey keeps VS-3's levels (90 dark side, 225 facing the light).
+- Advanced style draws each material as Cycles' principled surface, approximated the way Blender's EEVEE does (GPL-2.0-or-later module `operandi-core/src/materials/blender_principled.rs`): sheen, coat, emission, metal (F82 tint), gloss (Specular IOR Level), diffuse, each dimming the layers below; GGX highlight from the key light, flat ambient as diffuse light and reflected environment; all in linear light. Calibrated so the default grey keeps VS-3's levels (90 dark side, 225 facing the light).
 - Advanced base colour is Diffuse Color alone, as in the render (Diffuse × Amount in the other styles). Roughness, Metallic, Specular Amount/Color, Clearcoat, Sheen and Luminous now show.
 - Image layers on those inputs, Bump, Normal and Stencil / RGBA cut-outs draw per pixel (one list function per material, `shader_wgsl::translate_list`); bump and normal map follow Blender's nodes, with a tangent frame from screen derivatives.
 - Other styles unchanged. Provisional: VM-Q01..Q07. GUI check docs/VIEWPORT_MATERIALS_GUI_QA.md.
@@ -3911,7 +4058,7 @@ panel; its tab strip stays 22 points at either end. Tests: layout_tests.rs.
 ## 2026-11-11 — Remesh (branch remesh)
 
 - Three commands, one undo step each, last values kept, bare opens the dialog: `sculpt.remesh` (Voxel Remesh), `mesh.retopo` (Automatic Retopology) and `operandi.remesh` (Blocks / Smooth / Sharp). Edit tab rows, Sculpt tab Remesh..., Geometry menu.
-- Voxel Remesh and Blocks / Smooth / Sharp are Operandi's own (`operandi-core/src/remesh_voxel.rs`): exact line crossings with winding numbers (overlaps join, inside-out shells count, holes closed by a two-of-three axis vote), checkerboard squares filled so no edge has more than two polygons, surface nets with cell-centre, crossing-mean or plane-fit points. Voxel keeps weight and colour maps (sculpt masks) by nearest point.
+- Voxel Remesh and Blocks / Smooth / Sharp are Operandi's own (`operandi-core/src/sculpting/remesh_voxel.rs`): exact line crossings with winding numbers (overlaps join, inside-out shells count, holes closed by a two-of-three axis vote), checkerboard squares filled so no edge has more than two polygons, surface nets with cell-centre, crossing-mean or plane-fit points. Voxel keeps weight and colour maps (sculpt masks) by nearest point.
 - Automatic Retopology through QuadriFlow (BSD-3), vendored in the new `crates/operandi-remesh` (GPL-2.0-or-later glue from Blender, Eigen MPL-2.0); crease angle made adjustable. Refuses surfaces with non-manifold edges or points.
 - Dialogs run the work on a worker thread with progress and Cancel and hand the result to the same command, so typed, scripted and dialog runs give the same mesh.
 - Speed (106k-polygon mesh, release): Voxel 0.05 s (47k quads) to 0.36 s (435k), Smooth 0.26 s, Retopo 2–3 s.
@@ -4705,3 +4852,30 @@ Design: docs/MATERIALX_GRAPHS.md (stages 1-5).
 - Sculpt tab, Multiresolution section: Add Level (Catmull-Clark; the first makes the mesh multiresolution with its shape as the base), Level Down / Level Up, Delete Higher Levels, Apply Multiresolution, and a "Level 2 of 3 · polygons" read-out. Each is one undo step and a registry command (`operandi.multires.*`, also `operandi.multires.query` JSON for MCP).
 - Every brush sculpts at any level (the item's mesh holds the level you're at). Detail is stored per level in surface frames, so detail sculpted high follows changes made lower down. Attenuate now works on a level above the base (fades its detail). Saves as native version 64 (detail packed like points); damaged detail is refused on load.
 - Provisional: no behaviour spec; MR-Q01..Q08 (detail flows up only, maps beyond UVs stay on the base, locks cleared on stepping, topology edits stop stepping until Apply).
+
+## 2026-11-24 — 3D mouse on signed Mac builds (branch spacemouse-signed)
+
+- Bug: on signed (notarized) Mac builds with 3DxWare installed, Preferences said "SpaceNavigator found but could not be opened: hidapi error: hid_open_path: failed". The hardened runtime only loads libraries signed by Apple or by us, so 3Dconnexion's client framework wouldn't load, Operandi fell back to raw USB, and 3DxWare holds the device. Dev builds (ad-hoc, no hardened runtime) were fine. Fix: release-macos.sh signs the app with assets/macos/operandi.entitlements (`com.apple.security.cs.disable-library-validation`).
+- When it still fails, Preferences says what to do: with 3DxWare, why the driver couldn't be reached (reopen Operandi or reinstall 3DxWare); without it on macOS, check Input Monitoring and quit other apps using the device. The raw error follows; hover the Device row for the full text.
+
+## 2026-11-24 — LXO import: animation, cameras, lights and rigs (branch claude/project-thread-ahtmlr)
+
+- Modo 16/17 scenes open with their animation: every keyed channel Operandi has becomes a key curve (exact Bezier shape, slope types, stepped side, weights, behaviours 0–8, Manual where Operandi's own slope would differ); keyed meshes, locators, cameras, lights and light materials; frame rate, ranges, time display and current time. All 55 curves of the spec's fixtures match Modo at every sampled frame (4435 samples).
+- Cameras and all nine light types with their settings and light material colour; joints and skins (weight maps renamed to the joints, setup pose from the setup layer); position, rotation, scale and direction constraints, dynamic parents, channel links, Math and Expression modifiers, two-bone IK; morph maps as relative morphs, weight maps as weight maps. World matrices and deformed points match the fixtures (tests `lxo_anim_rig_spec`).
+- Provisional: LXO-AR-Q01..Q05 (scale offset, a cases.json contradiction, links convert degrees, edit-layer pinned targets, IK knee side). Left out and reported: animated morph amounts, other deformers and modifiers, extra layers, pivot keys.
+- Follow-up (2026-11-24): File > Import now keeps an imported scene's keys, rig pieces, user channels and pivots (renumbered), skins follow their joints, and a scene with no keys takes the file's frame rate and range; before, imported animation didn't play. Spec v2 (LXA-100..180): user channels with type, label, limits and keys; Channel Relationships as relationship links; planar IK (two bars two-bone, three bars chain IK); path constraints with HCRV curves read as open curves; matrix blends, mod/avg reported; schematic items and mesh-less influences skipped quietly. Non-UTF-8 text reads as Windows-1252. Provisional LXO-AR-Q06/Q07.
+
+## 2026-11-24 — Channel panel (branch channel-panel)
+
+- Channel sets (BEHAVIOR-CHANNEL-PANEL CP-01..70, native v66): named lists of channels from any items, saved with the scene with the current set. Commands `operandi.channelSet.create/add/remove/move/rename/delete/current`, each one undo step except current (view state).
+- The current set's panel floats over the active 3D view (UIC-188, new rule with the maintainer's OK): `Item : Channel` rows with the Properties status light (click keys) and a live value field: drag hauls with the pointer locked on macOS (Shift fine, Ctrl coarse), one undo step and one Auto Key per drag; typing waits for Enter. Header drags the panel (kept per view), × closes it. Timeline Channel Set menu: pick, Create from selected channels, Add/Remove Selected, Rename, Delete, Show Animated. Row labels' right-click menu gains Add to Channel Set; User Channels rows now pick and key like other rows.
+- Provisional: rows reorder by their ⋯ menu (no drag-to-reorder yet); the panel shows in the active view only; LXO channel-set import waits for the format (CP-90).
+
+## Schematic workspaces and layout (2026-11-24, branch claude/project-thread-mna1o9)
+
+- Workspaces (BEHAVIOR-SCHEMATIC): the Schematic shows one saved page at a time (`Rig::workspaces`, native v67), with commands `operandi.rig.workspaceAdd/Rename/Clear/Remove`, `schematicPlace/Remove/Arrange`, `schematicFit` and the `operandi.rig.workspaces` query. Old scenes show every rig node on an unsaved "Workspace" page; pieces on no page show on "Unplaced". Off-page wires are ringed ports; double-click brings the other end over.
+- Arrange (`schematic_layout.rs`): layered by data flow, crossing-cut ordering, modifiers level with what they drive; used only for nodes with no place and by Arrange (hand-moved nodes stay). Expression nodes show their formula. Zoom about the pointer, middle/Alt pan, Fit.
+- LXO import reads schematic pages (`lxo/schematic_import.rs`): workspace names and order, node places (6 pt per unit), sub-assemblies flattened; backdrops, notes and elbows counted in the report. Provisional SC-Q10..Q12.
+## 2026-11-25 — Tool tab cycling (branch claude/project-thread-rjq1h8)
+
+- Ctrl+Tab opens the next tool tab, Ctrl+Shift+Tab the previous one (the real Control key on a Mac), wrapping at the ends, in strip order; only the strip's tabs count, and one tab or no strip does nothing. Each press switches at once, repeats step one tab each, the active tool stays, fields are confirmed first (as a click). Focus on a control in the old tab's drawer goes back to the viewport; elsewhere it stays. Works with a text or number field focused; a modal dialog, menu, pop-up or pie keeps the keys, and a mouse drag ignores them. Plain Tab is unchanged. Input Map actions "Next Tool Tab" / "Previous Tool Tab" (rebindable, shown in the tab tooltips); egui's Ctrl+Tab focus stepping and the Layout Switcher's default key are gone (tool_tab_cycle.rs). Provisional: TTC-Q01..Q06. GUI check: docs/TOOL_TAB_CYCLING_GUI_QA.md.

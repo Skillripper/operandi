@@ -24,6 +24,7 @@ pub mod graph;
 pub mod import;
 #[cfg(test)]
 mod library_probe;
+pub mod saved;
 pub mod stdlib;
 pub mod tree;
 pub mod tree_library;

@@ -59,8 +59,8 @@ build; nothing is loaded while Operandi runs.
 
 | Entry point | Adds | Rules it checks |
 |---|---|---|
-| `Registry::register` (`crates/operandi-core/src/command_runtime.rs`) | Commands under a namespace of your own, such as `mykit.cable.make` | Every name starts with the namespace; no namespace or name of Operandi's own; something to run it |
-| `meshop_types::register` (`crates/operandi-core/src/meshop_types.rs`) | A mesh operation type, with its form and default values | A dotted id such as `mykit.cable.item`; every value has a form field; the defaults read back |
+| `Registry::register` (`crates/operandi-core/src/commands/command_runtime.rs`) | Commands under a namespace of your own, such as `mykit.cable.make` | Every name starts with the namespace; no namespace or name of Operandi's own; something to run it |
+| `meshop_types::register` (`crates/operandi-core/src/meshops/meshop_types.rs`) | A mesh operation type, with its form and default values | A dotted id such as `mykit.cable.item`; every value has a form field; the defaults read back |
 
 Read [CONTRIBUTING.md](https://github.com/operandi3d/operandi/blob/main/CONTRIBUTING.md)
 before you start; it covers licences and how changes get in.

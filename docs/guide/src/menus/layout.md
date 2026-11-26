@@ -1,5 +1,5 @@
 <!-- help-ids: menu.layout ; template: panel ; since: 0.1.0 -->
-<!-- Written by crates/operandi-app/src/guide_menus_tests.rs from the app's menus. Don't edit by hand: run OPERANDI_BLESS_GUIDE=1 scripts/check-fast.sh guide_menus -->
+<!-- Written by crates/operandi-app/src/commands/guide_menus_tests.rs from the app's menus. Don't edit by hand: run OPERANDI_BLESS_GUIDE=1 scripts/check-fast.sh guide_menus -->
 # Layout menu
 
 The entries of the **Layout** menu, in order. A **▸** opens a submenu. Keys in brackets run the entry; the `code` is the command it runs.
@@ -15,7 +15,7 @@ The entries of the **Layout** menu, in order. A **▸** opens a submenu. Keys in
   - **Model** · `layout.restore Model`
   - **UV** · `layout.restore UV`
   - **Animate** · `layout.restore Animate`
-- **Recent Layouts…** (**Control+Shift+Tab**) · `operandi.layout.switcher`
+- **Recent Layouts…** · `operandi.layout.switcher`
 - **Lock Divider Dragging** · `layout.lockDividers`
 - **UI Build Mode** (**Control+Shift+L**) · `operandi.layout.buildMode`
 - **Windows/Palettes ▸**

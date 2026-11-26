@@ -190,6 +190,8 @@ pub fn decode<'a>(chunks: &[Chunk<'a>], c: &mut Control<'_>) -> Result<Raw<'a>> 
     }
     // LXO-LEG-Q05: then names that aren't UTF-8 are read as Windows-1252.
     c.ansi_names = legacy && encoding_note.is_some();
+    // OLD-03: an old file never fails over its metadata count.
+    c.lenient_metadata = legacy;
     let _version_text = r.string(c)?;
     r.end()?;
     let (profile, producer) = if legacy {
@@ -268,6 +270,7 @@ pub fn decode<'a>(chunks: &[Chunk<'a>], c: &mut Control<'_>) -> Result<Raw<'a>> 
     }
     for ch in chunks {
         c.check("inventory")?;
+        c.at = Some((ch.id, ch.offset));
         let mut r = Reader::new(ch.data, ch.offset);
         match &ch.id {
             b"VRSN" | b"ENCO" | b"APPV" | b"CHNM" | b"TAGS" => {}
@@ -329,6 +332,49 @@ pub fn decode<'a>(chunks: &[Chunk<'a>], c: &mut Control<'_>) -> Result<Raw<'a>> 
                     has_layer: false,
                     tags: Vec::new(),
                 };
+                // OLD-04: an item of a kind Operandi doesn't know (plug-in
+                // data, rigs) is never imported; only its links are read,
+                // since a link onto a mesh can still refuse that mesh
+                // (LEG-10). Its records aren't counted as metadata.
+                let foreign = legacy
+                    && !super::convert::MODELED.contains(&item.kind.as_str())
+                    && !super::convert::NONMODEL.contains(&item.kind.as_str());
+                if foreign {
+                    for sub in r.chunks_uncounted(c)? {
+                        if sub.id != *b"LINK" {
+                            continue;
+                        }
+                        let mut s = Reader::new(sub.data, sub.offset);
+                        let graph = s.string(c)?;
+                        let target = s.u32()?;
+                        let ordinal = s.u32()? as i32;
+                        s.end()?;
+                        if target > i32::MAX as u32 {
+                            raw.report.omit("links with no usable target, left out");
+                            continue;
+                        }
+                        item.links.push((graph, target, ordinal));
+                    }
+                    match raw.items.get_mut(&id) {
+                        Some(first) if first.kind == item.kind && first.name == item.name => {
+                            merge_repeated_item(first, item);
+                            raw.report.omit("repeated item records merged");
+                        }
+                        Some(first) => {
+                            return Err(r.error(
+                                "duplicate_item_id",
+                                &format!(
+                                    "ITEM IDs must be unique ({} '{}' and {} '{}')",
+                                    first.kind, first.name, item.kind, item.name
+                                ),
+                            ));
+                        }
+                        None => {
+                            raw.items.insert(id, item);
+                        }
+                    }
+                    continue;
+                }
                 let mut single = BTreeSet::new();
                 let mut gradient_names = BTreeSet::new();
                 let mut tag_keys = BTreeSet::new();

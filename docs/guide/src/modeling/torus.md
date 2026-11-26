@@ -51,9 +51,23 @@ size.
 
 ## Tips
 
+- Right-drag in the **3D view**, away from the handles: left and right change **Sides**, up and down change **Segments**.
 - **Radius**, **Ring Radius**, **Cross Section**, **Height** and **Hole
   Size** are linked: change one and the others that depend on it follow.
   A **Hole Size** of 1 closes the hole to the axis.
+
+## In the Mesh Stack
+
+You can also add a Torus as a step of a mesh's **Mesh Stack**: choose
+**Torus** under **Create > Primitives** in the stack's **Add Operator**
+list. It has the same properties as the tool, and the tool and the stack
+step build exactly the same torus from the same values, so you can
+change it later without rebuilding the mesh. **Hole Size** isn't there:
+it follows from **Ring Radius** and **Cross Section**, which are. Scripts
+add it with `meshop.create type:prim.toroid.item`.
+
+With the step selected in the stack and no tool on, its handles show in the
+**3D view**. Drag an arrow to move it along that axis, a plane square or the centre dot to move it across a plane, and a size square at its edge to resize it. Each drag is one undo step. A right-drag anywhere else changes its counts, as with the tool: left and right for **Sides**, up and down for **Segments**.
 
 ## Related
 

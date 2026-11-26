@@ -133,6 +133,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "allocator-api2"
+version = "0.2.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
+
+[[package]]
 name = "android-activity"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1789,6 +1795,8 @@ version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "841d1cc9bed7f9236f321df977030373f4a4163ae1a7dbfe1a51a2c1a51d9100"
 dependencies = [
+ "allocator-api2",
+ "equivalent",
  "foldhash 0.2.0",
 ]
 
@@ -2822,6 +2830,7 @@ dependencies = [
  "operandi-mcp",
  "operandi-python",
  "operandi-usd",
+ "rayon",
  "resvg",
  "rfd",
  "serde",
@@ -2850,10 +2859,12 @@ dependencies = [
  "operandi-remesh",
  "operandi-uv",
  "png",
+ "rayon",
  "robust",
  "roxmltree",
  "serde",
  "serde_json",
+ "spade",
  "stl_io",
  "toml",
  "ttf-parser",
@@ -2873,6 +2884,18 @@ dependencies = [
 [[package]]
 name = "operandi-files"
 version = "0.1.0"
+
+[[package]]
+name = "operandi-icon-studio"
+version = "0.1.0"
+dependencies = [
+ "ab_glyph",
+ "epaint_default_fonts",
+ "glam 0.30.10",
+ "image",
+ "operandi-core",
+ "operandi-cycles",
+]
 
 [[package]]
 name = "operandi-layout"
@@ -3765,6 +3788,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd538fb6910ac1099850255cf94a94df6551fbdd602454387d0adb2d1ca6dead"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "spade"
+version = "2.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9699399fd9349b00b184f5635b074f9ec93afffef30c853f8c875b32c0f8c7fa"
+dependencies = [
+ "hashbrown 0.16.1",
+ "num-traits",
+ "robust",
+ "smallvec",
 ]
 
 [[package]]

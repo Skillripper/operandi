@@ -5,6 +5,10 @@ Notable changes, newest first. The day-to-day build log is
 
 ## Unreleased
 
+- USD import brings animation: moving items, camera lens changes and
+  light intensity and colour changes come in as keys, at the file's frame
+  rate and range, so a USD export and re-import keeps the motion.
+
 ## 0.1.1 (2026-11-24)
 
 - **Updates:** Operandi checks for a newer build each time it starts

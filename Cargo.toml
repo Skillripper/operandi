@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/operandi-core", "crates/operandi-uv", "crates/operandi-remesh", "crates/operandi-alembic", "crates/operandi-app", "crates/operandi-mcp", "crates/operandi-layout", "crates/operandi-cycles", "crates/operandi-preset-convert", "crates/operandi-usd", "crates/operandi-paint", "crates/operandi-files", "crates/operandi-python"]
+members = ["crates/operandi-core", "crates/operandi-uv", "crates/operandi-remesh", "crates/operandi-alembic", "crates/operandi-app", "crates/operandi-mcp", "crates/operandi-layout", "crates/operandi-cycles", "crates/operandi-preset-convert", "crates/operandi-usd", "crates/operandi-paint", "crates/operandi-files", "crates/operandi-python", "crates/operandi-icon-studio"]
 resolver = "2"
 # Vendored third-party crates used as path dependencies, not ours to lint
 # or test (vendor/craft-psd/OPERANDI.md).
@@ -15,6 +15,16 @@ serde_json = { version = "1", features = ["float_roundtrip"] }
 # vendor/egui-winit/OPERANDI-PATCH.md. Re-apply when upgrading eframe.
 [patch.crates-io]
 egui-winit = { path = "vendor/egui-winit" }
+
+# Debug and test builds carry no debug info. On macOS every compile with
+# debug info left its object files behind in the build folder (2.6 GB for a
+# full test build, 1.5 GB even with line tables only), and a busy worktree's
+# build folder grew by 100+ GB a day (2026-11-24). Without it nothing is
+# left behind. Panic and assert messages still name the file and line;
+# only RUST_BACKTRACE frames lose their line numbers. For a debugger
+# session, build with CARGO_PROFILE_DEV_DEBUG=true.
+[profile.dev]
+debug = false
 
 # Tests build in the dev profile, unoptimised. The UV packer and its
 # linear-algebra crate are number crunching that runs 20-50x slower that way

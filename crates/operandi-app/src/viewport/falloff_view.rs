@@ -9,15 +9,7 @@ use operandi_core::CylinderFalloff;
 /// Screen length of a per-axis handle, in pixels.
 const AXIS_HANDLE_PIXELS: f64 = 34.;
 
-/// What a falloff handle moves.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum FalloffHandle {
-    /// Point `i` of `falloff_points` (Linear Start/End, Radial and Cylinder
-    /// Center, then Size handles), moved freely in the view plane.
-    Point(usize),
-    /// Point `i` moved along one axis only (FO-40, FO-41, FO-42).
-    Axis(usize, usize),
-}
+pub(crate) use crate::handle_ids::FalloffHandle;
 
 impl Operandi {
     /// FO-35: where the active falloff's positions live. With Use World
@@ -38,56 +30,50 @@ impl Operandi {
 
     /// The falloff's handle points in world space: Linear Start and End;
     /// Radial Center then one Size handle per axis; Cylinder Center then
-    /// the Size handles across its Axis.
+    /// the Size handles across its Axis. (The app uses `falloff_handles`;
+    /// tests read the points.)
+    #[cfg(test)]
     pub(crate) fn falloff_points(&self) -> Vec<DVec3> {
-        let space = self.falloff_space();
-        let local: Vec<DVec3> = match self.editor.spatial_falloff {
-            Some(Falloff::Linear(f)) => vec![f.start, f.end],
-            Some(Falloff::Radial(f)) => {
-                let mut v = vec![f.center];
-                for axis in 0..3 {
-                    let mut p = f.center;
-                    p[axis] += f.size[axis];
-                    v.push(p);
-                }
-                v
-            }
-            Some(Falloff::Cylinder(f)) => {
-                let mut v = vec![f.center];
-                for axis in cross_axes(f) {
-                    let mut p = f.center;
-                    p[axis] += f.size[axis];
-                    v.push(p);
-                }
-                v
-            }
-            // FO-53: the Path's control points.
-            Some(Falloff::Path(_)) => self.editor.falloff_path.clone(),
-            // VMF-02: Vertex Map (and the others) have no handles.
-            _ => Vec::new(),
-        };
-        local
-            .into_iter()
-            .map(|p| space.transform_point3(p))
-            .collect()
+        falloff_points_in(
+            self.editor.spatial_falloff,
+            self.falloff_space(),
+            &self.editor.falloff_path,
+        )
     }
 
     /// Every handle with its world position: the points first (so point
     /// `i` is handle `i`), then the per-axis handles of the points that
     /// have them.
     pub(crate) fn falloff_handles(&self, r: Rect) -> Vec<(DVec3, FalloffHandle)> {
-        let points = self.falloff_points();
+        self.falloff_handles_in(
+            self.editor.spatial_falloff,
+            self.falloff_space(),
+            &self.editor.falloff_path,
+            r,
+        )
+    }
+
+    /// `falloff_handles` for any falloff `field` whose positions live in
+    /// `space`: the tool's falloff, or a Mesh Stack op's own copy (GitHub
+    /// #27), so both get the same handles.
+    pub(crate) fn falloff_handles_in(
+        &self,
+        field: Option<Falloff>,
+        space: DMat4,
+        path: &[DVec3],
+        r: Rect,
+    ) -> Vec<(DVec3, FalloffHandle)> {
+        let points = falloff_points_in(field, space, path);
         let mut out: Vec<(DVec3, FalloffHandle)> = points
             .iter()
             .enumerate()
             .map(|(i, &p)| (p, FalloffHandle::Point(i)))
             .collect();
-        let axis_points: &[usize] = match self.editor.spatial_falloff {
+        let axis_points: &[usize] = match field {
             Some(Falloff::Linear(_)) => &[0, 1],
             Some(Falloff::Radial(_) | Falloff::Cylinder(_)) => &[0],
             _ => &[],
         };
-        let space = self.falloff_space();
         for &i in axis_points {
             let Some(&p) = points.get(i) else { continue };
             let Some(mpp) = self.camera.metres_per_pixel(p, r) else {
@@ -105,7 +91,108 @@ impl Operandi {
         }
         out
     }
+}
 
+/// The falloff `field`'s handle points in world space (`space` takes its
+/// positions there): Linear Start and End; Radial Center then one Size
+/// handle per axis; Cylinder Center then the Size handles across its
+/// Axis; a Path's control points `path`.
+pub(crate) fn falloff_points_in(
+    field: Option<Falloff>,
+    space: DMat4,
+    path: &[DVec3],
+) -> Vec<DVec3> {
+    let local: Vec<DVec3> = match field {
+        Some(Falloff::Linear(f)) => vec![f.start, f.end],
+        Some(Falloff::Radial(f)) => {
+            let mut v = vec![f.center];
+            for axis in 0..3 {
+                let mut p = f.center;
+                p[axis] += f.size[axis];
+                v.push(p);
+            }
+            v
+        }
+        Some(Falloff::Cylinder(f)) => {
+            let mut v = vec![f.center];
+            for axis in cross_axes(f) {
+                let mut p = f.center;
+                p[axis] += f.size[axis];
+                v.push(p);
+            }
+            v
+        }
+        // FO-53: the Path's control points.
+        Some(Falloff::Path(_)) => path.to_vec(),
+        // VMF-02: Vertex Map (and the others) have no handles.
+        _ => Vec::new(),
+    };
+    local
+        .into_iter()
+        .map(|p| space.transform_point3(p))
+        .collect()
+}
+
+/// TP-19: whether `h` is a Radial or Cylinder Size handle of `field`,
+/// drawn as a box in its axis colour.
+pub(crate) fn is_size_box_for(h: FalloffHandle, field: Option<Falloff>) -> bool {
+    matches!(
+        (h, field),
+        (
+            FalloffHandle::Point(1..),
+            Some(Falloff::Radial(_) | Falloff::Cylinder(_))
+        )
+    )
+}
+
+/// `start` with handle `kind` moved by `delta` in the falloff's own
+/// space; a per-axis handle keeps only its axis. `None` for a Path (its
+/// points live apart) and falloffs without handles.
+pub(crate) fn moved_falloff(
+    start: Falloff,
+    kind: FalloffHandle,
+    mut delta: DVec3,
+) -> Option<Falloff> {
+    let point = match kind {
+        FalloffHandle::Point(i) => i,
+        FalloffHandle::Axis(i, axis) => {
+            let only = delta[axis];
+            delta = DVec3::ZERO;
+            delta[axis] = only;
+            i
+        }
+    };
+    Some(match start {
+        Falloff::Linear(mut f) => {
+            if point == 0 {
+                f.start += delta;
+            } else {
+                f.end += delta;
+            }
+            Falloff::Linear(f)
+        }
+        Falloff::Radial(mut f) => {
+            if point == 0 {
+                f.center += delta;
+            } else {
+                let axis = point - 1;
+                f.size[axis] = (f.size[axis] + delta[axis]).max(0.);
+            }
+            Falloff::Radial(f)
+        }
+        Falloff::Cylinder(mut f) => {
+            if point == 0 {
+                f.center += delta;
+            } else if let Some(&axis) = cross_axes(f).get(point - 1) {
+                f.size[axis] = (f.size[axis] + delta[axis]).max(0.);
+            }
+            Falloff::Cylinder(f)
+        }
+        _ => return None,
+    })
+}
+
+impl Operandi {
     /// The handle under `pos`, as an index into `falloff_handles`.
     pub(crate) fn falloff_hit(&self, pos: Pos2, r: Rect) -> Option<usize> {
         if self
@@ -154,19 +241,13 @@ impl Operandi {
     /// box in its axis colour (the Scale handles' shape, so it reads as
     /// "drag to size").
     pub(crate) fn is_size_box(&self, h: FalloffHandle) -> bool {
-        matches!(
-            (h, self.editor.spatial_falloff),
-            (
-                FalloffHandle::Point(1..),
-                Some(Falloff::Radial(_) | Falloff::Cylinder(_))
-            )
-        )
+        is_size_box_for(h, self.editor.spatial_falloff)
     }
 
     /// TP-19: a Size box whose axis points along the view lands on the
     /// falloff's centre and can't be dragged there (a drag moves in the
     /// view plane), so it is neither drawn nor hit in that view.
-    fn box_edge_on(&self, at: DVec3, centre: Option<Pos2>, r: Rect) -> bool {
+    pub(crate) fn box_edge_on(&self, at: DVec3, centre: Option<Pos2>, r: Rect) -> bool {
         let reach = self.handle_preferences.small_point_hit;
         match (self.camera.project(at, r), centre) {
             (Some((q, _)), Some(c)) => q.distance(c) < reach,
@@ -194,8 +275,20 @@ impl Operandi {
         let Some(field) = self.editor.spatial_falloff else {
             return;
         };
+        self.draw_falloff_size_boxes_in(painter, r, field, self.falloff_space());
+    }
+
+    /// The Size boxes of any falloff `field` in `space` (GitHub #27: a Mesh
+    /// Stack op's own falloff too).
+    pub(crate) fn draw_falloff_size_boxes_in(
+        &self,
+        painter: &egui::Painter,
+        r: Rect,
+        field: Falloff,
+        space: DMat4,
+    ) {
         let side = self.handle_preferences.small_point_size();
-        let handles = self.falloff_handles(r);
+        let handles = self.falloff_handles_in(Some(field), space, &[], r);
         let centre = handles
             .first()
             .and_then(|&(p, _)| self.camera.project(p, r))
@@ -204,7 +297,7 @@ impl Operandi {
             let FalloffHandle::Point(i) = kind else {
                 continue;
             };
-            if !self.is_size_box(kind) || self.box_edge_on(p, centre, r) {
+            if !is_size_box_for(kind, Some(field)) || self.box_edge_on(p, centre, r) {
                 continue;
             }
             let Some((q, _)) = self.camera.project(p, r) else {
@@ -248,55 +341,27 @@ impl Operandi {
             .falloff_space()
             .inverse()
             .transform_vector3(world_delta);
-        let point = match kind {
-            FalloffHandle::Point(i) => i,
-            FalloffHandle::Axis(i, axis) => {
+        if let Falloff::Path(_) = start {
+            // The points move in the falloff's own space, from where they
+            // were at the press (`path_drag_base`).
+            let (FalloffHandle::Point(point) | FalloffHandle::Axis(point, _)) = kind;
+            if let FalloffHandle::Axis(_, axis) = kind {
                 let only = delta[axis];
                 delta = DVec3::ZERO;
                 delta[axis] = only;
-                i
             }
-        };
-        let next = match start {
-            Falloff::Linear(mut f) => {
-                if point == 0 {
-                    f.start += delta;
-                } else {
-                    f.end += delta;
-                }
-                Falloff::Linear(f)
+            let mut points = self
+                .path_drag_base
+                .clone()
+                .unwrap_or_else(|| self.editor.falloff_path.clone());
+            if let Some(p) = points.get_mut(point) {
+                *p += delta;
+                self.run(Command::FalloffPath(points));
             }
-            Falloff::Radial(mut f) => {
-                if point == 0 {
-                    f.center += delta;
-                } else {
-                    let axis = point - 1;
-                    f.size[axis] = (f.size[axis] + delta[axis]).max(0.);
-                }
-                Falloff::Radial(f)
-            }
-            Falloff::Cylinder(mut f) => {
-                if point == 0 {
-                    f.center += delta;
-                } else if let Some(&axis) = cross_axes(f).get(point - 1) {
-                    f.size[axis] = (f.size[axis] + delta[axis]).max(0.);
-                }
-                Falloff::Cylinder(f)
-            }
-            Falloff::Path(_) => {
-                // The points move in the falloff's own space, from where
-                // they were at the press (`path_drag_base`).
-                let mut points = self
-                    .path_drag_base
-                    .clone()
-                    .unwrap_or_else(|| self.editor.falloff_path.clone());
-                if let Some(p) = points.get_mut(point) {
-                    *p += delta;
-                    self.run(Command::FalloffPath(points));
-                }
-                return;
-            }
-            other => other,
+            return;
+        }
+        let Some(next) = moved_falloff(start, kind, delta) else {
+            return;
         };
         if Some(next) != self.editor.spatial_falloff && next.validate().is_ok() {
             self.run(Command::SpatialFalloff(Some(next)));
@@ -334,7 +399,25 @@ impl Operandi {
 
     /// The Linear wedge, Radial rings or Cylinder tube, then the handles.
     pub(crate) fn draw_falloff_shape(&self, painter: &egui::Painter, r: Rect, field: Falloff) {
-        let space = self.falloff_space();
+        self.draw_falloff_shape_in(
+            painter,
+            r,
+            field,
+            self.falloff_space(),
+            &self.editor.falloff_path,
+        );
+    }
+
+    /// `draw_falloff_shape` for any falloff `field` in `space` with Path
+    /// points `path` (GitHub #27: a Mesh Stack op's own falloff too).
+    pub(crate) fn draw_falloff_shape_in(
+        &self,
+        painter: &egui::Painter,
+        r: Rect,
+        field: Falloff,
+        space: DMat4,
+        path: &[DVec3],
+    ) {
         let project = |p: DVec3| {
             self.camera
                 .project(space.transform_point3(p), r)
@@ -393,7 +476,7 @@ impl Operandi {
             }
             // FO-53: the curve through the points.
             Falloff::Path(_) => {
-                let curve = operandi_core::falloff_path::path_curve(&self.editor.falloff_path);
+                let curve = operandi_core::falloff_path::path_curve(path);
                 let pts: Vec<Pos2> = curve.iter().filter_map(|&p| project(p)).collect();
                 if pts.len() >= 2 {
                     painter.add(egui::Shape::line(pts, stroke));
@@ -409,10 +492,10 @@ impl Operandi {
         }
         let radius = self.handle_preferences.small_point_size() / 2.;
         let world = |p: DVec3| self.camera.project(p, r).map(|(q, _)| q);
-        let handles = self.falloff_handles(r);
+        let handles = self.falloff_handles_in(Some(field), space, path, r);
         for &(p, kind) in &handles {
             // TP-19: the Size boxes draw later, over the tool's handles.
-            if self.is_size_box(kind) {
+            if is_size_box_for(kind, Some(field)) {
                 continue;
             }
             let radius = radius * self.handle_zoom_at(p);

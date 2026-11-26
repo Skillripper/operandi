@@ -181,7 +181,7 @@ evaluator; Shift+Tab (Catmull-Clark) uses OpenSubdiv. Shape of it:
 Built: `operandi-core/src/subdivision/patches.rs` (controls, patches, wire
 records, culling clusters; matches `patch_surface` sample for sample in the
 oracle, crease, n-gon and level 1–4 tests) and
-`operandi-app/src/subd_gpu.rs` (buffers, fill and wire shaders, compute
+`operandi-app/src/graphics/subd_gpu.rs` (buffers, fill and wire shaders, compute
 culling with indirect draws). The app asks the adapter for its own buffer
 limits (`gpu::wgpu_configuration`), so one storage buffer can hold ~4 GB.
 

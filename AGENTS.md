@@ -120,11 +120,21 @@ and `scripts/merge-check.sh` refuses to run.
 Run the full tier once before calling a tool done, and again only if you
 change shared code after that. At merge time it runs on the branch with
 main merged in, and main moves only when it passes: `scripts/merge-check.sh`
-does that run, plus the Cycles and USD tests (they only build with
-`--features cycles` / `usd`, so plain `cargo test` skips them). 3D
+does that run, plus the Cycles, USD and Python extras (they only build
+with `--features cycles` / `usd` / `python`, so plain `cargo test` skips
+them): each is compiled on its own, then the tests run twice, with Cycles
+and USD on and then with Python on. 3D
 painting is a default feature (the maintainer, 2026-11-19), so every
 build and test run includes it; `scripts/check-no-painting.sh` checks the
-`--no-default-features` build.
+`--no-default-features` build. `merge-check.sh` builds in one shared merge
+checkout, `../Operandi-merge-check` (it makes it the first time), which
+keeps its own warm build folder, so a merge check rebuilds only what the
+branch changed. It checks the branch's commit plus uncommitted changes to
+tracked files; files you haven't `git add`ed are left out. One merge check
+runs at a time (a second waits). Agents run it outside the sandbox: it
+writes next to the checkout. Never build or test in
+`../Operandi-merge-check` by hand: that skips the lock and can break a
+merge check running there. Use your own worktree.
 
 `command_contract_tests.rs` runs every undoable registry command and checks
 that undo, redo and save/reopen agree. A new command is covered the day it
@@ -204,7 +214,7 @@ debug builds.
   `command_record.rs` fails until it has one.
 - Command, tool and argument names follow the reference name map so scripts
   port (the maintainer, 2026-11-06). Renames and the deprecated old names live in
-  `operandi-core/src/command_names.rs`; every entry point (`execute`, the
+  `operandi-core/src/commands/command_names.rs`; every entry point (`execute`, the
   MCP bridge) resolves through it. New tools take the map's name when it has
   one. See `docs/COMMAND_NAMES.md`.
 - **One file per tool, one sorted line per shared list** (the maintainer,
@@ -215,17 +225,23 @@ debug builds.
   - Sorted and tested (case-insensitive; the test names the entry that's
     out of place): `crates/operandi-core/tests/all.rs` (mod lines);
     `command_names.rs` `TOOL_RENAMES`, `COMMAND_RENAMES`,
-    `COMMAND_EXPANSIONS`, `ARG_RENAMES`; `command_registry.rs`
+    `COMMAND_EXPANSIONS`, `ARG_RENAMES`; `command_registry/tool_ids.rs`
     `TOOL_PHRASES`; `operandi-mcp` `bridge.rs` `TOOLS`, `APP_TOOLS` and
     `protocol.rs` `NON_EDITING_TOOLS`.
   - `mod` lines in `operandi-core/src/lib.rs` and `operandi-app/src/main.rs`:
     add yours inside an existing block of `mod` lines; `cargo fmt` sorts
-    each block.
+    each block. Source files live in area folders (`polygons/`, `render/`,
+    `window_layout/` ...; the list is in
+    [docs/CODEMAP.md](docs/CODEMAP.md)): put a new file in its area's
+    folder and give its `mod` line a `#[path = "<area>/<file>.rs"]`, as
+    its neighbours have. The folders are only for filing; module paths
+    stay `crate::<module>`.
   - Not sorted yet (put your line in sorted place within its section if
     there is one, but don't reorder them in a feature branch):
-    `command_registry.rs` `COMMANDS` (grouped by area; its order is the
-    `command.list` and help order), the icon table in
-    `operandi-app/src/icons.rs` (about 280 lines plus the `Icon` enum,
+    `COMMANDS` (one file per area under
+    `command_registry/commands/`, joined in the order `commands.rs` lists
+    them; that order is the `command.list` and help order), the icon table in
+    `operandi-app/src/controls/icons.rs` (about 280 lines plus the `Icon` enum,
     which derives `Ord`), the MCP `tools/list` definitions in `bridge.rs`
     (the order clients see), and the handler registrations in
     `command_handlers.rs`.
@@ -233,9 +249,16 @@ debug builds.
     saved: menu, toolbox, pie and form JSON in `operandi-app/assets/forms`,
     `TOOL_IDS` (a choice list's display order), and enums whose order is
     serialised or shown.
-- UI work follows the UI conventions bible, [docs/UI_BIBLE.md](docs/UI_BIBLE.md).
-  Cite its rule numbers (UIC-nn) in code comments, PRs and reviews when you
-  follow or break a rule. Departures need the maintainer's OK.
+- **UI work follows the UI conventions bible, [docs/UI_BIBLE.md](docs/UI_BIBLE.md).**
+  Before you build or change anything a user sees or touches (a panel,
+  menu, button, field, dialog, list, tool behaviour, shortcut), read the
+  bible's section for it. Cite its rule numbers (UIC-nn) in code comments,
+  PRs and reviews when you follow or break a rule. Departures need the
+  maintainer's OK; never renumber a rule.
+- **No guide page, no merge (UIC-300).** A branch that adds or changes
+  anything a user can see or do ships its User Guide page (new or updated,
+  in `docs/guide/`) in the same branch, or says "no docs needed" in its
+  merge note. Rules: [docs/guide/RULES.md](docs/guide/RULES.md).
 - New icons come only from the icon studio (rendered); see "Icons" below.
 - Safe Rust; any `unsafe` needs a written safety reason. Ordinary user errors
   return errors, not panics.
@@ -259,24 +282,31 @@ so the whole set shares one camera, light rig and set of materials. Read
 `tools/icon-studio/README.md` before touching icons.
 
 - **Add an icon:** model its scene inside the studio's icon box (in
-  Operandi, or as a `Sample` in `operandi-core/src/icon_studio.rs`), tag
+  Operandi, or as a `Sample` in `operandi-icon-studio/src/studio.rs`), tag
   polygons with the studio materials (Selected yellow-orange always means
   "selected", New cyan new geometry, Axis X/Y/Z red/green/blue), and save it
   as `tools/icon-studio/icons/<slug>.opscene`.
 - **Render and install:** `scripts/render-icons.sh --install` renders every
   icon at 16-64 px in a dark-outline and a light-outline set, writes
   `development/icon-studio/contact-sheet.png`, and copies the PNGs into
-  `crates/operandi-app/assets/rendered-icons`. Then add the icon's line to
-  `RENDERED` and its `FILES` lines in `operandi-app/src/rendered_icons.rs`
-  (the build needs the PNGs first). A brand-new icon has no SVG: add its
+  `crates/operandi-app/assets/rendered-icons`. Then add the icon's line
+  (`<slug> <Icon variant>`, in sorted place) to `icons.txt` in that folder;
+  the app's build embeds the listed PNGs. A brand-new icon has no SVG: add its
   `Icon` variant and put it under `rendered only:` in the icon table in
-  `operandi-app/src/icons.rs`; forms and presets name it by its slug.
+  `operandi-app/src/controls/icons.rs`; forms and presets name it by its slug.
 - **Review:** show the maintainer the contact sheet. New or changed artwork
   needs their visual approval.
 - Change the shared look (camera, lights, materials) only in the studio, and
   only with the maintainer's OK.
+- The studio is a developer tool in its own crate, `operandi-icon-studio`
+  (the app doesn't depend on it); the app ships only the PNGs.
 - Never draw from screenshots or other applications' icons, and never use
   image generation for final artwork.
+- **Any icon not made with the studio is a placeholder.** A contributor
+  (or their agent) may add one so a feature has a button, but must say
+  "placeholder icon: <name>" in the pull request. The maintainer replaces
+  it with a studio icon so the set keeps one consistent look. Don't spend
+  effort polishing a placeholder.
 
 **The old flat generator** (`tools/operandi-icons`) is deprecated: don't
 add icons to it. It only keeps the existing SVGs, which stay in the app as
@@ -332,6 +362,9 @@ language.
 - Commit on your branch when a tool is done or the maintainer asks. Don't commit:
   `target/`, `development/`, `.docx` files, user scenes (`*.opscene` outside
   `fixtures/`), anything from Modo, or secrets.
+- Commit with a sign-off (`git commit -s`), as every contributor must
+  (DCO; see "Signing off your work" in CONTRIBUTING.md). The sign-off is
+  the human's name, never the AI tool's.
 - AI-assisted commits end the commit message with a `Co-Authored-By` line
   for the AI tool used, for example
   `Co-Authored-By: Claude <noreply@anthropic.com>`. Say which tool you used
@@ -366,6 +399,11 @@ skip them on your machine.
 - The Cargo build folder can live on another disk (an external drive, set
   with Cargo's `build-dir`); paths under `target/` above then mean that
   folder.
+- The merge checkout (`~/Developer/Operandi-merge-check`, a clone that
+  borrows the main repository's objects) has its build folder there too,
+  about 25-35 GB; `merge-check.sh` starts it over past 150 GB. The hourly
+  cache cleanup never deletes it: it keeps every build folder that belongs
+  to a clone rather than to one of the main repository's worktrees.
 - `scripts/nightly.sh` runs every night from a launchd job
   (`scripts/nightly-install.sh`) and writes its report to a test results
   folder; see docs/CI.md.

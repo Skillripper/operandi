@@ -1,0 +1,25 @@
+[package]
+name = "operandi-icon-studio"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+description = "Developer tool: renders Operandi's UI icons from small 3D scenes with Cycles. Not part of the app."
+publish = false
+
+[[bin]]
+name = "operandi-icon-studio"
+path = "src/main.rs"
+
+[dependencies]
+operandi-core = { path = "../operandi-core" }
+operandi-cycles = { path = "../operandi-cycles" }
+glam.workspace = true
+ab_glyph = "=0.2.32"
+image = { version = "=0.25.10", default-features = false, features = ["png"] }
+# Egui's own UI font (Ubuntu Light) for the contact sheet's labels.
+epaint_default_fonts = "=0.33.3"
+
+[features]
+# Render with Cycles (run scripts/build-cycles.sh first); without it the
+# studio still builds and its scene tests run, but `render` refuses.
+cycles = ["operandi-cycles/cycles"]

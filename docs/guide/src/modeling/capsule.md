@@ -48,6 +48,22 @@ size.
 - **Cancel** throws the preview away.
 - **Reset** puts every value back to its starting value.
 
+## Tips
+
+- Right-drag in the **3D view**, away from the handles: left and right change **Sides**, up and down change **Segments**.
+
+## In the Mesh Stack
+
+You can also add a Capsule as a step of a mesh's **Mesh Stack**: choose
+**Capsule** under **Create > Primitives** in the stack's **Add Operator**
+list. It has the same properties as the tool, and the tool and the stack
+step build exactly the same capsule from the same values, so you can
+change it later without rebuilding the mesh. Scripts
+add it with `meshop.create type:prim.capsule.item`.
+
+With the step selected in the stack and no tool on, its handles show in the
+**3D view**. Drag an arrow to move it along that axis, a plane square or the centre dot to move it across a plane, and a size square at its edge to resize it. Each drag is one undo step. A right-drag anywhere else changes its counts, as with the tool: left and right for **Sides**, up and down for **Segments**.
+
 ## Related
 
 - [Primitives](../interface/window.md): the **Toolbox** on the **Create** tab

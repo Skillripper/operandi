@@ -22,9 +22,11 @@
 
 The panel also has **Advanced Handles**, which shows tools' extra handles
 (the same as **Tool Handles: Advanced** in Preferences), and **Absolute
-Scaling**, which opens the window for scaling to an exact size.
+Scaling**, which opens the window for scaling to an exact size (see
+[Absolute Scaling](absolute-scaling.md)).
 
 ## Related
 
+- [Absolute Scaling](absolute-scaling.md)
 - [Ruler](ruler.md)
 - [Dimensions](dimensions.md)

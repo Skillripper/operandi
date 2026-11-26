@@ -322,3 +322,69 @@ fn the_instance_command() {
     assert!(e.dispatch(Command::InstanceItems).is_err());
     assert_eq!(e.scene, scene);
 }
+
+/// Forum report (2026-11-24): instancing a big mesh took seconds a copy,
+/// because each new item's point, polygon and edge IDs were built and
+/// checked from the polygons again. A new item sharing another's polygons
+/// now lays out its own fresh block of IDs from that item's. The instance
+/// shares the mesh (no copy), and both items' IDs stay valid and distinct;
+/// a Duplicate gets the same treatment and still edits on its own.
+#[test]
+fn instance_and_duplicate_share_the_mesh_and_get_their_own_ids() {
+    use std::collections::BTreeSet;
+    let mut e = Editor::default();
+    e.dispatch(Command::NewMesh).unwrap();
+    e.scene.active_mut().unwrap().mesh = Mesh::box_mesh(DVec3::ZERO, DVec3::ONE, 0).unwrap().into();
+    // A few thousand polygons.
+    e.dispatch(Command::Mode(Mode::Polygon)).unwrap();
+    for _ in 0..3 {
+        e.scene.selection.faces.clear();
+        command_line::run_line(&mut e, "poly.subdivide")
+            .unwrap()
+            .unwrap();
+    }
+    e.dispatch(Command::Mode(Mode::Item)).unwrap();
+    let src = source(&e);
+    let ids_of = |e: &mut Editor, id: u64| {
+        let view = e.read_mesh(id).unwrap();
+        let i = view.identities;
+        let mut all: BTreeSet<u64> = i.vertices.iter().map(|v| v.0).collect();
+        all.extend(i.faces.iter().map(|f| f.0));
+        all.extend(i.corners.iter().flatten().map(|c| c.0));
+        all.extend(i.edges.values().map(|x| x.0));
+        (all, i.edges.len())
+    };
+    let (source_ids, source_edges) = ids_of(&mut e, src);
+    let mut seen = source_ids.clone();
+    for (label, command) in [
+        ("Instance", Command::InstanceItems),
+        ("Duplicate", Command::DuplicateItem),
+    ] {
+        e.scene.select_item(Some(src));
+        e.dispatch(command).unwrap();
+        let copy = e.scene.selection.item.unwrap();
+        assert_ne!(copy, src);
+        if label == "Instance" {
+            assert!(
+                Shared::same(
+                    e.scene.item(copy).unwrap().mesh.shared(),
+                    e.scene.item(src).unwrap().mesh.shared()
+                ),
+                "an instance shares its source's mesh"
+            );
+        }
+        let (ids, edges) = ids_of(&mut e, copy);
+        assert_eq!(ids.len(), source_ids.len(), "{label}: one ID per component");
+        assert_eq!(edges, source_edges);
+        assert!(ids.is_disjoint(&seen), "{label}: fresh IDs");
+        seen.extend(ids);
+    }
+    // The duplicate is a mesh of its own: editing it leaves the source.
+    let dup = e.scene.selection.item.unwrap();
+    let before = e.scene.item(src).unwrap().mesh.vertices[0];
+    let mut moved = e.scene.item(dup).unwrap().mesh.open().clone();
+    moved.vertices[0] += DVec3::X;
+    e.scene.item_mut(dup).unwrap().mesh = moved.into();
+    assert_eq!(e.scene.item(src).unwrap().mesh.vertices[0], before);
+    e.read_mesh(dup).unwrap();
+}

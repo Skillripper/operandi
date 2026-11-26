@@ -54,8 +54,59 @@ pub struct StageData {
     /// UsdSkelSkeletons (import_skel.rs).
     #[serde(default)]
     pub skeletons: Vec<SkelData>,
+    /// The stage's timing (import_anim.rs).
+    #[serde(default)]
+    pub time: Option<StageTiming>,
     #[serde(skip)]
     pub buffers: Vec<Vec<u8>>,
+}
+
+/// The stage's timing metadata: time samples are in time codes, and a
+/// frame is `timeCodesPerSecond / framesPerSecond` time codes.
+#[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct StageTiming {
+    pub time_codes_per_second: f64,
+    pub frames_per_second: f64,
+    pub start: f64,
+    pub end: f64,
+    /// The file authors startTimeCode / endTimeCode.
+    #[serde(default)]
+    pub range: bool,
+}
+
+impl StageData {
+    /// Frames per time code (1 when the stage says nothing usable).
+    pub fn frames_per_code(&self) -> f64 {
+        match self.time {
+            Some(t)
+                if t.time_codes_per_second > 0.0
+                    && t.frames_per_second > 0.0
+                    && t.time_codes_per_second.is_finite()
+                    && t.frames_per_second.is_finite() =>
+            {
+                t.frames_per_second / t.time_codes_per_second
+            }
+            _ => 1.0,
+        }
+    }
+}
+
+/// A transform's time samples (two or more): per time code, the local
+/// matrix and the plain TRS when it is one (like `Prim::local`, `trs`).
+#[derive(Clone, Debug, Default, Deserialize)]
+pub struct XformSamples {
+    pub times: Vec<f64>,
+    pub local: Vec<[f64; 16]>,
+    pub trs: Vec<Option<Trs>>,
+}
+
+/// A camera's or light's attributes at each of `times` (time codes):
+/// [`CameraData`] or [`LightData`] as JSON.
+#[derive(Clone, Debug, Default, Deserialize)]
+pub struct AttributeSamples {
+    pub times: Vec<f64>,
+    pub values: Vec<serde_json::Value>,
 }
 
 /// A UsdSkelSkeleton: joint paths, bind (skeleton-space) and rest (local)
@@ -136,6 +187,8 @@ pub struct Prim {
     pub resets_xform: bool,
     /// The same as plain translate / rotate / scale, when it is one.
     pub trs: Option<Trs>,
+    /// The transform's time samples, when it is animated.
+    pub xform_samples: Option<XformSamples>,
     /// Index into `meshes`.
     pub mesh: Option<usize>,
     /// The material bound to the whole mesh (index into `materials`), -1
@@ -148,6 +201,8 @@ pub struct Prim {
     pub camera: Option<CameraData>,
     /// A UsdLux light's attributes (the prim type says which light).
     pub light: Option<LightData>,
+    /// The camera's or light's attributes over time, when they change.
+    pub attribute_samples: Option<AttributeSamples>,
 }
 
 /// UsdGeomCamera attributes, as authored or the schema's fallbacks. Lens

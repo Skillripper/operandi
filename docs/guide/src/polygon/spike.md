@@ -9,9 +9,13 @@
 
 1. Press **3** for Polygons and select the polygons.
 2. Click **Spike** on the **Polygon** tool tab.
-3. Type **Spike Strength** and click **Apply**. Each **Apply** spikes the
-   current polygons again.
-4. Click **Drop** to keep the result.
+3. Click in the 3D view, or click **Apply**. The spikes appear and Spike
+   stays on.
+4. Change **Spike Strength**, or drag up or down in the view. The spikes
+   you just made change as you go, and it all stays one undo step.
+5. Click again (or **Apply**) to spike the new polygons again, or press
+   **Q** to keep the result and turn Spike off. **Cancel** removes the
+   spikes you're still changing.
 
 ## Properties
 

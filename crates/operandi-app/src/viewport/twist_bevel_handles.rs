@@ -8,14 +8,8 @@ use super::*;
 use glam::DMat4;
 use operandi_core::{TubeFrame, TwistAxis, TwistBevelOptions, TwistBevelPipe};
 
-/// Handle ids: Shift and Inset take 0 and 1 (the first and second handle a
-/// drag off the handles stands for); the rings and the bend arrow follow
-/// the plane circles' ids (13..16).
-pub(crate) const TB_SHIFT: usize = 0;
-pub(crate) const TB_INSET: usize = 1;
-pub(crate) const TB_TWIST: usize = 20;
-pub(crate) const TB_BEND: usize = 21;
-pub(crate) const TB_BEND_DIRECTION: usize = 22;
+// Handle ids live with the hover tips that name them (view/handle_ids.rs).
+pub(crate) use crate::handle_ids::{TB_BEND, TB_BEND_DIRECTION, TB_INSET, TB_SHIFT, TB_TWIST};
 
 /// On-screen sizes at Handle Scale 1.
 const ARROW_PIXELS: f32 = 72.;
@@ -89,19 +83,28 @@ impl Operandi {
             } else {
                 base.selection.faces.clone()
             };
+            // The side axis is world X on a rotated item too, as in the
+            // geometry (preview_twist_bevel).
+            let to_local = base
+                .world_matrix(item.id)
+                .map(|m| m.inverse())
+                .unwrap_or(DMat4::IDENTITY);
+            let pipe = TwistBevelPipe {
+                world_axes: glam::DMat3::from_cols(
+                    to_local.transform_vector3(DVec3::X),
+                    to_local.transform_vector3(DVec3::Y),
+                    to_local.transform_vector3(DVec3::Z),
+                ),
+                ..Default::default()
+            };
             [false, true].map(|group| {
                 let o = TwistBevelOptions {
                     group_polygons: group,
                     ..Default::default()
                 };
-                operandi_core::twist_bevel_frames(
-                    &item.mesh,
-                    &selected,
-                    &o,
-                    &TwistBevelPipe::default(),
-                )
-                .ok()
-                .and_then(|(frames, _)| frames.first().copied())
+                operandi_core::twist_bevel_frames(&item.mesh, &selected, &o, &pipe)
+                    .ok()
+                    .and_then(|(frames, _)| frames.first().copied())
             })
         })
     }
@@ -131,9 +134,11 @@ impl Operandi {
             profile: o.profile,
             profile_bias: o.profile_bias,
             twist_axis: (o.rotation_axis == TwistAxis::ActionAxis).then(|| {
+                // Falls back to world Y, as the geometry does.
+                let to_local = world.inverse();
                 l.action_frame
-                    .map(|f| world.inverse().transform_vector3(f.basis.y_axis))
-                    .unwrap_or(DVec3::Y)
+                    .map(|f| to_local.transform_vector3(f.basis.y_axis))
+                    .unwrap_or_else(|| to_local.transform_vector3(DVec3::Y))
                     .normalize_or(base.normal)
             }),
             ..base

@@ -325,19 +325,191 @@ fn edge_slice_inside_points_cut_into_a_polygon() {
         SlicePoint::Edge { a: 0, b: 1, t: 0.5 },
         SlicePoint::Inside {
             face: 0,
-            at: DVec3::new(0.3, 0., 0.5),
+            at: DVec3::new(0.3, 0., 0.4),
         },
     ];
-    // Until the path leaves the polygon, the inside point changes nothing.
+    // Until the path leaves the polygon, its loose end runs on to the
+    // nearest corner (0): no loose chain is left (SL-Q16).
     preview(&mut e, p.clone());
-    assert_eq!(mesh(&e).faces.len(), 1);
+    assert_eq!(mesh(&e).faces.len(), 2);
+    assert!(mesh(&e).validate().is_ok());
     p.slice
         .edge_slice
         .points
         .push(SlicePoint::Edge { a: 2, b: 3, t: 0.5 });
     preview(&mut e, p);
     assert_eq!(mesh(&e).faces.len(), 2);
-    assert!(has_point(mesh(&e), DVec3::new(0.3, 0., 0.5)));
+    assert!(has_point(mesh(&e), DVec3::new(0.3, 0., 0.4)));
+}
+
+#[test]
+fn edge_slice_cuts_through_existing_points() {
+    // Corner to opposite corner of one quad (SL-Q17): two triangles, no
+    // new point.
+    let mut e = editor(grid(1), Mode::Polygon);
+    e.dispatch(Command::Activate(Tool::EdgeSlice)).unwrap();
+    let mut p = params(&e);
+    p.slice.edge_slice.points = vec![SlicePoint::Vertex { v: 0 }, SlicePoint::Vertex { v: 3 }];
+    preview(&mut e, p.clone());
+    assert_eq!(mesh(&e).faces.len(), 2);
+    assert_eq!(mesh(&e).vertices.len(), 4);
+    assert!(mesh(&e).faces.iter().all(|f| f.vertices.len() == 3));
+    // Corner to corner along an edge: nothing to cut.
+    p.slice.edge_slice.points = vec![SlicePoint::Vertex { v: 0 }, SlicePoint::Vertex { v: 1 }];
+    preview(&mut e, p.clone());
+    assert_eq!(mesh(&e).faces.len(), 1);
+    // From an edge to a corner across the polygon: a triangle and a quad.
+    p.slice.edge_slice.points = vec![
+        SlicePoint::Edge { a: 0, b: 1, t: 0.5 },
+        SlicePoint::Vertex { v: 3 },
+    ];
+    preview(&mut e, p.clone());
+    let sizes: Vec<usize> = mesh(&e).faces.iter().map(|f| f.vertices.len()).collect();
+    assert_eq!(sizes.len(), 2);
+    assert!(sizes.contains(&3) && sizes.contains(&4));
+    // An edge point next to its own edge's end: no cut.
+    p.slice.edge_slice.points = vec![
+        SlicePoint::Edge { a: 0, b: 1, t: 0.5 },
+        SlicePoint::Vertex { v: 1 },
+    ];
+    preview(&mut e, p.clone());
+    assert_eq!(mesh(&e).faces.len(), 1);
+    // A corner of a polygon not next to the last point is refused.
+    let mut e = editor(grid(2), Mode::Polygon);
+    e.dispatch(Command::Activate(Tool::EdgeSlice)).unwrap();
+    let shown = e.scene.clone();
+    let mut bad = params(&e);
+    bad.slice.edge_slice.points = vec![SlicePoint::Vertex { v: 0 }, SlicePoint::Vertex { v: 8 }];
+    assert!(e.dispatch(Command::Preview(bad)).is_err());
+    assert_eq!(e.scene, shown);
+}
+
+#[test]
+fn edge_slice_closes_on_a_point_and_undoes_in_one_step() {
+    // A diamond through the four edge-middle points of a 2x2 grid, closed
+    // on its first point: every quad is split along a diagonal.
+    let mut e = editor(grid(2), Mode::Polygon);
+    let before = e.scene.clone();
+    e.dispatch(Command::Activate(Tool::EdgeSlice)).unwrap();
+    let mut p = params(&e);
+    p.slice.edge_slice.points = [1, 5, 7, 3].map(|v| SlicePoint::Vertex { v }).to_vec();
+    preview(&mut e, p.clone());
+    assert_eq!(mesh(&e).faces.len(), 7);
+    p.slice.edge_slice.closed = true;
+    preview(&mut e, p);
+    assert_eq!(mesh(&e).faces.len(), 8);
+    assert_eq!(mesh(&e).vertices.len(), 9);
+    e.dispatch(Command::Drop).unwrap();
+    assert_eq!(e.undo.last().unwrap().label, "Edge Slice");
+    e.dispatch(Command::Undo).unwrap();
+    assert_eq!(e.scene.items, before.items);
+}
+
+#[test]
+fn edge_slice_starts_inside_a_polygon() {
+    // SL-Q16: the loop round the 2x2 grid's middle point, started inside
+    // polygon 0 (corners 0, 3, 4, 1) instead of on an edge.
+    let inside = SlicePoint::Inside {
+        face: 0,
+        at: DVec3::new(0.6, 0., 0.6),
+    };
+    let mut e = editor(grid(2), Mode::Polygon);
+    e.dispatch(Command::Activate(Tool::EdgeSlice)).unwrap();
+    let mut p = params(&e);
+    p.slice.edge_slice.points = vec![
+        inside,
+        SlicePoint::Edge { a: 1, b: 4, t: 0.5 },
+        SlicePoint::Edge { a: 4, b: 5, t: 0.5 },
+        SlicePoint::Edge { a: 4, b: 7, t: 0.5 },
+        SlicePoint::Edge { a: 3, b: 4, t: 0.5 },
+    ];
+    // Open, the start runs back to polygon 0's nearest corner (4), so that
+    // polygon is cut too.
+    preview(&mut e, p.clone());
+    assert_eq!(mesh(&e).faces.len(), 8);
+    assert!(has_point(mesh(&e), DVec3::new(0.6, 0., 0.6)));
+    // Closed on it, the last stretch runs through it and the loop is whole.
+    p.slice.edge_slice.closed = true;
+    preview(&mut e, p.clone());
+    assert_eq!(mesh(&e).faces.len(), 8);
+    assert!(has_point(mesh(&e), DVec3::new(0.6, 0., 0.6)));
+    // Save and reopen keep the cut.
+    e.dispatch(Command::Drop).unwrap();
+    let bytes = persistence::encode(&e.scene).unwrap();
+    let reopened = persistence::decode(&bytes).unwrap();
+    assert_eq!(reopened.active().unwrap().mesh, *mesh(&e));
+    // A loop closed wholly inside one polygon (Jason's check 2026-11-25):
+    // the loop becomes its own polygon and the rest is joined to it at two
+    // corners, so nothing is lost on Drop and no polygon has a hole.
+    let ring = [(0.3, 0.3), (0.7, 0.35), (0.75, 0.7), (0.4, 0.65)];
+    let mut e = editor(grid(1), Mode::Polygon);
+    e.dispatch(Command::Activate(Tool::EdgeSlice)).unwrap();
+    let mut p = params(&e);
+    p.slice.edge_slice.points = ring
+        .map(|(x, z)| SlicePoint::Inside {
+            face: 0,
+            at: DVec3::new(x, 0., z),
+        })
+        .to_vec();
+    p.slice.edge_slice.closed = true;
+    preview(&mut e, p.clone());
+    let m = mesh(&e).clone();
+    assert!(m.validate().is_ok());
+    assert_eq!(m.vertices.len(), 8);
+    assert_eq!(m.faces.len(), 3);
+    let loop_ids: Vec<u32> = (4..8).collect();
+    assert!(
+        m.faces
+            .iter()
+            .any(|f| f.vertices.len() == 4 && f.vertices.iter().all(|v| loop_ids.contains(v))),
+        "the loop is a polygon of its own"
+    );
+    // With Add Support Edges, nothing has more than four sides.
+    p.slice.edge_slice.support_edges = true;
+    preview(&mut e, p);
+    assert!(mesh(&e).faces.iter().all(|f| f.vertices.len() <= 4));
+    assert!(mesh(&e).validate().is_ok());
+    e.dispatch(Command::Drop).unwrap();
+    assert!(mesh(&e).faces.len() > 3, "the cut stays after Drop");
+}
+
+#[test]
+fn edge_slice_never_leaves_a_loose_chain() {
+    // Jason's check on one quad (2026-11-25): a chain of inside points is
+    // joined at both loose ends to the nearest corners and splits the quad.
+    let at = |x: f64, z: f64| SlicePoint::Inside {
+        face: 0,
+        at: DVec3::new(x, 0., z),
+    };
+    let mut e = editor(grid(1), Mode::Polygon);
+    e.dispatch(Command::Activate(Tool::EdgeSlice)).unwrap();
+    let mut p = params(&e);
+    // One click inside: nothing to cut yet.
+    p.slice.edge_slice.points = vec![at(0.2, 0.2)];
+    preview(&mut e, p.clone());
+    assert_eq!(mesh(&e).faces.len(), 1);
+    assert_eq!(mesh(&e).vertices.len(), 4);
+    // Corner (0,0) to the chain to corner (1,1): two polygons.
+    p.slice.edge_slice.points = vec![at(0.2, 0.2), at(0.5, 0.6), at(0.8, 0.8)];
+    preview(&mut e, p.clone());
+    assert_eq!(mesh(&e).faces.len(), 2);
+    assert_eq!(mesh(&e).vertices.len(), 7);
+    // Ending on an edge or a corner instead also splits it.
+    for end in [
+        SlicePoint::Edge { a: 2, b: 3, t: 0.5 },
+        SlicePoint::Vertex { v: 3 },
+    ] {
+        p.slice.edge_slice.points = vec![at(0.2, 0.2), at(0.5, 0.6), end];
+        preview(&mut e, p.clone());
+        assert_eq!(mesh(&e).faces.len(), 2);
+        assert!(mesh(&e).validate().is_ok());
+    }
+    // Both ends nearest the same corner: no cut rather than a loose chain.
+    p.slice.edge_slice.points = vec![at(0.2, 0.2), at(0.3, 0.1)];
+    preview(&mut e, p.clone());
+    assert_eq!(mesh(&e).faces.len(), 1);
+    assert_eq!(mesh(&e).vertices.len(), 4);
+    e.dispatch(Command::Drop).unwrap();
 }
 
 fn cut_at_z(z: f64, from: f64, to: f64) -> PlaneCut {
@@ -464,4 +636,51 @@ fn sliced_mesh_saves_and_reopens() {
     let back = persistence::load(&path).unwrap();
     assert_eq!(back.active().unwrap().mesh, e.scene.active().unwrap().mesh);
     let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn edge_slice_support_edges_leave_only_quads_and_triangles() {
+    let sides = |m: &Mesh| m.faces.iter().map(|f| f.vertices.len()).max().unwrap();
+    // A cut across one polygon of a 2x2 grid: its neighbour above takes
+    // the top point and becomes a five-sided polygon.
+    let mut e = editor(grid(2), Mode::Polygon);
+    e.dispatch(Command::Activate(Tool::EdgeSlice)).unwrap();
+    let mut p = params(&e);
+    assert!(!p.slice.edge_slice.support_edges, "off by default");
+    p.slice.edge_slice.points = vec![
+        SlicePoint::Edge { a: 0, b: 1, t: 0.5 },
+        SlicePoint::Edge { a: 3, b: 4, t: 0.5 },
+    ];
+    preview(&mut e, p.clone());
+    assert_eq!(mesh(&e).faces.len(), 5);
+    assert_eq!(sides(mesh(&e)), 5);
+    p.slice.edge_slice.support_edges = true;
+    preview(&mut e, p.clone());
+    assert_eq!(mesh(&e).faces.len(), 6);
+    assert_eq!(sides(mesh(&e)), 4);
+    assert_eq!(mesh(&e).vertices.len(), 11, "no point is added");
+    assert!(mesh(&e).validate().is_ok());
+    e.dispatch(Command::Drop).unwrap();
+    let bytes = persistence::encode(&e.scene).unwrap();
+    let reopened = persistence::decode(&bytes).unwrap();
+    assert_eq!(reopened.active().unwrap().mesh, *mesh(&e));
+
+    // A chain of inside points from corner to corner leaves two six-sided
+    // polygons; with support edges, quads and triangles.
+    let at = |x: f64, z: f64| SlicePoint::Inside {
+        face: 0,
+        at: DVec3::new(x, 0., z),
+    };
+    let mut e = editor(grid(1), Mode::Polygon);
+    e.dispatch(Command::Activate(Tool::EdgeSlice)).unwrap();
+    let mut p = params(&e);
+    p.slice.edge_slice.points = vec![at(0.2, 0.2), at(0.5, 0.6), at(0.8, 0.8)];
+    preview(&mut e, p.clone());
+    assert_eq!(sides(mesh(&e)), 6);
+    p.slice.edge_slice.support_edges = true;
+    preview(&mut e, p);
+    assert_eq!(sides(mesh(&e)), 4);
+    // The side with two inward corners needs three pieces: five in all.
+    assert_eq!(mesh(&e).faces.len(), 5);
+    assert!(mesh(&e).validate().is_ok());
 }

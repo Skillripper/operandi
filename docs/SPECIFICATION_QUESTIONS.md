@@ -1409,7 +1409,7 @@ step; an existing material of that name is updated.
 ## Cameras and lights (CL-1, spec v0, 2026-11-04)
 
 Built from the docs-only v0 spec. Every value below lives in
-`crates/operandi-core/src/camera_light_defaults.rs`; change it there.
+`crates/operandi-core/src/render/camera_light_defaults.rs`; change it there.
 
 - CL-Q01 New-scene contents. Every *new* scene gets "Mesh 1", then
   "Camera", then "Directional Light"; the mesh stays selected. Opened and
@@ -1587,7 +1587,7 @@ Built on the spec's provisional answers unless noted.
   Material Group... and Set Smoothing Group... don't exist yet.
 - SP-16, SP-20 Not built in this slice: part export to OBJ/FBX, and the
   Select tab's Polygon Tag dropdown. The shared helpers it needs are in
-  `operandi-core/src/polygon_tags.rs` (`PolygonTagKind`,
+  `operandi-core/src/polygons/polygon_tags.rs` (`PolygonTagKind`,
   `Scene::polygon_tag_names`, `faces_with_tag`, `tag_target_faces`).
 - Set Material still refuses an empty selection (MAT-001); applying the
   shared "nothing selected = whole mesh" rule to it is a follow-up once
@@ -2738,6 +2738,29 @@ Polygon Slice (Shift+C).
   Duplicate tab yet). Its buttons are text rows until their icons are
   generated and approved. New theme colours: Slice Bar and Line, Slice
   Points, Slice Closing Point (Highlights).
+- **SL-Q16 (forum report; Jason's hands-on check 2026-11-25).** Edge Slice
+  may start inside a polygon (Inside Polygons on) and end or close on an
+  edge, a point or the first point. A loose end left inside a polygon is
+  never kept as a hanging chain: on an open path each loose end runs on to
+  its polygon's nearest corner (as the reference's preview does); when both
+  ends would meet the same corner, that stretch isn't cut. Closed, the loop
+  runs back through the leading inside points. A loop closed wholly inside
+  one polygon becomes a polygon of its own, and the rest is joined to it
+  by two links from the loop points nearest two different corners (no
+  holes, as PS-13's builder note). Replaces SL-Q07's "a path starts on an
+  edge".
+- **SL-Q17 (forum report, 2026-11-25).** A click within 8 pt of an existing
+  point puts the cut through that point (it wins over the edges meeting
+  there); a path can end or close on a point. Two points on one edge (or
+  a point and an edge point on the edge it ends) make no cut. Does the
+  reference snap to points, and from how far?
+- **SL-Q18 (Jason 2026-11-25, Operandi's own option).** Edge Slice **Add
+  Support Edges** (off): every polygon holding a new cut point with more
+  than four sides is split into quads (one triangle for an odd count) by
+  edges between existing corners; no point is added. Plan: fewest pieces,
+  squarest corners, convex pieces, new edges inside the polygon, cheaper
+  from a new point, never doubling an existing edge. Polygons over 32
+  sides are left as they are.
 
 ## Items list header (item-list-header, 2026-11-06)
 
@@ -4386,7 +4409,7 @@ Built first from a coordinator brief, then cut back to the Planar behaviour
 spec (2026-11-09) on Jason's word "just do the modo way": there is no
 dedicated drag; a texture is placed with the ordinary Move / Rotate / Scale
 / Transform tools on its Texture Locator. Code: `operandi-core/src/
-planar_texture.rs`, `operandi-app/src/planar_texture_ui.rs`, the gizmo in
+planar_texture.rs`, `operandi-app/src/uv/planar_texture_ui.rs`, the gizmo in
 `camera_light_ui.rs`. Starting state for all: a mesh with a texture layer
 whose Texture Locator is Planar, Item mode.
 
@@ -7039,6 +7062,13 @@ Builder's provisional readings; the spec's own questions are in
   which side? Also open: a click on a polygon's middle (not near an edge)
   while Loop Slice is live only says "click an edge" (LS-03 covers edge
   clicks only).
+- **LS-Q20 (new, GitHub #23) Slice Selected with edges selected.** LS-32
+  names selected polygons only, so in Edge mode Slice Selected did nothing
+  and the whole ring was cut. Built *provisional:* the cut crosses only the
+  selected edges. A polygon is cut when both sides the cut crosses are
+  selected; a selected edge with no such polygon cuts just the polygons on
+  either side of it. Unselected polygons take the new points (LS-72). What
+  does the reference do with edges selected?
 - **LS-B09 Slices keep creation order (LS-71).** Free mode no longer sorts
   positions; Current, the bar's highlighted triangle and the middle-drag
   stepping follow the order the slices were added. Uniform and Symmetry
@@ -7867,7 +7897,7 @@ hand-written (menu_forms.rs).
 
 Specs: `specifications/uv-2026-11-16` (BRIEF-TRANSFORM-PIPE-IN-UV,
 ADDENDUM-GENERAL-TOOLS-IN-UV, UVT-130..139). The three guesses the brief
-names are one constant each in `operandi-core/src/uv_pipe.rs`.
+names are one constant each in `operandi-core/src/uv/uv_pipe.rs`.
 
 - **UVT-Q11** Range in a UV view is in UV units (`RANGE_UNITS`; `Pixels`
   is built too: Range then reads as UV-view pixels). *Provisional.*
@@ -8762,6 +8792,50 @@ extrude, smooth-shift-thicken, split, quadruple and flip case).
   ignoring the item transforms; the exact cases replaced that reading on
   2026-11-18.) Unclear: what the switch does change in the reference,
   perhaps falloff sampling as FAL-B2-07's Use World Transforms.
+- **MOQ-31 Grouped Bevel op on regions it can't group (GitHub #25, #29).**
+  A Polygon Bevel op with Group Polygons on whose selection (from
+  selection ops) has islands touching only at a corner, a whole closed
+  part, or a pinched outline used to fail and pass its input through.
+  It now bevels each edge-connected region as a group, and a region it
+  still can't group polygon by polygon [provisional]. Unmeasured: what
+  the reference does with corner-touching islands (one shared new point,
+  as Extrude's PE-N-03, or one each).
+- **MOQ-32 Bridge op with no Selection, provisional.** TYPE-IDS "Bridge".
+  A Bridge op whose Selection picks nothing in particular bridges the
+  mesh's border edges, so two loose open pieces join. Unclear: what the
+  reference bridges with no selection, and its Mode option order.
+- **MOQ-33 Thicken op's type id, provisional.** The reference saves
+  Thicken as `poly.smshift.item` named "Thicken"; Operandi gives it its own
+  id `poly.thicken.item` (same values, Thicken on). LXO import should map
+  the reference form to it.
+- **MOQ-34 Set Polygon Type op on lines, provisional.** Lines in the op's
+  selection are left as they are. Unclear: the reference's option list
+  past Face (Operandi: Face, Subdivision, Catmull-Clark).
+- **MOQ-35 Loop Slice op's Count and Position, provisional.** With Count
+  above 1 the loops are spaced evenly and Position is set aside (as the
+  tool's Count field does). No Selection cuts every ring. Unclear: how the
+  reference places several loops from its one `pos` channel.
+- **MOQ-36 Edge Slide op picks edges, provisional.** The reference's Sel is
+  VRTX; Operandi's Edge Slide works on edges, so the op picks edges.
+  Unclear: what the reference slides from a point selection.
+- **MOQ-37 Hard Edge op's Mode and Selection, provisional.** The op picks
+  edges (reference Sel VRTX). Mode 0 Selection hardens the chosen edges,
+  1 By Angle those sharper than Angle; the reference default "auto" reads
+  as Selection. Hard Edge Convert uses default smoothing settings (an op
+  can't read the scene's). Unclear: the reference's Mode options.
+- **MOQ-38 Part Tag op's type id, provisional.** Not in TYPE-IDS.md;
+  Operandi uses `pmodel.partTag.item` with one channel `partName`, after
+  Material Tag. Needs the reference's id and channel name.
+- **MOQ-39 Batch 2 selection ops, provisional.** Select Connected (whole
+  parts the selection below touches), Select by Polygon Tag (Material or
+  Part), Select Coplanar Polygons (grows across edges while within Angle
+  of the polygon it grew from), Select by Hard Edges and Select Vertex
+  Map Value (weight maps; a point with no value is 0). Type ids and
+  channels are Operandi's own. Not built: Convert (selection ops already
+  convert between polygons, edges and points), Select by Falloff and
+  Conditional Loop (need specs). Select by Border is Select Border.
+- **MOQ-40 Assign Selection Set stores polygons, provisional.** Reference
+  Sel is VRTX; Operandi stores the chosen polygons as a polygon set.
 - **UVN-O-grow-quads-seam with corner UVs only, provisional.** Spec:
   new-point-uvs-2026-11-02 (UVN-T-06). Start: the seam grid, read as corner
   UVs only (how Operandi and imported meshes keep UVs); Grow Quads on edges
@@ -9451,6 +9525,8 @@ node definitions (no behaviour spec; the plan is Jason's A31 approval).
 | MXG-Q10 | Advanced viewport, a Mix Shader of a Principled and an Emission (or Glass, Transparent) | *Provisional:* each channel (base colour, emission, transmission...) is mixed by the factor, as one surface; Cycles mixes the two lights. Close for most mixes; differs where one side is see-through. |
 | MXG-Q11 | Shader tree Cellular or Poisson Cells layer, viewport vs render | Resolved 2026-11-21: the core's cells (`procedural::cells_with`) and the viewport's (`pattern.wgsl`) are Cycles' Voronoi F1/F2 (`cycles_voronoi`), and per-cell variation uses the Voronoi cell colour, as renders do. Poisson Cells' low randomness offsets each point from its cell's corner (Cycles' Randomness), not round the centre as the old reference did. |
 | MXG-Q11 | Node editor (A3): Material Group > Show as Nodes, then the user wants to change something in the window | No spec covers editing (Nodes N1 puts add/wire/delete in N2). *Provisional (slice 1):* the window is read-only for every graph; edits go through the Shader Tree, and the window follows them (UIC-244). Needs a spec for: which edits the node view allows on a tree material (values only? adding nodes, which become which layers?), how a node with no layer form is kept, undo granularity per drag/wire. |
+| MXG-Q12 | Open a scene whose saved graph differs from what its layers now give (an older build's sums, or an outside edit) | *Provisional (stage 4):* renders and exports use the saved graph for those polygons until their layers are edited; the viewport draws the layers, and nothing in the Shader Tree marks the material. Needs: should the tree mark a pinned material, should the viewport draw the graph, and should opening show a note. |
+| MXG-Q13 | A texture placed by a locator on several items (each item sees the locator differently) | *Provisional (stage 4):* the saved graph holds placement as reference numbers filled in per item, so items share one graph; a surface whose sums run through a placement number (none in the tests) is saved per item. Cleaner later: a placement node naming the locator, if outside readers ever need the `.opscene` graphs directly. |
 
 ## Clean-room leftovers — 2026-11-20 (Operandi's own rules, pending research)
 
@@ -9753,6 +9829,19 @@ From a real Modo 17.1 scene that wouldn't open (a user's file, never in the repo
 - LXO-AN-Q02 A transform stack with more than one item of a kind (a "Zero" rotation beside the core one): the `type core` item gives the value; others are left out, noted only when not identity. Shear items aren't read (noted when any shear is over 1e-6). Provisional.
 - LXO-AN-Q03 Polygon types other than FACE, SUBD and PSUB (B-spline curves, curves, text, bones…): the whole POLS chunk is skipped by name, its records unread (a BCRV record holds more than corner indices). Edge weights on edges no polygon has are dropped with a note; zero-area polygons and non-manifold edges are kept and marked as every importer does (`interchange::finish_mesh`). Provisional.
 
+## LXO import: animation, cameras, lights and rigs (2026-11-24, spec lxo-import-anim-rig-2026-11-24, branch claude/project-thread-ahtmlr, provisional)
+
+The spec's own defaults (Q-LXA-01..11) are used as written. Found while testing against its fixtures:
+
+- LXO-AR-Q01 LXA-72 scale constraint `offset`: the file stores 0 for no offset. Read as an offset added to a scale of 1 (Operandi offset = 1 + stored). Only 0 was seen.
+- LXO-AR-Q02 The spec's cases for `constraints.lxo` disagree with themselves about Dst_expr: its world matrices leave it unmoved, its modifier results move it by the Expression. The test follows the modifier results. Which is right?
+- LXO-AR-Q03 LXA-71 says a direct link copies the driver's value, but the spec's cases show a distance driving a rotation in display units (1 m gives 1°). A link between a rotation and another channel imports as an Expression `A * π/180` (or `180/π`). Angles other than transform rotations (cone angle, user channels) are not converted yet. Confirm in the spec.
+- LXO-AR-Q04 The spec's world matrices for `constraints.lxo` hold the targets where the edit layer pins them, not where their keys move them (the import drops those edits, LXA-03). The test pins those six targets to compare the constraint maths alone.
+- LXO-AR-Q05 Q-LXA-08: Operandi's two-bone solver bends `ik-and-stacked-constraints.lxo`'s chain to the side its setup pose bends; the spec's matrices have the knee on the other side. The end joint, bone lengths and chain plane agree. Does the solver's `plane`/`sense` setting pick the side?
+
+- LXO-AR-Q06 `HCRV` polygons (the path in `path-blend-shader.lxo`): read as per curve a count, a 4-byte flags word and that many point indices, imported as open Curve polylines with no end controls. The flags aren't decoded. Confirm the layout.
+- LXO-AR-Q07 Planar IK three bars imports as chain IK (Q-LXA-14): the end reaches the goal within the solver's tolerance (a few mm in `planar-ik.lxo`); `weightA` (the bend share) and `orient2/3` have no Operandi setting and are left out.
+
 ## Multiresolution sculpting (2026-11-23, branch claude/project-thread-0cmp4g, provisional)
 
 Built without a behaviour spec (Jason approved the feature; none of this was observed in the reference). Every answer below is Operandi's own provisional reading.
@@ -9793,3 +9882,84 @@ Blender); no Modo material.
   profile segment to one centre point), Radial (rings around that centre)
   and None (one polygon). The centre is the Patch grids' shared corner.
   *Built:* the panel dropdown and `tool.attr edge.bevel cornerPattern`.
+
+## MeshBlend B1 (2026-11-24, branch claude/project-thread-20fok5, provisional)
+
+Spec meshblend-2026-11-24. Readings where the spec is silent:
+
+- MB-Q01 A Trim added or switched to with no Primary named acts on every Primary of the item (SB-11 sets the relationship by pick order; scripts and the panel's Add rows have no second pick). Untrim narrows it.
+- MB-Q02 Keep Cage Points uses the cage at Subdivision 0 (SB-22 says the result sits on the cage; how strips then meet it is B2's question).
+- MB-Q03 Duplicate and Convert makes the frozen copy but doesn't hide the MeshBlend Item or its sources (SB-53 says it hides them); Convert to Mesh is the existing Freeze of the item's whole stack.
+- MB-Q04 When the polygons rebuilt from provenance break a mesh rule, the result falls back to the engine's triangles for that rebuild (seen once in random sequences); the cause is open.
+- MB-Q05 A rebuild that fails shows the failure on the op's row and passes the (empty) Base Mesh through, as every Mesh Stack op does; ST-04's "keep the last good result" isn't built yet.
+- MB-Q06 Sources are read as the viewport shows them (SB-23): subdivision polygons as their smooth surface at the source's Subdivision level, plain Face polygons as they are. SB-20 says every source is smoothed; read literally, a plain 1-segment cube blended as a ball and a cylinder's n-gon cap came to a point (Jason's QA, 2026-11-24).
+
+## Schematic workspaces (2026-11-24, branch claude/project-thread-mna1o9, provisional)
+
+Spec schematic-2026-11-24 (BEHAVIOR-SCHEMATIC, LXO-SCHEMATIC-FORMAT). Readings where it is silent:
+
+- SC-Q10 LXO places are scaled 6 points per unit, not the suggested 4: Operandi's nodes are 170 points wide with a row per linked channel, so at 4 columns and stacked nodes overlapped. Nodes that still overlap are moved down (each column keeps its order). Check HC-02's CONTROLS page.
+- SC-Q11 SC-16: a new piece on no page shows (unsaved) on the first saved page holding an item it touches, beside that item; it is saved when moved or arranged. Pieces on no page and touching nothing placed show on "Unplaced".
+- SC-Q12 Not built yet: marquee select (SC-69; left-drag on empty space still pans), multi-node selection, collapse (SC-29), backdrops/notes/elbows (imported as counts only), expanded vector rows (VXPD), hover magnify (SC-67). Fit Selected frames the node clicked last.
+
+- MB-Q07 New MeshBlends use the Closed, clean output (SB-50 lists Closed as the default); Closed keeps the cut faces as triangles.
+- MB-Q08 Relative Strip Width is a share of the average cage edge length of all enabled sources (SB-31b says the two sources at that join).
+- MB-Q09 A strip's own Width is always a distance, whatever Width Units says; Rows stay shared so corner patches always fit. Overrides apply only while Strip Width is above 0.
+
+## Primitive MeshOps with the tools' options (2026-11-25, GitHub #14, branch claude/project-thread-8fccr9, provisional)
+
+- PRIM-OP-Q01 The eight primitive ops (Cube, Sphere, Ellipsoid, Cone, Torus, Cylinder, Capsule, Teapot) run their tools' generators (primitive_ops.rs). Value names the map doesn't give are Operandi's own: `makeUVs`, `axis`, `method` (Sphere Mode), `level`, `capTop`/`capBottom`, `polType`, `edgeWeight`, `compensation`, `gaps`, `uvMap`, `endSegments`, `endSize`, `ends`, `bulge`, `bulgeTop`/`bulgeSide`, `ringRadius`, `crossSection`, `height`, `size`. Rename when the map has the reference's.
+- PRIM-OP-Q02 Not op values: the tools' handle rows (Handle Mode, Min/Max, Show Corner), Torus Hole Size (derived) and Ellipsoid Numeric Symmetry (a Symmetrize op does it). Sphere Mode offers Globe and Tessellated only (Quad Ball isn't built). The op form can't grey a row yet, so Subdivision Level shows in Globe mode too and is ignored there.
+- PRIM-OP-Q03 An op's primitive keeps the "Texture" UV map name and no material; the tools rename to the Default Texture Map and add the Default Material (user preferences, which would make a saved stack evaluate differently per machine).
+
+## Falloffs on primitives (2026-11-25, GitHub #15, branch claude/project-thread-8fccr9, provisional)
+
+- PRIM-FO-Q01 The global falloff shapes the Cube, Sphere and Cylinder while they're made (shape_falloff.rs); only Linear, Radial, Cylinder, Noise and Invert layers can weigh new points, and the others grey the Falloff section with a reason. The weight scales (about the axis), moves and turns each ring; at weight w a value changes by w of its full amount.
+- PRIM-FO-Q02 Follow Falloff spacing re-spaces rings by 1 + 4 × |slope| of the spine weight (Operandi's own number); greyed on the Sphere.
+- PRIM-FO-Q03 Cone and Capsule don't take the falloff yet (their tools run their own sessions); the next step.
+- PRIM-OP-Q04 A primitive op's falloff copy reads the op's own positions (the item's local space) whether its layers have Use World Transforms on or off.
+- PRIM-FO-Q04 Fit Falloff to Shape puts the Linear Start on the top of the shape, where the tool's top size handle is; there the tool's handle wins the press (TP-19), so the falloff's Start is moved with its axis arrows or by typing.
+
+## Mesh Stack selections of edges and points (2026-11-25, GitHub #19, branch claude/project-thread-8fccr9, provisional)
+
+- SEL-Q01 Edge ops pick edges (numbered as `Mesh::edges`, the sorted unique point pairs) and Vertex ops points; other ops polygons. Supersedes MOQ-21/MOQ-25. Selection ops picking in another kind convert: edge if one of its polygons, polygon if one of its edges, point if on a picked polygon or edge.
+- SEL-Q02 Rule ops are Operandi's own (`operandi.edgeAngle.selop`, `operandi.border.selop`, `operandi.sides.selop`, `operandi.facing.selop`); Edges by Angle measures between the two polygons' normals (0° flat), an edge with one or three+ polygons is never picked by it.
+- SEL-Q03 A captured Select by Index keeps the element count it was made on (`select_by_index_count` in the file); a different count below shows a hint on the op row, and the op still runs. Indexes typed into Select by Index have no count.
+- SEL-Q04 Selection Set reads a set of the op's own kind first, then a polygon set of that name.
+- SEL-Q05 Batch 1 rules (Vertex Count with Tris/Quads/N-gons presets, Area, Edge Length, Convex/Concave, Normal, Plane, Distance, N Randomly, Random Parts, Vertices by Edge Count, Symmetric, UV Seam) follow Steve Hill's own descriptions of his kit in #19; they measure in the mesh's own space only (no World Coordinates option or transform input yet). Polygon Sides and Facing were replaced by Vertex Count and Normal.
+- SEL-Q06 Converting points to edges or polygons needs all their points picked; polygons and edges to points take any. Random Parts joins polygons through shared points.
+
+## Live MeshOp falloffs and primitive op handles (2026-11-25, Steve Hill via Jason, branch claude/project-thread-8fccr9, provisional)
+
+- MOP-H-Q01 A primitive op's falloff is its own: its Falloff Type (None, Linear, Radial, Cylinder, Noise) and that type's values are op rows, and changes evaluate at once. A new one starts fitted to the shape (Linear from top to base along its Axis; Radial and Cylinder at its centre and size). Combining several falloffs in the panel is parked (Jason, 2026-11-25).
+- MOP-H-Q03 (2026-11-26, Jason) The selected primitive op also shows the tools' Move handles: an arrow per axis (72 px, Handle Scale) and a plane square per axis pair, in the op's item axes; a square on an arrow's shaft wins the press.
+- MOP-H-Q02 With a primitive op's row selected and no tool on, the view shows its centre (moves in the view plane), one size square per axis and its falloff's points (Linear Start/End, Radial/Cylinder Center). Drags move by the view-plane delta like the falloff handles (falloff_view.rs); the size square takes the delta along its own axis. Other op types' handles come later, a family at a time.
+## Tool tab cycling (2026-11-25, tool-tab-cycling v1.1, branch claude/project-thread-rjq1h8, provisional)
+
+- TTC-Q01 (spec Q1) Ctrl+Tab in a multi-line text field pages the tool tabs; the field types no tab. Spec default.
+- TTC-Q02 (spec Q2) A hidden or collapsed tool panel (no tab strip drawn) isn't reopened; the keys do nothing. Spec default.
+- TTC-Q03 T1 reads "Create → Edit"; Operandi's Model strip has Select right of Create, so Ctrl+Tab on Create opens Select (rule 1, on-screen order).
+- TTC-Q04 Ctrl+Shift+Tab was the Layout Switcher's key (UIC-18). The switcher now starts with no key (Layout > Recent Layouts… still opens it); a saved key map still holding its old factory key hands it to Previous Tool Tab. UIC-18 updated with Jason's OK (2026-11-25: Ctrl+` already switches layouts).
+- TTC-Q05 Floating panels in their own OS windows don't take the keys (eframe runs no raw-input hook there); the main window does.
+- TTC-Q06 Spec 5 (announce the tab): the switch sends a "<Tab> tab" value-changed event and puts the same text on the message line; a full screen-reader announcement waits for Q4's accessibility work.
+
+## Older LXO scenes (old-lxo-2026-11-25, GitHub #20, 2026-11-25)
+
+- **OLD-B01 Plug-in items still have their links read (OLD-04).** An item
+  of a kind the importer doesn't know is never imported and its records
+  aren't counted, but its LINK records are still read: a deformer,
+  constraint or rig item stores its link to the mesh it changes, and
+  LEG-10 refuses that mesh. Skipping the item whole would import such a
+  mesh unchanged without saying so. Built *provisional:* links only.
+- **OLD-B02 What counts as "unknown" (OLD-04).** Every kind other than the
+  modelled ones (mesh, translation, rotation, scale, meshInst, transform)
+  and the scene/shader list (camera, light, material...), so locators and
+  rig items are skipped the same way; none of them was imported before.
+  The note reads "'<kind>' items not imported (not modelling, or plug-in
+  data)".
+- **OLD-B03 Memory (OLD-06).** The old reader charged points and polygons
+  twice against the import budget. Now it charges what the 16/17 reader
+  does: T7 (1.21 M polygons) costs 1.1 GiB against 0.97 GiB for the same
+  file as format 16.0. The app's budget is half the free memory (at least
+  1 GiB), so T7 opens on any machine with about 2.2 GiB free.
+

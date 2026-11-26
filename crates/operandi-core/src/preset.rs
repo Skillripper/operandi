@@ -33,6 +33,7 @@ use crate::{Editor, Item, Result, Scene};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
+mod animation;
 pub mod ball;
 pub mod basics;
 pub mod library;
@@ -1330,6 +1331,7 @@ impl Editor {
                     return Err("This preset holds no items".into());
                 }
                 let ids = insert_items(&mut candidate, &mut next, &source.items, &source.images)?;
+                animation::carry(&mut candidate, &mut next, &source, &ids)?;
                 // The meshes' material groups come along when this scene
                 // has none for their tags (provisional, PB-Q6).
                 let missing: Vec<NodeId> = roots

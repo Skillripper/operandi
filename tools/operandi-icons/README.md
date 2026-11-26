@@ -14,7 +14,7 @@ approval before the app uses it. See LLM_GUIDE.md for extending the set.
 The app uses these icons: after an approved change, copy `generated/svg/*.svg`
 into `crates/operandi-app/assets/icons`. The Rust test
 `icons::generated_tests::app_icons_match_the_generator` fails if the two
-differ, and the icon table in `crates/operandi-app/src/icons.rs` maps each
+differ, and the icon table in `crates/operandi-app/src/controls/icons.rs` maps each
 icon to its file.
 
 For another LLM using or extending this tool, read [LLM_GUIDE.md](LLM_GUIDE.md).

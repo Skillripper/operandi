@@ -19,6 +19,7 @@ use glam::{DVec2, DVec3};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
+pub(crate) mod nurbs;
 pub mod patches;
 
 /// SDV-06 Boundary Rule.
@@ -537,6 +538,91 @@ fn patch_surface(net: &Net, level: u8) -> Net {
     // (EW-03); its children carry sharpness s - 1, which the patch stage
     // below reads as "how much like an open edge" (capped at 1).
     let step = catmull_clark_step(net, BoundaryRule::Smooth, true);
+    let grids = patch_grids(&step);
+    let l = level as usize;
+    let bern = |t: f64| [(1.0 - t) * (1.0 - t), 2.0 * t * (1.0 - t), t * t];
+    let mut out = Net::default();
+    // Shared samples: corners by CC point, edge interiors by (edge, k from
+    // the lower-numbered end).
+    let mut corner_index: crate::fxhash::FxHashMap<u32, u32> = Default::default();
+    let mut edge_index: crate::fxhash::FxHashMap<((u32, u32), usize), u32> = Default::default();
+    for (fi, f) in step.faces.iter().enumerate() {
+        let c = &grids[fi];
+        let eval = |u: f64, v: f64| {
+            let (bu, bv) = (bern(u), bern(v));
+            let mut p = DVec3::ZERO;
+            for a in 0..3 {
+                for b in 0..3 {
+                    p += c[a][b] * bu[a] * bv[b];
+                }
+            }
+            p
+        };
+        // Sample (i, j) on this quad, reusing shared ones.
+        let mut grid = vec![vec![0u32; l + 1]; l + 1];
+        for (i, row) in grid.iter_mut().enumerate() {
+            for (j, slot) in row.iter_mut().enumerate() {
+                let shared = match (i, j) {
+                    (0, 0) => Some(Err(f[0])),
+                    (_, 0) if i == l => Some(Err(f[1])),
+                    (_, _) if i == l && j == l => Some(Err(f[2])),
+                    (0, _) if j == l => Some(Err(f[3])),
+                    (_, 0) => Some(Ok((f[0], f[1], i))),
+                    (_, _) if i == l => Some(Ok((f[1], f[2], j))),
+                    (_, _) if j == l => Some(Ok((f[3], f[2], i))),
+                    (0, _) => Some(Ok((f[0], f[3], j))),
+                    _ => None,
+                };
+                let next = out.points.len() as u32;
+                let point = || eval(i as f64 / l as f64, j as f64 / l as f64);
+                *slot = match shared {
+                    Some(Err(corner)) => *corner_index.entry(corner).or_insert_with(|| {
+                        out.points.push(point());
+                        next
+                    }),
+                    Some(Ok((a, b, k))) => {
+                        // Position k of l from a toward b; key from the lower end.
+                        let along = if a < b { k } else { l - k };
+                        *edge_index
+                            .entry((edge_key(a, b), along))
+                            .or_insert_with(|| {
+                                out.points.push(point());
+                                next
+                            })
+                    }
+                    None => {
+                        out.points.push(point());
+                        next
+                    }
+                };
+            }
+        }
+        for i in 0..l {
+            for j in 0..l {
+                out.faces.push(vec![
+                    grid[i][j],
+                    grid[i + 1][j],
+                    grid[i + 1][j + 1],
+                    grid[i][j + 1],
+                ]);
+                let parent = &step.sides[fi];
+                out.sides.push(vec![
+                    parent[0].filter(|_| j == 0),
+                    parent[1].filter(|_| i + 1 == l),
+                    parent[2].filter(|_| j + 1 == l),
+                    parent[3].filter(|_| i == 0),
+                ]);
+            }
+        }
+    }
+    out
+}
+
+/// The biquadratic Bézier controls of each quad of `step` (the Tab
+/// surface's one Catmull-Clark step), `c[a][b]` with `a` along f0 → f1 and
+/// `b` along f0 → f3. Shared by sampling (`patch_surface`) and exact CAD
+/// export (`nurbs.rs`).
+fn patch_grids(step: &Net) -> Vec<[[DVec3; 3]; 3]> {
     let hard = |a: u32, b: u32| -> f64 {
         if step.sharp.is_empty() {
             0.0
@@ -636,93 +722,23 @@ fn patch_surface(net: &Net, level: u8) -> Net {
         })
         .collect();
     let corner_control = |v: u32| corner_controls[v as usize];
-    let l = level as usize;
-    let bern = |t: f64| [(1.0 - t) * (1.0 - t), 2.0 * t * (1.0 - t), t * t];
-    let mut out = Net::default();
-    // Shared samples: corners by CC point, edge interiors by (edge, k from
-    // the lower-numbered end).
-    let mut corner_index: crate::fxhash::FxHashMap<u32, u32> = Default::default();
-    let mut edge_index: crate::fxhash::FxHashMap<((u32, u32), usize), u32> = Default::default();
-    for (fi, f) in step.faces.iter().enumerate() {
-        // Control grid c[a][b], a along f0->f1, b along f0->f3.
-        let mut c = [[DVec3::ZERO; 3]; 3];
-        c[0][0] = corner_control(f[0]);
-        c[2][0] = corner_control(f[1]);
-        c[2][2] = corner_control(f[2]);
-        c[0][2] = corner_control(f[3]);
-        c[1][0] = edge_control(f[0], f[1]);
-        c[2][1] = edge_control(f[1], f[2]);
-        c[1][2] = edge_control(f[2], f[3]);
-        c[0][1] = edge_control(f[3], f[0]);
-        c[1][1] = centers[fi];
-        let eval = |u: f64, v: f64| {
-            let (bu, bv) = (bern(u), bern(v));
-            let mut p = DVec3::ZERO;
-            for a in 0..3 {
-                for b in 0..3 {
-                    p += c[a][b] * bu[a] * bv[b];
-                }
-            }
-            p
-        };
-        // Sample (i, j) on this quad, reusing shared ones.
-        let mut grid = vec![vec![0u32; l + 1]; l + 1];
-        for (i, row) in grid.iter_mut().enumerate() {
-            for (j, slot) in row.iter_mut().enumerate() {
-                let shared = match (i, j) {
-                    (0, 0) => Some(Err(f[0])),
-                    (_, 0) if i == l => Some(Err(f[1])),
-                    (_, _) if i == l && j == l => Some(Err(f[2])),
-                    (0, _) if j == l => Some(Err(f[3])),
-                    (_, 0) => Some(Ok((f[0], f[1], i))),
-                    (_, _) if i == l => Some(Ok((f[1], f[2], j))),
-                    (_, _) if j == l => Some(Ok((f[3], f[2], i))),
-                    (0, _) => Some(Ok((f[0], f[3], j))),
-                    _ => None,
-                };
-                let next = out.points.len() as u32;
-                let point = || eval(i as f64 / l as f64, j as f64 / l as f64);
-                *slot = match shared {
-                    Some(Err(corner)) => *corner_index.entry(corner).or_insert_with(|| {
-                        out.points.push(point());
-                        next
-                    }),
-                    Some(Ok((a, b, k))) => {
-                        // Position k of l from a toward b; key from the lower end.
-                        let along = if a < b { k } else { l - k };
-                        *edge_index
-                            .entry((edge_key(a, b), along))
-                            .or_insert_with(|| {
-                                out.points.push(point());
-                                next
-                            })
-                    }
-                    None => {
-                        out.points.push(point());
-                        next
-                    }
-                };
-            }
-        }
-        for i in 0..l {
-            for j in 0..l {
-                out.faces.push(vec![
-                    grid[i][j],
-                    grid[i + 1][j],
-                    grid[i + 1][j + 1],
-                    grid[i][j + 1],
-                ]);
-                let parent = &step.sides[fi];
-                out.sides.push(vec![
-                    parent[0].filter(|_| j == 0),
-                    parent[1].filter(|_| i + 1 == l),
-                    parent[2].filter(|_| j + 1 == l),
-                    parent[3].filter(|_| i == 0),
-                ]);
-            }
-        }
-    }
-    out
+    step.faces
+        .iter()
+        .enumerate()
+        .map(|(fi, f)| {
+            let mut c = [[DVec3::ZERO; 3]; 3];
+            c[0][0] = corner_control(f[0]);
+            c[2][0] = corner_control(f[1]);
+            c[2][2] = corner_control(f[2]);
+            c[0][2] = corner_control(f[3]);
+            c[1][0] = edge_control(f[0], f[1]);
+            c[2][1] = edge_control(f[1], f[2]);
+            c[1][2] = edge_control(f[2], f[3]);
+            c[0][1] = edge_control(f[3], f[0]);
+            c[1][1] = centers[fi];
+            c
+        })
+        .collect()
 }
 
 /// Refine one kind's polygons. `patch_kind` selects Subdivision (Tab).
@@ -1070,6 +1086,42 @@ fn surface(
     surface_with(mesh, settings, freeze, freeze)
 }
 
+/// A local net of `mesh`'s polygons `source`: their points renumbered in
+/// first-use order, their cage sides, and the creases among them
+/// (sharpness = 10 × weight).
+fn local_net(mesh: &Mesh, source: &[usize]) -> Net {
+    let cage_sides = |f: &Face| -> Vec<Side> {
+        let v = &f.vertices;
+        (0..v.len())
+            .map(|i| Some(edge_key(v[i], v[(i + 1) % v.len()])))
+            .collect()
+    };
+    let mut local: crate::fxhash::FxHashMap<u32, u32> = Default::default();
+    let mut net = Net::default();
+    for &f in source {
+        let face = mesh.faces[f]
+            .vertices
+            .iter()
+            .map(|&v| {
+                let next = net.points.len() as u32;
+                *local.entry(v).or_insert_with(|| {
+                    net.points.push(mesh.vertices[v as usize]);
+                    next
+                })
+            })
+            .collect();
+        net.sides.push(cage_sides(&mesh.faces[f]));
+        net.faces.push(face);
+    }
+    for c in &mesh.attributes.creases {
+        if let (Some(&a), Some(&b)) = (local.get(&c.a), local.get(&c.b)) {
+            net.sharp
+                .insert(edge_key(a, b), 10.0 * c.weight.clamp(-1.0, 1.0));
+        }
+    }
+    net
+}
+
 /// `surface` with the UV maps carried on their own (`with_uvs`), for
 /// display.
 fn surface_with(
@@ -1126,12 +1178,6 @@ fn surface_with(
             }
         }
     }
-    let creases: BTreeMap<(u32, u32), f64> = mesh
-        .attributes
-        .creases
-        .iter()
-        .map(|c| (edge_key(c.a, c.b), 10.0 * c.weight.clamp(-1.0, 1.0)))
-        .collect();
     for (rep, level, patch_kind) in [
         (
             PolygonRepresentation::CatmullClark,
@@ -1151,29 +1197,7 @@ fn surface_with(
             (l, true) => (l as usize).pow(2),
             (l, false) => 4usize.pow(l as u32 - 1),
         };
-        // A local net of this kind's points.
-        let mut local: crate::fxhash::FxHashMap<u32, u32> = Default::default();
-        let mut net = Net::default();
-        for &f in &source {
-            let face = mesh.faces[f]
-                .vertices
-                .iter()
-                .map(|&v| {
-                    let next = net.points.len() as u32;
-                    *local.entry(v).or_insert_with(|| {
-                        net.points.push(mesh.vertices[v as usize]);
-                        next
-                    })
-                })
-                .collect();
-            net.sides.push(cage_sides(&mesh.faces[f]));
-            net.faces.push(face);
-        }
-        for (&(a, b), &s) in &creases {
-            if let (Some(&a), Some(&b)) = (local.get(&a), local.get(&b)) {
-                net.sharp.insert(edge_key(a, b), s);
-            }
-        }
+        let net = local_net(mesh, &source);
         let refined = refine(net, level, rule, patch_kind);
         // Each refined polygon descends from one source polygon, n·4^(L-1)
         // children each (level 0 keeps the polygon itself).

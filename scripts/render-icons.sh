@@ -13,8 +13,8 @@
 #
 # also copies every render into
 # crates/operandi-app/assets/rendered-icons/<set>/<slug>-<pixels>.png. The
-# app draws only the ones listed in RENDERED and FILES
-# (crates/operandi-app/src/rendered_icons.rs): install first, then add an
+# app draws only the ones listed in crates/operandi-app/assets/
+# rendered-icons/icons.txt: install first, then add an
 # icon's lines there (the build needs the files to exist).
 #
 # Needs the Cycles libraries (scripts/build-cycles.sh once).
@@ -39,11 +39,12 @@ done
 [ -n "$INPUTS" ] || INPUTS=tools/icon-studio/icons
 
 # The same optimized, incremental profile as QA builds (bundle-dev.sh).
-"$CARGO_BIN" build --locked --profile qa -p operandi-app --features cycles
-BIN=target/qa/operandi-app
+# The studio is its own developer-tool crate (crates/operandi-icon-studio).
+"$CARGO_BIN" build --locked --profile qa -p operandi-icon-studio --features cycles
+BIN=target/qa/operandi-icon-studio
 rm -rf "$OUT"
 # shellcheck disable=SC2086
-"$BIN" --icon-studio render $INPUTS --studio "$STUDIO" --out "$OUT" $OPTIONS
+"$BIN" render $INPUTS --studio "$STUDIO" --out "$OUT" $OPTIONS
 
 [ "$INSTALL" = 1 ] || exit 0
 ASSETS=crates/operandi-app/assets/rendered-icons

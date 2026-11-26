@@ -1,5 +1,5 @@
 <!-- help-ids: ; template: concept ; since: 0.1.0 -->
-<!-- Written by crates/operandi-app/src/guide_python_tests.rs from crates/operandi-python/src/operandi.py and the command registry. Don't edit by hand: run OPERANDI_BLESS_GUIDE=1 scripts/check-fast.sh guide_python -->
+<!-- Written by crates/operandi-app/src/commands/guide_python_tests.rs from crates/operandi-python/src/operandi.py and the command registry. Don't edit by hand: run OPERANDI_BLESS_GUIDE=1 scripts/check-fast.sh guide_python -->
 # Python reference
 
 This page lists everything the `operandi` module offers, the commands a script can ask questions with, and the commands that run scripts. It is made from Operandi's own code, so it matches the version it came with. For how to turn scripting on and run a script, see [Python scripting](python.md).
@@ -69,6 +69,7 @@ These commands answer a question and change nothing. Ask them with `operandi.que
 | `operandi.multires.query` | Reads the active mesh's multiresolution levels as JSON. | `operandi.multires.query` |
 | `operandi.rig.query` | Reads the rig pieces (all, or one item's) with their channels, inputs, outputs and state, and the item's evaluated world, driven channels and pivot, as JSON. | `operandi.rig.query` |
 | `operandi.rig.schematic` | Reads the Schematic's nodes (items and rig pieces), their ports and wires as JSON. | `operandi.rig.schematic` |
+| `operandi.rig.workspaces` | Reads the Schematic workspaces and their node places as JSON. | `operandi.rig.workspaces` |
 | `operandi.skel.query` | Reads the skeleton's joints as JSON: parent, children, first child, world position, bone length and axes. | `operandi.skel.query` |
 | `operandi.skin.query` | Reads a bound mesh's skin as JSON: channels and joints; with vertex, its weights and deformed position at a time. | `operandi.skin.query vertex:0` |
 | `operandi.weight.query` | Reads weight maps as JSON: the mesh's maps, one map's values, or every map's value at a point. | `operandi.weight.query vertex:0` |

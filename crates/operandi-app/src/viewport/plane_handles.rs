@@ -298,9 +298,17 @@ impl Operandi {
             // Scale's values are per handle axis: the circle scales the
             // two arrows it sits between (PH-21).
             let pixels = ((p.x - start.x) - (p.y - start.y)) as f64;
-            let factor = (1. + pixels * 0.01).max(1e-3);
-            params.delta[a] = (params.delta[a] * factor).max(0.001);
-            params.delta[b] = (params.delta[b] * factor).max(0.001);
+            // #24: down to 0% (items 0.1%); an axis at 0 grows from 0.
+            let floor = self.scale_floor();
+            let factor = (1. + pixels * 0.01).max(0.);
+            for axis in [a, b] {
+                let v = params.delta[axis];
+                params.delta[axis] = if v.abs() <= 1e-9 {
+                    (pixels * 0.01).max(floor)
+                } else {
+                    (v * factor).max(floor)
+                };
+            }
             self.publish_handle_params(tool, params);
             return;
         }

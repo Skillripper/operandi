@@ -7,9 +7,16 @@ Three ways to get rid of points.
 
 | Button | Key | What it does |
 |---|---|---|
-| **Collapse** | **Control+Backspace** | Removes the selected points and closes the hole: the polygons round each point join into one. |
-| **Remove** | **Shift+Backspace** | Removes the selected points and the polygons that use them. |
+| **Collapse** | **Control+Backspace** | Pulls each selected point and the points joined to it by an edge into one point at their average. The polygons around the selected point disappear; the polygons beyond them keep the merged point. |
+| **Remove** | **Shift+Backspace** | Takes the selected points out of their polygons, which keep their other corners (a quad becomes a triangle). A polygon left with fewer than three corners goes. |
 | **Remove Edge** |  | Removes the selected points and the edges through them. |
+
+## Collapse on a corner
+
+Collapse works on the point's neighborhood, not just the point. On a
+cube corner, the corner and its three neighbors become one point, the
+three polygons that met at the corner disappear, and the other three
+lean in to meet at the new point, so the shape stays closed.
 
 ## Related
 

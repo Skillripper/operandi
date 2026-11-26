@@ -125,7 +125,11 @@ find "$APP/Contents" -type f \( -name '*.dylib' -o -name '*.so' -o -perm +111 \)
         sign "$f"
     fi
 done
-sign "$APP"
+# The app itself also gets its entitlements: without
+# disable-library-validation the hardened runtime refuses to load the
+# 3DxWare client framework (signed by 3Dconnexion, not us), and 3D mice
+# can't be opened at all.
+sign --entitlements assets/macos/operandi.entitlements "$APP"
 codesign --verify --deep --strict --verbose=2 "$APP"
 
 notarize() {

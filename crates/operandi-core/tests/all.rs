@@ -128,6 +128,8 @@ mod curve_commands;
 mod curve_convert;
 #[path = "curve_edit.rs"]
 mod curve_edit;
+#[path = "cylinder_quad_grid.rs"]
+mod cylinder_quad_grid;
 #[path = "deform_finish.rs"]
 mod deform_finish;
 #[path = "deform_presets.rs"]
@@ -257,6 +259,10 @@ mod group_locators;
 mod group_material_extras;
 #[path = "haul.rs"]
 mod haul;
+#[path = "heavy_mesh_bench.rs"]
+mod heavy_mesh_bench;
+#[path = "heavy_mesh_parallel.rs"]
+mod heavy_mesh_parallel;
 #[path = "history_completion.rs"]
 mod history_completion;
 #[path = "i1_completion.rs"]
@@ -275,8 +281,6 @@ mod i2_live_history;
 mod i2_origin_active_save_confirmation;
 #[path = "i2_review_fixes.rs"]
 mod i2_review_fixes;
-#[path = "icon_studio.rs"]
-mod icon_studio;
 #[path = "identity_positions.rs"]
 mod identity_positions;
 #[path = "ik_body.rs"]
@@ -339,6 +343,9 @@ mod loop_slice_surface_probe;
 mod loop_symmetry;
 #[path = "lxo.rs"]
 mod lxo;
+#[cfg(operandi_specs)]
+#[path = "lxo_anim_rig_spec.rs"]
+mod lxo_anim_rig_spec;
 #[path = "lxo_animation.rs"]
 mod lxo_animation;
 #[path = "lxo_budget_preflight.rs"]
@@ -351,6 +358,8 @@ mod lxo_local_corpus;
 mod lxo_mesh_preset;
 #[path = "lxo_old_formats.rs"]
 mod lxo_old_formats;
+#[path = "lxo_old_scenes.rs"]
+mod lxo_old_scenes;
 #[cfg(operandi_specs)]
 #[path = "lxo_phase1_clean_spec.rs"]
 mod lxo_phase1_clean_spec;
@@ -372,6 +381,8 @@ mod make_polygon_symmetry;
 mod make_split_clean_spec;
 #[path = "material_distance_fields.rs"]
 mod material_distance_fields;
+#[path = "material_graphs_saved.rs"]
+mod material_graphs_saved;
 #[path = "merge_align.rs"]
 mod merge_align;
 #[path = "merge_holes.rs"]
@@ -400,6 +411,38 @@ mod mesh_stack_selops;
 mod mesh_stack_stress;
 #[path = "mesh_stack_tools.rs"]
 mod mesh_stack_tools;
+#[path = "meshblend.rs"]
+mod meshblend;
+#[path = "meshblend_spike.rs"]
+mod meshblend_spike;
+#[path = "meshblend_strips.rs"]
+mod meshblend_strips;
+#[path = "meshop_assign_selection_set.rs"]
+mod meshop_assign_selection_set;
+#[path = "meshop_bevel_regions.rs"]
+mod meshop_bevel_regions;
+#[path = "meshop_bridge.rs"]
+mod meshop_bridge;
+#[path = "meshop_chamfer_edit.rs"]
+mod meshop_chamfer_edit;
+#[path = "meshop_edge_slide.rs"]
+mod meshop_edge_slide;
+#[path = "meshop_element_selection.rs"]
+mod meshop_element_selection;
+#[path = "meshop_hard_edge.rs"]
+mod meshop_hard_edge;
+#[path = "meshop_loop_slice.rs"]
+mod meshop_loop_slice;
+#[path = "meshop_part_tag.rs"]
+mod meshop_part_tag;
+#[path = "meshop_polygon_type.rs"]
+mod meshop_polygon_type;
+#[path = "meshop_selops_batch2.rs"]
+mod meshop_selops_batch2;
+#[path = "meshop_set_edge_weight.rs"]
+mod meshop_set_edge_weight;
+#[path = "meshop_thicken.rs"]
+mod meshop_thicken;
 #[path = "mid_tool_undo.rs"]
 mod mid_tool_undo;
 #[path = "mode_availability.rs"]
@@ -545,6 +588,8 @@ mod polygons_m17;
 mod polyscale_offset_clean_spec;
 #[path = "pose_tool.rs"]
 mod pose_tool;
+#[path = "primitive_falloff.rs"]
+mod primitive_falloff;
 #[path = "primitive_moved_mesh.rs"]
 mod primitive_moved_mesh;
 #[path = "primitive_settings.rs"]
@@ -594,10 +639,16 @@ mod rig_phase6_milestones;
 mod rig_schematic;
 #[path = "rig_setup.rs"]
 mod rig_setup;
+#[path = "scale_to_zero.rs"]
+mod scale_to_zero;
 #[path = "scene_budget.rs"]
 mod scene_budget;
 #[path = "scene_transfer.rs"]
 mod scene_transfer;
+#[path = "schematic_layout.rs"]
+mod schematic_layout;
+#[path = "schematic_pages.rs"]
+mod schematic_pages;
 #[path = "scripts_gate.rs"]
 mod scripts_gate;
 #[path = "sculpt_brush_engine.rs"]
@@ -624,6 +675,8 @@ mod selection_mixed_topology;
 mod selection_next_loop;
 #[path = "selection_sets.rs"]
 mod selection_sets;
+#[path = "set_material_existing.rs"]
+mod set_material_existing;
 #[path = "set_position_basic.rs"]
 mod set_position_basic;
 #[path = "set_position_clean_spec.rs"]
@@ -734,6 +787,8 @@ mod tree_select_keeps_tool;
 mod tweak_oracles;
 #[path = "twist_bevel.rs"]
 mod twist_bevel;
+#[path = "twist_bevel_options.rs"]
+mod twist_bevel_options;
 #[path = "undo_fold.rs"]
 mod undo_fold;
 #[path = "undo_marks.rs"]

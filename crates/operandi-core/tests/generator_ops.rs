@@ -34,8 +34,10 @@ fn run(id: &str, input: &Mesh, values: serde_json::Value, links: &[Linked]) -> M
         input,
         op: 7,
         selection: None,
+        element: Default::default(),
         links,
         time: Default::default(),
+        notes: Default::default(),
     };
     def.run(&ctx, &v).unwrap()
 }

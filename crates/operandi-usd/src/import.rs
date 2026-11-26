@@ -68,6 +68,7 @@ pub(crate) fn build_within(
     b.item_limit = item_limit;
     b.add_all()?;
     b.set_render_camera()?;
+    crate::import_anim::set_rate(&mut b.scene, stage, &b.tracks);
     let mut render_notes = crate::import_skel::add(
         &mut b.scene,
         stage,
@@ -77,6 +78,7 @@ pub(crate) fn build_within(
         },
         &b.skinned,
     )?;
+    render_notes.extend(crate::import_anim::add(&mut b.scene, stage, &b.tracks)?);
     if let Some(r) = &stage.render_settings {
         crate::render_usd::apply(&mut b.scene, r, &mut render_notes);
     }
@@ -217,6 +219,9 @@ struct Builder<'a> {
     item_limit: usize,
     /// Mesh items with UsdSkel skinning, and their mesh data (import_skel.rs).
     skinned: Vec<(u64, usize)>,
+    /// Items' transforms, cameras and lights at their time samples
+    /// (import_anim.rs).
+    tracks: Vec<crate::import_anim::Track>,
 }
 
 /// A PointInstancer Operandi wrote for a scatter, with no transform of
@@ -301,6 +306,7 @@ impl<'a> Builder<'a> {
             domes: Vec::new(),
             item_limit: ITEM_LIMIT,
             skinned: Vec::new(),
+            tracks: Vec::new(),
         };
         b.tags = material_tags(stage);
         b.mark_importable();
@@ -676,6 +682,7 @@ impl<'a> Builder<'a> {
             self.skinned.push((id, mi));
         }
         let transform = self.transform(prim, pre, lens.is_some(), parent_is_lens);
+        self.add_tracks(id, prim, pre, lens, parent_is_lens);
         let (mesh, subdivision) = if own_meshes.is_empty() {
             (None, None)
         } else {
@@ -913,19 +920,34 @@ impl<'a> Builder<'a> {
         lens: bool,
         parent_is_lens: bool,
     ) -> Transform {
-        let file_order = prim
-            .trs
-            .as_ref()
+        self.transform_of(
+            prim.local.as_ref(),
+            prim.trs.as_ref(),
+            pre,
+            lens,
+            parent_is_lens,
+        )
+    }
+
+    /// [`Self::transform`] for a local matrix and TRS (the prim's own, or
+    /// one of its time samples).
+    fn transform_of(
+        &mut self,
+        local: Option<&[f64; 16]>,
+        trs: Option<&crate::stage::Trs>,
+        pre: Option<DMat4>,
+        lens: bool,
+        parent_is_lens: bool,
+    ) -> Transform {
+        let file_order = trs
             .and_then(|t| rotation_order(&t.order))
             .unwrap_or(RotationOrder::Xyz);
         let order = self.scene_order(file_order);
-        let local = self.scaled(prim.local.as_ref().map_or(DMat4::IDENTITY, matrix));
+        let local = self.scaled(local.map_or(DMat4::IDENTITY, matrix));
         // Plain translate / rotate / scale comes in exactly as written,
         // when it really makes the local matrix (OpenUSD's common-API read
         // gives zero angles for double-precision rotate ops).
-        if let Some(trs) = prim
-            .trs
-            .as_ref()
+        if let Some(trs) = trs
             .filter(|_| pre.is_none() && self.turn == DMat4::IDENTITY && !lens && !parent_is_lens)
         {
             let mut t = Transform::default();
@@ -964,6 +986,63 @@ impl<'a> Builder<'a> {
         t.rotation = order.angles(rotation);
         t.scale = scale;
         t
+    }
+
+    /// The item's transform, camera and light at their time samples
+    /// (import_anim.rs): the prim's own transform samples, and the
+    /// attribute samples of the camera or light prim `lens` (itself or
+    /// the one an Xform holds).
+    fn add_tracks(
+        &mut self,
+        id: u64,
+        prim: &Prim,
+        pre: Option<DMat4>,
+        lens: Option<usize>,
+        parent_is_lens: bool,
+    ) {
+        use crate::import_anim::{Pose, Track};
+        if let Some(x) = &prim.xform_samples {
+            let shear = self.dropped.shear;
+            let mut track = Track::new(id);
+            for (k, &time) in x.times.iter().enumerate() {
+                let Some(local) = x.local.get(k) else {
+                    break;
+                };
+                let trs = x.trs.get(k).and_then(|t| t.as_ref());
+                let t = self.transform_of(Some(local), trs, pre, lens.is_some(), parent_is_lens);
+                track.push(time, Pose::Transform(t));
+            }
+            // Sheared samples count once, like the item's own transform.
+            self.dropped.shear = shear + usize::from(self.dropped.shear > shear);
+            self.tracks.push(track);
+        }
+        let Some(source) = lens.map(|l| &self.stage.prims[l]) else {
+            return;
+        };
+        let Some(a) = &source.attribute_samples else {
+            return;
+        };
+        let mut track = Track::new(id);
+        for (&time, value) in a.times.iter().zip(&a.values) {
+            let pose = if source.camera.is_some() {
+                serde_json::from_value::<crate::stage::CameraData>(value.clone())
+                    .ok()
+                    .map(|c| Pose::Camera(crate::import_lights::camera_settings(&c, self.scale)))
+            } else {
+                serde_json::from_value::<crate::stage::LightData>(value.clone())
+                    .ok()
+                    .and_then(|l| {
+                        match crate::import_lights::light_settings(&source.ty, &l, self.scale) {
+                            crate::import_lights::Light::Item(s) => Some(Pose::Light(*s)),
+                            _ => None,
+                        }
+                    })
+            };
+            if let Some(pose) = pose {
+                track.push(time, pose);
+            }
+        }
+        self.tracks.push(track);
     }
 
     /// The rotation order that names the same axes after the turn (a

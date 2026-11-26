@@ -1,9 +1,9 @@
 # Project system — design note
 
 Status: product direction from Jason, 2026-10-31. Phase 1 (Create/Set
-Project) implemented 2026-11-01: `operandi-core/src/project.rs`,
-`operandi-app/src/project_ui.rs`. Phase 3 (project presets) implemented
-2026-11-01 as File > Project Presets (`operandi-app/src/project_presets.rs`):
+Project) implemented 2026-11-01: `operandi-core/src/scene_items/project.rs`,
+`operandi-app/src/files/project_ui.rs`. Phase 3 (project presets) implemented
+2026-11-01 as File > Project Presets (`operandi-app/src/presets/project_presets.rs`):
 layout, viewport display and input map can be saved to and loaded from the
 project's `workspaces/` folder; nothing is applied automatically. Phase 2
 (project-relative references, copy into the project) and the default-folder
@@ -109,7 +109,7 @@ Three levels, each with one owner:
 | **Scene** | the `.opscene` file | geometry, materials, selection, and references to other files, stored relative to the project |
 
 Today every settings file goes through `AppPaths` in
-`crates/operandi-app/src/app_environment.rs` (recovery, input map, viewport
+`crates/operandi-app/src/files/app_environment.rs` (recovery, input map, viewport
 display, Bevel recipes, profile browser, layout, runtime viewport). That is the
 natural place to add the project level beside the existing app level.
 
@@ -167,7 +167,7 @@ natural place to add the project level beside the existing app level.
 
 **Saved paths.** In memory every external file stays an absolute path, so
 no tool knows about projects. Only `persistence::save` / `load` rewrite
-them (`operandi-core/src/project_paths.rs`):
+them (`operandi-core/src/scene_items/project_paths.rs`):
 
 - On save to P, files inside the project enclosing P are written as
   `project:<relative/path>` with forward slashes. Files outside it, and
@@ -190,7 +190,7 @@ folder, and the path still says which folder.
 **Copy into the project.** With a project set and Preferences > File I/O >
 Copy Added Files into the Project on (default; `pref.value
 fileIo.copy_into_project`), a file chosen or dropped from outside the
-project is copied in first (`operandi-app/src/project_files.rs`, `adopt_file`):
+project is copied in first (`operandi-app/src/files/project_files.rs`, `adopt_file`):
 backdrop and camera background pictures to `references/`; image maps,
 environment and light-layer pictures, IES files, imported Node Material
 and MaterialX images and texture sets to `sourceimages/`. Same name and

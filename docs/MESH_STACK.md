@@ -8,11 +8,11 @@ type, built in or from a kit.
 
 | File | What it holds |
 |---|---|
-| `operandi-core/src/meshop_types.rs` | The op type table: `OpDef`, form `Field`s, `OpContext`, item links (`Source`, `Linked`), `register` for kits |
-| `operandi-core/src/mesh_stack_builtin.rs` | Operandi's own op types and their table entries |
-| `operandi-core/src/mesh_stack.rs` | The stack (`MeshStack`, `MeshOp`, `OpKind`), saving, the guard, the cache and background evaluation (`Runtime`), loop checks |
-| `operandi-core/src/mesh_stack_editor.rs` | The commands that edit stacks (`meshop.create`, `item.channel`, `deformer.enable` ...) |
-| `operandi-app/src/mesh_stack_ui.rs` | The Mesh Stack tab and the op Properties form |
+| `operandi-core/src/meshops/meshop_types.rs` | The op type table: `OpDef`, form `Field`s, `OpContext`, item links (`Source`, `Linked`), `register` for kits |
+| `operandi-core/src/meshops/mesh_stack_builtin.rs` | Operandi's own op types and their table entries |
+| `operandi-core/src/meshops/mesh_stack.rs` | The stack (`MeshStack`, `MeshOp`, `OpKind`), saving, the guard, the cache and background evaluation (`Runtime`), loop checks |
+| `operandi-core/src/meshops/mesh_stack_editor.rs` | The commands that edit stacks (`meshop.create`, `item.channel`, `deformer.enable` ...) |
+| `operandi-app/src/items/mesh_stack_ui.rs` | The Mesh Stack tab and the op Properties form |
 
 `mesh_stack.rs` never names a particular op type. Everything about a type comes
 from its table entry.

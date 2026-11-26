@@ -3,7 +3,7 @@
 Automatic Retopology's back end: QuadriFlow in C++, built with `cc` into one
 static library and wrapped in safe Rust (`src/lib.rs`). Voxel Remesh and
 Blocks / Smooth / Sharp are not here: they are Operandi's own Rust code in
-`operandi-core/src/remesh_voxel.rs`.
+`operandi-core/src/sculpting/remesh_voxel.rs`.
 
 ## What's inside
 

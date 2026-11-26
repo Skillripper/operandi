@@ -235,3 +235,34 @@ fn drop_and_undo_agree_with_the_preview() {
     e.dispatch(Command::Redo).unwrap();
     assert_eq!(*mesh(&e), preview);
 }
+
+fn edge_editor(mesh: Mesh, edges: &[(u32, u32)], slice_selected: bool) -> Editor {
+    let mut e = Editor::default();
+    e.dispatch(Command::NewMesh).unwrap();
+    e.scene.active_mut().unwrap().mesh = mesh.into();
+    e.dispatch(Command::Mode(Mode::Edge)).unwrap();
+    e.slice_preset.loop_slice.slice_selected = slice_selected;
+    e.scene.selection.edges = edges.to_vec();
+    e.dispatch(Command::Activate(Tool::LoopSlice)).unwrap();
+    e
+}
+
+/// GitHub #23 (provisional, LS-Q20): with edges selected, Slice Selected
+/// cuts only through them instead of the whole ring.
+#[test]
+fn slice_selected_with_edges_cuts_only_through_them() {
+    // The two sides of square (1, 1) the cut crosses: x = 1 and x = 2.
+    let pair = [(7, 13), (8, 14)];
+    let e = edge_editor(grid(5, 3), &pair, true);
+    // Square (1, 1) is cut; its neighbours in the row take a point each.
+    assert_eq!(sides(mesh(&e)), [(4, 14), (5, 2)].into());
+    assert!(has_point(mesh(&e), 1., 1.5) && has_point(mesh(&e), 2., 1.5));
+    assert!(!has_point(mesh(&e), 3., 1.5) && !has_point(mesh(&e), 0., 1.5));
+    // Off: the whole row.
+    let off = edge_editor(grid(5, 3), &pair, false);
+    assert_eq!(sides(mesh(&off)), [(4, 20)].into());
+    // A lone edge: just the squares either side of it.
+    let lone = edge_editor(grid(5, 3), &[(7, 13)], true);
+    assert_eq!(sides(mesh(&lone)), [(4, 16), (5, 1)].into());
+    assert!(has_point(mesh(&lone), 0., 1.5) && !has_point(mesh(&lone), 3., 1.5));
+}

@@ -388,12 +388,10 @@ fn check(c: &Value) -> Result<(), String> {
 fn check_bytes(c: &Value, bytes: &[u8]) -> Result<(), String> {
     let meshes = c["expected_meshes"].as_array().unwrap();
     let got = import(bytes).map_err(|e| format!("refused: {e}"))?.scene;
-    if got.items.len() != meshes.len() {
-        return Err(format!(
-            "{} meshes, expected {}",
-            got.items.len(),
-            meshes.len()
-        ));
+    // Cameras and lights import too since lxo-import-anim-rig (LXA-50).
+    let count = got.items.iter().filter(|i| i.is_mesh()).count();
+    if count != meshes.len() {
+        return Err(format!("{count} meshes, expected {}", meshes.len()));
     }
     for m in meshes {
         let name = m["name"].as_str().unwrap();
@@ -578,7 +576,6 @@ fn unused_records_are_left_out_with_named_notes() {
     let report = import(&bytes).unwrap_or_else(|e| panic!("{e}")).report;
     for key in [
         "PTAG.FONT records not imported",
-        "VMAP.WGHT records not imported",
         "VMAP.BSPL records not imported",
         "ITEM.ZZZZ records not imported",
     ] {

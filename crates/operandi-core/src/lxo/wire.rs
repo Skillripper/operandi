@@ -81,6 +81,16 @@ impl<'a> Reader<'a> {
             .map_err(|_| self.error("invalid_utf8", "ENCO=2 requires strict UTF-8"))?;
         Ok(text.to_owned())
     }
+    /// Text a file may hold in another encoding (string channels, action
+    /// and channel-link records): UTF-8, else read as Windows-1252. The
+    /// flag says it wasn't UTF-8, for the import report.
+    pub fn text(&mut self, control: &mut Control<'_>) -> Result<(String, bool)> {
+        let bytes = self.string_bytes(control)?;
+        Ok(match std::str::from_utf8(bytes) {
+            Ok(text) => (text.to_owned(), false),
+            Err(_) => (windows_1252(bytes), true),
+        })
+    }
     /// A name (display text). Strict UTF-8, except that where
     /// `control.ansi_names` is set (LXO-LEG-Q05) one that isn't UTF-8 is
     /// decoded as Windows-1252 and recorded for a note.
@@ -113,10 +123,31 @@ impl<'a> Reader<'a> {
         Ok(bytes)
     }
     pub fn chunks(&mut self, sub: bool, control: &mut Control<'_>) -> Result<Vec<Chunk<'a>>> {
+        self.chunks_counted(sub, true, control)
+    }
+    /// Sub-records walked without counting them against the metadata
+    /// limit: plug-in items, whose records Operandi doesn't read (OLD-04).
+    pub fn chunks_uncounted(&mut self, control: &mut Control<'_>) -> Result<Vec<Chunk<'a>>> {
+        self.chunks_counted(true, false, control)
+    }
+    fn chunks_counted(
+        &mut self,
+        sub: bool,
+        counted: bool,
+        control: &mut Control<'_>,
+    ) -> Result<Vec<Chunk<'a>>> {
         let mut chunks = Vec::new();
         while !self.done() {
             control.check(if sub { "subchunk framing" } else { "framing" })?;
-            control.record(sub)?;
+            if counted {
+                // OLD-03: past the limit an old file's container is skipped
+                // by its length; what was read so far is kept.
+                if control.cut_here(sub) {
+                    self.pos = self.data.len();
+                    break;
+                }
+                control.record(sub)?;
+            }
             let offset = self.base + self.pos;
             if self.data.len() - self.pos < if sub { 6 } else { 8 } {
                 return Err(self.error("truncated_chunk_header", "Incomplete chunk header"));

@@ -21,12 +21,18 @@ numbers match the list below.
    stays as it is.
 3. **Tool Tabs**: click a tab (**Create**, **Select**, **Deform**, …) to
    fill the **Toolbox** with that family of tools. Drag a tab along the row
-   to put the tabs in the order you like.
+   to put the tabs in the order you like. From the keyboard,
+   **Control+Tab** opens the next tab to the right and
+   **Control+Shift+Tab** the one to the left; at the end of the row they
+   wrap round to the other end. The tab opens as soon as you press the
+   keys, and the tool you are using stays active.
 4. **Panel-group tabs**: click a tab (**Items**, **Shader Tree**,
    **Groups**, **Mesh Stack**) to choose which list fills this panel; the
    **+** adds another one.
 5. **Transform tools**: **Transform**, **Move**, **Rotate** and **Scale**,
    the tools you use most. Their keys are **Y**, **W**, **E** and **R**.
+   Every tool set shares this one row; the **Setup** and **Animation** sets
+   add **World** and **Local** (where the tools pivot) just below it.
 6. **View dot**: drag it to move this view or tear it off into its own
    window. Right-click it for the view's frame menu.
 7. **View header**: pick the view's camera (**Perspective**, **Top**,
@@ -47,7 +53,10 @@ numbers match the list below.
     here. With no tool active it says so.
 14. **Grid**: the ground grid, a floor of lines at ground level, with
     colored lines for the main axes. **Grid** in the **Readout** gives
-    the size of one square.
+    the size of one square. Models hide the grid where they are in front
+    of it, and the grid shows over any part of a model below or behind
+    it, so you can see where a model crosses the ground. The work plane's
+    grid works the same way.
 15. **Work Plane**: the plane that new shapes are drawn and placed on.
     Unless you fix it, Operandi turns it to face the view; here it is the
     upright **XY** plane. It shows only while **Show Work Plane** is on

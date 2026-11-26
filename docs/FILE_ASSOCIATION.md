@@ -10,7 +10,7 @@
   `assets/branding/operandi-document-icon.png` (OP-DOC-1). Regenerate the
   PNG with `tools/document-icon/make-document-icon.swift` and update its
   hash in `branding-manifest.json`.
-- `crates/operandi-app/src/open_documents.rs` takes the "open documents"
+- `crates/operandi-app/src/files/open_documents.rs` takes the "open documents"
   Apple Event (winit doesn't pass it on). Its handler is installed when
   NSApplication posts will-finish-launching, so a file that launches the
   app opens too. Files are queued and opened one per frame through

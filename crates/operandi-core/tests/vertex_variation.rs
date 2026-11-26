@@ -249,13 +249,14 @@ fn vertex_maps_and_variations_save_and_list() {
             ..Default::default()
         })),
     );
-    // A pre-OpenPBR material, so the older version is what is tested.
+    // Since materials stage 4 a scene with layers saves its MaterialX
+    // graphs, so version 65.
     scene.shader_tree.legacy_openpbr();
     let bytes = operandi_core::persistence::encode(&scene).unwrap();
     assert!(
         String::from_utf8(bytes.clone())
             .unwrap()
-            .contains("\"version\": 26")
+            .contains("\"version\": 65")
     );
     let back = operandi_core::persistence::decode(&bytes).unwrap();
     let sources = |t: &ShaderTree| -> Vec<TextureSource> {

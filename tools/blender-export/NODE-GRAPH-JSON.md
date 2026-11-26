@@ -1,7 +1,7 @@
 # Node graph JSON (shared format, v1)
 
 The plain description of a material node tree that `export.py` writes and
-Operandi reads (`operandi-core/src/node_graph.rs`: the material converter
+Operandi reads (`operandi-core/src/nodes/node_graph.rs`: the material converter
 and the Node Material builder). One file per `.blend`.
 
 ```json

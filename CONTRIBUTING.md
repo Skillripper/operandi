@@ -108,7 +108,7 @@ from it stays apart:
 - It goes in its own module (a crate, folder or file of its own), never
   mixed into Operandi's own files. Today that is
   `crates/operandi-uv/`, `crates/operandi-core/src/sculpt_blender/`,
-  `crates/operandi-core/src/blender_principled.rs`,
+  `crates/operandi-core/src/materials/blender_principled.rs`,
   `crates/operandi-usd/bridge/blender/` and `crates/operandi-remesh/`
   (Blender's QuadriFlow glue; its bundled QuadriFlow, LEMON, pcg32 and
   Eigen files keep their own licences, listed in that crate's README).
@@ -157,9 +157,17 @@ contribute.
    workflow (operation, live preview, panel, shortcut, command) and a test
    for each criterion. [AGENTS.md](AGENTS.md) has the details, including the
    fast-drag rules every interactive tool follows.
+   To find your way around first, the
+   [code map](https://operandi3d.org/architecture) shows every module and
+   file with a one-line description and what connects to what, and
+   [docs/DATA_MODEL.md](docs/DATA_MODEL.md) shows what a scene is made of
+   (items, meshes, channels, materials, undo and the `.opscene` file).
 4. Interface work follows the project's UI conventions,
-   [docs/UI_BIBLE.md](docs/UI_BIBLE.md); mention the rule numbers (UIC-nn)
-   when your change makes or breaks one. Departures need the maintainer's OK.
+   [docs/UI_BIBLE.md](docs/UI_BIBLE.md). Read the section for what you're
+   changing before you start, and mention the rule numbers (UIC-nn) when
+   your change makes or breaks one. Departures need the maintainer's OK.
+   Anything a user can see or do needs its User Guide page in the same
+   pull request (UIC-300; [docs/guide/RULES.md](docs/guide/RULES.md)).
 5. Run the checks with the pinned toolchain:
 
    ```bash
@@ -171,10 +179,14 @@ contribute.
 6. New icons come only from the icon studio in
    [`tools/icon-studio`](tools/icon-studio): small 3D scenes rendered with
    Cycles, so the set keeps one look (same camera, lights and materials).
-   Never hand-draw, hand-edit or import an icon. The old flat generator in
+   Final icons are never hand-drawn, hand-edited or imported. The old flat generator in
    `tools/operandi-icons` is deprecated; don't add icons to it. The "Icons"
    section of [AGENTS.md](AGENTS.md) has the steps; Jason approves the
    contact sheet before an icon goes into the app.
+   **Any icon you make yourself is a placeholder.** That's fine to include
+   so your feature has a button, but say so in the pull request ("placeholder
+   icon: <name>"). It will be replaced with a studio icon so the whole set
+   keeps one consistent look.
 7. Add new dependencies with their licences to
    [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
    Put each new tool or command in its own new file. Each shared list that

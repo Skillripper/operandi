@@ -26,6 +26,9 @@ png = "0.18"
 # Imath (BSD-3-Clause) behind a small C shim.
 operandi-alembic = { path = "../operandi-alembic" }
 toml = "0.8"
+# Work spread over every core (skinning, heavy-mesh builds); MIT OR
+# Apache-2.0, already in the tree through craft-psd.
+rayon = "1.12"
 # MaterialX reading (materialx/doc.rs); MIT OR Apache-2.0.
 roxmltree = "0.21"
 ttf-parser = "0.25"
@@ -42,6 +45,9 @@ operandi-remesh = { path = "../operandi-remesh" }
 manifold-csg = { version = "0.4.1", default-features = false }
 boolmesh = { version = "0.2.2", default-features = false }
 robust = "1"
+# MeshBlend tidy (meshblend/tidy.rs): constrained Delaunay triangulation
+# with refinement for the faces cut beside strips; MIT OR Apache-2.0.
+spade = "2.15"
 # 3D painting's images (PNT stage 1); only with the `painting` feature.
 operandi-paint = { path = "../operandi-paint", optional = true }
 
