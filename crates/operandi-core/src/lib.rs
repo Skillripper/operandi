@@ -438,14 +438,32 @@ pub mod mesh_stack_items;
 pub mod mesh_stack_tools;
 pub mod meshblend;
 pub mod meshblend_spike;
+#[path = "meshops/meshop_arc.rs"]
+mod meshop_arc;
 #[path = "meshops/meshop_assign_selection_set.rs"]
 mod meshop_assign_selection_set;
 #[path = "meshops/meshop_bridge.rs"]
 mod meshop_bridge;
 #[path = "meshops/meshop_chamfer_edit.rs"]
 mod meshop_chamfer_edit;
+#[path = "meshops/meshop_curve_boolean.rs"]
+mod meshop_curve_boolean;
+#[path = "meshops/meshop_curve_common.rs"]
+mod meshop_curve_common;
+#[path = "meshops/meshop_curve_convert.rs"]
+mod meshop_curve_convert;
+#[path = "meshops/meshop_curve_fill.rs"]
+mod meshop_curve_fill;
+#[path = "meshops/meshop_curve_rebuild.rs"]
+mod meshop_curve_rebuild;
+#[path = "meshops/meshop_curve_sweep.rs"]
+mod meshop_curve_sweep;
+#[path = "meshops/meshop_curve_winding.rs"]
+mod meshop_curve_winding;
 #[path = "meshops/meshop_edge_slide.rs"]
 mod meshop_edge_slide;
+#[path = "meshops/meshop_edges_to_curves.rs"]
+mod meshop_edges_to_curves;
 #[path = "meshops/meshop_hard_edge.rs"]
 mod meshop_hard_edge;
 #[path = "meshops/meshop_loop_slice.rs"]
@@ -454,10 +472,14 @@ mod meshop_loop_slice;
 mod meshop_part_tag;
 #[path = "meshops/meshop_polygon_type.rs"]
 mod meshop_polygon_type;
+#[path = "meshops/meshop_radial_sweep.rs"]
+mod meshop_radial_sweep;
 #[path = "meshops/meshop_selection.rs"]
 pub mod meshop_selection;
 #[path = "meshops/meshop_set_edge_weight.rs"]
 mod meshop_set_edge_weight;
+#[path = "meshops/meshop_text.rs"]
+mod meshop_text;
 #[path = "meshops/meshop_thicken.rs"]
 mod meshop_thicken;
 #[path = "meshops/meshop_types.rs"]

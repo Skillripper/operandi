@@ -1,4 +1,4 @@
-<!-- help-ids: edge.bridge.item, poly.loopSlice.item, poly.thicken.item, poly.setType.meshop.item, edge.slide.item, setvmap.subd.item, hardedge.meshop.item, hardedgeconvert.meshop.item, chamfer.edit.item, pmodel.partTag.item, assignselectionset.meshop.item, Assign Selection Set, Set Polygon Type, Hard Edge, Hard Edge Convert, Part Tag ; template: concept ; since: 0.1.2 -->
+<!-- help-ids: edge.bridge.item, poly.loopSlice.item, poly.thicken.item, poly.setType.meshop.item, edge.slide.item, setvmap.subd.item, hardedge.meshop.item, hardedgeconvert.meshop.item, chamfer.edit.item, pmodel.partTag.item, assignselectionset.meshop.item, curveconvert.meshop.item, curveWinding.meshop.item, curvefill, curveBoolean.meshop.item, pmodel.edgeToCurve.item, cRebuild.mOp, curve.sweep, radial.sweep.item, prim.text.item, prim.arc.item, Curve Convert, Curve Winding Aligner, Curve Fill, Curve Boolean, Curve Rebuild, Curve Sweep, Assign Selection Set, Set Polygon Type, Hard Edge, Hard Edge Convert, Part Tag ; template: concept ; since: 0.1.2 -->
 # Tool steps in the Mesh Stack
 
 Many modeling tools can also be a step in a mesh's **Mesh Stack**, so you
@@ -27,6 +27,25 @@ polygon, or every edge for the edge steps.
 | **Part Tag** | Polygon | Polygons | Gives the chosen polygons a part name, as [Set Part](../polygon/part-material.md). |
 | **Assign Selection Set** | Selection | Polygons | Stores the chosen polygons as a selection set called **Name**, so steps above it can pick them with **Select by Selection Set**. |
 | **Set Edge Weight** | Vertex Map | Edges | Gives the chosen edges a subdivision weight, as [Edge Weight](../edge/edge-weight.md). **0%** removes their weights. |
+| **Radial Sweep** | Duplicate | Edges | Spins a profile round an axis into a surface, as [Radial Sweep](../duplicate/radial-sweep.md). With nothing selected the whole mesh is the profile, and its lines and curves are used up. |
+| **Text** | Create / Primitives | Adds | Adds the letters of **Text** as flat polygons, as the [Text](../modeling/text.md) tool. Empty text adds nothing. |
+| **Arc** | Create / Primitives | Adds | Adds an arc-shaped polygon round **Center**, starting toward **Start** and turning **Angle** toward **End**, as the [Arc](../modeling/arc.md) tool. |
+
+## Curve steps
+
+These steps work on the curves in the mesh. Polygons among the chosen
+elements pass through unchanged, and with nothing selected a step uses
+every curve.
+
+| Step | Works on | What it does |
+|---|---|---|
+| **Curve Sweep** | Curves | Puts a round tube of diameter **Size** along each curve. **Steps** sets how many rings follow the curve (or **Auto** adds them where it bends), **Rotation** rolls the tube and **End Caps** closes its ends. **Curve Index** picks curves by their order, for example `0,2`. The curves stay. |
+| **Curve Fill** | Curves | Fills each closed curve with a flat polygon, as [Make Curve Fill](../curve/curve-commands.md). **Delete Source Curve** (on at first) removes the curves; **Flip Source Curves** turns the fills over. |
+| **Curve Boolean** | Curves | Cuts the chosen closed curves against the others: **Slice**, **Union**, **Intersect** or **Subtract**. With nothing selected the curves cut each other. |
+| **Edges to Curves** | Edges | Turns the chosen edges into curves, joined end to end (**Continuous**) or one per edge (**Separate**), as lines, Curves or Beziers. With nothing selected it traces the open borders. **Delete Geometry** removes the polygons the edges came from. |
+| **Curve Rebuild** | Curves | Rebuilds each curve through evenly spaced points: **Point Count** points, or one every **Point Spacing**. |
+| **Curve Convert** | Curves | Converts curves of one type (**From**) to another (**To**): Curve, Bezier or B-Spline, as [Convert Curves](../curve/offset-convert.md). It starts as Curve to Bezier. |
+| **Curve Winding Aligner** | Curves | Makes every closed curve run the same way round, as [Align Winding](../curve/curve-commands.md). **Merge Curves** first joins open curves that meet end to end; **Reverse** turns them all the other way. |
 
 A step that can't run (for example **Bridge** on a closed mesh with no
 open border) turns its row red and passes the mesh below through

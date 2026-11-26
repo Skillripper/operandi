@@ -502,7 +502,7 @@ pub(crate) fn preview(scene: &mut Scene, lathe: &Lathe, symmetry: crate::Symmetr
     Ok(())
 }
 
-fn mesh_lathe(scene: &mut Scene, lathe: &Lathe) -> Result<()> {
+pub(crate) fn mesh_lathe(scene: &mut Scene, lathe: &Lathe) -> Result<()> {
     let Some(item) = scene.active() else {
         return Ok(());
     };

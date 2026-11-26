@@ -8830,6 +8830,37 @@ extrude, smooth-shift-thicken, split, quadruple and flip case).
   Conditional Loop (need specs). Select by Border is Select Border.
 - **MOQ-40 Assign Selection Set stores polygons, provisional.** Reference
   Sel is VRTX; Operandi stores the chosen polygons as a polygon set.
+- **MOQ-41 Curve Convert op converts in place, provisional.** TYPE-IDS
+  "Curve Convert". The buttons make a new item; the op replaces the curves
+  (new ones at the end of the list). "Curve to Bezier" = its defaults.
+- **MOQ-42 Curve Winding Aligner Axis, provisional.** Only Automatic is
+  built (CC-Q4); Axis is kept, not shown.
+- **MOQ-43 Curve Fill op, provisional.** One flat polygon per closed curve
+  (CC-10); Fill Steps, Edge Weight, UVs, curve range kept, not shown; no
+  holes (CC-11). Most hidden reference channels aren't kept.
+- **MOQ-44 Curve Boolean op driver, provisional.** Driver = unselected
+  curves; no Selection = all cut each other. Close/Trim/Offset/Self
+  Intersection kept, not built.
+- **MOQ-45 Edges to Curves op lists, provisional.** Curve Type Polyline /
+  Curve / Bezier, Mode Continuous / Separate, Delete Geometry removes the
+  polygons the edges belong to; Bezier Tangent Weight kept, not shown.
+- **MOQ-46 Curve Rebuild op, provisional.** Evenly spaced by length along
+  the drawn shape; result a Curve (lines stay lines). Rebuild Spans not
+  built.
+- **MOQ-47 Radial Sweep op id, provisional.** `radial.sweep.item`, one op
+  (reference: Sweep Effector + Helix). Unused Sweep Effector channels not
+  kept. Mesh space.
+- **MOQ-48 Curve Sweep op profile, provisional.** 8-sided round profile,
+  diameter Size; End Caps None/Start/End/Both; curves stay. Preset shapes,
+  start/end percent, normal finding and gradients not built or kept.
+- **MOQ-49 Text op choice order, provisional.** Location Top/Middle/Bottom,
+  Justification Left/Center/Right by position; Operandi's font default.
+- **MOQ-50 Arc op channels, provisional.** From the help table, not
+  confirmed; Arc tool defaults; Start/End give direction and plane only.
+- **MOQ-51 Sweep Effector and Create Polygons ops not built.** A bare Sweep
+  Effector needs a generator in its Tool Pipe (Curve Extrude and Radial
+  Sweep already are generator + sweep); Create Polygons' Positions are a
+  runtime list that isn't saved, so a stack can't hold them.
 - **UVN-O-grow-quads-seam with corner UVs only, provisional.** Spec:
   new-point-uvs-2026-11-02 (UVN-T-06). Start: the seam grid, read as corner
   UVs only (how Operandi and imported meshes keep UVs); Grow Quads on edges
